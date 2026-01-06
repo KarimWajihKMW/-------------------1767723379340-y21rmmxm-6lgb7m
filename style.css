@@ -1,0 +1,61 @@
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Transitions */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Module Cards */
+.stat-card {
+    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300;
+}
+
+/* Table Styling */
+.data-table {
+    @apply min-w-full divide-y divide-gray-200;
+}
+.data-table thead {
+    @apply bg-gray-50;
+}
+.data-table th {
+    @apply px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+.data-table tbody {
+    @apply bg-white divide-y divide-gray-200;
+}
+.data-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-700;
+}
+
+/* Workflow Steps */
+.step-active {
+    @apply border-brand-600 text-brand-600 bg-brand-50;
+}
+.step-completed {
+    @apply border-green-500 text-green-500 bg-green-50;
+}
+.step-inactive {
+    @apply border-gray-200 text-gray-400;
+}
