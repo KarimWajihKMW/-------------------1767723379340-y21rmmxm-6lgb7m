@@ -2,6 +2,7 @@
  * NAYOSH ERP - Advanced RBAC System
  * Updated with Multi-Layered Ad System (5 Levels)
  * Updated: Arabic Roles & Localization
+ * Updated: Interactive Charts
  */
 
 const app = (() => {
@@ -32,7 +33,8 @@ const app = (() => {
             cost: 0, 
             approval: false, 
             badgeClass: 'bg-gray-100 text-gray-600 border-gray-200',
-            gradient: 'from-gray-50 to-gray-100'
+            gradient: 'from-gray-50 to-gray-100',
+            chartColor: '#94a3b8' // Slate 400
         },
         L2_MULTI: { 
             id: 2, 
@@ -42,7 +44,8 @@ const app = (() => {
             cost: 500, 
             approval: true, 
             badgeClass: 'bg-blue-100 text-blue-600 border-blue-200',
-            gradient: 'from-blue-50 to-cyan-50'
+            gradient: 'from-blue-50 to-cyan-50',
+            chartColor: '#3b82f6' // Blue 500
         },
         L3_INC_INT: { 
             id: 3, 
@@ -52,7 +55,8 @@ const app = (() => {
             cost: 100, 
             approval: false, 
             badgeClass: 'bg-orange-100 text-orange-600 border-orange-200',
-            gradient: 'from-orange-50 to-amber-50'
+            gradient: 'from-orange-50 to-amber-50',
+            chartColor: '#f97316' // Orange 500
         },
         L4_PLT_INT: { 
             id: 4, 
@@ -62,7 +66,8 @@ const app = (() => {
             cost: 1000, 
             approval: true, 
             badgeClass: 'bg-green-100 text-green-600 border-green-200',
-            gradient: 'from-emerald-50 to-teal-50'
+            gradient: 'from-emerald-50 to-teal-50',
+            chartColor: '#10b981' // Emerald 500
         },
         L5_CROSS_INC: { 
             id: 5, 
@@ -72,7 +77,8 @@ const app = (() => {
             cost: 1500, 
             approval: true, 
             badgeClass: 'bg-purple-100 text-purple-600 border-purple-200',
-            gradient: 'from-violet-50 to-fuchsia-50'
+            gradient: 'from-violet-50 to-fuchsia-50',
+            chartColor: '#8b5cf6' // Violet 500
         }
     };
 
@@ -142,6 +148,7 @@ const app = (() => {
     };
 
     let currentUser = db.users[0];
+    let activeChart = null;
 
     // --- PERMISSIONS ---
     const perms = {
@@ -194,7 +201,7 @@ const app = (() => {
     // --- AUDIT ---
     const logAction = (action, details) => {
         const now = new Date();
-        db.auditLogs.unshift({
+        db.auditLogs.unshift({ 
             id: db.auditLogs.length + 1,
             user: currentUser.name,
             role: `${currentUser.tenantType} ${currentUser.role}`,
@@ -306,6 +313,12 @@ const app = (() => {
     const loadRoute = (route) => {
         const view = document.getElementById('main-view');
         document.getElementById('page-title').innerText = getTitle(route);
+
+        // Destroy existing chart if switching routes or reloading dashboard
+        if (activeChart) {
+            activeChart.destroy();
+            activeChart = null;
+        }
         
         let content = '';
         if (route === 'audit-logs' && !perms.canViewAuditLogs()) {
@@ -325,6 +338,14 @@ const app = (() => {
 
         view.innerHTML = `<div class="fade-in">${content}</div>`;
         updateActiveLink(route);
+
+        // Initialize Chart if on dashboard
+        if (route === 'dashboard') {
+            // Delay slightly to ensure DOM is updated
+            requestAnimationFrame(() => {
+                initDashboardChart();
+            });
+        }
     };
 
     const updateActiveLink = (route) => {
@@ -377,6 +398,75 @@ const app = (() => {
         return '<span class="text-slate-400 tracking-widest text-sm">****</span>';
     };
 
+    // --- CHART LOGIC ---
+    const initDashboardChart = () => {
+        const ctx = document.getElementById('adsChart');
+        if (!ctx) return;
+
+        // Data Aggregation
+        const visibleAds = perms.getVisibleAds();
+        const levels = Object.values(AD_LEVELS);
+        const labels = levels.map(l => l.label.split(' ')[0]); // Simplified labels
+        
+        const counts = levels.map(l => visibleAds.filter(a => a.level === l.key).length);
+        const colors = levels.map(l => l.chartColor);
+
+        activeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'عدد الإعلانات',
+                    data: counts,
+                    backgroundColor: colors,
+                    borderRadius: 8,
+                    barThickness: 30,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { family: 'Cairo', size: 14 },
+                        bodyFont: { family: 'Cairo', size: 13 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: { family: 'Cairo' }
+                        },
+                        grid: {
+                            color: '#f1f5f9'
+                        },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { family: 'Cairo', weight: 'bold' }
+                        },
+                        border: { display: false }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    };
+
     // --- DASHBOARD RENDER ---
     const renderDashboard = () => {
         const entity = db.entities.find(e => e.id === currentUser.entityId);
@@ -401,10 +491,26 @@ const app = (() => {
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <!-- Ads Widget takes 2 cols -->
-            <div class="lg:col-span-2 space-y-4">
+            <!-- Main Content Area -->
+            <div class="lg:col-span-2 space-y-8">
+                 
+                 <!-- CHART SECTION (NEW) -->
+                 <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-chart-bar text-brand-500"></i> 
+                            تحليل الحملات الإعلانية
+                        </h3>
+                        <span class="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600 font-bold">Live Data</span>
+                     </div>
+                     <div class="p-6 h-64 relative">
+                        <canvas id="adsChart"></canvas>
+                     </div>
+                 </div>
+
                  ${renderAdsFeed()}
             </div>
+
             <!-- Quick Stats -->
             <div class="space-y-4">
                  ${renderKpiCard('إعلاناتي النشطة', db.ads.filter(a => a.sourceEntityId === entity.id).length, 'fa-bullhorn', 'text-orange-600', 'bg-orange-50')}
@@ -687,7 +793,7 @@ const app = (() => {
 
     const submitAd = () => {
         const title = document.getElementById('ad-title').value;
-        const levelKey = document.querySelector('input[name="adLevel":checked')?.value;
+        const levelKey = document.querySelector('input[name="adLevel"]:checked')?.value;
         
         if (!title || !levelKey) {
             showToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
