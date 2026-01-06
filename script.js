@@ -1,6 +1,6 @@
 /**
  * NAYOSH ERP - Comprehensive Multi-Tenant System
- * Includes: Operations, Clients, Subscriptions, Reports, Team Management
+ * Includes: Operations, Clients, Subscriptions, Reports, Team Management, Ads Engine
  */
 
 const app = (() => {
@@ -32,6 +32,65 @@ const app = (() => {
             { id: 6, name: 'سامي المحاسب', role: ROLES.ACCOUNTANT, tenantType: TENANT_TYPES.HQ, entityId: 'HQ001', entityName: 'المكتب الرئيسي', desc: 'محاسب مالي' },
             { id: 7, name: 'ليلى موظفة', role: ROLES.EMPLOYEE, tenantType: TENANT_TYPES.BRANCH, entityId: 'BR015', entityName: 'فرع العليا مول', desc: 'موظفة مبيعات' },
             { id: 8, name: 'عمر الطالب', role: ROLES.CLIENT, tenantType: TENANT_TYPES.INCUBATOR, entityId: 'INC03', entityName: 'حاضنة السلامة', desc: 'طالب (عميل)' }
+        ],
+
+        // ADS ENGINE DATA STORE
+        ads: [
+            { 
+                id: 1, 
+                title: 'تحديث النظام 2.0', 
+                content: 'تم إطلاق واجهة جديدة للنظام، يرجى تحديث الصفحة للحصول على آخر التحديثات.', 
+                type: 'info', 
+                scope: 'GLOBAL', 
+                target: null, 
+                entityId: null, 
+                date: '2023-11-20', 
+                active: true 
+            },
+            { 
+                id: 2, 
+                title: 'عرض خاص للفروع', 
+                content: 'خصم 50% على الطابعات الحرارية حتى نهاية الشهر لجميع فروع التجزئة.', 
+                type: 'promo', 
+                scope: 'ALL_TENANTS', 
+                target: 'BRANCH', 
+                entityId: null, 
+                date: '2023-11-21', 
+                active: true 
+            },
+            { 
+                id: 3, 
+                title: 'تذكير بالاجتماع', 
+                content: 'اجتماع فريق المبيعات غداً صباحاً في قاعة الاجتماعات.', 
+                type: 'warning', 
+                scope: 'LOCAL', 
+                target: null, 
+                entityId: 'BR015', 
+                date: '2023-11-22', 
+                active: true 
+            },
+            { 
+                id: 4, 
+                title: 'مسابقة الهاكاثون', 
+                content: 'فتح باب التسجيل في هاكاثون الابتكار لجميع طلاب الحاضنة والمشاريع المحتضنة.', 
+                type: 'success', 
+                scope: 'ALL_TENANTS', 
+                target: 'INCUBATOR', 
+                entityId: null, 
+                date: '2023-11-19', 
+                active: true 
+            },
+             { 
+                id: 5, 
+                title: 'إعلان للعملاء', 
+                content: 'تم تمديد فترة التسجيل في الدورات الصيفية.', 
+                type: 'info', 
+                scope: 'LOCAL', 
+                target: null, 
+                entityId: 'INC03', 
+                date: '2023-11-23', 
+                active: true 
+            }
         ],
 
         // HQ Governance Data
@@ -106,6 +165,7 @@ const app = (() => {
         isManager: () => [ROLES.SUPER_ADMIN, ROLES.MANAGER].includes(currentUser.role),
         isEmployee: () => [ROLES.SUPER_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE].includes(currentUser.role),
         isClient: () => currentUser.role === ROLES.CLIENT,
+        isHQAdmin: () => currentUser.role === ROLES.SUPER_ADMIN && currentUser.tenantType === TENANT_TYPES.HQ,
 
         // Feature Access
         canViewOperations: () => !permissions.isClient() && !permissions.isHQ(),
@@ -114,6 +174,7 @@ const app = (() => {
         canViewReports: () => permissions.isManager() || currentUser.role === ROLES.ACCOUNTANT,
         canViewTeam: () => permissions.isManager() && !permissions.isHQ(),
         canViewGovernance: () => permissions.isHQ(),
+        canManageAds: () => permissions.isHQAdmin() || (permissions.isManager() && !permissions.isHQ()),
         
         // Tenant Checks
         isHQ: () => currentUser.tenantType === TENANT_TYPES.HQ,
@@ -132,6 +193,44 @@ const app = (() => {
                 return db[collection];
             }
             return db[collection].filter(item => item.entityId === currentUser.entityId);
+        },
+        // ADS ENGINE: Filtering Logic
+        getAds: () => {
+            return db.ads.filter(ad => {
+                if (!ad.active) return false;
+
+                // 1. GLOBAL: Visible to everyone
+                if (ad.scope === 'GLOBAL') return true;
+
+                // 2. ALL_TENANTS: Visible if user matches the tenant type
+                if (ad.scope === 'ALL_TENANTS' && ad.target === currentUser.tenantType) return true;
+
+                // 3. LOCAL: Visible if user matches specific entityId
+                if (ad.scope === 'LOCAL' && ad.entityId === currentUser.entityId) return true;
+
+                return false;
+            });
+        },
+        // ADS MANAGEMENT: Get ads based on who is managing
+        getManageableAds: () => {
+            if (permissions.isHQAdmin()) {
+                // HQ sees Global and All_Tenants ads
+                return db.ads.filter(ad => ad.scope === 'GLOBAL' || ad.scope === 'ALL_TENANTS');
+            } else if (permissions.isManager()) {
+                // Managers see their LOCAL ads
+                return db.ads.filter(ad => ad.scope === 'LOCAL' && ad.entityId === currentUser.entityId);
+            }
+            return [];
+        },
+        addAd: (ad) => {
+            ad.id = db.ads.length + 1;
+            ad.date = new Date().toISOString().split('T')[0];
+            ad.active = true;
+            db.ads.push(ad);
+        },
+        deleteAd: (id) => {
+            const index = db.ads.findIndex(a => a.id == id);
+            if (index > -1) db.ads.splice(index, 1);
         }
     };
 
@@ -180,6 +279,7 @@ const app = (() => {
         // HQ SPECIFIC MENU
         if (permissions.canViewGovernance()) {
             links += createNavLink('governance', 'fas fa-sitemap', 'إدارة الشبكة والكيانات');
+            links += createNavLink('ads-admin', 'fas fa-bullhorn', 'إدارة الإعلانات المركزية');
             links += createNavLink('reports', 'fas fa-chart-pie', 'التقارير المركزية');
         } else {
             // OTHER TENANTS MENU
@@ -217,6 +317,11 @@ const app = (() => {
             // 6. Team Management (Managers)
             if (permissions.canViewTeam()) {
                 links += createNavLink('team', 'fas fa-user-shield', 'إدارة الفريق');
+            }
+
+            // 7. Ads Management (Managers)
+            if (permissions.canManageAds()) {
+                 links += createNavLink('ads-admin', 'fas fa-bullhorn', 'نشر الإعلانات');
             }
         }
 
@@ -262,6 +367,9 @@ const app = (() => {
             case 'governance':
                 content = renderGovernance();
                 break;
+            case 'ads-admin':
+                content = renderAdsManagement();
+                break;
             default:
                 content = '<div class="p-10 text-center">الصفحة غير موجودة</div>';
         }
@@ -277,21 +385,54 @@ const app = (() => {
             'subscriptions': 'الاشتراكات والعقود', 
             'reports': 'التقارير والإحصائيات', 
             'team': 'فريق العمل',
-            'governance': 'إدارة الشبكة والكيانات'
+            'governance': 'إدارة الشبكة والكيانات',
+            'ads-admin': 'نظام إدارة الإعلانات'
         };
         return titles[route] || 'نايوش ERP';
     }
 
+    // --- HELPER COMPONENTS ---
+    const renderAdsCarousel = () => {
+        const ads = api.getAds();
+        if (ads.length === 0) return '';
+
+        return `
+        <div class="mb-6 overflow-hidden relative group">
+            <div class="flex gap-4 overflow-x-auto pb-2 snap-x custom-scrollbar">
+                ${ads.map(ad => `
+                    <div class="min-w-[100%] md:min-w-[350px] bg-white p-5 rounded-xl border-r-4 ${ad.type === 'promo' ? 'border-purple-500 bg-purple-50' : ad.type === 'warning' ? 'border-yellow-500 bg-yellow-50' : 'border-blue-500'} shadow-sm snap-start hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-bold text-gray-800">${ad.title}</h4>
+                                <span class="text-[10px] uppercase font-bold px-2 py-1 rounded ${ad.scope === 'GLOBAL' ? 'bg-indigo-100 text-indigo-700' : ad.scope === 'ALL_TENANTS' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-700'}">
+                                    ${ad.scope === 'GLOBAL' ? 'عام' : ad.scope === 'ALL_TENANTS' ? 'كل الفروع' : 'داخلي'}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2 leading-relaxed">${ad.content}</p>
+                        </div>
+                        <div class="mt-3 text-[10px] text-gray-400 flex justify-between items-center">
+                             <span><i class="far fa-clock ml-1"></i>${ad.date}</span>
+                             ${ad.type === 'promo' ? '<button class="text-purple-600 font-bold hover:underline">التفاصيل</button>' : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+    };
+
     // --- RENDERERS ---
 
-    // 1. DASHBOARD RENDERER (Updated for HQ)
+    // 1. DASHBOARD RENDERER
     const renderDashboard = () => {
+        const adsSection = renderAdsCarousel();
+
         if (permissions.isHQ()) {
             // Calculate Aggregates
             const totalRevenue = db.tenants.reduce((sum, t) => sum + t.revenue, 0);
             const healthScore = Math.round(db.tenants.reduce((sum, t) => sum + t.performance, 0) / db.tenants.length);
             
             return `
+            ${adsSection}
             <!-- HQ Header Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 ${card('الإيرادات المجمعة', totalRevenue.toLocaleString() + ' ر.س', 'green', 'fa-coins')}
@@ -346,47 +487,14 @@ const app = (() => {
                             </table>
                         </div>
                     </div>
-
-                    <!-- Charts Area (Simulated) -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                         <h3 class="font-bold text-gray-800 mb-4">تحليل الإيرادات حسب القطاع</h3>
-                         <div class="flex items-end justify-around h-40 pt-4 border-b border-gray-200">
-                            <div class="flex flex-col items-center gap-2 group w-1/5">
-                                <div class="w-full bg-blue-500 rounded-t h-24 hover:bg-blue-600 transition relative">
-                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">45%</span>
-                                </div>
-                                <span class="text-xs text-gray-500">منصات SaaS</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-2 group w-1/5">
-                                <div class="w-full bg-orange-500 rounded-t h-16 hover:bg-orange-600 transition relative">
-                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">25%</span>
-                                </div>
-                                <span class="text-xs text-gray-500">الفروع</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-2 group w-1/5">
-                                <div class="w-full bg-green-500 rounded-t h-12 hover:bg-green-600 transition relative">
-                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">15%</span>
-                                </div>
-                                <span class="text-xs text-gray-500">الحاضنات</span>
-                            </div>
-                             <div class="flex flex-col items-center gap-2 group w-1/5">
-                                <div class="w-full bg-purple-500 rounded-t h-8 hover:bg-purple-600 transition relative">
-                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">15%</span>
-                                </div>
-                                <span class="text-xs text-gray-500">أخرى</span>
-                            </div>
-                         </div>
-                    </div>
                 </div>
 
                 <!-- Left Column: Tasks & Alerts (1/3) -->
                 <div class="space-y-6">
-                    
                     <!-- HQ Tasks -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-gray-800 text-sm">مهام الإدارة العليا</h3>
-                            <button class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-brand-500 hover:text-white transition text-xs"><i class="fas fa-plus"></i></button>
                         </div>
                         <ul class="space-y-3">
                             ${db.hqTasks.map(task => `
@@ -430,8 +538,9 @@ const app = (() => {
             `;
         }
         
-        // ... (Keep existing dashboards for other roles)
+        // Client View
         if (permissions.isClient()) return `
+            ${adsSection}
             <div class="bg-white p-8 rounded-xl shadow-sm text-center">
                 <h2 class="text-2xl font-bold text-gray-800">مرحباً بك في بوابة الطالب</h2>
                 <p class="text-gray-500 mt-2">تابع دروسك واشتراكاتك من هنا</p>
@@ -441,6 +550,7 @@ const app = (() => {
 
         // Managers/Employees Dashboard
         return `
+        ${adsSection}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-xl shadow-sm border-r-4 border-brand-500">
                 <p class="text-sm text-gray-500">النشاط اليومي</p>
@@ -467,7 +577,92 @@ const app = (() => {
         `;
     };
 
-    // 2. NEW: GOVERNANCE RENDERER (HQ ONLY)
+    // 2. NEW: ADS MANAGEMENT RENDERER
+    const renderAdsManagement = () => {
+        const myAds = api.getManageableAds();
+        const isHQ = permissions.isHQAdmin();
+
+        return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Form -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit">
+                <h3 class="font-bold text-lg mb-4 text-brand-600"><i class="fas fa-plus-circle ml-2"></i>نشر إعلان جديد</h3>
+                <form onsubmit="event.preventDefault(); alert('تم إضافة الإعلان بنجاح!');" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">عنوان الإعلان</label>
+                        <input type="text" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-brand-500 focus:outline-none" placeholder="مثلاً: صيانة طارئة">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">محتوى الإعلان</label>
+                        <textarea class="w-full p-2 border border-gray-300 rounded text-sm focus:border-brand-500 focus:outline-none" rows="3" placeholder="تفاصيل الإعلان..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع الإعلان</label>
+                        <select class="w-full p-2 border border-gray-300 rounded text-sm bg-white">
+                            <option value="info">معلومة (Information)</option>
+                            <option value="promo">ترويجي (Promo)</option>
+                            <option value="warning">تنبيه (Warning)</option>
+                            <option value="success">إنجاز (Success)</option>
+                        </select>
+                    </div>
+                    
+                    ${isHQ ? `
+                    <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                        <label class="block text-xs font-bold text-brand-700 mb-2">نطاق النشر (صلاحيات HQ)</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center text-sm">
+                                <input type="radio" name="scope" value="GLOBAL" class="ml-2 text-brand-600"> نشر عام (كل النظام)
+                            </label>
+                            <label class="flex items-center text-sm">
+                                <input type="radio" name="scope" value="ALL_TENANTS" class="ml-2 text-brand-600"> نشر حسب نوع الكيان
+                            </label>
+                            <select class="w-full mt-1 p-2 border border-gray-300 rounded text-xs bg-white" disabled>
+                                <option>-- اختر نوع الكيان --</option>
+                                <option value="BRANCH">جميع الفروع (Retail)</option>
+                                <option value="INCUBATOR">جميع الحاضنات (Edu)</option>
+                            </select>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                        <p class="text-xs text-gray-500">سيتم نشر هذا الإعلان داخلياً فقط لموظفي وعملاء <strong>${currentUser.entityName}</strong>.</p>
+                        <input type="hidden" name="scope" value="LOCAL">
+                    </div>
+                    `}
+
+                    <button type="submit" class="w-full bg-brand-600 text-white py-2 rounded font-bold hover:bg-brand-700 transition">نشر الإعلان</button>
+                </form>
+            </div>
+
+            <!-- List -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-lg mb-4">الإعلانات النشطة (${myAds.length})</h3>
+                <div class="space-y-4">
+                    ${myAds.length > 0 ? myAds.map(ad => `
+                        <div class="flex items-start gap-4 p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition group">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 ${ad.type === 'promo' ? 'bg-purple-500' : ad.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'}">
+                                <i class="fas ${ad.type === 'promo' ? 'fa-tag' : ad.type === 'warning' ? 'fa-exclamation' : 'fa-info'}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <h4 class="font-bold text-gray-800">${ad.title}</h4>
+                                    <div class="flex gap-2">
+                                         <span class="text-[10px] px-2 py-1 rounded bg-gray-200 text-gray-600">${ad.scope === 'GLOBAL' ? 'عام' : ad.scope === 'ALL_TENANTS' ? `كل الـ ${ad.target}` : 'محلي'}</span>
+                                         <button onclick="app.deleteAd(${ad.id})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">${ad.content}</p>
+                                <p class="text-xs text-gray-400 mt-2">${ad.date}</p>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-center text-gray-400 py-10">لا توجد إعلانات نشطة</p>'}
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+    // 3. GOVERNANCE RENDERER (HQ ONLY)
     const renderGovernance = () => {
         if (!permissions.isHQ()) return '<div class="text-red-500">غير مصرح لك بالوصول</div>';
         
@@ -527,12 +722,6 @@ const app = (() => {
                             <td class="p-3">مكتب جدة</td>
                             <td class="p-3 text-gray-500">IP: 192.168.1.5</td>
                         </tr>
-                         <tr>
-                            <td class="p-3">2023-11-19 14:00</td>
-                            <td class="p-3 font-bold">تحديث بيانات عميل</td>
-                            <td class="p-3">نايوش كلاود</td>
-                            <td class="p-3 text-gray-500">Client ID: 101</td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -540,7 +729,7 @@ const app = (() => {
         `;
     }
 
-    // 3. OPERATIONS RENDERER (Unchanged mainly, kept for context)
+    // 4. OPERATIONS RENDERER
     const renderOperations = () => {
         if (permissions.isBranch()) return `
             <div class="flex gap-4 mb-6">
@@ -633,7 +822,7 @@ const app = (() => {
         return `<div>No operations view defined.</div>`;
     };
 
-    // 4. CLIENTS RENDERER
+    // 5. CLIENTS RENDERER
     const renderClients = () => {
         const clients = api.getData('clients');
         return `
@@ -652,7 +841,7 @@ const app = (() => {
         `;
     };
 
-    // 5. SUBSCRIPTIONS RENDERER
+    // 6. SUBSCRIPTIONS RENDERER
     const renderSubscriptions = () => {
         if (permissions.isClient()) {
              // Student View
@@ -695,7 +884,7 @@ const app = (() => {
         `;
     };
 
-    // 6. REPORTS RENDERER (Updated for HQ Consolidated)
+    // 7. REPORTS RENDERER
     const renderReports = () => {
         const finance = api.getData('finance');
         const income = finance.filter(f => f.type === 'credit').reduce((a,b) => a + b.amount, 0);
@@ -738,7 +927,7 @@ const app = (() => {
         `;
     };
 
-    // 7. TEAM RENDERER
+    // 8. TEAM RENDERER
     const renderTeam = () => {
         const team = api.getData('team');
         return `
@@ -802,7 +991,8 @@ const app = (() => {
         init,
         switchUser,
         loadRoute,
-        getData: api.getData // Export for console debug
+        deleteAd: (id) => { api.deleteAd(id); loadRoute('ads-admin'); }, // Exposed for UI
+        getData: api.getData
     };
 })();
 
