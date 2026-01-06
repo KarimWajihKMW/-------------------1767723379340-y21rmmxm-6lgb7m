@@ -234,12 +234,10 @@ const app = (() => {
         const sidebar = document.getElementById('sidebar');
         const backdrop = document.getElementById('mobile-backdrop');
         
-        // Using Translate-X to show/hide in RTL (Right-0) context
-        // Since it's right-0, translate-x-full (positive) moves it right (out of screen)
-        // translate-x-0 moves it to original position (visible)
         const isClosed = sidebar.classList.contains('translate-x-full');
 
         if (isClosed) {
+            // Open Menu
             sidebar.classList.remove('translate-x-full');
             sidebar.classList.add('translate-x-0');
             
@@ -249,6 +247,7 @@ const app = (() => {
                 backdrop.classList.remove('opacity-0');
             });
         } else {
+            // Close Menu
             sidebar.classList.remove('translate-x-0');
             sidebar.classList.add('translate-x-full');
             
@@ -354,13 +353,24 @@ const app = (() => {
     };
 
     const updateActiveLink = (route) => {
-        document.querySelectorAll('#nav-menu a').forEach(l => l.classList.remove('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500'));
+        document.querySelectorAll('#nav-menu a').forEach(l => {
+            // Remove active styles
+            l.classList.remove('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
+            // Add inactive hover text style if needed
+            l.classList.add('text-slate-400');
+        });
+        
         const active = document.getElementById(`link-${route}`);
-        if(active) active.classList.add('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500');
-        else if(route === 'register-tenant') {
+        if(active) {
+            active.classList.remove('text-slate-400');
+            active.classList.add('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
+        } else if(route === 'register-tenant') {
              // Keep entities active if registering
              const entitiesLink = document.getElementById('link-entities');
-             if(entitiesLink) entitiesLink.classList.add('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500');
+             if(entitiesLink) {
+                 entitiesLink.classList.remove('text-slate-400');
+                 entitiesLink.classList.add('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
+             }
         }
     };
 
@@ -393,9 +403,9 @@ const app = (() => {
         menu.innerHTML = items.filter(i => i.show).map(item => 
             `<li>
                 <a href="#" id="link-${item.id}" onclick="app.loadRoute('${item.id}')" 
-                   class="flex items-center gap-3 px-3 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all group relative overflow-hidden">
-                   <i class="fas ${item.icon} w-6 text-center text-slate-400 group-hover:text-brand-400 transition-colors z-10"></i> 
-                   <span class="z-10 relative">${item.label}</span>
+                   class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all group relative overflow-hidden">
+                   <i class="fas ${item.icon} w-6 text-center group-hover:text-brand-400 transition-colors z-10"></i> 
+                   <span class="z-10 relative font-medium">${item.label}</span>
                 </a>
             </li>`
         ).join('');
