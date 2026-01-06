@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام نايوش ERP | منظومة نايوش المتكاملة</title>
+    <title>نظام نايوش ERP | نظام متعدد المستأجرين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,7 +38,7 @@
             <div class="p-6 border-b border-slate-700 flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-wider text-brand-500">NAYOSH</h1>
-                    <p class="text-xs text-slate-400 mt-1">ERP منظومة موحدة</p>
+                    <p class="text-xs text-slate-400 mt-1">Multi-Tenant ERP</p>
                 </div>
             </div>
 
@@ -77,19 +77,19 @@
                     <!-- Role Switcher for Simulation -->
                     <div class="relative group">
                         <button class="flex items-center gap-2 text-xs sm:text-sm bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition shadow-lg shadow-slate-300/50">
-                            <i class="fas fa-network-wired"></i>
-                            <span class="hidden sm:inline">تغيير الكيان (محاكاة)</span>
+                            <i class="fas fa-random"></i>
+                            <span class="hidden sm:inline">تبديل المستأجر (Tenant)</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         <div class="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-2xl border border-gray-100 hidden group-hover:block p-2 z-50">
-                            <div class="text-xs text-gray-400 px-3 py-1 font-bold">المستوى الإداري</div>
-                            <button onclick="app.switchUser('HQ')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-purple-500">المكتب الرئيسي (HQ)</button>
+                            <div class="text-xs text-gray-400 px-3 py-1 font-bold">المستوى الإداري (Tenant A)</div>
+                            <button onclick="app.switchUser('HQ')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-purple-500">المكتب الرئيسي (HQ001)</button>
                             <div class="border-t my-1"></div>
-                            <div class="text-xs text-gray-400 px-3 py-1 font-bold">الوحدات التشغيلية</div>
+                            <div class="text-xs text-gray-400 px-3 py-1 font-bold">الوحدات المستقلة (Tenants B-E)</div>
                             <button onclick="app.switchUser('BRANCH')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-blue-500">فرع الرياض (Retail)</button>
                             <button onclick="app.switchUser('INCUBATOR')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-orange-500">حاضنة السلامة (Edu)</button>
-                            <button onclick="app.switchUser('PLATFORM')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-green-500">منصة نايوش الرقمية (SaaS)</button>
-                            <button onclick="app.switchUser('OFFICE')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-gray-500">مكتب جدة الإداري (Admin)</button>
+                            <button onclick="app.switchUser('PLATFORM')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-green-500">منصة نايوش (SaaS)</button>
+                            <button onclick="app.switchUser('OFFICE')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 border-l-4 border-transparent hover:border-gray-500">مكتب جدة (Admin)</button>
                         </div>
                     </div>
 
