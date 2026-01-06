@@ -1,6 +1,7 @@
 /**
  * NAYOSH ERP - Advanced RBAC System
  * Updated with Multi-Layered Ad System (5 Levels)
+ * Updated: Arabic Roles & Localization
  */
 
 const app = (() => {
@@ -14,11 +15,11 @@ const app = (() => {
     };
 
     const ROLES = {
-        ADMIN: 'ADMIN',       // Full Control
-        FINANCE: 'FINANCE',   // Financial View
-        SUPPORT: 'SUPPORT',   // Tickets
-        ADVERTISER: 'ADVERTISER', // Ads
-        USER: 'USER'          // Read Only
+        ADMIN: 'مسؤول النظام',       // Full Control
+        FINANCE: 'مسؤول مالي',      // Financial View
+        SUPPORT: 'دعم فني',         // Tickets
+        ADVERTISER: 'معلن',         // Ads
+        USER: 'مستخدم'             // Read Only
     };
 
     // --- 5 LEVEL AD PUBLISHING RULES ---
@@ -135,8 +136,8 @@ const app = (() => {
         ],
 
         auditLogs: [
-            { id: 1, user: 'م. أحمد العلي', role: 'HQ Admin', action: 'LOGIN', details: 'تم تسجيل الدخول للنظام', timestamp: '2023-11-20 08:00', entityId: 'HQ001' },
-            { id: 2, user: 'سارة محمد', role: 'Branch Admin', action: 'CREATE_AD', details: 'إنشاء إعلان: خصم خاص للموظفين', timestamp: '2023-11-20 09:15', entityId: 'BR015' }
+            { id: 1, user: 'م. أحمد العلي', role: 'مدير المكتب الرئيسي', action: 'LOGIN', details: 'تم تسجيل الدخول للنظام', timestamp: '2023-11-20 08:00', entityId: 'HQ001' },
+            { id: 2, user: 'سارة محمد', role: 'مدير الفرع', action: 'CREATE_AD', details: 'إنشاء إعلان: خصم خاص للموظفين', timestamp: '2023-11-20 09:15', entityId: 'BR015' }
         ]
     };
 
@@ -255,7 +256,7 @@ const app = (() => {
 
     const updateHeader = () => {
         document.getElementById('user-name').innerText = currentUser.name;
-        document.getElementById('user-role').innerText = currentUser.tenantType + ' | ' + currentUser.role;
+        document.getElementById('user-role').innerText = TENANT_TYPES[currentUser.tenantType].label + ' | ' + currentUser.role;
         document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
         document.getElementById('entity-badge').innerText = currentUser.entityName;
         
@@ -348,7 +349,7 @@ const app = (() => {
             <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="px-3 py-1 rounded-lg text-[10px] bg-slate-200 text-slate-600 font-bold shadow-sm">${currentUser.role}</span>
-                    ${perms.isHQ() ? '<span class="px-3 py-1 rounded-lg text-[10px] bg-purple-100 text-purple-600 font-bold shadow-sm">HQ ACCESS</span>' : ''}
+                    ${perms.isHQ() ? '<span class="px-3 py-1 rounded-lg text-[10px] bg-purple-100 text-purple-600 font-bold shadow-sm">صلاحيات HQ</span>' : ''}
                 </div>
                 <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-slate-900">${entity.name}</h2>
                 <p class="text-gray-500 mt-1 flex items-center gap-2"><i class="fas fa-map-marker-alt text-brand-500"></i> ${entity.location}</p>
@@ -648,7 +649,7 @@ const app = (() => {
 
     const submitAd = () => {
         const title = document.getElementById('ad-title').value;
-        const levelKey = document.querySelector('input[name="adLevel"]:checked')?.value;
+        const levelKey = document.querySelector('input[name="adLevel":checked')?.value;
         
         if (!title || !levelKey) {
             showToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
