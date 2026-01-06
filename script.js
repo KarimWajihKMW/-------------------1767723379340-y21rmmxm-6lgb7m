@@ -52,6 +52,42 @@ const app = (() => {
         cohorts: [
             { name: 'الدفعة 14 - سلامة مهنية', students: 45, progress: 75, entityId: 'INC03' },
             { name: 'الدفعة 15 - إدارة مخاطر', students: 30, progress: 10, entityId: 'INC03' }
+        ],
+
+        // Implementation Plan Data (New Request)
+        roadmap: [
+            {
+                phase: 'المرحلة 1: التأسيس والبنية التحتية', 
+                desc: 'بناء نواة النظام وهيكل البيانات متعدد المستأجرين.',
+                time: 'أسبوعين',
+                status: 'completed',
+                deliverables: ['تصميم قاعدة البيانات المعزولة (Schemas)', 'نظام الصلاحيات (RBAC)', 'واجهة تسجيل الدخول والداشبورد الأساسي'],
+                criteria: ['نجاح عزل بيانات 3 مستأجرين مختلفين', 'زمن استجابة API أقل من 200ms', 'اجتياز اختبارات الأمان الأساسية']
+            },
+            {
+                phase: 'المرحلة 2: الوحدات التشغيلية (MVP)', 
+                desc: 'تطوير الوحدات الأساسية لكل نشاط تجاري (تجزئة، تعليم، إدارة).',
+                time: '4 أسابيع',
+                status: 'in_progress',
+                deliverables: ['نظام نقاط البيع (POS)', 'إدارة الدورات والطلاب', 'نظام الفوترة المالية الموحد'],
+                criteria: ['إتمام عملية بيع كاملة وحفظها', 'تسجيل طالب في دورة بنجاح', 'توليد تقرير مالي دقيق لكل مستأجر']
+            },
+            {
+                phase: 'المرحلة 3: التكامل والتقارير',
+                desc: 'ربط النظام مع خدمات خارجية وبناء تقارير ذكاء الأعمال.',
+                time: '3 أسابيع',
+                status: 'pending',
+                deliverables: ['بوابة الدفع الإلكتروني', 'الربط مع الفوترة الإلكترونية (ZATCA)', 'لوحات معلومات تفاعلية (BI)'],
+                criteria: ['قبول عملية دفع حقيقية', 'اعتماد الفاتورة من هيئة الزكاة (Sandbox)', 'تصدير التقارير بصيغة PDF/Excel']
+            },
+            {
+                phase: 'المرحلة 4: الإطلاق والتحسين',
+                desc: 'تحسين الأداء وإطلاق النسخة العامة للعملاء.',
+                time: 'أسبوعين',
+                status: 'pending',
+                deliverables: ['تحسين الكاشينج (Caching)', 'تطبيق الموبايل (PWA)', 'دليل المستخدم والتوثيق'],
+                criteria: ['تحمل 10,000 مستخدم متزامن', 'تقييم أداء Lighthouse > 90', 'إغلاق جميع الثغرات الأمنية الحرجة']
+            }
         ]
     };
 
@@ -72,7 +108,10 @@ const app = (() => {
         getStats: () => db.system_stats.find(item => item.entityId === currentUser.entityId) || null,
         
         // Even user listing should be isolated (only show users in same entity)
-        getColleagues: () => db.users.filter(u => u.entityId === currentUser.entityId)
+        getColleagues: () => db.users.filter(u => u.entityId === currentUser.entityId),
+
+        // Public or Permission-based data
+        getRoadmap: () => db.roadmap
     };
 
     // --- CORE ---
@@ -97,7 +136,11 @@ const app = (() => {
         </div>`;
         
         setTimeout(() => {
-            init();
+            // Re-render sidebar to update links based on new role
+            renderSidebar();
+            // Redirect to dashboard on switch
+            loadRoute('dashboard');
+            updateHeader();
         }, 600);
     };
 
@@ -135,6 +178,7 @@ const app = (() => {
             links += `
                 <li><a href="#" onclick="app.loadRoute('finance')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group"><i class="fas fa-chart-pie w-6 text-center group-hover:text-purple-400"></i> التقارير المالية</a></li>
                 <li><a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group"><i class="fas fa-building w-6 text-center group-hover:text-purple-400"></i> إدارة الأصول</a></li>
+                <li><a href="#" onclick="app.loadRoute('roadmap')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group"><i class="fas fa-map-signs w-6 text-center group-hover:text-purple-400"></i> خطة العمل</a></li>
             `;
         }
 
@@ -156,6 +200,7 @@ const app = (() => {
             links += `
                 <li><a href="#" onclick="app.loadRoute('tickets')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group"><i class="fas fa-ticket-alt w-6 text-center group-hover:text-green-400"></i> تذاكر الدعم</a></li>
                 <li><a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group"><i class="fas fa-server w-6 text-center group-hover:text-green-400"></i> المراقبة</a></li>
+                <li><a href="#" onclick="app.loadRoute('roadmap')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group"><i class="fas fa-map-signs w-6 text-center group-hover:text-green-400"></i> خطة التطوير</a></li>
             `;
         }
 
@@ -183,6 +228,8 @@ const app = (() => {
             else content = viewDashboardBranch();
         } else if (route === 'finance') {
             content = viewFinanceReport();
+        } else if (route === 'roadmap') {
+            content = viewRoadmap();
         } else {
             content = `<div class="p-10 text-center text-gray-400">الصفحة غير متاحة في هذا الإصدار</div>`;
         }
@@ -464,6 +511,77 @@ const app = (() => {
                     `).join('')}
                 </tbody>
             </table>
+        </div>
+        `;
+    }
+
+    const viewRoadmap = () => {
+        const plan = api.getRoadmap();
+        
+        const statusColors = {
+            'completed': 'bg-green-100 text-green-700 border-green-200',
+            'in_progress': 'bg-blue-100 text-blue-700 border-blue-200',
+            'pending': 'bg-gray-100 text-gray-500 border-gray-200'
+        };
+
+        const statusLabels = {
+            'completed': 'مكتملة',
+            'in_progress': 'قيد التنفيذ',
+            'pending': 'مجدولة'
+        };
+
+        return `
+        <div class="bg-white p-6 rounded-xl shadow-sm mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">خطة تنفيذ المشروع</h2>
+                    <p class="text-gray-500">خارطة طريق تطوير نظام نايوش ERP ومراحله الزمنية</p>
+                </div>
+                <button class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm hover:bg-brand-700 transition">
+                    <i class="fas fa-download ml-2"></i> تصدير الخطة
+                </button>
+            </div>
+        </div>
+
+        <div class="relative space-y-8 px-4">
+            <!-- Vertical Line -->
+            <div class="absolute right-8 top-0 bottom-0 w-1 bg-gray-200 hidden md:block rounded-full"></div>
+
+            ${plan.map((phase, index) => `
+            <div class="relative flex flex-col md:flex-row gap-6 items-start">
+                <!-- Dot -->
+                <div class="hidden md:flex absolute right-6 w-5 h-5 rounded-full border-4 border-white ${phase.status === 'completed' ? 'bg-green-500' : (phase.status === 'in_progress' ? 'bg-blue-500 animate-pulse' : 'bg-gray-300')} z-10"></div>
+
+                <div class="flex-1 bg-white p-6 rounded-xl shadow-sm border border-gray-100 w-full">
+                    <div class="flex flex-wrap justify-between items-start mb-4 gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">${phase.phase}</h3>
+                            <p class="text-sm text-gray-500 mt-1"><i class="far fa-clock ml-1"></i> المدة التقديرية: ${phase.time}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold border ${statusColors[phase.status]}">
+                            ${statusLabels[phase.status]}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-6">${phase.desc}</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-sm text-slate-700 mb-3 border-b border-slate-200 pb-2"><i class="fas fa-box-open ml-2 text-brand-500"></i> المخرجات (Deliverables)</h4>
+                            <ul class="space-y-2">
+                                ${phase.deliverables.map(d => `<li class="text-sm text-slate-600 flex items-center gap-2"><i class="fas fa-check-circle text-xs text-brand-300"></i> ${d}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-sm text-slate-700 mb-3 border-b border-slate-200 pb-2"><i class="fas fa-clipboard-check ml-2 text-green-500"></i> معايير القبول (Criteria)</h4>
+                            <ul class="space-y-2">
+                                ${phase.criteria.map(c => `<li class="text-sm text-slate-600 flex items-center gap-2"><i class="fas fa-shield-alt text-xs text-green-300"></i> ${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `).join('')}
         </div>
         `;
     }
