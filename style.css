@@ -87,3 +87,11 @@
 #app-container {
     background-image: radial-gradient(circle at 10% 20%, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 90%);
 }
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+    }
+}
