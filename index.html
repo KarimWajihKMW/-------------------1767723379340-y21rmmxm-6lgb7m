@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام نايوش ERP | منظومة متعددة الكيانات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-hidden">
+
+    <div id="app-container" class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 shadow-xl z-20 hidden md:flex" id="sidebar">
+            <div class="p-6 border-b border-slate-700 flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wider text-brand-500">NAYOSH</h1>
+                    <p class="text-xs text-slate-400 mt-1">نظام إدارة الموارد المتكامل</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1 px-3" id="nav-menu">
+                    <!-- Navigation injected via JS based on Role -->
+                </ul>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-900">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center font-bold text-lg">
+                        <span id="user-initials">N</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold" id="user-name">جاري التحميل...</p>
+                        <p class="text-xs text-slate-400" id="user-role">...</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+            <!-- Top Header -->
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
+                <div class="flex items-center gap-4">
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-brand-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h2 class="text-xl font-bold text-gray-800" id="page-title">لوحة التحكم</h2>
+                    <span id="entity-badge" class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">...</span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Role Switcher for Demo Purposes -->
+                    <div class="relative group">
+                        <button class="flex items-center gap-2 text-sm bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition">
+                            <i class="fas fa-users-cog"></i>
+                            <span>تبديل الكيان (محاكاة)</span>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 hidden group-hover:block p-2">
+                            <button onclick="app.switchUser('HQ')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm">المكتب الرئيسي (Admin)</button>
+                            <button onclick="app.switchUser('BRANCH')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm">فرع الرياض</button>
+                            <button onclick="app.switchUser('INCUBATOR')" class="block w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm">حاضنة السلامة</button>
+                        </div>
+                    </div>
+
+                    <button class="relative p-2 text-gray-400 hover:text-brand-600 transition">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="relative">
+                         <input type="text" placeholder="بحث ذكي / اسأل المساعد..." class="bg-gray-100 border-none rounded-full px-4 py-2 w-64 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                         <i class="fas fa-sparkles absolute left-3 top-2.5 text-brand-500"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Content View -->
+            <main id="main-view" class="flex-1 overflow-y-auto bg-gray-50 p-6 scroll-smooth">
+                <!-- Views will be injected here by script.js -->
+            </main>
+        </div>
+    </div>
+
+    <!-- Smart Assistant Overlay (Hidden by default) -->
+    <div id="ai-assistant" class="fixed bottom-6 left-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 hidden transform transition-all duration-300 translate-y-full">
+        <div class="p-4 border-b bg-brand-600 text-white rounded-t-2xl flex justify-between items-center">
+            <h3 class="font-bold"><i class="fas fa-robot mr-2"></i>مساعد نايوش الذكي</h3>
+            <button class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-4 h-64 overflow-y-auto text-sm text-gray-600">
+            <p class="mb-2 bg-gray-100 p-2 rounded-lg rounded-tr-none inline-block">كيف يمكنني مساعدتك في بيانات الفرع اليوم؟</p>
+        </div>
+        <div class="p-3 border-t">
+            <input type="text" class="w-full border rounded-lg px-3 py-2 text-sm" placeholder="اكتب أمرًا...">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
