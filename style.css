@@ -1,3 +1,14 @@
+:root {
+    /* Default Theme (Sky Blue) RGB Values for Tailwind Opacity Support */
+    --brand-50: 240 249 255;
+    --brand-100: 224 242 254;
+    --brand-400: 56 189 248;
+    --brand-500: 14 165 233;
+    --brand-600: 2 132 199;
+    --brand-800: 7 89 133;
+    --brand-900: 12 74 110;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
