@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام نايوش ERP | الإعلانات متعددة الطبقات</title>
+    <title>نظام نايوش SaaS | تخطيط موارد المؤسسات متعدد المستأجرين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
 
     <!-- Watermark Background -->
     <div class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-5">
-        <h1 class="text-[25vw] font-black text-slate-300 transform -rotate-12 select-none whitespace-nowrap blur-sm">نايوش</h1>
+        <h1 class="text-[25vw] font-black text-slate-300 transform -rotate-12 select-none whitespace-nowrap blur-sm">SaaS</h1>
     </div>
 
     <!-- Notification Toast Container -->
@@ -45,10 +45,10 @@
         <!-- Sidebar Navigation -->
         <aside class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 shadow-xl z-50 hidden md:flex" id="sidebar">
             <div class="p-6 border-b border-slate-700 bg-gradient-to-r from-slate-900 to-slate-800 relative overflow-hidden group">
-                <!-- Logo Area with White Text Request -->
+                <!-- Logo Area -->
                 <div class="relative z-10">
-                    <h1 class="text-3xl font-black tracking-wider text-white drop-shadow-md hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] transition-all duration-300 cursor-default transform group-hover:scale-105 origin-right">نايوش</h1>
-                    <p class="text-[10px] text-slate-300 mt-1 opacity-90 uppercase tracking-widest font-bold">تخطيط موارد المؤسسات</p>
+                    <h1 class="text-3xl font-black tracking-wider text-white drop-shadow-md hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] transition-all duration-300 cursor-default transform group-hover:scale-105 origin-right">نايوش <span class="text-brand-400 text-lg">SaaS</span></h1>
+                    <p class="text-[10px] text-slate-300 mt-1 opacity-90 uppercase tracking-widest font-bold">منصة متعددة المستأجرين</p>
                 </div>
                 <!-- Subtle Glow Effect behind logo -->
                 <div class="absolute top-0 right-0 w-24 h-24 bg-brand-500/10 rounded-full blur-2xl transform -translate-y-10 translate-x-10 group-hover:bg-brand-400/20 transition-all duration-500"></div>
@@ -60,6 +60,7 @@
                 </ul>
             </nav>
 
+            <!-- User Profile Footer -->
             <div class="p-4 border-t border-slate-800 bg-slate-900/50">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center font-bold text-lg text-white shadow-lg ring-2 ring-slate-700">
@@ -78,22 +79,27 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
-            <!-- Top Header (Increased Z-Index to 40 to stay above Main Content) -->
+            <!-- Top Header -->
             <header class="h-16 bg-white/90 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-40 relative">
                 <div class="flex items-center gap-4">
                     <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-brand-600 transition-transform hover:scale-110">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h2 class="text-xl font-bold text-gray-800 hidden sm:block" id="page-title">لوحة التحكم</h2>
-                    <span id="entity-badge" class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200 shadow-sm animate-fade-in">...</span>
+                    
+                    <!-- Tenant Badge Isolation Indicator -->
+                    <div id="tenant-badge" class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full animate-fade-in">
+                        <i class="fas fa-fingerprint text-slate-400 text-xs"></i>
+                        <span id="tenant-id-display" class="text-xs font-mono font-bold text-slate-600">...</span>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <!-- Role Simulation Switcher (Click to Toggle for Stability) -->
+                    <!-- Role Simulation Switcher -->
                     <div class="relative">
                         <button onclick="app.toggleRoleMenu(event)" class="flex items-center gap-2 text-xs sm:text-sm bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition shadow-lg shadow-slate-300/50 hover:shadow-slate-400/50 transform hover:-translate-y-0.5 active:scale-95">
-                            <i class="fas fa-users-cog"></i>
-                            <span class="hidden sm:inline">محاكاة الصلاحيات (Roles)</span>
+                            <i class="fas fa-random"></i>
+                            <span class="hidden sm:inline">تبديل المستأجر (Demo)</span>
                             <i class="fas fa-chevron-down text-xs transition-transform duration-300" id="role-chevron"></i>
                         </button>
                         
@@ -102,45 +108,39 @@
                             
                             <!-- Admin Roles Structure -->
                             <div class="p-2">
-                                <div class="text-[10px] text-gray-500 px-3 py-1.5 font-extrabold uppercase tracking-wider bg-gray-50 rounded mb-1">هيكل المسؤولين</div>
+                                <div class="text-[10px] text-gray-500 px-3 py-1.5 font-extrabold uppercase tracking-wider bg-gray-50 rounded mb-1">النطاق العالمي (Super Admin)</div>
                                 <button onclick="app.switchUser(1)" class="w-full text-right px-4 py-2.5 hover:bg-purple-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-crown text-purple-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير المكتب الرئيسي</span>
-                                    <span class="text-[10px] text-purple-600 border border-purple-200 px-1.5 py-0.5 rounded bg-purple-50">شامل</span>
-                                </button>
-                                <button onclick="app.switchUser(2)" class="w-full text-right px-4 py-2.5 hover:bg-blue-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-store text-blue-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير فرع تجزئة</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">محلي</span>
-                                </button>
-                                <button onclick="app.switchUser(3)" class="w-full text-right px-4 py-2.5 hover:bg-orange-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-seedling text-orange-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير حاضنة أعمال</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">محلي</span>
-                                </button>
-                                <button onclick="app.switchUser(4)" class="w-full text-right px-4 py-2.5 hover:bg-green-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-server text-green-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير المنصة الرقمية</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">تقني</span>
-                                </button>
-                                <button onclick="app.switchUser(5)" class="w-full text-right px-4 py-2.5 hover:bg-gray-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-briefcase text-gray-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير مكتب إداري</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">إداري</span>
+                                    <span><i class="fas fa-crown text-purple-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير المكتب الرئيسي (HQ)</span>
+                                    <span class="text-[10px] text-purple-600 border border-purple-200 px-1.5 py-0.5 rounded bg-purple-50">Master</span>
                                 </button>
 
-                                <!-- Functional Roles Structure -->
-                                <div class="text-[10px] text-gray-500 px-3 py-1.5 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-3 mb-1">الأدوار الوظيفية</div>
-                                <button onclick="app.switchUser(6)" class="w-full text-right px-4 py-2.5 hover:bg-teal-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-chart-line text-teal-600 ml-2 w-4 group-hover:scale-110 transition"></i>المسؤول المالي</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">مالي</span>
+                                <div class="text-[10px] text-gray-500 px-3 py-1.5 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-3 mb-1">المستأجرين (Tenants)</div>
+                                <button onclick="app.switchUser(2)" class="w-full text-right px-4 py-2.5 hover:bg-blue-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
+                                    <span><i class="fas fa-store text-blue-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير فرع العليا (Retail)</span>
+                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">Tenant A</span>
                                 </button>
-                                <button onclick="app.switchUser(7)" class="w-full text-right px-4 py-2.5 hover:bg-pink-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-headset text-pink-600 ml-2 w-4 group-hover:scale-110 transition"></i>خدمة العملاء</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">دعم</span>
+                                <button onclick="app.switchUser(3)" class="w-full text-right px-4 py-2.5 hover:bg-orange-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
+                                    <span><i class="fas fa-seedling text-orange-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير حاضنة السلامة</span>
+                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">Tenant B</span>
+                                </button>
+                                <button onclick="app.switchUser(4)" class="w-full text-right px-4 py-2.5 hover:bg-green-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
+                                    <span><i class="fas fa-server text-green-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير منصة نايوش</span>
+                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">Tenant C</span>
+                                </button>
+                                <button onclick="app.switchUser(5)" class="w-full text-right px-4 py-2.5 hover:bg-gray-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
+                                    <span><i class="fas fa-briefcase text-gray-600 ml-2 w-4 group-hover:scale-110 transition"></i>مدير مكتب الدمام</span>
+                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">Tenant D</span>
+                                </button>
+
+                                <!-- Functional Roles -->
+                                <div class="text-[10px] text-gray-500 px-3 py-1.5 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-3 mb-1">موظفي المستأجرين</div>
+                                <button onclick="app.switchUser(6)" class="w-full text-right px-4 py-2.5 hover:bg-teal-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
+                                    <span><i class="fas fa-chart-line text-teal-600 ml-2 w-4 group-hover:scale-110 transition"></i>مسؤول مالي (HQ)</span>
+                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">HQ Staff</span>
                                 </button>
                                 <button onclick="app.switchUser(8)" class="w-full text-right px-4 py-2.5 hover:bg-yellow-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-bullhorn text-yellow-600 ml-2 w-4 group-hover:scale-110 transition"></i>مسؤول الإعلانات</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">نشر</span>
-                                </button>
-                                <button onclick="app.switchUser(10)" class="w-full text-right px-4 py-2.5 hover:bg-gray-50 rounded-lg text-sm text-gray-700 flex justify-between items-center group transition-colors">
-                                    <span><i class="fas fa-user text-gray-400 ml-2 w-4 group-hover:scale-110 transition"></i>مستخدم عام</span>
-                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">محدود</span>
+                                    <span><i class="fas fa-bullhorn text-yellow-600 ml-2 w-4 group-hover:scale-110 transition"></i>مسؤول إعلانات (فرع)</span>
+                                    <span class="text-[10px] text-gray-400 border px-1.5 py-0.5 rounded">Tenant A</span>
                                 </button>
                             </div>
                         </div>
