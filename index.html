@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام نايوش ERP | الإعلانات متعددة الطبقات</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script>
@@ -30,17 +30,22 @@
         }
     </script>
 </head>
-<body class="bg-slate-50 text-gray-800 font-sans antialiased overflow-hidden">
+<body class="bg-slate-50 text-gray-800 font-sans antialiased overflow-hidden relative">
+
+    <!-- Watermark Background -->
+    <div class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-5">
+        <h1 class="text-[25vw] font-black text-slate-300 transform -rotate-12 select-none whitespace-nowrap blur-sm">نايوش</h1>
+    </div>
 
     <!-- Notification Toast Container -->
     <div id="toast-container" class="fixed top-4 left-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <div id="app-container" class="flex h-screen">
+    <div id="app-container" class="flex h-screen relative z-10">
         <!-- Sidebar Navigation -->
         <aside class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 shadow-xl z-20 hidden md:flex" id="sidebar">
             <div class="p-6 border-b border-slate-700 bg-gradient-to-r from-slate-900 to-slate-800">
-                <h1 class="text-2xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-300">NAYOSH</h1>
-                <p class="text-[10px] text-slate-400 mt-1 opacity-80 uppercase tracking-widest">Enterprise Resource Planning</p>
+                <h1 class="text-2xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-300">نايوش</h1>
+                <p class="text-[10px] text-slate-400 mt-1 opacity-80 uppercase tracking-widest">تخطيط موارد المؤسسات</p>
             </div>
 
             <nav class="flex-1 overflow-y-auto py-4">
@@ -88,44 +93,44 @@
                         <div class="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-100 hidden group-hover:block p-2 z-50 max-h-[80vh] overflow-y-auto custom-scrollbar">
                             
                             <!-- Admin Roles Structure -->
-                            <div class="text-[10px] text-gray-500 px-3 py-1 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-1">هيكل المسؤولين (Admins)</div>
+                            <div class="text-[10px] text-gray-500 px-3 py-1 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-1">هيكل المسؤولين</div>
                             <button onclick="app.switchUser(1)" class="w-full text-right px-4 py-2 hover:bg-purple-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-crown text-purple-600 ml-2 w-4"></i>HQ Admin</span>
+                                <span><i class="fas fa-crown text-purple-600 ml-2 w-4"></i>مدير المكتب الرئيسي</span>
                                 <span class="text-[10px] text-purple-600 border border-purple-200 px-1 rounded">شامل</span>
                             </button>
                             <button onclick="app.switchUser(2)" class="w-full text-right px-4 py-2 hover:bg-blue-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-store text-blue-600 ml-2 w-4"></i>Branch Admin</span>
+                                <span><i class="fas fa-store text-blue-600 ml-2 w-4"></i>مدير فرع تجزئة</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">محلي</span>
                             </button>
                             <button onclick="app.switchUser(3)" class="w-full text-right px-4 py-2 hover:bg-orange-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-seedling text-orange-600 ml-2 w-4"></i>Incubator Admin</span>
+                                <span><i class="fas fa-seedling text-orange-600 ml-2 w-4"></i>مدير حاضنة أعمال</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">محلي</span>
                             </button>
                             <button onclick="app.switchUser(4)" class="w-full text-right px-4 py-2 hover:bg-green-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-server text-green-600 ml-2 w-4"></i>Platform Admin</span>
+                                <span><i class="fas fa-server text-green-600 ml-2 w-4"></i>مدير المنصة الرقمية</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">تقني</span>
                             </button>
                             <button onclick="app.switchUser(5)" class="w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-briefcase text-gray-600 ml-2 w-4"></i>Office Admin</span>
+                                <span><i class="fas fa-briefcase text-gray-600 ml-2 w-4"></i>مدير مكتب إداري</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">إداري</span>
                             </button>
 
                             <!-- Functional Roles Structure -->
-                            <div class="text-[10px] text-gray-500 px-3 py-1 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-2">الأدوار الوظيفية (Functional)</div>
+                            <div class="text-[10px] text-gray-500 px-3 py-1 font-extrabold uppercase tracking-wider bg-gray-50 rounded mt-2">الأدوار الوظيفية</div>
                             <button onclick="app.switchUser(6)" class="w-full text-right px-4 py-2 hover:bg-teal-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-chart-line text-teal-600 ml-2 w-4"></i>Finance Role</span>
+                                <span><i class="fas fa-chart-line text-teal-600 ml-2 w-4"></i>المسؤول المالي</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">مالي</span>
                             </button>
                             <button onclick="app.switchUser(7)" class="w-full text-right px-4 py-2 hover:bg-pink-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-headset text-pink-600 ml-2 w-4"></i>Support Role</span>
+                                <span><i class="fas fa-headset text-pink-600 ml-2 w-4"></i>خدمة العملاء</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">دعم</span>
                             </button>
                             <button onclick="app.switchUser(8)" class="w-full text-right px-4 py-2 hover:bg-yellow-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-bullhorn text-yellow-600 ml-2 w-4"></i>Advertiser Role</span>
+                                <span><i class="fas fa-bullhorn text-yellow-600 ml-2 w-4"></i>مسؤول الإعلانات</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">نشر</span>
                             </button>
                             <button onclick="app.switchUser(10)" class="w-full text-right px-4 py-2 hover:bg-gray-50 rounded text-sm text-gray-700 flex justify-between group-item transition">
-                                <span><i class="fas fa-user text-gray-400 ml-2 w-4"></i>End User</span>
+                                <span><i class="fas fa-user text-gray-400 ml-2 w-4"></i>مستخدم عام</span>
                                 <span class="text-[10px] text-gray-400 border px-1 rounded">محدود</span>
                             </button>
                         </div>
@@ -139,7 +144,7 @@
             </header>
 
             <!-- Dynamic Content View -->
-            <main id="main-view" class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 scroll-smooth relative">
+            <main id="main-view" class="flex-1 overflow-y-auto bg-slate-50/50 p-4 md:p-8 scroll-smooth relative z-10">
                 <!-- Views will be injected here by script.js -->
             </main>
         </div>
