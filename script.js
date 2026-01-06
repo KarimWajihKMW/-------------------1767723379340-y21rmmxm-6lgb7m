@@ -1,7 +1,6 @@
 /**
  * NAYOSH ERP - Advanced RBAC System
- * Implements strict data isolation and granular permissions:
- * HQ Admin, Branch Admin, Incubator Admin, Platform Admin, Office Admin, Finance, Support, Advertiser, End User.
+ * Updated with Multi-Layered Ad System (5 Levels)
  */
 
 const app = (() => {
@@ -14,34 +13,84 @@ const app = (() => {
         OFFICE: { id: 'OFFICE', label: 'مكتب إداري', icon: 'fa-briefcase', color: 'text-gray-600', bg: 'bg-gray-50', theme: 'gray' }
     };
 
-    // Strict Role Definitions
     const ROLES = {
-        ADMIN: 'ADMIN',       // Full Control within Entity
-        FINANCE: 'FINANCE',   // Financial View & Ops
-        SUPPORT: 'SUPPORT',   // Tickets & Helpdesk
-        ADVERTISER: 'ADVERTISER', // Ads & Marketing
-        USER: 'USER'          // Read Only / End User
+        ADMIN: 'ADMIN',       // Full Control
+        FINANCE: 'FINANCE',   // Financial View
+        SUPPORT: 'SUPPORT',   // Tickets
+        ADVERTISER: 'ADVERTISER', // Ads
+        USER: 'USER'          // Read Only
     };
 
+    // --- 5 LEVEL AD PUBLISHING RULES ---
     const AD_LEVELS = {
-        L1_LOCAL: { id: 1, label: 'محلي (Local)', desc: 'داخل الفرع فقط', cost: 0, requireApproval: false, badge: 'bg-gray-100 text-gray-600' },
-        L2_MULTI: { id: 2, label: 'متعدد الفروع (Paid)', desc: 'حملة مدفوعة لعدة فروع', cost: 500, requireApproval: true, badge: 'bg-blue-100 text-blue-600' },
-        L3_INC_INT: { id: 3, label: 'مجتمع الحاضنة', desc: 'لشركات الحاضنة فقط', cost: 100, requireApproval: true, badge: 'bg-orange-100 text-orange-600' },
-        L4_PLT_INT: { id: 4, label: 'داخل المنصة', desc: 'لمستخدمي النظام الرقمي', cost: 1000, requireApproval: true, badge: 'bg-green-100 text-green-600' },
-        L5_CROSS_INC: { id: 5, label: 'عابر للحاضنات', desc: 'نشر في حاضنات أخرى', cost: 1500, requireApproval: true, badge: 'bg-purple-100 text-purple-600' }
+        L1_LOCAL: { 
+            id: 1, 
+            key: 'L1_LOCAL', 
+            label: 'محلي (Local)', 
+            desc: 'داخل الكيان/الفرع فقط', 
+            cost: 0, 
+            approval: false, 
+            badgeClass: 'bg-gray-100 text-gray-600 border-gray-200',
+            gradient: 'from-gray-50 to-gray-100'
+        },
+        L2_MULTI: { 
+            id: 2, 
+            key: 'L2_MULTI', 
+            label: 'متعدد الفروع (Paid)', 
+            desc: 'نشر لعدة فروع مختارة', 
+            cost: 500, 
+            approval: true, 
+            badgeClass: 'bg-blue-100 text-blue-600 border-blue-200',
+            gradient: 'from-blue-50 to-cyan-50'
+        },
+        L3_INC_INT: { 
+            id: 3, 
+            key: 'L3_INC_INT', 
+            label: 'داخل الحاضنة', 
+            desc: 'لجميع منسوبي الحاضنة', 
+            cost: 100, 
+            approval: false, 
+            badgeClass: 'bg-orange-100 text-orange-600 border-orange-200',
+            gradient: 'from-orange-50 to-amber-50'
+        },
+        L4_PLT_INT: { 
+            id: 4, 
+            key: 'L4_PLT_INT', 
+            label: 'داخل المنصة', 
+            desc: 'لجميع مستخدمي النظام الرقمي', 
+            cost: 1000, 
+            approval: true, 
+            badgeClass: 'bg-green-100 text-green-600 border-green-200',
+            gradient: 'from-emerald-50 to-teal-50'
+        },
+        L5_CROSS_INC: { 
+            id: 5, 
+            key: 'L5_CROSS_INC', 
+            label: 'عابر للحاضنات', 
+            desc: 'نشر في حاضنات أخرى (بموافقة)', 
+            cost: 1500, 
+            approval: true, 
+            badgeClass: 'bg-purple-100 text-purple-600 border-purple-200',
+            gradient: 'from-violet-50 to-fuchsia-50'
+        }
+    };
+
+    const AD_SOURCES = {
+        HQ: { label: 'إعلانات الرئيسية', icon: 'fa-crown', color: 'text-purple-600' },
+        BRANCH: { label: 'رئيسية الفرع', icon: 'fa-store', color: 'text-blue-600' },
+        INCUBATOR: { label: 'رئيسية الحاضنة', icon: 'fa-seedling', color: 'text-orange-600' },
+        PLATFORM: { label: 'رئيسية المنصة', icon: 'fa-laptop-code', color: 'text-green-600' },
+        OFFICE: { label: 'رئيسية المكتب', icon: 'fa-briefcase', color: 'text-gray-600' }
     };
 
     // --- DATA LAYER ---
     const db = {
         users: [
-            // Admins (By Entity Type)
             { id: 1, name: 'م. أحمد العلي', role: ROLES.ADMIN, tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' },
             { id: 2, name: 'سارة محمد', role: ROLES.ADMIN, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' },
             { id: 3, name: 'د. خالد الزهراني', role: ROLES.ADMIN, tenantType: 'INCUBATOR', entityId: 'INC03', entityName: 'حاضنة السلامة' },
             { id: 4, name: 'فريق التقنية', role: ROLES.ADMIN, tenantType: 'PLATFORM', entityId: 'PLT01', entityName: 'نايوش كلاود' },
             { id: 5, name: 'يوسف المكتب', role: ROLES.ADMIN, tenantType: 'OFFICE', entityId: 'OFF01', entityName: 'مكتب الدمام' },
-            
-            // Functional Roles
             { id: 6, name: 'أ. منى المالية', role: ROLES.FINANCE, tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' },
             { id: 7, name: 'خدمة العملاء', role: ROLES.SUPPORT, tenantType: 'PLATFORM', entityId: 'PLT01', entityName: 'نايوش كلاود' },
             { id: 8, name: 'كريم التسويق', role: ROLES.ADVERTISER, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' },
@@ -60,10 +109,18 @@ const app = (() => {
         ],
 
         ads: [
-            { id: 1, title: 'صيانة دورية للنظام', content: 'سيتم توقف النظام للصيانة فجر الجمعة.', level: 'GLOBAL', scope: 'ALL', status: 'ACTIVE', sourceEntityId: 'HQ001', targetIds: [], date: '2023-11-20', cost: 0 },
-            { id: 2, title: 'اجتماع موظفين داخلي', content: 'اجتماع لمناقشة التارجت الشهري.', level: 'L1_LOCAL', scope: 'LOCAL', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015'], date: '2023-11-21', cost: 0 },
-            { id: 3, title: 'خصم موحد 20%', content: 'حملة ترويجية مشتركة بين الفروع.', level: 'L2_MULTI', scope: 'MULTI', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015', 'BR016'], date: '2023-11-22', cost: 500 },
-            { id: 5, title: 'تحدي الابتكار المفتوح', content: 'دعوة لجميع الحاضنات للمشاركة.', level: 'L5_CROSS_INC', scope: 'MULTI', status: 'PENDING', sourceEntityId: 'INC03', targetIds: ['INC03', 'INC04'], date: '2023-11-24', cost: 1500 }
+            // HQ Ad (Level 5 simulated as global here or special HQ level)
+            { id: 1, title: 'تحديث سياسات التشغيل 2024', content: 'نلفت انتباه جميع الفروع لتحديث السياسات.', level: 'L5_CROSS_INC', scope: 'GLOBAL', status: 'ACTIVE', sourceEntityId: 'HQ001', targetIds: [], date: '2023-11-20', cost: 0, sourceType: 'HQ' },
+            // Branch Local
+            { id: 2, title: 'اجتماع فريق المبيعات', content: 'مناقشة تارجت الشهر القادم.', level: 'L1_LOCAL', scope: 'LOCAL', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015'], date: '2023-11-21', cost: 0, sourceType: 'BRANCH' },
+            // Multi Branch
+            { id: 3, title: 'حملة العودة للمدارس', content: 'خصم 15% على جميع المنتجات.', level: 'L2_MULTI', scope: 'MULTI', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015', 'BR016'], date: '2023-11-22', cost: 500, sourceType: 'BRANCH' },
+            // Incubator Internal
+            { id: 4, title: 'ورشة عمل ريادة الأعمال', content: 'مخصصة لشركات الحاضنة فقط.', level: 'L3_INC_INT', scope: 'INCUBATOR', status: 'ACTIVE', sourceEntityId: 'INC03', targetIds: ['INC03'], date: '2023-11-23', cost: 100, sourceType: 'INCUBATOR' },
+            // Cross Incubator
+            { id: 5, title: 'تحدي الابتكار المفتوح', content: 'دعوة للمشاركة في الهاكاثون السنوي.', level: 'L5_CROSS_INC', scope: 'MULTI', status: 'PENDING', sourceEntityId: 'INC03', targetIds: ['INC03', 'INC04'], date: '2023-11-24', cost: 1500, sourceType: 'INCUBATOR' },
+            // Platform
+            { id: 6, title: 'تحديث أمني للنظام', content: 'سيتم إعادة تشغيل الخوادم.', level: 'L4_PLT_INT', scope: 'PLATFORM', status: 'ACTIVE', sourceEntityId: 'PLT01', targetIds: [], date: '2023-11-25', cost: 1000, sourceType: 'PLATFORM' }
         ],
 
         tasks: [
@@ -85,83 +142,58 @@ const app = (() => {
 
     let currentUser = db.users[0];
 
-    // --- GRANULAR PERMISSIONS LOGIC ---
+    // --- PERMISSIONS ---
     const perms = {
-        // Scope Checks
         isHQ: () => currentUser.tenantType === 'HQ',
-        isMyEntity: (id) => currentUser.entityId === id,
-        
-        // Role Checks
         isAdmin: () => currentUser.role === ROLES.ADMIN,
         isFinance: () => currentUser.role === ROLES.FINANCE,
         isSupport: () => currentUser.role === ROLES.SUPPORT,
         isAdvertiser: () => currentUser.role === ROLES.ADVERTISER,
         isUser: () => currentUser.role === ROLES.USER,
 
-        // --- CAPABILITIES (Strict Isolation) ---
+        canViewEntity: (eId) => (perms.isHQ() && perms.isAdmin()) || currentUser.entityId === eId,
+        canEditEntity: (eId) => perms.isAdmin() && perms.canViewEntity(eId),
+        canViewBalance: () => perms.isAdmin() || perms.isFinance(),
+        canManageAds: () => perms.isAdmin() || perms.isAdvertiser(),
+        canViewAuditLogs: () => perms.isAdmin(),
+        canManageTickets: () => perms.isAdmin() || perms.isSupport(),
 
-        // 1. Can View Entity Data? (Strict: HQ Global or Local Only)
-        canViewEntity: (eId) => {
-            if (perms.isHQ() && perms.isAdmin()) return true; // HQ Super Admin sees all
-            return currentUser.entityId === eId; // Everyone else sees ONLY their entity
-        },
-
-        // 2. Can Edit Entity Settings? (Admin Only)
-        canEditEntity: (eId) => {
-            return perms.isAdmin() && perms.canViewEntity(eId);
-        },
-
-        // 3. Can View Financial Balance? (Admin + Finance Only)
-        canViewBalance: () => {
-            return perms.isAdmin() || perms.isFinance();
-        },
-
-        // 4. Can Manage Ads? (Admin + Advertiser Only)
-        canManageAds: () => {
-            return perms.isAdmin() || perms.isAdvertiser();
-        },
-
-        // 5. Can View Audit Logs? (Admin Only)
-        canViewAuditLogs: () => {
-            return perms.isAdmin();
-        },
-
-        // 6. Can Manage Tickets? (Admin + Support Only)
-        canManageTickets: () => {
-            return perms.isAdmin() || perms.isSupport();
-        },
-
-        // --- DATA FILTERING HELPERS ---
-        getVisibleEntities: () => {
-            if (perms.isHQ() && perms.isAdmin()) return db.entities;
-            return db.entities.filter(e => e.id === currentUser.entityId);
-        },
-
+        getVisibleEntities: () => (perms.isHQ() && perms.isAdmin()) ? db.entities : db.entities.filter(e => e.id === currentUser.entityId),
+        
+        // --- UPDATED VISIBILITY LOGIC ---
         getVisibleAds: () => {
-            // View logic: Can see Global HQ ads AND local ads AND ads targeted at my entity
             return db.ads.filter(ad => {
-                if (ad.level === 'GLOBAL') return true;
-                const isSource = ad.sourceEntityId === currentUser.entityId;
-                const isTarget = ad.targetIds.includes(currentUser.entityId);
-                if (isSource) return true;
-                if (isTarget && ad.status === 'ACTIVE') return true;
+                // 1. Source always sees their own ads
+                if (ad.sourceEntityId === currentUser.entityId) return true;
+                
+                // 2. HQ Ads (Simulating Global Broadcast) -> Seen by Everyone
+                if (ad.sourceType === 'HQ') return true;
+
+                // 3. Platform Ads -> Seen by Everyone if targeted globally or user is on platform
+                if (ad.level === 'L4_PLT_INT') return true;
+
+                // 4. Targeted Ads (Multi-branch, Cross-Incubator) - if approved
+                if (ad.targetIds.includes(currentUser.entityId) && ad.status === 'ACTIVE') return true;
+
+                // 5. Incubator Internal (Simulated logic: if user is in an incubator)
+                // Ideally we check if currentUser.entity.parent === ad.sourceEntityId
+                if (ad.level === 'L3_INC_INT' && currentUser.tenantType === 'INCUBATOR' && ad.sourceEntityId === currentUser.entityId) return true;
+
                 return false;
-            });
+            }).sort((a, b) => new Date(b.date) - new Date(a.date));
         },
 
         getVisibleAuditLogs: () => {
              if (perms.isHQ() && perms.isAdmin()) return db.auditLogs;
-             // Admin of a branch sees logs for that branch only
              if (perms.isAdmin()) return db.auditLogs.filter(l => l.entityId === currentUser.entityId);
-             // Others see nothing
              return [];
         }
     };
 
-    // --- AUDIT SYSTEM ---
+    // --- AUDIT ---
     const logAction = (action, details) => {
         const now = new Date();
-        const log = {
+        db.auditLogs.unshift({
             id: db.auditLogs.length + 1,
             user: currentUser.name,
             role: `${currentUser.tenantType} ${currentUser.role}`,
@@ -169,27 +201,30 @@ const app = (() => {
             details: details,
             timestamp: now.toISOString().slice(0, 16).replace('T', ' '),
             entityId: currentUser.entityId
-        };
-        db.auditLogs.unshift(log);
+        });
     };
 
-    // --- UI HELPERS ---
+    // --- UI UTILS ---
     const showToast = (msg, type = 'info') => {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
-        const colors = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-800';
-        toast.className = `${colors} text-white px-4 py-3 rounded-lg shadow-xl text-sm fade-in flex items-center gap-3`;
-        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${msg}`;
+        const styles = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-800';
+        toast.className = `${styles} text-white px-6 py-4 rounded-xl shadow-2xl text-sm flex items-center gap-4 animate-slide-in backdrop-blur-sm bg-opacity-95`;
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} text-lg"></i> <span class="font-semibold">${msg}</span>`;
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => { 
+            toast.style.opacity = '0'; 
+            toast.style.transform = 'translateY(-20px)';
+            setTimeout(() => toast.remove(), 300); 
+        }, 3000);
     };
 
-    // --- CORE LOGIC ---
+    // --- INIT ---
     const init = () => {
         renderSidebar();
         updateHeader();
         loadRoute('dashboard');
-        showToast(`مرحباً ${currentUser.name} (${currentUser.role})`);
+        showToast(`مرحباً ${currentUser.name} (${currentUser.role})`, 'success');
     };
 
     const switchUser = (id) => {
@@ -199,13 +234,21 @@ const app = (() => {
             currentUser = u;
             logAction('LOGIN', `تسجيل دخول للدور ${currentUser.tenantType} - ${currentUser.role}`);
             
-            document.getElementById('main-view').innerHTML = `<div class="flex h-full items-center justify-center flex-col gap-4"><i class="fas fa-fingerprint text-6xl text-brand-200 animate-pulse"></i><p class="text-slate-500 font-bold">جاري تطبيق سياسات ${u.role}...</p></div>`;
+            const view = document.getElementById('main-view');
+            view.innerHTML = `
+                <div class="flex h-full items-center justify-center flex-col gap-6">
+                    <div class="relative">
+                        <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
+                        <i class="fas fa-user-shield absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تطبيق سياسات ${u.role}...</p>
+                </div>`;
             
             setTimeout(() => { 
                 renderSidebar(); 
                 updateHeader(); 
                 loadRoute('dashboard');
-                showToast(`تم التحويل إلى: ${currentUser.name}`);
+                showToast(`تم التحويل إلى: ${currentUser.name}`, 'success');
             }, 800);
         }
     };
@@ -226,7 +269,6 @@ const app = (() => {
         document.getElementById('page-title').innerText = getTitle(route);
         
         let content = '';
-        // Route Guarding
         if (route === 'audit-logs' && !perms.canViewAuditLogs()) {
             content = renderPlaceholder('عفواً، ليس لديك صلاحية الاطلاع على سجلات التدقيق');
         } else {
@@ -248,16 +290,16 @@ const app = (() => {
 
     const updateActiveLink = (route) => {
         const links = document.querySelectorAll('#nav-menu a');
-        links.forEach(l => l.classList.remove('bg-slate-800', 'text-white'));
+        links.forEach(l => l.classList.remove('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500'));
         const active = document.getElementById(`link-${route}`);
-        if(active) active.classList.add('bg-slate-800', 'text-white');
+        if(active) active.classList.add('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500');
     }
 
     const getTitle = (r) => {
         const map = { 
             'dashboard': 'لوحة القيادة الموحدة',
             'entities': 'إدارة الكيانات والفروع',
-            'ads': 'منصة الإعلانات المركزية',
+            'ads': 'منصة الإعلانات متعددة الطبقات',
             'audit-logs': 'سجل التدقيق (Audit Logs)',
             'tasks': 'المهام والعمليات',
             'tickets': 'تذاكر الدعم والتشغيل',
@@ -266,7 +308,6 @@ const app = (() => {
         return map[r] || 'نايوش ERP';
     };
 
-    // --- RENDERERS ---
     const renderSidebar = () => {
         const menu = document.getElementById('nav-menu');
         let items = [
@@ -282,288 +323,319 @@ const app = (() => {
         menu.innerHTML = items.filter(i => i.show).map(item => 
             `<li>
                 <a href="#" id="link-${item.id}" onclick="app.loadRoute('${item.id}')" 
-                   class="flex items-center gap-3 px-3 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition group">
-                   <i class="fas ${item.icon} w-6 text-center text-slate-400 group-hover:text-brand-400 transition-colors"></i> 
-                   ${item.label}
+                   class="flex items-center gap-3 px-3 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all group relative overflow-hidden">
+                   <i class="fas ${item.icon} w-6 text-center text-slate-400 group-hover:text-brand-400 transition-colors z-10"></i> 
+                   <span class="z-10 relative">${item.label}</span>
                 </a>
             </li>`
         ).join('');
     };
 
-    // --- MASKED DATA COMPONENT ---
     const renderMaskedBalance = (balance) => {
         if (perms.canViewBalance()) {
-            return balance.toLocaleString() + ' ر.س';
+            return balance.toLocaleString() + ' <span class="text-xs">ر.س</span>';
         }
-        return '<span class="text-slate-400 tracking-widest">****</span>';
+        return '<span class="text-slate-400 tracking-widest text-sm">****</span>';
     };
 
-    // --- DASHBOARDS ---
+    // --- DASHBOARD RENDER ---
     const renderDashboard = () => {
-        // Common Header
         const entity = db.entities.find(e => e.id === currentUser.entityId);
         if (!entity) return renderPlaceholder('الكيان غير موجود');
 
         return `
-        <div class="mb-8 flex justify-between items-end">
-            <div>
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+            <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="px-2 py-1 rounded text-[10px] bg-slate-200 text-slate-600 font-bold">${currentUser.role}</span>
-                    ${perms.isHQ() ? '<span class="px-2 py-1 rounded text-[10px] bg-purple-100 text-purple-600 font-bold">HQ ACCESS</span>' : ''}
+                    <span class="px-3 py-1 rounded-lg text-[10px] bg-slate-200 text-slate-600 font-bold shadow-sm">${currentUser.role}</span>
+                    ${perms.isHQ() ? '<span class="px-3 py-1 rounded-lg text-[10px] bg-purple-100 text-purple-600 font-bold shadow-sm">HQ ACCESS</span>' : ''}
                 </div>
-                <h2 class="text-3xl font-bold text-gray-800">${entity.name}</h2>
-                <p class="text-gray-500">${entity.location} | المستخدم الحالي: ${currentUser.name}</p>
+                <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-slate-900">${entity.name}</h2>
+                <p class="text-gray-500 mt-1 flex items-center gap-2"><i class="fas fa-map-marker-alt text-brand-500"></i> ${entity.location}</p>
             </div>
-            <div class="text-left">
-                 <p class="text-xs text-slate-400 font-bold uppercase">المحفظة الرقمية</p>
-                 <p class="text-2xl font-mono font-bold ${perms.canViewBalance() ? 'text-brand-600' : 'text-slate-400'}">
+            <div class="bg-white p-4 rounded-2xl shadow-lg border border-slate-100 min-w-[200px]">
+                 <p class="text-xs text-slate-400 font-bold uppercase mb-1">المحفظة الرقمية</p>
+                 <p class="text-3xl font-mono font-bold ${perms.canViewBalance() ? 'text-brand-600' : 'text-slate-400'}">
                     ${renderMaskedBalance(entity.balance)}
                  </p>
             </div>
         </div>
 
-        ${renderAdsWidget()}
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            ${renderKpiCard('إعلاناتي', db.ads.filter(a => a.sourceEntityId === entity.id).length, 'fa-bullhorn', 'text-orange-600', 'bg-orange-50')}
-            ${renderKpiCard('المهام المعلقة', db.tasks.filter(t => t.entityId === entity.id && t.status === 'Pending').length, 'fa-tasks', 'text-blue-600', 'bg-blue-50')}
-            ${renderKpiCard('تذاكر مفتوحة', db.tickets.filter(t => t.entityId === entity.id && t.status === 'Open').length, 'fa-ticket-alt', 'text-red-600', 'bg-red-50')}
-            ${renderKpiCard('الموظفين', entity.users, 'fa-users', 'text-teal-600', 'bg-teal-50')}
-        </div>
-
-        <!-- Role Specific Notice -->
-        ${!perms.isAdmin() ? `
-        <div class="bg-yellow-50 border-r-4 border-yellow-400 p-4 rounded shadow-sm flex items-start gap-3">
-            <i class="fas fa-lock text-yellow-600 mt-1"></i>
-            <div>
-                <h4 class="font-bold text-yellow-800">صلاحيات محدودة (${currentUser.role})</h4>
-                <p class="text-sm text-yellow-700 mt-1">
-                    أنت تعمل الآن بصلاحيات مقيدة. لا يمكنك الاطلاع على الأرصدة أو سجلات التدقيق أو تعديل إعدادات الكيان إلا إذا كان دورك يسمح بذلك.
-                </p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Ads Widget takes 2 cols -->
+            <div class="lg:col-span-2 space-y-4">
+                 ${renderAdsFeed()}
+            </div>
+            <!-- Quick Stats -->
+            <div class="space-y-4">
+                 ${renderKpiCard('إعلاناتي النشطة', db.ads.filter(a => a.sourceEntityId === entity.id).length, 'fa-bullhorn', 'text-orange-600', 'bg-orange-50')}
+                 ${renderKpiCard('المهام المعلقة', db.tasks.filter(t => t.entityId === entity.id && t.status === 'Pending').length, 'fa-tasks', 'text-blue-600', 'bg-blue-50')}
+                 ${renderKpiCard('التذاكر المفتوحة', db.tickets.filter(t => t.entityId === entity.id && t.status === 'Open').length, 'fa-ticket-alt', 'text-red-600', 'bg-red-50')}
+                 ${renderKpiCard('الموظفين المسجلين', entity.users, 'fa-users', 'text-teal-600', 'bg-teal-50')}
             </div>
         </div>
-        ` : ''}
         `;
     };
 
-    const renderAdsWidget = () => {
+    const renderAdsFeed = () => {
         const visibleAds = perms.getVisibleAds();
-        if (visibleAds.length === 0) return '';
+        
+        // Categorize ads for the tiered display
+        const categorized = {
+            hq: visibleAds.filter(a => a.sourceType === 'HQ'),
+            other: visibleAds.filter(a => a.sourceType !== 'HQ')
+        };
 
         return `
-        <div class="mb-8">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="fas fa-bullhorn text-brand-500"></i>
-                <h3 class="font-bold text-gray-700">آخر التعاميم والإعلانات</h3>
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-bullhorn text-brand-500"></i> 
+                    مركز الإعلانات والتعاميم
+                </h3>
+                ${perms.canManageAds() ? `<button onclick="app.openAdBuilderModal()" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-brand-600 transition shadow-lg shadow-brand-500/30">+ نشر إعلان</button>` : ''}
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                ${visibleAds.slice(0, 3).map(ad => {
-                    const isHQ = ad.level === 'GLOBAL';
-                    return `
-                    <div class="bg-white border-r-4 ${isHQ ? 'border-purple-600' : 'border-blue-400'} rounded-l-lg shadow-sm p-4 hover:shadow-md transition relative">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 inline-block ${isHQ ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
-                            ${isHQ ? 'HQ تعميم' : 'إعلان'}
+            
+            <div class="p-6 space-y-6">
+                <!-- HQ Layer (Top Priority) -->
+                ${categorized.hq.length > 0 ? `
+                <div class="space-y-3">
+                    <h4 class="text-xs font-extrabold text-purple-600 uppercase tracking-widest">إعلانات الرئيسية (HQ)</h4>
+                    ${categorized.hq.map(ad => renderAdCard(ad)).join('')}
+                </div>
+                ` : ''}
+
+                <!-- Other Layers -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">إعلانات الفروع والكيانات</h4>
+                    ${categorized.other.length > 0 ? categorized.other.map(ad => renderAdCard(ad)).join('') : '<p class="text-sm text-slate-400 italic">لا توجد إعلانات أخرى حالياً</p>'}
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderAdCard = (ad) => {
+        const level = Object.values(AD_LEVELS).find(l => l.key === ad.level) || AD_LEVELS.L1_LOCAL;
+        const sourceConfig = AD_SOURCES[ad.sourceType] || AD_SOURCES.BRANCH;
+        
+        return `
+        <div class="group relative bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-1 overflow-hidden">
+            <!-- Gradient Stripe -->
+            <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${level.gradient}"></div>
+            
+            <div class="flex justify-between items-start mb-2 pl-2 pr-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${level.badgeClass}">
+                            ${level.label}
                         </span>
-                        <h4 class="font-bold text-gray-800 mb-1">${ad.title}</h4>
-                        <p class="text-sm text-gray-500 line-clamp-2">${ad.content}</p>
+                        <span class="text-[10px] text-slate-400 flex items-center gap-1">
+                             <i class="fas ${sourceConfig.icon} text-xs"></i> ${sourceConfig.label}
+                        </span>
                     </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-        `;
-    };
-
-    // --- MANAGERS ---
-    const renderEntitiesManager = () => {
-        const entities = perms.getVisibleEntities();
-        return `
-        <h2 class="text-2xl font-bold text-slate-800 mb-6">بيانات الكيان</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${entities.map(e => `
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group">
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 rounded-lg ${TENANT_TYPES[e.type].bg} ${TENANT_TYPES[e.type].color} flex items-center justify-center text-xl">
-                                <i class="fas ${TENANT_TYPES[e.type].icon}"></i>
-                            </div>
-                            <div class="bg-slate-100 px-2 py-1 rounded text-xs font-mono font-bold min-w-[80px] text-center">
-                                ${renderMaskedBalance(e.balance)}
-                            </div>
-                        </div>
-                        <h3 class="font-bold text-lg text-slate-800">${e.name}</h3>
-                        <p class="text-sm text-slate-600 mb-4">${e.location}</p>
-                        <div class="border-t pt-3 flex justify-between items-center text-xs text-gray-500">
-                            <span>${e.status}</span>
-                            ${perms.canEditEntity(e.id) ? '<button class="text-brand-600 font-bold hover:underline">تعديل</button>' : '<i class="fas fa-lock opacity-50"></i>'}
-                        </div>
-                    </div>
+                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-brand-600 transition">${ad.title}</h4>
                 </div>
-            `).join('')}
-        </div>
-        `;
-    };
-
-    const renderAdsManager = () => {
-        const ads = perms.getVisibleAds();
-        return `
-        <div class="mb-6 flex justify-between items-center">
-            <h2 class="text-2xl font-bold text-slate-800">الإعلانات</h2>
-            ${perms.canManageAds() ? `
-            <button onclick="app.openAdBuilderModal()" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-brand-700 flex items-center gap-2">
-                <i class="fas fa-plus"></i> إنشاء حملة
-            </button>` : ''}
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-             <table class="w-full text-right">
-                <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                    <tr>
-                        <th class="p-4">الإعلان</th>
-                        <th class="p-4">المصدر</th>
-                        <th class="p-4">التكلفة</th>
-                        <th class="p-4">الحالة</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50 text-sm">
-                    ${ads.map(ad => `
-                        <tr class="hover:bg-slate-50/50">
-                            <td class="p-4 font-bold">${ad.title}</td>
-                            <td class="p-4 text-xs">${ad.sourceEntityId}</td>
-                            <td class="p-4 font-mono">${ad.cost}</td>
-                            <td class="p-4"><span class="px-2 py-1 rounded text-[10px] bg-slate-100">${ad.status}</span></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-        `;
-    };
-
-    const renderAuditLogs = () => {
-        if (!perms.canViewAuditLogs()) return renderPlaceholder('غير مصرح');
-        const logs = perms.getVisibleAuditLogs();
-        return `
-        <h2 class="text-2xl font-bold text-slate-800 mb-6">سجلات التدقيق (Audit Trail)</h2>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-             <table class="w-full text-right">
-                <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                    <tr>
-                        <th class="p-4">الوقت</th>
-                        <th class="p-4">المستخدم</th>
-                        <th class="p-4">الدور</th>
-                        <th class="p-4">الحدث (Action)</th>
-                        <th class="p-4">التفاصيل</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50 text-sm">
-                    ${logs.map(log => `
-                        <tr class="hover:bg-slate-50/50">
-                            <td class="p-4 text-gray-500 font-mono text-xs">${log.timestamp}</td>
-                            <td class="p-4 font-bold">${log.user}</td>
-                            <td class="p-4 text-xs"><span class="bg-slate-100 px-2 py-1 rounded">${log.role}</span></td>
-                            <td class="p-4 font-bold text-brand-600">${log.action}</td>
-                            <td class="p-4 text-gray-600">${log.details}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-        `;
-    };
-
-    const renderPermissionsMatrix = () => {
-        // Visual guide for the user
-        const roles = [
-            { name: 'Admin (HQ/Branch)', desc: 'تحكم كامل في الكيان التابع له + المالية + المستخدمين.' },
-            { name: 'Finance', desc: 'الاطلاع على الأرصدة وإدارة المدفوعات فقط.' },
-            { name: 'Support', desc: 'إدارة التذاكر وحل المشكلات التقنية.' },
-            { name: 'Advertiser', desc: 'إنشاء وإدارة الحملات الإعلانية.' },
-            { name: 'End User', desc: 'صلاحيات قراءة محدودة جداً.' }
-        ];
-
-        return `
-        <h2 class="text-2xl font-bold text-slate-800 mb-6">مصفوفة الصلاحيات (Roles & Permissions)</h2>
-        <div class="grid gap-4">
-            ${roles.map(r => `
-                <div class="bg-white p-4 rounded-lg border-r-4 border-brand-500 shadow-sm">
-                    <h3 class="font-bold text-lg">${r.name}</h3>
-                    <p class="text-slate-500">${r.desc}</p>
-                </div>
-            `).join('')}
-        </div>
-        `;
-    };
-
-    const renderTasksManager = () => `<div class="p-8 text-center"><i class="fas fa-tasks text-4xl text-slate-300 mb-4"></i><h3 class="text-xl font-bold text-slate-600">نظام إدارة المهام</h3><p class="text-slate-400">قريباً...</p></div>`;
-    const renderTicketsManager = () => `<div class="p-8 text-center"><i class="fas fa-headset text-4xl text-slate-300 mb-4"></i><h3 class="text-xl font-bold text-slate-600">نظام التذاكر والدعم</h3><p class="text-slate-400">${perms.canManageTickets() ? 'لديك صلاحية إدارة التذاكر' : 'ليس لديك صلاحية'}</p></div>`;
-    
-    const renderPlaceholder = (msg = 'لا تملك صلاحية الوصول لهذه الصفحة') => `
-        <div class="flex flex-col items-center justify-center h-96 text-center">
-            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <i class="fas fa-lock text-3xl text-slate-400"></i>
+                <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full">${ad.date}</span>
             </div>
-            <h3 class="text-xl font-bold text-slate-700">تم رفض الوصول</h3>
-            <p class="text-slate-500 mt-2">${msg}</p>
+            <p class="text-sm text-gray-500 pr-4 pl-2 line-clamp-2 leading-relaxed">${ad.content}</p>
         </div>
-    `;
+        `;
+    };
 
     const renderKpiCard = (title, value, icon, color, bg) => `
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden">
-            <div class="relative z-10">
-                <p class="text-xs text-slate-500 font-bold mb-1">${title}</p>
-                <h3 class="text-2xl font-bold text-slate-800">${value}</h3>
-                <div class="w-10 h-10 rounded-full ${bg} ${color} flex items-center justify-center absolute left-5 top-5 shadow-sm">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-lg transition-all">
+            <div class="relative z-10 flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wide">${title}</p>
+                    <h3 class="text-3xl font-extrabold text-slate-800 group-hover:scale-105 transition-transform origin-right">${value}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-2xl ${bg} ${color} flex items-center justify-center shadow-inner text-xl transform group-hover:rotate-12 transition-transform">
                     <i class="fas ${icon}"></i>
                 </div>
             </div>
         </div>
     `;
 
-    // --- MODAL & ACTIONS ---
+    const renderAdsManager = () => {
+        const ads = perms.getVisibleAds();
+        return `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">إدارة الحملات الإعلانية</h2>
+            ${perms.canManageAds() ? `
+            <button onclick="app.openAdBuilderModal()" class="bg-gradient-to-r from-brand-600 to-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-105 transition flex items-center gap-2">
+                <i class="fas fa-plus"></i> إنشاء حملة جديدة
+            </button>` : ''}
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+             <table class="w-full text-right">
+                <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                    <tr>
+                        <th class="p-5">عنوان الإعلان</th>
+                        <th class="p-5">طبقة النشر (Level)</th>
+                        <th class="p-5">المصدر</th>
+                        <th class="p-5">التكلفة</th>
+                        <th class="p-5">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    ${ads.map(ad => {
+                        const level = Object.values(AD_LEVELS).find(l => l.key === ad.level);
+                        return `
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="p-5 font-bold text-slate-700 group-hover:text-brand-600 transition">${ad.title}</td>
+                            <td class="p-5">
+                                <span class="text-[10px] font-bold px-2 py-1 rounded border ${level ? level.badgeClass : ''}">${level ? level.label : ad.level}</span>
+                            </td>
+                            <td class="p-5 text-xs text-slate-500">${ad.sourceType}</td>
+                            <td class="p-5 font-mono font-bold text-slate-600">${ad.cost > 0 ? ad.cost + ' ر.س' : 'مجاني'}</td>
+                            <td class="p-5">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-bold ${ad.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">
+                                    ${ad.status === 'ACTIVE' ? 'نشط' : 'بانتظار الموافقة'}
+                                </span>
+                            </td>
+                        </tr>
+                    `}).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    };
+
+    const renderEntitiesManager = () => `
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">إدارة الكيانات</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${perms.getVisibleEntities().map(e => `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-14 h-14 rounded-2xl ${TENANT_TYPES[e.type].bg} ${TENANT_TYPES[e.type].color} flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                                <i class="fas ${TENANT_TYPES[e.type].icon}"></i>
+                            </div>
+                            <div class="bg-slate-50 px-3 py-1.5 rounded-lg text-xs font-mono font-bold border border-slate-100 text-slate-600">
+                                ${renderMaskedBalance(e.balance)}
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition">${e.name}</h3>
+                        <p class="text-sm text-slate-500 mb-4 flex items-center gap-1"><i class="fas fa-map-pin text-xs"></i> ${e.location}</p>
+                        <div class="border-t border-slate-50 pt-4 flex justify-between items-center text-xs">
+                            <span class="bg-green-50 text-green-600 px-2 py-1 rounded-full font-bold">${e.status}</span>
+                            ${perms.canEditEntity(e.id) ? '<button class="text-brand-600 font-bold hover:underline">تعديل البيانات</button>' : '<i class="fas fa-lock opacity-30"></i>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    const renderAuditLogs = () => {
+        if (!perms.canViewAuditLogs()) return renderPlaceholder();
+        return `
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">سجلات النظام (Audit Trail)</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+             <table class="w-full text-right">
+                <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase">
+                    <tr>
+                        <th class="p-4">الوقت</th>
+                        <th class="p-4">المستخدم</th>
+                        <th class="p-4">الحدث</th>
+                        <th class="p-4">التفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    ${perms.getVisibleAuditLogs().map(log => `
+                        <tr class="hover:bg-slate-50/50">
+                            <td class="p-4 text-gray-400 font-mono text-xs">${log.timestamp}</td>
+                            <td class="p-4 font-bold text-slate-700">${log.user}</td>
+                            <td class="p-4 font-bold text-brand-600">${log.action}</td>
+                            <td class="p-4 text-gray-500">${log.details}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    };
+
+    const renderPermissionsMatrix = () => `
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">مصفوفة الصلاحيات (Roles)</h2>
+        <div class="grid gap-4">
+            ${Object.values(ROLES).map(r => `
+                <div class="bg-white p-5 rounded-xl border-r-4 border-brand-500 shadow-sm hover:shadow-md transition">
+                    <h3 class="font-bold text-lg text-slate-800">${r}</h3>
+                    <p class="text-slate-500 text-sm mt-1">وصف الصلاحيات والأذونات الخاصة بهذا الدور...</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    const renderPlaceholder = (msg = 'لا تملك صلاحية الوصول') => `
+        <div class="flex flex-col items-center justify-center h-96 text-center animate-fade-in">
+            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <i class="fas fa-lock text-4xl text-slate-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-700">تم رفض الوصول</h3>
+            <p class="text-slate-500 mt-2 max-w-md mx-auto">${msg}</p>
+        </div>
+    `;
+
+    const renderTasksManager = () => `<div class="p-12 text-center"><i class="fas fa-tasks text-5xl text-slate-200 mb-4"></i><h3 class="text-xl font-bold text-slate-500">نظام المهام قريباً</h3></div>`;
+    const renderTicketsManager = () => `<div class="p-12 text-center"><i class="fas fa-headset text-5xl text-slate-200 mb-4"></i><h3 class="text-xl font-bold text-slate-500">الدعم الفني</h3></div>`;
+
+    // --- AD BUILDER MODAL ---
     const openAdBuilderModal = () => {
         if (!perms.canManageAds()) {
             showToast('عفواً، حسابك لا يملك صلاحية إنشاء إعلانات', 'error');
             return;
         }
 
-        // Reuse existing modal logic from previous version...
         const modal = document.createElement('div');
         modal.id = 'ad-modal';
-        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm fade-in';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
         
-        const options = Object.entries(AD_LEVELS).map(([key, val]) => 
-            `<label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                <input type="radio" name="adLevel" value="${key}" class="mt-1" onchange="app.updateAdCost(${val.cost})">
-                <div>
-                    <span class="block font-bold text-sm text-slate-800">${val.label}</span>
-                    <span class="block text-xs text-slate-500">${val.desc}</span>
+        const levelsHtml = Object.values(AD_LEVELS).map(l => 
+            `<label class="relative flex items-center gap-4 p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all duration-200 group border-slate-200 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
+                <input type="radio" name="adLevel" value="${l.key}" class="peer w-4 h-4 text-brand-600 focus:ring-brand-500" onchange="app.updateAdCost(${l.cost})">
+                <div class="flex-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-sm text-slate-800 peer-checked:text-brand-800">${l.label}</span>
+                        <span class="text-[10px] font-bold bg-white border px-2 py-0.5 rounded text-slate-500 shadow-sm">${l.cost} ر.س</span>
+                    </div>
+                    <span class="block text-xs text-slate-500 peer-checked:text-brand-600">${l.desc}</span>
                 </div>
-                <span class="text-xs font-bold mr-auto bg-gray-100 px-2 py-1 rounded">${val.cost} ر.س</span>
+                <div class="absolute inset-0 border-2 border-transparent peer-checked:border-brand-500 rounded-xl pointer-events-none"></div>
             </label>`
         ).join('');
 
         modal.innerHTML = `
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-                <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-                    <h3 class="font-bold">إنشاء حملة إعلانية جديدة</h3>
-                    <button onclick="document.getElementById('ad-modal').remove()" class="hover:text-red-400"><i class="fas fa-times"></i></button>
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 animate-scale-up">
+                <div class="bg-slate-900 text-white p-5 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><i class="fas fa-bullhorn text-sm"></i></div>
+                        <h3 class="font-bold text-lg">إنشاء حملة إعلانية جديدة</h3>
+                    </div>
+                    <button onclick="document.getElementById('ad-modal').remove()" class="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="p-6 space-y-4">
+                <div class="p-6 space-y-5 overflow-y-auto max-h-[70vh] custom-scrollbar">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">عنوان الإعلان</label>
-                        <input type="text" id="ad-title" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">عنوان الحملة</label>
+                        <input type="text" id="ad-title" placeholder="اكتب عنواناً جذاباً للإعلان..." class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition shadow-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">مستوى النشر</label>
-                        <div class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
-                            ${options}
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">قواعد النشر والاستهداف (Targeting Rules)</label>
+                        <div class="grid grid-cols-1 gap-3">
+                            ${levelsHtml}
                         </div>
                     </div>
-                    <div class="bg-brand-50 p-3 rounded-lg flex justify-between items-center">
-                        <span class="text-sm text-brand-800 font-bold">التكلفة المقدرة:</span>
-                        <span id="ad-cost-display" class="text-xl font-bold text-brand-600">0 ر.س</span>
+                    <div class="bg-gradient-to-r from-brand-50 to-blue-50 p-4 rounded-xl flex justify-between items-center border border-brand-100">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-coins text-brand-500"></i>
+                            <span class="text-sm text-brand-800 font-bold">التكلفة الإجمالية:</span>
+                        </div>
+                        <span id="ad-cost-display" class="text-2xl font-extrabold text-brand-600 tracking-tight">0 ر.س</span>
                     </div>
-                    <button onclick="app.submitAd()" class="w-full bg-brand-600 text-white py-3 rounded-lg font-bold hover:bg-brand-700 transition">تأكيد ونشر</button>
+                    <button onclick="app.submitAd()" class="w-full bg-gradient-to-r from-brand-600 to-brand-500 text-white py-3.5 rounded-xl font-bold hover:shadow-lg hover:shadow-brand-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95">تأكيد ونشر الحملة</button>
                 </div>
             </div>
         `;
@@ -579,7 +651,7 @@ const app = (() => {
         const levelKey = document.querySelector('input[name="adLevel"]:checked')?.value;
         
         if (!title || !levelKey) {
-            showToast('الرجاء تعبئة جميع الحقول', 'error');
+            showToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
             return;
         }
 
@@ -587,33 +659,34 @@ const app = (() => {
         const cost = levelConfig.cost;
         const entity = db.entities.find(e => e.id === currentUser.entityId);
 
-        // Finance check
-        if (cost > 0 && entity.balance < cost) {
-            showToast('رصيد المحفظة غير كافٍ', 'error');
-            logAction('CREATE_AD_FAILED', `محاولة إنشاء إعلان فاشلة لعدم كفاية الرصيد (${cost} ر.س)`);
-            return;
+        if (perms.isFinance() || perms.isAdmin() || perms.isAdvertiser()) {
+             if (cost > 0 && entity.balance < cost) {
+                showToast('رصيد المحفظة الرقمية غير كافٍ لإتمام العملية', 'error');
+                logAction('CREATE_AD_FAILED', `فشل إنشاء إعلان لعدم كفاية الرصيد (${cost} ر.س)`);
+                return;
+            }
+            if (cost > 0) entity.balance -= cost;
         }
-
-        if (cost > 0) entity.balance -= cost;
 
         const newAd = {
             id: db.ads.length + 1,
             title: title,
-            content: 'محتوى إعلاني جديد...',
+            content: 'محتوى الإعلان يتم عرضه هنا (تم الإنشاء حديثاً)...',
             level: levelKey,
-            scope: 'MULTI',
-            status: levelConfig.requireApproval ? 'PENDING' : 'ACTIVE',
+            scope: levelConfig.scope,
+            status: levelConfig.approval ? 'PENDING' : 'ACTIVE',
             cost: cost,
             sourceEntityId: currentUser.entityId,
-            targetIds: [currentUser.entityId], // Default target self
-            date: new Date().toISOString().slice(0,10)
+            targetIds: [currentUser.entityId], // Simplified targeting for demo
+            date: new Date().toISOString().slice(0,10),
+            sourceType: currentUser.tenantType
         };
 
         db.ads.unshift(newAd);
         logAction('CREATE_AD', `إنشاء إعلان (${levelConfig.label}) بتكلفة ${cost} ر.س`);
         
         document.getElementById('ad-modal').remove();
-        showToast('تم إرسال الطلب بنجاح', 'success');
+        showToast('تم إرسال حملتك الإعلانية بنجاح', 'success');
         loadRoute('ads');
     };
 
