@@ -1,6 +1,6 @@
 /**
  * NAYOSH ERP - Advanced RBAC & Multi-Tenant System
- * Updated: Multi-Layer Ads System (5 Levels)
+ * Updated: Wallet Integration & Auto-Deduction Logic
  */
 
 const app = (() => {
@@ -167,9 +167,9 @@ const app = (() => {
     const showToast = (msg, type = 'info') => {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
-        const colors = type === 'success' ? 'bg-green-600' : 'bg-slate-800';
+        const colors = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-800';
         toast.className = `${colors} text-white px-4 py-3 rounded-lg shadow-xl text-sm fade-in flex items-center gap-3`;
-        toast.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${msg}`;
         container.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     };
@@ -363,7 +363,7 @@ const app = (() => {
         ${renderAdsWidget(currentUser.entityId)}
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            ${renderKpiCard('رصيد الفرع', entity.balance.toLocaleString(), 'fa-cash-register', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('رصيد الفرع', entity.balance.toLocaleString() + ' ر.س', 'fa-cash-register', 'text-blue-600', 'bg-blue-50')}
             ${renderKpiCard('إعلانات نشطة', db.ads.filter(a => a.sourceEntityId === entity.id && a.status === 'ACTIVE').length, 'fa-bullhorn', 'text-orange-600', 'bg-orange-50')}
             ${renderKpiCard('تذاكر مفتوحة', '2', 'fa-ticket-alt', 'text-red-600', 'bg-red-50')}
         </div>
@@ -381,10 +381,10 @@ const app = (() => {
         ${renderAdsWidget(currentUser.entityId)}
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            ${renderKpiCard('رصيد الحاضنة', entity.balance.toLocaleString() + ' ر.س', 'fa-wallet', 'text-white', 'bg-orange-400 bg-opacity-30')}
             ${renderKpiCard('الشركات المحتضنة', '12', 'fa-rocket', 'text-orange-600', 'bg-orange-50')}
             ${renderKpiCard('نسبة الإشغال', '85%', 'fa-chair', 'text-blue-600', 'bg-blue-50')}
             ${renderKpiCard('ساعات التوجيه', '120h', 'fa-chalkboard-teacher', 'text-purple-600', 'bg-purple-50')}
-            ${renderKpiCard('حملات مشتركة', '3', 'fa-share-alt', 'text-pink-600', 'bg-pink-50')}
         </div>
         `;
     };
@@ -428,8 +428,8 @@ const app = (() => {
         return `
         <div class="mb-6 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-bold text-slate-800">إدارة الإعلانات متعددة الطبقات</h2>
-                <p class="text-slate-500 text-sm">التحكم في مستويات النشر الـ 5 (محلي، متعدد، حاضنة، منصة، عابر)</p>
+                <h2 class="text-2xl font-bold text-slate-800">إدارة الإعلانات والتعاميم</h2>
+                <p class="text-slate-500 text-sm">التحكم في الحملات الإعلانية ومراقبة التكاليف</p>
             </div>
             <button onclick="app.openAdBuilderModal()" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-brand-700 flex items-center gap-2">
                 <i class="fas fa-plus"></i> إنشاء حملة إعلانية
@@ -493,6 +493,9 @@ const app = (() => {
                         <div class="flex justify-between items-start mb-4">
                             <div class="w-12 h-12 rounded-lg ${TENANT_TYPES[e.type].bg} ${TENANT_TYPES[e.type].color} flex items-center justify-center text-xl">
                                 <i class="fas ${TENANT_TYPES[e.type].icon}"></i>
+                            </div>
+                            <div class="bg-slate-100 px-2 py-1 rounded text-xs font-mono font-bold">
+                                ${e.balance.toLocaleString()} ر.س
                             </div>
                         </div>
                         <h3 class="font-bold text-lg text-slate-800">${e.name}</h3>
@@ -565,7 +568,7 @@ const app = (() => {
                         <span class="text-sm text-brand-800 font-bold">التكلفة المقدرة:</span>
                         <span id="ad-cost-display" class="text-xl font-bold text-brand-600">0 ر.س</span>
                     </div>
-                    <button onclick="app.submitAd()" class="w-full bg-brand-600 text-white py-3 rounded-lg font-bold hover:bg-brand-700 transition">نشر الإعلان</button>
+                    <button onclick="app.submitAd()" class="w-full bg-brand-600 text-white py-3 rounded-lg font-bold hover:bg-brand-700 transition">تأكيد ونشر</button>
                 </div>
             </div>
         `;
@@ -589,6 +592,27 @@ const app = (() => {
         }
 
         const levelConfig = AD_LEVELS[levelKey];
+        const cost = levelConfig.cost;
+
+        // --- WALLET & DEDUCTION LOGIC ---
+        const entity = db.entities.find(e => e.id === currentUser.entityId);
+        if (!entity) {
+            showToast('خطأ: لا يمكن العثور على محفظة الكيان', 'error');
+            return;
+        }
+
+        if (cost > 0) {
+            if (entity.balance < cost) {
+                showToast(`عفواً، رصيد المحفظة (${entity.balance} ر.س) لا يكفي لتغطية تكلفة الإعلان (${cost} ر.س).`, 'error');
+                return;
+            }
+            
+            // Deduct the cost automatically
+            entity.balance -= cost;
+            logAction('PAYMENT', `خصم تكلفة إعلان (${cost} ر.س) من رصيد ${entity.name}`);
+        }
+        // -------------------------------
+
         const targets = targetsInput ? targetsInput.split(',').map(s => s.trim()) : (levelConfig.id === 1 ? [currentUser.entityId] : []);
         
         const newAd = {
@@ -598,16 +622,23 @@ const app = (() => {
             level: levelKey,
             scope: levelConfig.id === 1 ? 'LOCAL' : 'MULTI',
             status: levelConfig.requireApproval ? 'PENDING' : 'ACTIVE',
-            cost: levelConfig.cost,
+            cost: cost,
             sourceEntityId: currentUser.entityId,
             targetIds: targets,
             date: new Date().toISOString().slice(0,10)
         };
 
         db.ads.unshift(newAd);
-        logAction('CREATE_AD', `إنشاء إعلان جديد (${levelConfig.label})`);
+        logAction('CREATE_AD', `إنشاء إعلان جديد (${levelConfig.label}) - التكلفة: ${cost}`);
+        
         document.getElementById('ad-modal').remove();
-        showToast(levelConfig.requireApproval ? 'تم الإرسال للموافقة' : 'تم نشر الإعلان بنجاح', 'success');
+        
+        if (cost > 0) {
+            showToast(`تم نشر الإعلان وخصم ${cost} ر.س من المحفظة`, 'success');
+        } else {
+            showToast('تم نشر الإعلان (مجاني)', 'success');
+        }
+
         loadRoute('ads');
     };
 
