@@ -258,6 +258,7 @@ const app = (() => {
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'entities') content = renderEntitiesManager();
+        else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
         else if (route === 'audit-logs') content = renderAuditLogs();
         else content = renderPlaceholder();
@@ -272,6 +273,11 @@ const app = (() => {
         document.querySelectorAll('#nav-menu a').forEach(l => l.classList.remove('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500'));
         const active = document.getElementById(`link-${route}`);
         if(active) active.classList.add('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500');
+        else if(route === 'register-tenant') {
+             // Keep entities active if registering
+             const entitiesLink = document.getElementById('link-entities');
+             if(entitiesLink) entitiesLink.classList.add('bg-gradient-to-r', 'from-slate-800', 'to-slate-900', 'text-white', 'border-r-4', 'border-brand-500');
+        }
     };
 
     const getTitle = (r) => {
@@ -279,6 +285,7 @@ const app = (() => {
             'dashboard': 'لوحة القيادة (Tenant Dashboard)',
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
             'entities': perms.isHQ() ? 'إدارة المستأجرين' : 'بيانات الكيان',
+            'register-tenant': 'تسجيل مستأجر جديد',
             'ads': 'منصة الإعلانات المركزية',
             'tasks': 'المهام الداخلية',
             'audit-logs': 'سجل الأحداث (Audit Logs)'
@@ -506,7 +513,10 @@ const app = (() => {
     };
 
     const renderEntitiesManager = () => `
-        <h2 class="text-2xl font-bold text-slate-800 mb-6">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
+            ${perms.isHQ() ? `<button onclick="app.loadRoute('register-tenant')" class="bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center gap-2 animate-pulse-slow"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>` : ''}
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             ${perms.getVisibleEntities().map(e => `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
@@ -522,6 +532,128 @@ const app = (() => {
                     </div>
                 </div>`).join('')}
         </div>`;
+
+    const renderTenantRegistration = () => {
+        if (!perms.isHQ()) return renderPlaceholder('هذه الميزة متاحة فقط للمكتب الرئيسي (Super Admin)');
+        
+        return `
+        <div class="max-w-4xl mx-auto animate-slide-in">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-extrabold text-slate-800">تسجيل مستأجر جديد</h2>
+                <p class="text-slate-500 mt-2">إنشاء بيئة عمل جديدة وتخصيص الموارد</p>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-8">
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Step 1: Basic Info -->
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">1. بيانات المؤسسة</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-600 mb-2">اسم المستأجر (Tenant Name)</label>
+                                <input type="text" id="reg-name" placeholder="مثال: فرع النخيل" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-600 mb-2">الموقع (Location)</label>
+                                <input type="text" id="reg-location" placeholder="المدينة - الحي" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Tenant Type -->
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">2. نوع الكيان (Tenant Type)</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            ${Object.values(TENANT_TYPES).filter(t => t.id !== 'HQ').map(t => `
+                                <label class="cursor-pointer relative">
+                                    <input type="radio" name="reg-type" value="${t.id}" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border-2 border-slate-100 hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition-all text-center group">
+                                        <i class="fas ${t.icon} text-2xl mb-2 ${t.color} group-hover:scale-110 transition"></i>
+                                        <div class="text-xs font-bold text-slate-600">${t.label.split(' ')[0]} ${t.label.split(' ')[1]}</div>
+                                    </div>
+                                    <div class="absolute top-2 left-2 text-brand-500 opacity-0 peer-checked:opacity-100 transition"><i class="fas fa-check-circle"></i></div>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Plan -->
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">3. خطة الاشتراك (Plan)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${Object.keys(SUBSCRIPTION_PLANS).map(key => {
+                                const p = SUBSCRIPTION_PLANS[key];
+                                return `
+                                <label class="cursor-pointer relative">
+                                    <input type="radio" name="reg-plan" value="${key}" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border-2 border-slate-100 hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-gradient-to-br peer-checked:from-brand-50 peer-checked:to-white transition-all">
+                                        <div class="font-bold text-slate-800">${p.name}</div>
+                                        <div class="text-xl font-black text-brand-600 mt-1">${p.price} <span class="text-xs text-gray-400 font-normal">ر.س</span></div>
+                                        <ul class="mt-3 space-y-1 text-xs text-gray-500">
+                                            ${p.features.slice(0,2).map(f => `<li><i class="fas fa-check text-green-500 ml-1"></i>${f}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </label>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button onclick="app.loadRoute('entities')" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition">إلغاء</button>
+                        <button onclick="app.submitTenantRegistration()" class="px-8 py-3 rounded-xl font-bold bg-brand-600 text-white shadow-lg hover:shadow-brand-500/30 hover:bg-brand-700 hover:scale-105 transition transform">
+                            <i class="fas fa-plus-circle ml-2"></i> إنشاء المستأجر
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const submitTenantRegistration = () => {
+        const name = document.getElementById('reg-name').value;
+        const location = document.getElementById('reg-location').value;
+        const type = document.querySelector('input[name="reg-type"]:checked')?.value;
+        const plan = document.querySelector('input[name="reg-plan"]:checked')?.value;
+
+        if (!name || !location || !type || !plan) {
+            showToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
+            return;
+        }
+
+        // Generate ID
+        const idPrefix = type === 'BRANCH' ? 'BR' : type === 'INCUBATOR' ? 'INC' : 'TNT';
+        const newId = idPrefix + Math.floor(100 + Math.random() * 900);
+
+        // Create Entity
+        const newEntity = {
+            id: newId,
+            name: name,
+            type: type,
+            status: 'Active',
+            balance: 0,
+            location: location,
+            users: 1,
+            plan: plan,
+            expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10)
+        };
+        db.entities.push(newEntity);
+
+        // Create Default Admin
+        const newAdmin = {
+            id: db.users.length + 1,
+            name: 'مسؤول جديد',
+            role: ROLES.ADMIN,
+            tenantType: type,
+            entityId: newId,
+            entityName: name
+        };
+        db.users.push(newAdmin);
+
+        logAction('CREATE_TENANT', `Created new tenant ${name} (${newId})`);
+        showToast(`تم إنشاء المستأجر ${name} بنجاح!`, 'success');
+        loadRoute('entities');
+    };
 
     const renderAdsManager = () => {
         const ads = perms.getVisibleAds();
@@ -626,7 +758,7 @@ const app = (() => {
         }
     };
 
-    return { init, switchUser, loadRoute, openAdBuilderModal, submitAd, toggleRoleMenu };
+    return { init, switchUser, loadRoute, openAdBuilderModal, submitAd, toggleRoleMenu, submitTenantRegistration };
 })();
 
 document.addEventListener('DOMContentLoaded', app.init);
