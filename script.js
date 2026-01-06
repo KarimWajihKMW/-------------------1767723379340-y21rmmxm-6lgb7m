@@ -21,6 +21,34 @@ const app = (() => {
         USER: 'مستخدم'             // Standard User
     };
 
+    const THEMES = {
+        BLUE: {
+            name: 'سماء زرقاء (Default)',
+            colors: { 50: '240 249 255', 100: '224 242 254', 400: '56 189 248', 500: '14 165 233', 600: '2 132 199', 800: '7 89 133', 900: '12 74 110' },
+            preview: 'bg-sky-500'
+        },
+        PURPLE: {
+            name: 'بنفسجي ملكي',
+            colors: { 50: '250 245 255', 100: '243 232 255', 400: '192 132 252', 500: '168 85 247', 600: '147 51 234', 800: '107 33 168', 900: '88 28 135' },
+            preview: 'bg-purple-500'
+        },
+        EMERALD: {
+            name: 'أخضر الطبيعة',
+            colors: { 50: '236 253 245', 100: '209 250 229', 400: '52 211 153', 500: '16 185 129', 600: '5 150 105', 800: '6 95 70', 900: '6 78 59' },
+            preview: 'bg-emerald-500'
+        },
+        ROSE: {
+            name: 'وردي أنيق',
+            colors: { 50: '255 241 242', 100: '255 228 230', 400: '251 113 133', 500: '244 63 94', 600: '225 29 72', 800: '159 18 57', 900: '136 19 55' },
+            preview: 'bg-rose-500'
+        },
+        AMBER: {
+            name: 'ذهبي فاخر',
+            colors: { 50: '255 251 235', 100: '254 243 199', 400: '251 191 36', 500: '245 158 11', 600: '217 119 6', 800: '146 64 14', 900: '120 53 15' },
+            preview: 'bg-amber-500'
+        }
+    };
+
     const SUBSCRIPTION_PLANS = {
         BASIC: { name: 'أساسي', price: 999, limit: 10, features: ['إدارة المهام', 'إعلانات محلية'] },
         PRO: { name: 'احترافي', price: 2499, limit: 50, features: ['تحليلات متقدمة', 'إعلانات متعددة', 'API Access'] },
@@ -68,13 +96,13 @@ const app = (() => {
 
         // Entities act as Tenants in this SaaS model
         entities: [
-            { id: 'HQ001', name: 'المكتب الرئيسي', type: 'HQ', status: 'Active', balance: 2500000, location: 'الرياض', users: 15, plan: 'ENTERPRISE', expiry: '2030-12-31' },
-            { id: 'BR015', name: 'فرع العليا مول', type: 'BRANCH', status: 'Active', balance: 45000, location: 'الرياض - العليا', users: 8, plan: 'PRO', expiry: '2024-06-15' },
-            { id: 'BR016', name: 'فرع مول الرياض', type: 'BRANCH', status: 'Active', balance: 32000, location: 'الرياض - النخيل', users: 12, plan: 'BASIC', expiry: '2024-05-20' },
-            { id: 'INC03', name: 'حاضنة السلامة', type: 'INCUBATOR', status: 'Active', balance: 120000, location: 'جدة', users: 45, plan: 'ENTERPRISE', expiry: '2025-01-01' },
-            { id: 'INC04', name: 'حاضنة الرياض تك', type: 'INCUBATOR', status: 'Active', balance: 200000, location: 'الرياض', users: 60, plan: 'ENTERPRISE', expiry: '2025-03-01' },
-            { id: 'PLT01', name: 'نايوش كلاود', type: 'PLATFORM', status: 'Active', balance: 500000, location: 'سحابي', users: 1200, plan: 'PRO', expiry: '2024-11-30' },
-            { id: 'OFF01', name: 'مكتب الدمام', type: 'OFFICE', status: 'Active', balance: 15000, location: 'الدمام', users: 4, plan: 'BASIC', expiry: '2024-04-10' }
+            { id: 'HQ001', name: 'المكتب الرئيسي', type: 'HQ', status: 'Active', balance: 2500000, location: 'الرياض', users: 15, plan: 'ENTERPRISE', expiry: '2030-12-31', theme: 'BLUE' },
+            { id: 'BR015', name: 'فرع العليا مول', type: 'BRANCH', status: 'Active', balance: 45000, location: 'الرياض - العليا', users: 8, plan: 'PRO', expiry: '2024-06-15', theme: 'BLUE' },
+            { id: 'BR016', name: 'فرع مول الرياض', type: 'BRANCH', status: 'Active', balance: 32000, location: 'الرياض - النخيل', users: 12, plan: 'BASIC', expiry: '2024-05-20', theme: 'BLUE' },
+            { id: 'INC03', name: 'حاضنة السلامة', type: 'INCUBATOR', status: 'Active', balance: 120000, location: 'جدة', users: 45, plan: 'ENTERPRISE', expiry: '2025-01-01', theme: 'EMERALD' },
+            { id: 'INC04', name: 'حاضنة الرياض تك', type: 'INCUBATOR', status: 'Active', balance: 200000, location: 'الرياض', users: 60, plan: 'ENTERPRISE', expiry: '2025-03-01', theme: 'AMBER' },
+            { id: 'PLT01', name: 'نايوش كلاود', type: 'PLATFORM', status: 'Active', balance: 500000, location: 'سحابي', users: 1200, plan: 'PRO', expiry: '2024-11-30', theme: 'PURPLE' },
+            { id: 'OFF01', name: 'مكتب الدمام', type: 'OFFICE', status: 'Active', balance: 15000, location: 'الدمام', users: 4, plan: 'BASIC', expiry: '2024-04-10', theme: 'BLUE' }
         ],
 
         ads: [
@@ -183,10 +211,21 @@ const app = (() => {
         });
     };
 
+    const updateThemeVariables = (themeKey) => {
+        const theme = THEMES[themeKey] || THEMES.BLUE;
+        const root = document.documentElement;
+        Object.entries(theme.colors).forEach(([key, value]) => {
+            root.style.setProperty(`--brand-${key}`, value);
+        });
+    };
+
     // --- INIT & NAV ---
     const init = () => {
         renderSidebar();
         updateHeader();
+        const tenant = db.entities.find(e => e.id === currentUser.entityId);
+        if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
+        
         loadRoute('dashboard');
         showToast(`تم تسجيل الدخول: ${currentUser.entityName}`, 'success');
     };
@@ -196,7 +235,9 @@ const app = (() => {
         if (u) {
             toggleRoleMenu();
             currentUser = u;
-            
+            const tenant = db.entities.find(e => e.id === currentUser.entityId);
+            if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
+
             // Visual Loading State
             const view = document.getElementById('main-view');
             view.innerHTML = `
@@ -261,6 +302,7 @@ const app = (() => {
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
         else if (route === 'audit-logs') content = renderAuditLogs();
+        else if (route === 'settings') content = renderSettings();
         else content = renderPlaceholder();
 
         view.innerHTML = `<div class="fade-in">${content}</div>`;
@@ -288,7 +330,8 @@ const app = (() => {
             'register-tenant': 'تسجيل مستأجر جديد',
             'ads': 'منصة الإعلانات المركزية',
             'tasks': 'المهام الداخلية',
-            'audit-logs': 'سجل الأحداث (Audit Logs)'
+            'audit-logs': 'سجل الأحداث (Audit Logs)',
+            'settings': 'إعدادات الهوية والعلامة التجارية'
         };
         return map[r] || 'نايوش SaaS';
     };
@@ -301,6 +344,7 @@ const app = (() => {
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'ads', icon: 'fa-bullhorn', label: 'الإعلانات', show: true },
             { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
+            { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() },
             { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() }
         ];
 
@@ -635,7 +679,8 @@ const app = (() => {
             location: location,
             users: 1,
             plan: plan,
-            expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10)
+            expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10),
+            theme: 'BLUE'
         };
         db.entities.push(newEntity);
 
@@ -690,6 +735,112 @@ const app = (() => {
                 </div>
             `).join('')}
         </div>`;
+    };
+
+    const renderSettings = () => {
+        const entity = db.entities.find(e => e.id === currentUser.entityId);
+        if (!perms.isAdmin()) return renderPlaceholder();
+
+        return `
+        <div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800">خصائص العلامة التجارية</h2>
+                    <p class="text-slate-500 mt-2">تخصيص هوية المستأجر والواجهة</p>
+                </div>
+                <div class="hidden md:block">
+                    <div class="text-xs font-bold text-brand-600 bg-brand-50 border border-brand-200 px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-magic"></i> معاينة حية (Live Preview)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Theme Section -->
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-palette text-brand-500"></i> ألوان الهوية (Theme Color)
+                    </h3>
+                    <p class="text-sm text-slate-400 mt-1">اختر لوحة الألوان الأساسية لواجهة النظام الخاصة بكيانك</p>
+                </div>
+                <div class="p-8">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        ${Object.entries(THEMES).map(([key, theme]) => `
+                            <label class="cursor-pointer group relative">
+                                <input type="radio" name="theme-select" value="${key}" onchange="app.previewTheme('${key}')" class="peer sr-only" ${entity.theme === key ? 'checked' : ''}>
+                                <div class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 border-slate-100 hover:border-slate-300 peer-checked:border-brand-500 peer-checked:bg-slate-50 transition-all">
+                                    <div class="w-12 h-12 rounded-full ${theme.preview} shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform"></div>
+                                    <span class="text-xs font-bold text-slate-600 text-center peer-checked:text-brand-600">${theme.name}</span>
+                                </div>
+                                <div class="absolute top-2 right-2 text-brand-600 opacity-0 peer-checked:opacity-100 transition">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Branding & Logo Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4">شعار المستأجر (Logo)</h3>
+                    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition cursor-pointer group">
+                        <div class="w-16 h-16 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p class="text-sm font-bold text-slate-600">اضغط لرفع الشعار</p>
+                        <p class="text-xs text-slate-400 mt-1">PNG, JPG (Max 2MB)</p>
+                    </div>
+                 </div>
+
+                 <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4">اسم العرض (Display Name)</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-2">الاسم الظاهر في النظام</label>
+                            <input type="text" value="${entity.name}" id="settings-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-bold text-slate-700">
+                        </div>
+                        <p class="text-xs text-slate-400 bg-slate-50 p-3 rounded-lg">
+                            <i class="fas fa-info-circle text-brand-500 mr-1"></i> 
+                            تغيير الاسم قد يتطلب موافقة من الإدارة العليا (HQ) في بعض الحالات.
+                        </p>
+                    </div>
+                 </div>
+            </div>
+
+            <div class="flex justify-end pt-4">
+                <button onclick="app.saveSettings()" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-brand-500/40 hover:-translate-y-1 transition transform flex items-center gap-2">
+                    <i class="fas fa-save"></i> حفظ التغييرات
+                </button>
+            </div>
+        </div>`;
+    };
+
+    const previewTheme = (key) => {
+        updateThemeVariables(key);
+    };
+
+    const saveSettings = () => {
+        const entity = db.entities.find(e => e.id === currentUser.entityId);
+        const newName = document.getElementById('settings-name').value;
+        const newTheme = document.querySelector('input[name="theme-select"]:checked')?.value;
+
+        if(entity) {
+            entity.name = newName;
+            entity.theme = newTheme;
+            
+            // Refresh session info if name changed
+            if(entity.id === currentUser.entityId) {
+                currentUser.entityName = newName;
+            }
+            
+            updateHeader(); // Update displayed name
+            updateThemeVariables(newTheme); // Ensure theme is applied properly
+            
+            showToast('تم حفظ إعدادات الهوية بنجاح!', 'success');
+            logAction('UPDATE_SETTINGS', `Updated Branding: ${newTheme}`);
+        }
     };
 
     const renderAuditLogs = () => {
@@ -758,7 +909,19 @@ const app = (() => {
         }
     };
 
-    return { init, switchUser, loadRoute, openAdBuilderModal, submitAd, toggleRoleMenu, submitTenantRegistration };
+    // Expose functions
+    return { 
+        init, 
+        switchUser, 
+        loadRoute, 
+        openAdBuilderModal, 
+        submitAd, 
+        toggleRoleMenu, 
+        submitTenantRegistration,
+        renderSettings,
+        saveSettings,
+        previewTheme
+    };
 })();
 
 document.addEventListener('DOMContentLoaded', app.init);
