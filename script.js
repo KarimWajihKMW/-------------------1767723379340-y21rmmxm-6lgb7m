@@ -37,24 +37,43 @@ const app = (() => {
             { id: 8, name: 'عمر الطالب', role: ROLES.CLIENT, tenantType: TENANT_TYPES.INCUBATOR, entityId: 'INC03', entityName: 'حاضنة السلامة', desc: 'طالب (عميل)' }
         ],
 
+        // Explicit Entities Registry for Governance
+        entities: [
+            { id: 'HQ001', name: 'المكتب الرئيسي - الرياض', type: TENANT_TYPES.HQ, manager: 'م. أحمد العلي', status: 'active', performance: 98 },
+            { id: 'BR015', name: 'فرع العليا مول', type: TENANT_TYPES.BRANCH, manager: 'سارة محمد', status: 'warning', performance: 75 },
+            { id: 'INC03', name: 'حاضنة السلامة', type: TENANT_TYPES.INCUBATOR, manager: 'د. خالد الزهراني', status: 'active', performance: 92 },
+            { id: 'PLT01', name: 'نايوش كلاود', type: TENANT_TYPES.PLATFORM, manager: 'فريق التقنية', status: 'maintenance', performance: 88 },
+            { id: 'OFF02', name: 'مكتب جدة', type: TENANT_TYPES.OFFICE, manager: 'أستاذة منى', status: 'active', performance: 95 }
+        ],
+
         finance: [
             { id: 'INV-HQ-101', desc: 'تحويل بنكي وارد', amount: 500000, type: 'credit', entityId: 'HQ001', date: '2023-11-01' },
             { id: 'EXP-HQ-202', desc: 'رواتب موظفي الإدارة', amount: -45000, type: 'debit', entityId: 'HQ001', date: '2023-11-05' },
-            { id: 'INV-BR-303', desc: 'مبيعات يومية', amount: 12500, type: 'credit', entityId: 'BR015', date: '2023-11-06' },
+            { id: 'INV-BR-303', desc: 'مبيعات يومية - العليا', amount: 12500, type: 'credit', entityId: 'BR015', date: '2023-11-06' },
             { id: 'EXP-BR-404', desc: 'صيانة مكيفات', amount: -600, type: 'debit', entityId: 'BR015', date: '2023-11-07' },
-            { id: 'INV-INC-505', desc: 'رسوم دورة الأمن السيبراني', amount: 3500, type: 'credit', entityId: 'INC03', date: '2023-11-08' }
+            { id: 'INV-INC-505', desc: 'رسوم دورة الأمن السيبراني', amount: 3500, type: 'credit', entityId: 'INC03', date: '2023-11-08' },
+            { id: 'EXP-PLT-601', desc: 'تجديد سيرفرات AWS', amount: -1200, type: 'debit', entityId: 'PLT01', date: '2023-11-09' },
+            { id: 'EXP-OFF-701', desc: 'تجهيزات مكتبية', amount: -3000, type: 'debit', entityId: 'OFF02', date: '2023-11-10' }
         ],
 
         tasks: [
-            { id: 1, title: 'اعتماد الميزانية', status: 'pending', entityId: 'HQ001', assignedTo: 'manager' },
-            { id: 2, title: 'جرد المستودع', status: 'in_progress', entityId: 'BR015', assignedTo: 'employee' },
-            { id: 3, title: 'تجهيز قاعة التدريب', status: 'done', entityId: 'INC03', assignedTo: 'employee' },
-            { id: 4, title: 'تحديث سيرفر قاعدة البيانات', status: 'pending', entityId: 'PLT01', assignedTo: 'manager' }
+            { id: 1, title: 'اعتماد الميزانية السنوية', status: 'pending', entityId: 'HQ001', assignedTo: 'manager', priority: 'high' },
+            { id: 2, title: 'جرد المستودع الشهري', status: 'overdue', entityId: 'BR015', assignedTo: 'employee', priority: 'high' },
+            { id: 3, title: 'تجهيز قاعة التدريب رقم 4', status: 'done', entityId: 'INC03', assignedTo: 'employee', priority: 'medium' },
+            { id: 4, title: 'تحديث أمني للنظام v2.1', status: 'in_progress', entityId: 'PLT01', assignedTo: 'manager', priority: 'critical' },
+            { id: 5, title: 'تجديد عقود الموظفين', status: 'pending', entityId: 'OFF02', assignedTo: 'manager', priority: 'medium' }
         ],
 
         cohorts: [
             { id: 101, name: 'الأمن السيبراني - دفعة 2', students: 25, progress: 40, entityId: 'INC03' },
             { id: 102, name: 'تطوير الويب - دفعة 5', students: 30, progress: 90, entityId: 'INC03' }
+        ],
+
+        notifications: [
+            { id: 1, msg: 'تم تجاوز الحد الائتماني للفرع الرئيسي', type: 'alert', time: 'منذ 10 دقائق', entityId: 'BR015' },
+            { id: 2, msg: 'تسجيل دخول جديد من منطقة غير معروفة', type: 'warning', time: 'منذ 30 دقيقة', entityId: 'PLT01' },
+            { id: 3, msg: 'تم إغلاق السنة المالية للحاضنة بنجاح', type: 'success', time: 'منذ ساعتين', entityId: 'INC03' },
+            { id: 4, msg: 'طلب اعتماد صرف ميزانية جديد', type: 'info', time: 'منذ 5 ساعات', entityId: 'OFF02' }
         ]
     };
 
@@ -70,6 +89,7 @@ const app = (() => {
         canManageTasks: () => [ROLES.SUPER_ADMIN, ROLES.MANAGER].includes(currentUser.role),
         canViewCohorts: () => [ROLES.SUPER_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE, ROLES.CLIENT].includes(currentUser.role),
         canViewSystemStats: () => [ROLES.SUPER_ADMIN, ROLES.MANAGER].includes(currentUser.role) && currentUser.tenantType === TENANT_TYPES.PLATFORM,
+        canViewGovernance: () => currentUser.tenantType === TENANT_TYPES.HQ && currentUser.role === ROLES.SUPER_ADMIN,
         isClient: () => currentUser.role === ROLES.CLIENT,
         isHQ: () => currentUser.tenantType === TENANT_TYPES.HQ
     };
@@ -80,19 +100,40 @@ const app = (() => {
         
         getFinance: () => {
             if (!permissions.canViewFinance()) return [];
-            // Scope: Only own tenant data
+            // HQ Super Admin can see ALL finance if in Global Mode, but strictly typically sees HQ finance or Consolidated
+            // For this system: HQ Super Admin sees Consolidated Finance in Dashboard, but specific list in Finance View
+            if (permissions.isHQ() && currentUser.role === ROLES.SUPER_ADMIN) return db.finance;
             return db.finance.filter(item => item.entityId === currentUser.entityId);
         },
 
         getTasks: () => {
             if (!permissions.canViewTasks()) return [];
-            // Scope: Only own tenant data
+            if (permissions.isHQ() && currentUser.role === ROLES.SUPER_ADMIN) return db.tasks;
             return db.tasks.filter(item => item.entityId === currentUser.entityId);
         },
 
         getCohorts: () => {
             if (!permissions.canViewCohorts()) return [];
             return db.cohorts.filter(item => item.entityId === currentUser.entityId);
+        },
+
+        // HQ Specific APIs
+        getAllEntities: () => {
+             if (!permissions.canViewGovernance()) return [];
+             return db.entities;
+        },
+
+        getGlobalStats: () => {
+            if (!permissions.canViewGovernance()) return null;
+            const totalRevenue = db.finance.filter(t => t.type === 'credit').reduce((a, b) => a + b.amount, 0);
+            const totalExpense = db.finance.filter(t => t.type === 'debit').reduce((a, b) => a + Math.abs(b.amount), 0);
+            const pendingTasks = db.tasks.filter(t => t.status !== 'done').length;
+            const entitiesCount = db.entities.length;
+            return { totalRevenue, totalExpense, pendingTasks, entitiesCount, netProfit: totalRevenue - totalExpense };
+        },
+        
+        getRecentNotifications: () => {
+             return db.notifications;
         }
     };
 
@@ -153,6 +194,19 @@ const app = (() => {
             </a></li>
         `;
 
+        // HQ Governance Menu
+        if (permissions.canViewGovernance()) {
+            links += `
+            <div class="text-xs font-bold text-slate-500 mt-4 mb-2 px-3 uppercase tracking-wider">الحوكمة</div>
+            <li><a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group">
+                <i class="fas fa-sitemap w-6 text-center group-hover:text-purple-400"></i> الفروع والكيانات
+            </a></li>
+            <li><a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group">
+                <i class="fas fa-chart-pie w-6 text-center group-hover:text-purple-400"></i> التقارير المركزية
+            </a></li>
+            `;
+        }
+
         // Feature: Finance (Accounting)
         if (permissions.canViewFinance()) {
             links += `<li><a href="#" onclick="app.loadRoute('finance')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group">
@@ -195,7 +249,10 @@ const app = (() => {
 
         if (route === 'dashboard') {
             if (currentUser.role === ROLES.CLIENT) content = viewDashboardClient();
-            else if (currentUser.tenantType === TENANT_TYPES.HQ) content = viewDashboardHQ();
+            // HQ Super Admin gets the Advanced Governance Dashboard
+            else if (currentUser.tenantType === TENANT_TYPES.HQ && currentUser.role === ROLES.SUPER_ADMIN) content = viewDashboardHQGovernance();
+            // HQ Accountant gets the simpler view
+            else if (currentUser.tenantType === TENANT_TYPES.HQ) content = viewDashboardHQSimple();
             else if (currentUser.tenantType === TENANT_TYPES.BRANCH) content = viewDashboardBranch();
             else if (currentUser.tenantType === TENANT_TYPES.INCUBATOR) content = viewDashboardIncubator();
             else if (currentUser.tenantType === TENANT_TYPES.PLATFORM) content = viewDashboardPlatform();
@@ -222,19 +279,194 @@ const app = (() => {
         </div>
     `;
 
-    const viewDashboardHQ = () => {
+    // NEW: Comprehensive HQ Governance Dashboard
+    const viewDashboardHQGovernance = () => {
+        const stats = api.getGlobalStats();
+        const entities = api.getAllEntities();
+        const notifications = api.getRecentNotifications();
+
+        return `
+        <div class="space-y-6">
+            <!-- Header Section -->
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">مركز القيادة والتحكم (HQ)</h2>
+                    <p class="text-gray-500 text-sm">نظرة شمولية على جميع الكيانات التابعة والعمليات الحيوية.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="bg-white border border-gray-300 text-gray-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition"><i class="fas fa-download ml-2"></i>تصدير التقرير الفصلي</button>
+                    <button class="bg-brand-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-200"><i class="fas fa-plus ml-2"></i>كيان جديد</button>
+                </div>
+            </div>
+
+            <!-- KPI Cards Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-green-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 font-bold uppercase">إجمالي الإيرادات</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">${stats.totalRevenue.toLocaleString()} <span class="text-xs font-normal text-gray-400">ر.س</span></h3>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-500"><i class="fas fa-chart-line"></i></div>
+                    </div>
+                    <div class="mt-2 text-xs text-green-600 flex items-center gap-1"><i class="fas fa-arrow-up"></i> 12% نمو شهري</div>
+                </div>
+
+                 <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-400">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 font-bold uppercase">إجمالي المصروفات</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">${stats.totalExpense.toLocaleString()} <span class="text-xs font-normal text-gray-400">ر.س</span></h3>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500"><i class="fas fa-money-bill-wave"></i></div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-400">ضمن الميزانية المحددة</div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 font-bold uppercase">صافي الربح</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">${stats.netProfit.toLocaleString()} <span class="text-xs font-normal text-gray-400">ر.س</span></h3>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500"><i class="fas fa-coins"></i></div>
+                    </div>
+                    <div class="mt-2 text-xs text-blue-600">الربحية: ${(stats.netProfit / stats.totalRevenue * 100).toFixed(1)}%</div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-purple-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 font-bold uppercase">حالة النظام</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">${stats.entitiesCount} <span class="text-xs font-normal text-gray-400">كيان نشط</span></h3>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-500"><i class="fas fa-server"></i></div>
+                    </div>
+                     <div class="mt-2 text-xs text-orange-500 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> ${stats.pendingTasks} مهام معلقة</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Entities Table -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-700">حالة الكيانات التابعة</h3>
+                        <button class="text-xs text-brand-600 hover:underline">عرض الكل</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                                <tr>
+                                    <th class="p-4">الكيان</th>
+                                    <th class="p-4">النوع</th>
+                                    <th class="p-4">المدير المسؤول</th>
+                                    <th class="p-4">الأداء</th>
+                                    <th class="p-4">الحالة</th>
+                                    <th class="p-4">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                ${entities.map(ent => `
+                                <tr class="hover:bg-gray-50 transition text-sm">
+                                    <td class="p-4 font-bold text-gray-700">${ent.name}</td>
+                                    <td class="p-4"><span class="px-2 py-1 rounded text-[10px] font-bold bg-slate-100 text-slate-600">${ent.type}</span></td>
+                                    <td class="p-4 text-gray-500">${ent.manager}</td>
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-16 bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                                                <div class="h-full ${ent.performance > 90 ? 'bg-green-500' : (ent.performance > 70 ? 'bg-yellow-500' : 'bg-red-500')}" style="width: ${ent.performance}%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-400">${ent.performance}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        ${ent.status === 'active' 
+                                            ? '<span class="text-green-600 flex items-center gap-1 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> نشط</span>' 
+                                            : (ent.status === 'warning' 
+                                                ? '<span class="text-orange-500 flex items-center gap-1 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span> تنبيه</span>' 
+                                                : '<span class="text-red-500 flex items-center gap-1 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> صيانة</span>')}
+                                    </td>
+                                    <td class="p-4">
+                                        <button class="text-gray-400 hover:text-brand-600 transition"><i class="fas fa-ellipsis-h"></i></button>
+                                    </td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right: Notifications & Feeds -->
+                <div class="space-y-6">
+                    <!-- Notifications -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                        <h3 class="font-bold text-gray-700 mb-4">التنبيهات العاجلة</h3>
+                        <div class="space-y-4">
+                            ${notifications.map(note => `
+                            <div class="flex gap-3 items-start">
+                                <div class="mt-1 w-2 h-2 rounded-full ${note.type === 'alert' ? 'bg-red-500' : (note.type === 'warning' ? 'bg-orange-500' : (note.type === 'success' ? 'bg-green-500' : 'bg-blue-500'))} flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm text-gray-800 font-medium leading-tight">${note.msg}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-[10px] text-gray-400">${note.time}</span>
+                                        <span class="text-[10px] bg-gray-100 px-1 rounded text-gray-500">${note.entityId}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            `).join('')}
+                        </div>
+                        <button class="w-full mt-4 text-xs text-center text-brand-600 hover:text-brand-700 font-bold py-2 border border-brand-100 rounded bg-brand-50 transition">عرض أرشيف التنبيهات</button>
+                    </div>
+
+                    <!-- Quick Stats breakdown -->
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg p-5 text-white">
+                        <h3 class="font-bold mb-4 text-slate-200">توزيع الإيرادات</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">الفروع (Retail)</span>
+                                    <span>65%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 h-1 rounded-full">
+                                    <div class="bg-blue-500 h-1 rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                             <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">الحاضنات (Edu)</span>
+                                    <span>25%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 h-1 rounded-full">
+                                    <div class="bg-orange-500 h-1 rounded-full" style="width: 25%"></div>
+                                </div>
+                            </div>
+                             <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">المنصة (SaaS)</span>
+                                    <span>10%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 h-1 rounded-full">
+                                    <div class="bg-green-500 h-1 rounded-full" style="width: 10%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    // Simple HQ Dashboard (for non-admins like Accountant)
+    const viewDashboardHQSimple = () => {
         const finance = api.getFinance();
-        // Only Accountant and Admin see financial widgets
-        const showFinance = permissions.canViewFinance();
-        
         return `
         <div class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">لوحة قيادة المكتب الرئيسي</h2>
-            <p class="text-gray-500">مرحباً بك، ${currentUser.name} (${currentUser.role === ROLES.ACCOUNTANT ? 'قسم المالية' : 'الإدارة العليا'})</p>
+            <h2 class="text-2xl font-bold text-gray-800">لوحة الموظف (المقر الرئيسي)</h2>
+            <p class="text-gray-500">مرحباً بك، ${currentUser.name} - قسم المالية</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            ${showFinance ? `
             <div class="stat-card border-purple-200 bg-purple-50">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-bold text-purple-800">السيولة النقدية</h3>
@@ -242,16 +474,6 @@ const app = (() => {
                 </div>
                 <p class="text-3xl font-bold text-gray-800">${finance.reduce((a,c)=>c.type==='credit'?a+c.amount:a-c.amount,0).toLocaleString()} <span class="text-sm font-normal text-gray-500">ر.س</span></p>
                 <p class="text-xs text-purple-600 mt-2">بيانات مالية سرية للمقر الرئيسي</p>
-            </div>
-            ` : ''}
-
-            <div class="stat-card">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-gray-700">الفروع المرتبطة</h3>
-                    <i class="fas fa-network-wired text-gray-300 text-xl"></i>
-                </div>
-                <p class="text-3xl font-bold text-gray-800">5</p>
-                <p class="text-xs text-gray-400 mt-2">وحدات أعمال تابعة</p>
             </div>
         </div>
         `;
@@ -293,7 +515,7 @@ const app = (() => {
 
              <div class="bg-white p-6 rounded-xl shadow-sm">
                 <h3 class="font-bold mb-4">المهام المطلوبة</h3>
-                ${api.getTasks().map(t => `<div class="p-3 border-b flex justify-between"><span>${t.title}</span><span class="text-xs bg-gray-100 px-2 py-1 rounded">${t.status}</span></div>`).join('')}
+                ${api.getTasks().map(t => `<div class="p-3 border-b flex justify-between"><span>${t.title}</span><span class="text-xs ${t.status==='overdue'?'bg-red-100 text-red-600':'bg-gray-100'} px-2 py-1 rounded">${t.status}</span></div>`).join('')}
             </div>
         </div>
         `;
