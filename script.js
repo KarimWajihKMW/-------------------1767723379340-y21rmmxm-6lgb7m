@@ -230,10 +230,46 @@ const app = (() => {
         showToast(`تم تسجيل الدخول: ${currentUser.entityName}`, 'success');
     };
 
+    const toggleMobileMenu = () => {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('mobile-backdrop');
+        
+        // Using Translate-X to show/hide in RTL (Right-0) context
+        // Since it's right-0, translate-x-full (positive) moves it right (out of screen)
+        // translate-x-0 moves it to original position (visible)
+        const isClosed = sidebar.classList.contains('translate-x-full');
+
+        if (isClosed) {
+            sidebar.classList.remove('translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            
+            backdrop.classList.remove('hidden');
+            // Small delay to allow display:block to apply before opacity transition
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+            });
+        } else {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('translate-x-full');
+            
+            backdrop.classList.add('opacity-0');
+            setTimeout(() => {
+                backdrop.classList.add('hidden');
+            }, 300);
+        }
+    };
+
     const switchUser = (id) => {
         const u = db.users.find(x => x.id === id);
         if (u) {
             toggleRoleMenu();
+            
+            // Close mobile menu if open
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) {
+                toggleMobileMenu();
+            }
+
             currentUser = u;
             const tenant = db.entities.find(e => e.id === currentUser.entityId);
             if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
@@ -289,6 +325,12 @@ const app = (() => {
     };
 
     const loadRoute = (route) => {
+        // Close mobile menu if open
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) {
+            toggleMobileMenu();
+        }
+
         const view = document.getElementById('main-view');
         document.getElementById('page-title').innerText = getTitle(route);
         if (activeChart) { activeChart.destroy(); activeChart = null; }
@@ -389,19 +431,19 @@ const app = (() => {
         if (!entity) return renderPlaceholder('Entity Not Found');
 
         return `
-        <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
                 <span class="px-3 py-1 rounded-lg text-[10px] uppercase tracking-wider font-bold mb-2 inline-block ${TENANT_TYPES[currentUser.tenantType].bg} ${TENANT_TYPES[currentUser.tenantType].color}">
                     ${TENANT_TYPES[currentUser.tenantType].label}
                 </span>
-                <h2 class="text-4xl font-extrabold text-slate-800">${entity.name}</h2>
-                <p class="text-gray-500 mt-1 flex items-center gap-2">
-                    <i class="fas fa-map-marker-alt text-brand-500"></i> ${entity.location} 
-                    <span class="text-slate-300">|</span> 
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800">${entity.name}</h2>
+                <p class="text-gray-500 mt-1 flex flex-wrap items-center gap-2">
+                    <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt text-brand-500"></i> ${entity.location}</span>
+                    <span class="text-slate-300 hidden md:inline">|</span> 
                     <span class="text-slate-400 text-sm">Tenant ID: ${entity.id}</span>
                 </p>
             </div>
-            <div class="bg-white p-4 rounded-2xl shadow-lg border border-slate-100 min-w-[200px] text-left">
+            <div class="bg-white p-4 rounded-2xl shadow-lg border border-slate-100 w-full md:w-auto md:min-w-[200px] text-left">
                  <p class="text-xs text-slate-400 font-bold uppercase mb-1">خطة الاشتراك (SaaS)</p>
                  <div class="flex items-center justify-end gap-2">
                     <span class="text-xl font-black text-brand-600">${entity.plan}</span>
@@ -410,22 +452,22 @@ const app = (() => {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div class="lg:col-span-2 space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-8">
+            <div class="lg:col-span-2 space-y-6 md:space-y-8">
                  <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
                      <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                         <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
                             <i class="fas fa-chart-bar text-brand-500"></i> نشاط المستأجر
                         </h3>
                      </div>
-                     <div class="p-6 h-64 relative">
+                     <div class="p-4 md:p-6 h-64 relative">
                         <canvas id="adsChart"></canvas>
                      </div>
                  </div>
                  ${renderAdsFeed()}
             </div>
 
-            <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                  ${renderKpiCard('المحفظة الرقمية', (perms.isFinance() || perms.isAdmin()) ? entity.balance.toLocaleString() : '****', 'fa-wallet', 'text-teal-600', 'bg-teal-50')}
                  ${renderKpiCard('المهام النشطة', perms.getVisibleTasks().length, 'fa-tasks', 'text-blue-600', 'bg-blue-50')}
                  ${renderKpiCard('تذاكر الدعم', perms.getVisibleTickets().length, 'fa-headset', 'text-red-600', 'bg-red-50')}
@@ -453,8 +495,8 @@ const app = (() => {
         if(perms.isHQ()) {
             return `
             <h2 class="text-2xl font-bold text-slate-800 mb-6">إدارة جميع المستأجرين (Tenants)</h2>
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                 <table class="w-full text-right">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
+                 <table class="w-full text-right whitespace-nowrap">
                     <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase tracking-wider">
                         <tr><th class="p-5">المستأجر</th><th class="p-5">الخطة</th><th class="p-5">انتهاء الصلاحية</th><th class="p-5">الحالة</th></tr>
                     </thead>
@@ -476,13 +518,13 @@ const app = (() => {
         return `
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-10">
-                <h2 class="text-3xl font-extrabold text-slate-800 mb-2">إدارة اشتراكك</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">إدارة اشتراكك</h2>
                 <p class="text-slate-500">تفاصيل الباقة الحالية وحدود الاستخدام للمستأجر: <span class="font-bold text-slate-800">${entity.name}</span></p>
             </div>
             
             <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden relative mb-8">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-full -mr-10 -mt-10"></div>
-                <div class="p-8 relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="p-6 md:p-8 relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <span class="text-xs font-bold bg-brand-100 text-brand-600 px-3 py-1 rounded-full">الباقة الحالية</span>
@@ -550,16 +592,16 @@ const app = (() => {
                     </div>
                     <h4 class="font-bold text-gray-800 text-lg group-hover:text-brand-600 transition">${ad.title}</h4>
                 </div>
-                <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full">${ad.date}</span>
+                <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full whitespace-nowrap">${ad.date}</span>
             </div>
             <p class="text-sm text-gray-500 pr-4 pl-2 line-clamp-2 leading-relaxed">${ad.content}</p>
         </div>`;
     };
 
     const renderEntitiesManager = () => `
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h2 class="text-2xl font-bold text-slate-800">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
-            ${perms.isHQ() ? `<button onclick="app.loadRoute('register-tenant')" class="bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center gap-2 animate-pulse-slow"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>` : ''}
+            ${perms.isHQ() ? `<button onclick="app.loadRoute('register-tenant')" class="w-full md:w-auto bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center justify-center gap-2 animate-pulse-slow"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>` : ''}
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             ${perms.getVisibleEntities().map(e => `
@@ -583,11 +625,11 @@ const app = (() => {
         return `
         <div class="max-w-4xl mx-auto animate-slide-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-extrabold text-slate-800">تسجيل مستأجر جديد</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">تسجيل مستأجر جديد</h2>
                 <p class="text-slate-500 mt-2">إنشاء بيئة عمل جديدة وتخصيص الموارد</p>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-8">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6 md:p-8">
                 <div class="grid grid-cols-1 gap-8">
                     <!-- Step 1: Basic Info -->
                     <div>
@@ -643,7 +685,7 @@ const app = (() => {
                     </div>
 
                     <!-- Submit -->
-                    <div class="pt-4 flex justify-end gap-3">
+                    <div class="pt-4 flex flex-col-reverse md:flex-row justify-end gap-3">
                         <button onclick="app.loadRoute('entities')" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition">إلغاء</button>
                         <button onclick="app.submitTenantRegistration()" class="px-8 py-3 rounded-xl font-bold bg-brand-600 text-white shadow-lg hover:shadow-brand-500/30 hover:bg-brand-700 hover:scale-105 transition transform">
                             <i class="fas fa-plus-circle ml-2"></i> إنشاء المستأجر
@@ -707,8 +749,8 @@ const app = (() => {
             <h2 class="text-2xl font-bold text-slate-800">إدارة الحملات الإعلانية</h2>
             ${perms.canManageAds() ? `<button onclick="app.openAdBuilderModal()" class="bg-brand-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg hover:scale-105 transition">+ حملة جديدة</button>` : ''}
         </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-             <table class="w-full text-right">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
+             <table class="w-full text-right whitespace-nowrap">
                 <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase tracking-wider"><tr><th class="p-5">العنوان</th><th class="p-5">المستوى</th><th class="p-5">الحالة</th></tr></thead>
                 <tbody class="divide-y divide-slate-50 text-sm">
                     ${ads.map(ad => `
@@ -729,9 +771,9 @@ const app = (() => {
         <h2 class="text-2xl font-bold text-slate-800 mb-6">المهام الداخلية (${tasks.length})</h2>
         <div class="grid gap-4">
             ${tasks.map(t => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div><h4 class="font-bold text-slate-800">${t.title}</h4><p class="text-xs text-slate-500">${t.type} | ${t.dueDate}</p></div>
-                    <span class="px-2 py-1 rounded text-xs bg-slate-100">${t.status}</span>
+                    <span class="px-2 py-1 rounded text-xs bg-slate-100 w-fit">${t.status}</span>
                 </div>
             `).join('')}
         </div>`;
@@ -745,7 +787,7 @@ const app = (() => {
         <div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
             <div class="flex justify-between items-center">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-slate-800">خصائص العلامة التجارية</h2>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">خصائص العلامة التجارية</h2>
                     <p class="text-slate-500 mt-2">تخصيص هوية المستأجر والواجهة</p>
                 </div>
                 <div class="hidden md:block">
@@ -763,7 +805,7 @@ const app = (() => {
                     </h3>
                     <p class="text-sm text-slate-400 mt-1">اختر لوحة الألوان الأساسية لواجهة النظام الخاصة بكيانك</p>
                 </div>
-                <div class="p-8">
+                <div class="p-6 md:p-8">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                         ${Object.entries(THEMES).map(([key, theme]) => `
                             <label class="cursor-pointer group relative">
@@ -782,7 +824,7 @@ const app = (() => {
             </div>
 
             <!-- Branding & Logo Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                  <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6">
                     <h3 class="font-bold text-lg text-slate-800 mb-4">شعار المستأجر (Logo)</h3>
                     <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition cursor-pointer group">
@@ -847,8 +889,8 @@ const app = (() => {
         if (!perms.canViewAuditLogs()) return renderPlaceholder();
         return `
         <h2 class="text-2xl font-bold text-slate-800 mb-6">سجلات النظام (Audit Trail)</h2>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-             <table class="w-full text-right">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
+             <table class="w-full text-right whitespace-nowrap">
                 <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase"><tr><th class="p-4">الوقت</th><th class="p-4">المستخدم</th><th class="p-4">الحدث</th><th class="p-4">التفاصيل</th></tr></thead>
                 <tbody class="divide-y divide-slate-50 text-sm">
                     ${perms.getVisibleAuditLogs().map(log => `
@@ -864,7 +906,7 @@ const app = (() => {
     };
 
     const renderPlaceholder = (msg = 'لا تملك صلاحية الوصول') => `
-        <div class="flex flex-col items-center justify-center h-96 text-center animate-fade-in">
+        <div class="flex flex-col items-center justify-center h-96 text-center animate-fade-in px-4">
             <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner"><i class="fas fa-lock text-4xl text-slate-400"></i></div>
             <h3 class="text-2xl font-bold text-slate-700">وصول مقيد (Tenant Isolation)</h3>
             <p class="text-slate-500 mt-2 max-w-md mx-auto">${msg}</p>
@@ -920,7 +962,8 @@ const app = (() => {
         submitTenantRegistration,
         renderSettings,
         saveSettings,
-        previewTheme
+        previewTheme,
+        toggleMobileMenu
     };
 })();
 
