@@ -1,6 +1,6 @@
 /**
- * NAYOSH ERP - Advanced Ads Engine & Multi-Tenant System
- * Updated Logic: 5-Level Ads Scope, Approval Workflows, Pricing Model
+ * NAYOSH ERP - HQ Central Governance & Multi-Tenant System
+ * Updated Logic: HQ Dashboard, Entity Management, Central Reports, Tasks
  */
 
 const app = (() => {
@@ -13,241 +13,58 @@ const app = (() => {
     };
 
     const TENANT_TYPES = {
-        HQ: 'HQ',
-        BRANCH: 'BRANCH',
-        INCUBATOR: 'INCUBATOR',
-        PLATFORM: 'PLATFORM',
-        OFFICE: 'OFFICE'
-    };
-
-    // --- ADS ENGINE CONFIGURATION ---
-    const AD_CONFIG = {
-        // 5 Levels of Scope
-        SCOPES: {
-            LOCAL: { id: 'LOCAL', label: 'محلي (داخل الكيان فقط)', priceMultiplier: 0, requiresApproval: false },
-            MULTI_BRANCH: { id: 'MULTI_BRANCH', label: 'شبكة الفروع (Retail Network)', priceMultiplier: 2, requiresApproval: true },
-            INCUBATOR_INTERNAL: { id: 'INCUBATOR_INTERNAL', label: 'مجتمع الحاضنة', priceMultiplier: 0, requiresApproval: false },
-            PLATFORM_USERS: { id: 'PLATFORM_USERS', label: 'مشتركي المنصة (SaaS)', priceMultiplier: 1.5, requiresApproval: true },
-            GLOBAL: { id: 'GLOBAL', label: 'نشر موسع (كل النظام)', priceMultiplier: 5, requiresApproval: true }
-        },
-        PLACEMENTS: {
-            CAROUSEL: { id: 'CAROUSEL', label: 'شريط المتحرك (Dashboard)', priceMultiplier: 1 },
-            TOAST: { id: 'TOAST', label: 'تنبيه منبثق (Popup)', priceMultiplier: 2 },
-            SIDEBAR: { id: 'SIDEBAR', label: 'القائمة الجانبية', priceMultiplier: 1.2 }
-        },
-        STATUS: {
-            ACTIVE: 'ACTIVE',
-            PENDING: 'PENDING', // Waiting for HQ
-            REJECTED: 'REJECTED',
-            EXPIRED: 'EXPIRED',
-            DRAFT: 'DRAFT'
-        },
-        BASE_PRICE_PER_DAY: 10 // SAR
+        HQ: { id: 'HQ', label: 'المكتب الرئيسي', icon: 'fa-building', color: 'text-purple-600', bg: 'bg-purple-50' },
+        BRANCH: { id: 'BRANCH', label: 'فرع تجزئة', icon: 'fa-store', color: 'text-blue-600', bg: 'bg-blue-50' },
+        INCUBATOR: { id: 'INCUBATOR', label: 'حاضنة أعمال', icon: 'fa-seedling', color: 'text-orange-600', bg: 'bg-orange-50' },
+        PLATFORM: { id: 'PLATFORM', label: 'منصة رقمية', icon: 'fa-laptop-code', color: 'text-green-600', bg: 'bg-green-50' },
+        OFFICE: { id: 'OFFICE', label: 'مكتب إداري', icon: 'fa-briefcase', color: 'text-gray-600', bg: 'bg-gray-50' }
     };
 
     // --- DATA LAYER ---
     const db = {
         users: [
-            { id: 1, name: 'م. أحمد العلي', role: ROLES.SUPER_ADMIN, tenantType: TENANT_TYPES.HQ, entityId: 'HQ001', entityName: 'المكتب الرئيسي' },
-            { id: 2, name: 'سارة محمد', role: ROLES.MANAGER, tenantType: TENANT_TYPES.BRANCH, entityId: 'BR015', entityName: 'فرع العليا مول' },
-            { id: 3, name: 'د. خالد الزهراني', role: ROLES.MANAGER, tenantType: TENANT_TYPES.INCUBATOR, entityId: 'INC03', entityName: 'حاضنة السلامة' },
-            { id: 4, name: 'فريق التقنية', role: ROLES.MANAGER, tenantType: TENANT_TYPES.PLATFORM, entityId: 'PLT01', entityName: 'نايوش كلاود' },
-            { id: 8, name: 'عمر الطالب', role: ROLES.CLIENT, tenantType: TENANT_TYPES.INCUBATOR, entityId: 'INC03', entityName: 'حاضنة السلامة' },
-            { id: 9, name: 'فهد السبيعي', role: ROLES.MANAGER, tenantType: TENANT_TYPES.BRANCH, entityId: 'BR016', entityName: 'فرع مول الرياض' }
+            { id: 1, name: 'م. أحمد العلي', role: ROLES.SUPER_ADMIN, tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' },
+            { id: 2, name: 'سارة محمد', role: ROLES.MANAGER, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' },
+            { id: 3, name: 'د. خالد الزهراني', role: ROLES.MANAGER, tenantType: 'INCUBATOR', entityId: 'INC03', entityName: 'حاضنة السلامة' },
+            { id: 4, name: 'فريق التقنية', role: ROLES.MANAGER, tenantType: 'PLATFORM', entityId: 'PLT01', entityName: 'نايوش كلاود' },
+            { id: 9, name: 'فهد السبيعي', role: ROLES.MANAGER, tenantType: 'BRANCH', entityId: 'BR016', entityName: 'فرع مول الرياض' }
         ],
 
-        // EXPANDED ADS SCHEMA
+        entities: [
+            { id: 'HQ001', name: 'المكتب الرئيسي', type: 'HQ', status: 'Active', balance: 0, location: 'الرياض', users: 15 },
+            { id: 'BR015', name: 'فرع العليا مول', type: 'BRANCH', status: 'Active', balance: 5000, location: 'الرياض - العليا', users: 8 },
+            { id: 'BR016', name: 'فرع مول الرياض', type: 'BRANCH', status: 'Active', balance: 3200, location: 'الرياض - النخيل', users: 12 },
+            { id: 'INC03', name: 'حاضنة السلامة', type: 'INCUBATOR', status: 'Active', balance: 10000, location: 'جدة', users: 45 },
+            { id: 'PLT01', name: 'نايوش كلاود', type: 'PLATFORM', status: 'Active', balance: 150000, location: 'سحابي', users: 1200 },
+            { id: 'OFF01', name: 'مكتب الدمام', type: 'OFFICE', status: 'Inactive', balance: 0, location: 'الدمام', users: 0 }
+        ],
+
         ads: [
-            // 1. GLOBAL AD (Approved & Active)
-            {
-                id: 1,
-                title: 'صيانة دورية للنظام',
-                content: 'سيتم توقف النظام للصيانة يوم الجمعة من الساعة 2ص حتى 4ص.',
-                type: 'warning',
-                scope: 'GLOBAL',
-                sourceEntityId: 'HQ001',
-                sourceEntityName: 'المكتب الرئيسي',
-                targetType: 'ALL',
-                status: 'ACTIVE',
-                startDate: '2023-11-20',
-                duration: 7,
-                placement: 'CAROUSEL',
-                price: 0
-            },
-            // 2. LOCAL AD (Branch Specific - Free)
-            {
-                id: 2,
-                title: 'اجتماع الموظفين',
-                content: 'اجتماع صباحي لمناقشة التارغت الشهري.',
-                type: 'info',
-                scope: 'LOCAL',
-                sourceEntityId: 'BR015',
-                sourceEntityName: 'فرع العليا مول',
-                targetType: 'SELF',
-                status: 'ACTIVE',
-                startDate: '2023-11-21',
-                duration: 3,
-                placement: 'CAROUSEL',
-                price: 0
-            },
-            // 3. MULTI-BRANCH AD (Paid & Approved)
-            {
-                id: 3,
-                title: 'خصم خاص للموظفين',
-                content: 'خصم 20% لدى كافية "Jolt" لجميع موظفي الفروع.',
-                type: 'promo',
-                scope: 'MULTI_BRANCH',
-                sourceEntityId: 'BR015',
-                sourceEntityName: 'فرع العليا مول',
-                targetType: 'BRANCH',
-                status: 'ACTIVE',
-                startDate: '2023-11-20',
-                duration: 10,
-                placement: 'TOAST',
-                price: 200 // Calculated
-            },
-            // 4. INCUBATOR INTERNAL (Free)
-            {
-                id: 4,
-                title: 'يوم العرض (Demo Day)',
-                content: 'نذكركم بموعد عرض المشاريع أمام المستثمرين غداً.',
-                type: 'success',
-                scope: 'INCUBATOR_INTERNAL',
-                sourceEntityId: 'INC03',
-                sourceEntityName: 'حاضنة السلامة',
-                targetType: 'INCUBATOR',
-                status: 'ACTIVE',
-                startDate: '2023-11-22',
-                duration: 5,
-                placement: 'CAROUSEL',
-                price: 0
-            },
-            // 5. PENDING APPROVAL AD (Global from a Branch)
-            {
-                id: 5,
-                title: 'افتتاح فرعنا الجديد',
-                content: 'ندعوكم لحفل افتتاح فرع العليا مول.',
-                type: 'promo',
-                scope: 'GLOBAL',
-                sourceEntityId: 'BR015',
-                sourceEntityName: 'فرع العليا مول',
-                targetType: 'ALL',
-                status: 'PENDING',
-                startDate: '2023-11-25',
-                duration: 3,
-                placement: 'TOAST',
-                price: 150
-            }
+            { id: 1, title: 'صيانة دورية للنظام', content: 'سيتم توقف النظام للصيانة...', type: 'warning', scope: 'GLOBAL', status: 'ACTIVE', sourceEntityId: 'HQ001', date: '2023-11-20' },
+            { id: 3, title: 'خصم خاص للموظفين', content: 'خصم 20% لدى كافية Jolt...', type: 'promo', scope: 'MULTI_BRANCH', status: 'ACTIVE', sourceEntityId: 'BR015', date: '2023-11-20' },
+            { id: 5, title: 'افتتاح فرعنا الجديد', content: 'ندعوكم لحفل افتتاح...', type: 'promo', scope: 'GLOBAL', status: 'PENDING', sourceEntityId: 'BR015', date: '2023-11-25', price: 150 }
         ],
 
-        tenants: [
-            { id: 'BR015', name: 'فرع العليا مول', type: TENANT_TYPES.BRANCH, balance: 5000 },
-            { id: 'BR016', name: 'فرع مول الرياض', type: TENANT_TYPES.BRANCH, balance: 3200 },
-            { id: 'INC03', name: 'حاضنة السلامة', type: TENANT_TYPES.INCUBATOR, balance: 10000 }
+        tasks: [
+            { id: 101, title: 'اعتماد الميزانية الربعية للفروع', dueDate: '2023-11-30', status: 'Pending', priority: 'High', type: 'Finance' },
+            { id: 102, title: 'مراجعة طلبات الإعلانات المعلقة', dueDate: '2023-11-21', status: 'In Progress', priority: 'Medium', type: 'Ops' },
+            { id: 103, title: 'تجديد رخصة منصة نايوش كلاود', dueDate: '2023-12-01', status: 'Pending', priority: 'High', type: 'Legal' },
+            { id: 104, title: 'اجتماع مدراء المناطق', dueDate: '2023-11-22', status: 'Done', priority: 'Low', type: 'Meeting' }
         ]
     };
 
-    let currentUser = db.users[0]; // Default: Super Admin
+    let currentUser = db.users[0]; // Default: HQ Super Admin
 
-    // --- PERMISSIONS HELPER ---
+    // --- PERMISSIONS ---
     const perms = {
-        isHQ: () => currentUser.tenantType === TENANT_TYPES.HQ,
-        canManageAds: () => [ROLES.SUPER_ADMIN, ROLES.MANAGER].includes(currentUser.role),
-        canApproveAds: () => currentUser.role === ROLES.SUPER_ADMIN && currentUser.tenantType === TENANT_TYPES.HQ
-    };
-
-    // --- CORE LOGIC (Ads Engine) ---
-    const adsEngine = {
-        // 1. FILTERING ADS FOR DISPLAY
-        getVisibleAds: () => {
-            const today = new Date().toISOString().split('T')[0];
-            
-            return db.ads.filter(ad => {
-                // Basic filters
-                if (ad.status !== 'ACTIVE') return false;
-                // Date check (Simplified)
-                if (ad.startDate > today) return false;
-                // TODO: Add proper expiry date check
-
-                // --- SCOPE LOGIC ---
-                switch (ad.scope) {
-                    case 'GLOBAL':
-                        return true; // Visible to everyone
-                    case 'LOCAL':
-                        return ad.sourceEntityId === currentUser.entityId;
-                    case 'MULTI_BRANCH':
-                        return currentUser.tenantType === TENANT_TYPES.BRANCH;
-                    case 'INCUBATOR_INTERNAL':
-                        return currentUser.entityId === ad.sourceEntityId; // Or specific logic for incubator community
-                    case 'PLATFORM_USERS':
-                        return currentUser.tenantType === TENANT_TYPES.PLATFORM || ad.sourceEntityId === currentUser.entityId;
-                    default:
-                        return false;
-                }
-            });
-        },
-
-        // 2. GETTING ADS TO MANAGE (My Ads + Approval Queue)
-        getManageableAds: () => {
-            if (perms.isHQ()) {
-                return db.ads; // HQ sees all (for approval)
-            }
-            return db.ads.filter(ad => ad.sourceEntityId === currentUser.entityId);
-        },
-
-        // 3. PRICING CALCULATOR
-        calculatePrice: (scope, duration, placement) => {
-            const scopeMult = AD_CONFIG.SCOPES[scope]?.priceMultiplier || 0;
-            const placeMult = AD_CONFIG.PLACEMENTS[placement]?.priceMultiplier || 1;
-            const base = AD_CONFIG.BASE_PRICE_PER_DAY;
-            
-            // Formula: (Base * ScopeMultiplier * PlacementMultiplier) * Duration
-            // Note: If Scope Multiplier is 0 (Local), price is 0.
-            return Math.round((base * scopeMult * placeMult) * duration);
-        },
-
-        // 4. CREATE AD
-        createAd: (formData) => {
-            const scopeConfig = AD_CONFIG.SCOPES[formData.scope];
-            const price = adsEngine.calculatePrice(formData.scope, formData.duration, formData.placement);
-            
-            // Determine Status
-            // If HQ creates it, it's ACTIVE.
-            // If Scope doesn't require approval (Local), it's ACTIVE.
-            // Otherwise PENDING.
-            let status = 'PENDING';
-            if (perms.isHQ() || !scopeConfig.requiresApproval) {
-                status = 'ACTIVE';
-            }
-
-            const newAd = {
-                id: db.ads.length + 1,
-                ...formData,
-                sourceEntityId: currentUser.entityId,
-                sourceEntityName: currentUser.entityName,
-                status: status,
-                price: price,
-                date: new Date().toISOString().split('T')[0]
-            };
-
-            db.ads.push(newAd);
-            return newAd;
-        },
-
-        // 5. APPROVE/REJECT
-        updateStatus: (adId, newStatus) => {
-            const ad = db.ads.find(a => a.id === adId);
-            if (ad) ad.status = newStatus;
-        }
+        isHQ: () => currentUser.tenantType === 'HQ',
     };
 
     // --- INIT ---
     const init = () => {
         renderSidebar();
-        loadRoute('dashboard');
         updateHeader();
-        // Show Toasts on init if any
-        renderToasts();
+        loadRoute('dashboard');
     };
 
     const switchUser = (id) => {
@@ -259,7 +76,6 @@ const app = (() => {
                 renderSidebar(); 
                 updateHeader(); 
                 loadRoute('dashboard');
-                renderToasts();
             }, 500);
         }
     };
@@ -277,344 +93,407 @@ const app = (() => {
         document.getElementById('page-title').innerText = getTitle(route);
         
         let content = '';
-        switch(route) {
-            case 'dashboard': content = renderDashboard(); break;
-            case 'ads-manager': content = renderAdsManager(); break;
-            case 'operations': content = renderPlaceholder('العمليات', 'fa-cogs'); break;
-            default: content = renderPlaceholder('صفحة قيد التطوير', 'fa-tools');
+        if (perms.isHQ()) {
+            // HQ Specific Routes
+            switch(route) {
+                case 'dashboard': content = renderHQDashboard(); break;
+                case 'entities': content = renderEntitiesManager(); break;
+                case 'reports': content = renderCentralReports(); break;
+                case 'ads-governance': content = renderAdsGovernance(); break;
+                case 'tasks': content = renderTasksManager(); break;
+                default: content = renderPlaceholder();
+            }
+        } else {
+            // Other Roles Routes (Simplified for this context)
+            switch(route) {
+                case 'dashboard': content = renderBranchDashboard(); break;
+                default: content = renderPlaceholder();
+            }
         }
         view.innerHTML = `<div class="fade-in">${content}</div>`;
     };
 
     const getTitle = (r) => {
-        const map = { 'dashboard': 'لوحة التحكم', 'ads-manager': 'إدارة الإعلانات', 'operations': 'العمليات' };
+        const map = { 
+            'dashboard': 'لوحة القيادة المركزية', 
+            'entities': 'إدارة الكيانات والفروع', 
+            'reports': 'التقارير والتحليلات', 
+            'ads-governance': 'حوكمة الإعلانات',
+            'tasks': 'المهام والمتابعة'
+        };
         return map[r] || 'نايوش ERP';
     };
 
     // --- RENDERERS ---
-    
-    // 1. SIDEBAR
     const renderSidebar = () => {
         const menu = document.getElementById('nav-menu');
-        let html = `
-            <li><a href="#" onclick="app.loadRoute('dashboard')" class="flex items-center gap-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"><i class="fas fa-home w-6 text-center"></i> الرئيسية</a></li>
-        `;
+        let items = [];
 
-        if (perms.canManageAds()) {
-            html += `<li><a href="#" onclick="app.loadRoute('ads-manager')" class="flex items-center gap-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"><i class="fas fa-bullhorn w-6 text-center"></i> الإعلانات</a></li>`;
+        if (perms.isHQ()) {
+            items = [
+                { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية' },
+                { id: 'entities', icon: 'fa-sitemap', label: 'إدارة الكيانات' },
+                { id: 'tasks', icon: 'fa-tasks', label: 'المهام' },
+                { id: 'ads-governance', icon: 'fa-user-shield', label: 'حوكمة الإعلانات' },
+                { id: 'reports', icon: 'fa-file-contract', label: 'التقارير المركزية' }
+            ];
+        } else {
+            items = [
+                { id: 'dashboard', icon: 'fa-home', label: 'الرئيسية' },
+                { id: 'my-ads', icon: 'fa-bullhorn', label: 'إعلاناتي' },
+                { id: 'operations', icon: 'fa-cogs', label: 'العمليات' }
+            ];
         }
 
-        html += `<li><a href="#" onclick="app.loadRoute('operations')" class="flex items-center gap-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"><i class="fas fa-rocket w-6 text-center"></i> العمليات</a></li>`;
-        
-        menu.innerHTML = html;
+        menu.innerHTML = items.map(item => 
+            `<li>
+                <a href="#" onclick="app.loadRoute('${item.id}')" 
+                   class="flex items-center gap-3 px-3 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition group">
+                   <i class="fas ${item.icon} w-6 text-center text-slate-400 group-hover:text-brand-400 transition-colors"></i> 
+                   ${item.label}
+                </a>
+            </li>`
+        ).join('');
     };
 
-    // 2. DASHBOARD
-    const renderDashboard = () => {
-        const ads = adsEngine.getVisibleAds().filter(a => a.placement === 'CAROUSEL');
-        
-        return `
-        <!-- ADS CAROUSEL -->
-        <div class="mb-8">
-            <div class="flex items-center gap-2 mb-3">
-                <h3 class="font-bold text-gray-700">الإعلانات والتعاميم</h3>
-                <span class="text-xs bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full">${ads.length} نشط</span>
-            </div>
-            <div class="flex gap-4 overflow-x-auto pb-4 snap-x">
-                ${ads.length ? ads.map(ad => `
-                    <div class="min-w-[320px] md:min-w-[400px] bg-white border-r-4 ${getAdColor(ad.type)} p-5 rounded-xl shadow-sm snap-start hover:shadow-md transition flex flex-col justify-between h-40">
-                        <div>
-                            <div class="flex justify-between items-start">
-                                <h4 class="font-bold text-gray-800 line-clamp-1">${ad.title}</h4>
-                                <span class="text-[10px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-600">${AD_CONFIG.SCOPES[ad.scope]?.label.split(' ')[0]}</span>
-                            </div>
-                            <p class="text-sm text-gray-600 mt-2 line-clamp-3">${ad.content}</p>
-                        </div>
-                        <div class="text-[10px] text-gray-400 mt-auto pt-2 flex justify-between">
-                            <span>من: ${ad.sourceEntityName}</span>
-                            <span>${ad.startDate}</span>
-                        </div>
-                    </div>
-                `).join('') : '<div class="w-full p-6 text-center text-gray-400 bg-white rounded-xl border border-dashed">لا توجد إعلانات نشطة حالياً</div>'}
-            </div>
-        </div>
-
-        <!-- STATS GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-             <div class="bg-white p-6 rounded-xl shadow-sm border-b-4 border-brand-500">
-                <p class="text-xs text-gray-500 font-bold">المهام المفتوحة</p>
-                <h3 class="text-2xl font-bold mt-1">12</h3>
-             </div>
-             <div class="bg-white p-6 rounded-xl shadow-sm border-b-4 border-purple-500">
-                <p class="text-xs text-gray-500 font-bold">الرصيد</p>
-                <h3 class="text-2xl font-bold mt-1">5,240 <span class="text-xs font-normal">ر.س</span></h3>
-             </div>
-        </div>
-        `;
-    };
-
-    // 3. TOAST RENDERER
-    const renderToasts = () => {
-        const container = document.getElementById('toast-container');
-        container.innerHTML = '';
-        const ads = adsEngine.getVisibleAds().filter(a => a.placement === 'TOAST');
-        
-        ads.forEach(ad => {
-            const el = document.createElement('div');
-            el.className = `w-80 bg-white p-4 rounded-lg shadow-2xl border-r-4 ${getAdColor(ad.type)} flex items-start gap-3 transform transition-all duration-500 translate-x-0 pointer-events-auto`;
-            el.innerHTML = `
-                <div class="flex-1">
-                    <h4 class="font-bold text-sm text-gray-800">${ad.title}</h4>
-                    <p class="text-xs text-gray-600 mt-1">${ad.content}</p>
-                    <div class="mt-2 flex gap-2">
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-xs text-gray-400 hover:text-gray-600">إغلاق</button>
-                        <span class="text-[10px] text-brand-600 bg-brand-50 px-2 rounded ml-auto">${ad.sourceEntityName}</span>
-                    </div>
-                </div>
-            `;
-            container.appendChild(el);
-        });
-    };
-
-    // 4. ADS MANAGER (COMPLEX UI)
-    const renderAdsManager = () => {
-        const myAds = adsEngine.getManageableAds();
-        const pendingAds = myAds.filter(a => a.status === 'PENDING');
-        const activeAds = myAds.filter(a => a.status === 'ACTIVE');
-        
-        // Default Tab: My Ads
-        // HQ Admin sees 'Pending Approvals' prominently
-        
-        return `
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left: Create/Calculator -->
-            <div class="lg:col-span-1">
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 sticky top-4">
-                    <h3 class="font-bold text-lg mb-4 text-brand-700 border-b pb-2">نشر إعلان جديد</h3>
-                    <form id="create-ad-form" onsubmit="app.handleCreateAd(event)" class="space-y-4">
-                        
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">عنوان الإعلان</label>
-                            <input type="text" name="title" required class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-brand-200 outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">المحتوى</label>
-                            <textarea name="content" rows="3" required class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-brand-200 outline-none"></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">النوع</label>
-                                <select name="type" class="w-full p-2 border rounded text-sm bg-slate-50">
-                                    <option value="info">معلومة</option>
-                                    <option value="promo">عرض ترويجي</option>
-                                    <option value="warning">تنبيه هام</option>
-                                    <option value="success">إنجاز</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">مكان الظهور</label>
-                                <select name="placement" id="ad-placement" onchange="app.updatePricePreview()" class="w-full p-2 border rounded text-sm bg-slate-50">
-                                    ${Object.values(AD_CONFIG.PLACEMENTS).map(p => `<option value="${p.id}">${p.label}</option>`).join('')}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="p-4 bg-brand-50 rounded-lg border border-brand-100">
-                            <label class="block text-xs font-bold text-brand-800 mb-2">نطاق النشر (Target Scope)</label>
-                            <select name="scope" id="ad-scope" onchange="app.updatePricePreview()" class="w-full p-2 border border-brand-200 rounded text-sm bg-white mb-2">
-                                ${Object.values(AD_CONFIG.SCOPES).map(s => {
-                                    // Filter scopes based on role? For demo, show all.
-                                    return `<option value="${s.id}">${s.label}</option>`;
-                                }).join('')}
-                            </select>
-                            <p id="scope-hint" class="text-[10px] text-brand-600">يظهر فقط لموظفي وعملاء فرعك الحالي.</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">المدة (بالأيام)</label>
-                            <input type="number" name="duration" id="ad-duration" value="3" min="1" max="30" onchange="app.updatePricePreview()" class="w-full p-2 border rounded text-sm">
-                        </div>
-
-                        <!-- Pricing Preview -->
-                        <div class="flex justify-between items-center py-3 border-t border-gray-100 mt-2">
-                            <span class="text-xs text-gray-500 font-bold">التكلفة المقدرة:</span>
-                            <span id="price-display" class="text-xl font-bold text-green-600">0 ر.س</span>
-                        </div>
-
-                        <button type="submit" class="w-full bg-brand-600 text-white py-2.5 rounded-lg font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-200">إرسال للنشر</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Right: Lists -->
-            <div class="lg:col-span-2 space-y-8">
-                
-                ${perms.isHQ() ? `
-                <!-- APPROVAL QUEUE (HQ ONLY) -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden">
-                    <div class="bg-orange-50 px-6 py-3 border-b border-orange-100 flex justify-between items-center">
-                        <h3 class="font-bold text-orange-800"><i class="fas fa-clipboard-check ml-2"></i>طلبات النشر المعلقة (${pendingAds.length})</h3>
-                    </div>
-                    <div class="divide-y divide-gray-50">
-                        ${pendingAds.length === 0 ? '<p class="p-6 text-center text-sm text-gray-400">لا توجد طلبات معلقة</p>' : pendingAds.map(ad => `
-                            <div class="p-4 hover:bg-orange-50/50 transition flex justify-between items-center">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-500 font-bold">${ad.sourceEntityName}</span>
-                                        <h4 class="font-bold text-gray-800">${ad.title}</h4>
-                                    </div>
-                                    <p class="text-sm text-gray-600 mt-1">${ad.content}</p>
-                                    <div class="mt-2 text-xs text-gray-400 flex gap-3">
-                                        <span><i class="fas fa-globe ml-1"></i>${AD_CONFIG.SCOPES[ad.scope]?.label}</span>
-                                        <span><i class="fas fa-coins ml-1"></i>${ad.price} ر.س</span>
-                                    </div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="app.approveAd(${ad.id})" class="bg-green-500 text-white px-3 py-1.5 rounded text-xs hover:bg-green-600">قبول</button>
-                                    <button onclick="app.rejectAd(${ad.id})" class="bg-red-500 text-white px-3 py-1.5 rounded text-xs hover:bg-red-600">رفض</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- ACTIVE ADS -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between">
-                        <h3 class="font-bold text-gray-800">إعلاناتي النشطة</h3>
-                    </div>
-                    <div class="divide-y divide-gray-50">
-                         ${activeAds.length === 0 ? '<p class="p-6 text-center text-sm text-gray-400">لا توجد إعلانات نشطة</p>' : activeAds.map(ad => `
-                            <div class="p-5 flex items-start gap-4">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 ${getAdColor(ad.type, true)}">
-                                    <i class="fas fa-bullhorn"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-start">
-                                        <h4 class="font-bold text-gray-800">${ad.title}</h4>
-                                        <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">نشط</span>
-                                    </div>
-                                    <p class="text-sm text-gray-600 mt-1">${ad.content}</p>
-                                    <div class="mt-3 flex items-center gap-4 text-xs text-gray-400">
-                                        <span class="flex items-center gap-1"><i class="far fa-calendar"></i> يبدأ: ${ad.startDate}</span>
-                                        <span class="flex items-center gap-1"><i class="far fa-clock"></i> المدة: ${ad.duration} أيام</span>
-                                        <span class="flex items-center gap-1 text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded">${AD_CONFIG.SCOPES[ad.scope]?.label.split(' ')[0]}</span>
-                                    </div>
-                                </div>
-                                <button onclick="app.deleteAd(${ad.id})" class="text-gray-300 hover:text-red-500 transition"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <!-- Pending Ads (For regular users) -->
-                ${!perms.isHQ() ? `
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                     <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="font-bold text-gray-600 text-sm">بانتظار الموافقة</h3>
-                    </div>
-                    <div class="divide-y divide-gray-50">
-                         ${pendingAds.map(ad => `
-                            <div class="p-4 flex justify-between items-center opacity-75 grayscale-[50%]">
-                                <div>
-                                    <h4 class="font-bold text-sm text-gray-800">${ad.title}</h4>
-                                    <span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 rounded">قيد المراجعة (HQ)</span>
-                                </div>
-                                <span class="font-bold text-sm text-gray-500">${ad.price} ر.س</span>
-                            </div>
-                         `).join('')}
-                    </div>
-                </div>
-                ` : ''}
-
-            </div>
-        </div>
-        `;
-    };
-
-    // --- UTILS & HANDLERS ---
-    const getAdColor = (type, isBg = false) => {
-        const colors = {
-            'info': isBg ? 'bg-blue-500' : 'border-blue-500',
-            'promo': isBg ? 'bg-purple-500' : 'border-purple-500',
-            'warning': isBg ? 'bg-orange-500' : 'border-orange-500',
-            'success': isBg ? 'bg-green-500' : 'border-green-500'
+    // 1. HQ DASHBOARD
+    const renderHQDashboard = () => {
+        const stats = {
+            totalEntities: db.entities.length - 1, // Exclude HQ
+            totalBalance: db.entities.reduce((acc, curr) => acc + (curr.balance || 0), 0),
+            pendingAds: db.ads.filter(a => a.status === 'PENDING').length,
+            activeUsers: db.entities.reduce((acc, curr) => acc + (curr.users || 0), 0)
         };
-        return colors[type] || (isBg ? 'bg-gray-500' : 'border-gray-500');
+
+        return `
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold mb-1">إجمالي الكيانات</p>
+                    <h3 class="text-2xl font-bold text-slate-800">${stats.totalEntities}</h3>
+                    <span class="text-[10px] text-green-500 flex items-center mt-1"><i class="fas fa-arrow-up ml-1"></i> 2 جدد هذا الشهر</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fas fa-building"></i></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold mb-1">الرصيد المجمع</p>
+                    <h3 class="text-2xl font-bold text-slate-800">${stats.totalBalance.toLocaleString()} <span class="text-xs">ر.س</span></h3>
+                    <span class="text-[10px] text-green-500 flex items-center mt-1"><i class="fas fa-arrow-up ml-1"></i> 12% نمو</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-lg"><i class="fas fa-wallet"></i></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold mb-1">طلبات معلقة</p>
+                    <h3 class="text-2xl font-bold text-slate-800">${stats.pendingAds}</h3>
+                    <span class="text-[10px] ${stats.pendingAds > 0 ? 'text-orange-500' : 'text-slate-400'} flex items-center mt-1">${stats.pendingAds > 0 ? 'يتطلب إجراء' : 'لا يوجد مهام'}</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center text-lg"><i class="fas fa-clock"></i></div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold mb-1">المستخدمين النشطين</p>
+                    <h3 class="text-2xl font-bold text-slate-800">${stats.activeUsers}</h3>
+                    <span class="text-[10px] text-green-500 flex items-center mt-1">عبر كل المنصات</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-lg"><i class="fas fa-users"></i></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- ENTITIES SNAPSHOT -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-700">حالة الكيانات والفروع</h3>
+                    <button onclick="app.loadRoute('entities')" class="text-xs text-brand-600 hover:underline">عرض الكل</button>
+                </div>
+                <div class="p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right">
+                            <thead class="text-xs text-slate-400 font-light bg-slate-50">
+                                <tr>
+                                    <th class="p-3 rounded-r-lg">اسم الكيان</th>
+                                    <th class="p-3">النوع</th>
+                                    <th class="p-3">الموقع</th>
+                                    <th class="p-3">الحالة</th>
+                                    <th class="p-3 rounded-l-lg">الأداء</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm text-slate-600">
+                                ${db.entities.filter(e => e.type !== 'HQ').slice(0, 5).map(e => `
+                                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                                        <td class="p-3 font-bold">${e.name}</td>
+                                        <td class="p-3"><span class="text-[10px] px-2 py-1 rounded ${TENANT_TYPES[e.type].bg} ${TENANT_TYPES[e.type].color}">${TENANT_TYPES[e.type].label}</span></td>
+                                        <td class="p-3">${e.location}</td>
+                                        <td class="p-3">
+                                            <span class="flex items-center gap-1 text-[10px] font-bold ${e.status === 'Active' ? 'text-green-500' : 'text-red-500'}">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-current"></span> ${e.status === 'Active' ? 'نشط' : 'متوقف'}
+                                            </span>
+                                        </td>
+                                        <td class="p-3">
+                                            <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div class="h-full bg-brand-500" style="width: ${Math.random() * 40 + 60}%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- URGENT TASKS -->
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-700">المهام العاجلة</h3>
+                </div>
+                <div class="flex-1 p-4 space-y-3 overflow-y-auto max-h-96">
+                    ${db.tasks.filter(t => t.status !== 'Done').map(t => `
+                        <div class="p-3 bg-slate-50 rounded-lg border-r-4 ${t.priority === 'High' ? 'border-red-400' : 'border-yellow-400'} hover:shadow-md transition cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <span class="text-[10px] text-slate-400 font-mono">#${t.id}</span>
+                                <span class="text-[10px] bg-white border px-1.5 rounded text-slate-500">${t.dueDate}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800 mt-1">${t.title}</h4>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="text-[10px] text-slate-500 bg-slate-200 px-2 rounded">${t.type}</span>
+                                <button class="text-xs text-brand-600 hover:text-brand-800"><i class="fas fa-arrow-left"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button onclick="app.loadRoute('tasks')" class="w-full py-2 text-center text-xs text-slate-400 border border-dashed rounded hover:bg-slate-50 transition">إضافة مهمة جديدة +</button>
+                </div>
+            </div>
+        </div>
+        `;
     };
 
-    const renderPlaceholder = (title, icon) => `
-        <div class="flex flex-col items-center justify-center h-96 text-gray-300">
-            <i class="fas ${icon} text-6xl mb-4"></i>
-            <h2 class="text-2xl font-bold text-gray-400">${title}</h2>
+    // 2. ENTITY MANAGER
+    const renderEntitiesManager = () => {
+        return `
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-slate-800">إدارة الكيانات</h2>
+            <button class="bg-brand-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-brand-700 transition flex items-center gap-2">
+                <i class="fas fa-plus"></i> إضافة كيان جديد
+            </button>
         </div>
-    `;
 
-    // EXPOSED METHODS
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            ${db.entities.map(e => `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:border-brand-200 transition">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-lg ${TENANT_TYPES[e.type].bg} ${TENANT_TYPES[e.type].color} flex items-center justify-center text-xl shadow-inner">
+                                <i class="fas ${TENANT_TYPES[e.type].icon}"></i>
+                            </div>
+                            <div class="relative">
+                                <button class="text-slate-300 hover:text-slate-600"><i class="fas fa-ellipsis-v"></i></button>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-1">${e.name}</h3>
+                        <p class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> ${e.location}</p>
+                        
+                        <div class="mt-6 grid grid-cols-2 gap-4 border-t border-slate-50 pt-4">
+                            <div>
+                                <p class="text-[10px] text-slate-400">المستخدمين</p>
+                                <p class="font-bold text-slate-700">${e.users}</p>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-[10px] text-slate-400">الرصيد</p>
+                                <p class="font-bold text-green-600">${e.balance} ر.س</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-5 py-3 flex justify-between items-center">
+                        <span class="text-[10px] px-2 py-0.5 rounded-full ${e.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${e.status === 'Active' ? 'متصل' : 'غير نشط'}
+                        </span>
+                        <button class="text-xs text-brand-600 font-bold hover:underline">التفاصيل</button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        `;
+    };
+
+    // 3. CENTRAL REPORTS
+    const renderCentralReports = () => {
+        return `
+        <div class="space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-slate-800">التقارير المركزية</h2>
+                <select class="bg-white border border-slate-200 rounded px-3 py-1 text-sm outline-none">
+                    <option>هذا الشهر</option>
+                    <option>الربع الأخير</option>
+                    <option>السنة الحالية</option>
+                </select>
+            </div>
+
+            <!-- Revenue Chart Simulation -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-slate-700 mb-6">توزيع الإيرادات حسب نوع الكيان</h3>
+                <div class="space-y-4">
+                    ${Object.keys(TENANT_TYPES).map(key => {
+                        if (key === 'HQ' || key === 'OFFICE') return '';
+                        const type = TENANT_TYPES[key];
+                        const val = Math.floor(Math.random() * 80) + 20;
+                        return `
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-bold text-slate-600">${type.label}</span>
+                                <span class="text-slate-400">${val}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="${type.bg.replace('bg-', 'bg-').replace('50', '500')} h-2.5 rounded-full" style="width: ${val}%"></div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- Activity Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 mb-4">أكثر الفروع نشاطاً (إعلانات)</h3>
+                    <ul class="space-y-3">
+                        ${db.entities.filter(e => e.type === 'BRANCH').slice(0,3).map((e, i) => `
+                            <li class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-6 h-6 rounded bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold">${i+1}</span>
+                                    <span class="text-sm text-slate-700">${e.name}</span>
+                                </div>
+                                <span class="text-xs font-bold text-brand-600">${Math.floor(Math.random() * 50)} إعلان</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                 </div>
+                 
+                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 mb-4">ملخص الدعم الفني</h3>
+                    <div class="flex items-center justify-center h-40">
+                        <div class="text-center">
+                            <h4 class="text-4xl font-bold text-slate-800">98%</h4>
+                            <p class="text-sm text-green-500">نسبة الرضا</p>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+        `;
+    };
+
+    // 4. ADS GOVERNANCE (Existing Logic + HQ View)
+    const renderAdsGovernance = () => {
+        // Re-using the logic from previous build but wrapping it specifically
+        // This is where HQ approves/rejects global ads
+        const pendingAds = db.ads.filter(a => a.status === 'PENDING');
+        
+        return `
+        <div class="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden mb-6">
+            <div class="bg-orange-50 px-6 py-4 border-b border-orange-100">
+                <h3 class="font-bold text-orange-800 text-lg">طلبات النشر المعلقة (Governance Queue)</h3>
+                <p class="text-xs text-orange-600 mt-1">هذه الإعلانات تتطلب موافقة مركزية لأنها تستهدف نطاق أوسع من الصلاحيات الممنوحة للفرع.</p>
+            </div>
+            <div class="divide-y divide-gray-50">
+                ${pendingAds.length === 0 ? '<p class="p-8 text-center text-gray-400">لا توجد طلبات معلقة، النظام نظيف ✅</p>' : pendingAds.map(ad => `
+                    <div class="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-orange-50/30 transition">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 bg-white border border-gray-200 rounded text-xs font-bold text-slate-600">${ad.sourceEntityId}</span>
+                                <h4 class="font-bold text-gray-800">${ad.title}</h4>
+                                <span class="text-[10px] bg-red-100 text-red-600 px-2 rounded-full">${ad.scope}</span>
+                            </div>
+                            <p class="text-sm text-gray-600">${ad.content}</p>
+                            <div class="mt-3 flex items-center gap-4 text-xs text-gray-400">
+                                <span><i class="far fa-calendar"></i> ${ad.date}</span>
+                                <span><i class="fas fa-coins"></i> التكلفة: ${ad.price || 0} ر.س</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                             <button onclick="app.approveAd(${ad.id})" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 shadow-sm transition">
+                                <i class="fas fa-check"></i> موافقة
+                             </button>
+                             <button onclick="app.rejectAd(${ad.id})" class="bg-white border border-red-200 text-red-500 px-4 py-2 rounded-lg text-sm hover:bg-red-50 transition">
+                                <i class="fas fa-times"></i> رفض
+                             </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        `;
+    };
+
+    const renderTasksManager = () => {
+        return `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between">
+                <h3 class="font-bold text-slate-800">قائمة المهام المركزية</h3>
+                <button class="text-sm text-brand-600 font-bold hover:underline">+ مهمة جديدة</button>
+            </div>
+            <div class="divide-y divide-slate-50">
+                ${db.tasks.map(t => `
+                    <div class="p-4 flex items-center gap-4 hover:bg-slate-50 transition">
+                        <div class="w-6 h-6 rounded-full border-2 ${t.status === 'Done' ? 'bg-green-500 border-green-500' : 'border-slate-300'} flex items-center justify-center cursor-pointer">
+                            ${t.status === 'Done' ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                        <div class="flex-1 ${t.status === 'Done' ? 'opacity-50 line-through' : ''}">
+                            <h4 class="text-sm font-bold text-slate-800">${t.title}</h4>
+                            <p class="text-xs text-slate-400">تاريخ الاستحقاق: ${t.dueDate}</p>
+                        </div>
+                        <span class="text-[10px] px-2 py-1 rounded bg-slate-100 text-slate-600">${t.type}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        `;
+    };
+
+    // 5. SIMPLE BRANCH DASHBOARD (For Context)
+    const renderBranchDashboard = () => {
+        return `
+        <div class="bg-yellow-50 border-r-4 border-yellow-400 p-4 rounded mb-6">
+            <h3 class="font-bold text-yellow-800">لوحة تحكم الفرع</h3>
+            <p class="text-sm text-yellow-700">أنت تشاهد الآن نسخة الفرع المحدودة. انتقل إلى وضع "HQ" لرؤية اللوحة المركزية.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="text-lg font-bold">إعلاناتي</h3>
+                <p class="text-3xl font-bold text-brand-600 mt-2">3</p>
+             </div>
+             <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="text-lg font-bold">الرصيد</h3>
+                <p class="text-3xl font-bold text-green-600 mt-2">${currentUser.entityId === 'BR015' ? '5,000' : '0'} ر.س</p>
+             </div>
+        </div>
+        `;
+    };
+
+    // --- UTILS ---
+    const renderPlaceholder = () => `<div class="p-10 text-center text-slate-400">صفحة قيد التطوير</div>`;
+
     return {
         init,
         switchUser,
         loadRoute,
-        
-        // Ads Handlers
-        updatePricePreview: () => {
-            const scope = document.getElementById('ad-scope').value;
-            const duration = document.getElementById('ad-duration').value;
-            const placement = document.getElementById('ad-placement').value;
-            
-            const price = adsEngine.calculatePrice(scope, duration, placement);
-            document.getElementById('price-display').innerText = price + ' ر.س';
-            
-            // Update Hint
-            const hintEl = document.getElementById('scope-hint');
-            const config = AD_CONFIG.SCOPES[scope];
-            hintEl.innerText = config.requiresApproval ? 
-                '⚠️ يتطلب موافقة الإدارة المركزية (HQ) وسيتم خصم الرصيد بعد الموافقة.' : 
-                '✅ نشر فوري مجاني داخل نطاقك الإداري.';
-            hintEl.className = `text-[10px] mt-1 ${config.requiresApproval ? 'text-orange-600 font-bold' : 'text-green-600'}`;
-        },
-
-        handleCreateAd: (e) => {
-            e.preventDefault();
-            const formData = {
-                title: e.target.title.value,
-                content: e.target.content.value,
-                type: e.target.type.value,
-                scope: e.target.scope.value,
-                duration: parseInt(e.target.duration.value),
-                placement: e.target.placement.value,
-                startDate: new Date().toISOString().split('T')[0]
-            };
-            
-            const newAd = adsEngine.createAd(formData);
-            alert(newAd.status === 'ACTIVE' ? 'تم نشر الإعلان بنجاح!' : 'تم إرسال الطلب للموافقة!');
-            loadRoute('ads-manager');
-            if(newAd.status === 'ACTIVE') renderToasts();
-        },
-
         approveAd: (id) => {
-            adsEngine.updateStatus(id, 'ACTIVE');
-            loadRoute('ads-manager');
-            renderToasts(); // If current user sees it
+            const ad = db.ads.find(a => a.id === id);
+            if (ad) ad.status = 'ACTIVE';
+            alert('تم اعتماد الإعلان ونشره بنجاح');
+            loadRoute('ads-governance');
         },
-
         rejectAd: (id) => {
-            adsEngine.updateStatus(id, 'REJECTED');
-            loadRoute('ads-manager');
-        },
-
-        deleteAd: (id) => {
-            if(confirm('هل أنت متأكد من الحذف؟')) {
-                const idx = db.ads.findIndex(a => a.id === id);
-                if(idx > -1) db.ads.splice(idx, 1);
-                loadRoute('ads-manager');
-            }
+            db.ads = db.ads.filter(a => a.id !== id);
+            loadRoute('ads-governance');
         }
     };
 })();
 
-// Init App
 document.addEventListener('DOMContentLoaded', app.init);
