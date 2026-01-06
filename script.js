@@ -34,6 +34,26 @@ const app = (() => {
             { id: 8, name: 'عمر الطالب', role: ROLES.CLIENT, tenantType: TENANT_TYPES.INCUBATOR, entityId: 'INC03', entityName: 'حاضنة السلامة', desc: 'طالب (عميل)' }
         ],
 
+        // HQ Governance Data
+        tenants: [
+            { id: 'BR015', name: 'فرع العليا مول', type: TENANT_TYPES.BRANCH, manager: 'سارة محمد', status: 'Healthy', performance: 92, revenue: 150000 },
+            { id: 'INC03', name: 'حاضنة السلامة', type: TENANT_TYPES.INCUBATOR, manager: 'د. خالد الزهراني', status: 'Warning', performance: 78, revenue: 45000 },
+            { id: 'PLT01', name: 'نايوش كلاود', type: TENANT_TYPES.PLATFORM, manager: 'فريق التقنية', status: 'Healthy', performance: 99, revenue: 320000 },
+            { id: 'OFF02', name: 'مكتب جدة', type: TENANT_TYPES.OFFICE, manager: 'أستاذة منى', status: 'Critical', performance: 45, revenue: 0 }
+        ],
+
+        hqTasks: [
+            { id: 1, title: 'اعتماد ميزانية الربع الرابع', deadline: '2023-12-01', priority: 'High', status: 'Pending' },
+            { id: 2, title: 'مراجعة عقود الصيانة - فرع العليا', deadline: '2023-11-25', priority: 'Medium', status: 'In Progress' },
+            { id: 3, title: 'الموافقة على تعيين مدير جديد', deadline: '2023-11-30', priority: 'High', status: 'Done' }
+        ],
+
+        alerts: [
+            { id: 1, msg: 'انقطاع الاتصال في فرع العليا مول لمدة 10 دقائق', type: 'error', time: '10:00 AM' },
+            { id: 2, msg: 'تم تجاوز الحد الائتماني لمكتب جدة', type: 'warning', time: '09:30 AM' },
+            { id: 3, msg: 'اكتمال النسخ الاحتياطي للنظام', type: 'success', time: '02:00 AM' }
+        ],
+
         // Clients / Customers Data
         clients: [
             { id: 101, name: 'شركة التقنية الحديثة', type: 'B2B', entityId: 'PLT01', status: 'Active' },
@@ -88,11 +108,12 @@ const app = (() => {
         isClient: () => currentUser.role === ROLES.CLIENT,
 
         // Feature Access
-        canViewOperations: () => !permissions.isClient(),
-        canViewClients: () => !permissions.isClient(),
-        canViewSubs: () => true,
+        canViewOperations: () => !permissions.isClient() && !permissions.isHQ(),
+        canViewClients: () => !permissions.isClient() && !permissions.isHQ(),
+        canViewSubs: () => !permissions.isHQ(),
         canViewReports: () => permissions.isManager() || currentUser.role === ROLES.ACCOUNTANT,
-        canViewTeam: () => permissions.isManager(),
+        canViewTeam: () => permissions.isManager() && !permissions.isHQ(),
+        canViewGovernance: () => permissions.isHQ(),
         
         // Tenant Checks
         isHQ: () => currentUser.tenantType === TENANT_TYPES.HQ,
@@ -107,7 +128,7 @@ const app = (() => {
         getCurrentUser: () => currentUser,
         getData: (collection) => {
             // Strict Isolation: Users only see data for their EntityID (unless HQ Admin)
-            if (currentUser.tenantType === TENANT_TYPES.HQ && currentUser.role === ROLES.SUPER_ADMIN) {
+            if (permissions.isHQ()) {
                 return db[collection];
             }
             return db[collection].filter(item => item.entityId === currentUser.entityId);
@@ -156,40 +177,47 @@ const app = (() => {
         // 1. Dashboard (All)
         links += createNavLink('dashboard', 'fas fa-home', 'الرئيسية');
 
-        if (!permissions.isClient()) {
-            // 2. Daily Operations (Branch=POS, Inc=Classes, Plt=Tickets, Off=Requests)
-            const opLabel = 
-                permissions.isBranch() ? 'نقاط البيع (POS)' : 
-                permissions.isIncubator() ? 'جدول الحصص' : 
-                permissions.isPlatform() ? 'تذاكر الدعم' : 
-                permissions.isOffice() ? 'الخدمات والطلبات' : 'العمليات';
-            links += createNavLink('operations', 'fas fa-rocket', opLabel);
-
-            // 3. Clients/Customers
-            const clientLabel = 
-                permissions.isIncubator() ? 'الطلاب والشركات' : 
-                permissions.isPlatform() ? 'المشتركين (Tenants)' : 
-                permissions.isOffice() ? 'الجهات المستفيدة' : 'العملاء';
-            links += createNavLink('clients', 'fas fa-users', clientLabel);
-
-            // 4. Subscriptions/Contracts
-            const subLabel = 
-                permissions.isBranch() ? 'العضويات' : 
-                permissions.isOffice() ? 'العقود' : 'الاشتراكات';
-            links += createNavLink('subscriptions', 'fas fa-file-contract', subLabel);
+        // HQ SPECIFIC MENU
+        if (permissions.canViewGovernance()) {
+            links += createNavLink('governance', 'fas fa-sitemap', 'إدارة الشبكة والكيانات');
+            links += createNavLink('reports', 'fas fa-chart-pie', 'التقارير المركزية');
         } else {
-            // Client View
-            links += createNavLink('subscriptions', 'fas fa-id-card', 'اشتراكاتي');
-        }
+            // OTHER TENANTS MENU
+            if (!permissions.isClient()) {
+                // 2. Daily Operations
+                const opLabel = 
+                    permissions.isBranch() ? 'نقاط البيع (POS)' : 
+                    permissions.isIncubator() ? 'جدول الحصص' : 
+                    permissions.isPlatform() ? 'تذاكر الدعم' : 
+                    permissions.isOffice() ? 'الخدمات والطلبات' : 'العمليات';
+                links += createNavLink('operations', 'fas fa-rocket', opLabel);
 
-        // 5. Reports (Managers)
-        if (permissions.canViewReports()) {
-            links += createNavLink('reports', 'fas fa-chart-bar', 'التقارير');
-        }
+                // 3. Clients/Customers
+                const clientLabel = 
+                    permissions.isIncubator() ? 'الطلاب والشركات' : 
+                    permissions.isPlatform() ? 'المشتركين (Tenants)' : 
+                    permissions.isOffice() ? 'الجهات المستفيدة' : 'العملاء';
+                links += createNavLink('clients', 'fas fa-users', clientLabel);
 
-        // 6. Team Management (Managers)
-        if (permissions.canViewTeam()) {
-            links += createNavLink('team', 'fas fa-user-shield', 'إدارة الفريق');
+                // 4. Subscriptions/Contracts
+                const subLabel = 
+                    permissions.isBranch() ? 'العضويات' : 
+                    permissions.isOffice() ? 'العقود' : 'الاشتراكات';
+                links += createNavLink('subscriptions', 'fas fa-file-contract', subLabel);
+            } else {
+                // Client View
+                links += createNavLink('subscriptions', 'fas fa-id-card', 'اشتراكاتي');
+            }
+
+            // 5. Reports (Managers)
+            if (permissions.canViewReports() && !permissions.isHQ()) {
+                links += createNavLink('reports', 'fas fa-chart-bar', 'التقارير');
+            }
+
+            // 6. Team Management (Managers)
+            if (permissions.canViewTeam()) {
+                links += createNavLink('team', 'fas fa-user-shield', 'إدارة الفريق');
+            }
         }
 
         menu.innerHTML = links;
@@ -208,7 +236,7 @@ const app = (() => {
 
         // Update active state in menu
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('bg-slate-800', 'text-white'));
-        // (Simple active state logic omitted for brevity, usually matches text or href)
+        // (Simple active state logic omitted)
 
         let content = '';
 
@@ -231,6 +259,9 @@ const app = (() => {
             case 'team':
                 content = renderTeam();
                 break;
+            case 'governance':
+                content = renderGovernance();
+                break;
             default:
                 content = '<div class="p-10 text-center">الصفحة غير موجودة</div>';
         }
@@ -239,27 +270,167 @@ const app = (() => {
     };
 
     const getPageTitle = (route) => {
-        const titles = { 'dashboard': 'لوحة التحكم', 'operations': 'التشغيل اليومي', 'clients': 'إدارة العملاء', 'subscriptions': 'الاشتراكات والعقود', 'reports': 'التقارير والإحصائيات', 'team': 'فريق العمل' };
+        const titles = { 
+            'dashboard': 'لوحة القيادة والمتابعة', 
+            'operations': 'التشغيل اليومي', 
+            'clients': 'إدارة العملاء', 
+            'subscriptions': 'الاشتراكات والعقود', 
+            'reports': 'التقارير والإحصائيات', 
+            'team': 'فريق العمل',
+            'governance': 'إدارة الشبكة والكيانات'
+        };
         return titles[route] || 'نايوش ERP';
     }
 
-    // --- RENDERERS BY TENANT TYPE ---
+    // --- RENDERERS ---
 
-    // 1. DASHBOARD RENDERER
+    // 1. DASHBOARD RENDERER (Updated for HQ)
     const renderDashboard = () => {
-        if (permissions.isHQ()) return `
+        if (permissions.isHQ()) {
+            // Calculate Aggregates
+            const totalRevenue = db.tenants.reduce((sum, t) => sum + t.revenue, 0);
+            const healthScore = Math.round(db.tenants.reduce((sum, t) => sum + t.performance, 0) / db.tenants.length);
+            
+            return `
+            <!-- HQ Header Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                ${card('إجمالي الفروع', '12', 'blue', 'fa-store')}
-                ${card('إجمالي الطلاب', '450', 'orange', 'fa-user-graduate')}
-                ${card('إيرادات الشهر', '1.2M', 'green', 'fa-coins')}
-                ${card('تذاكر الدعم', '34', 'red', 'fa-ticket-alt')}
+                ${card('الإيرادات المجمعة', totalRevenue.toLocaleString() + ' ر.س', 'green', 'fa-coins')}
+                ${card('مؤشر الأداء العام', healthScore + '%', 'blue', 'fa-chart-line')}
+                ${card('عدد الكيانات', db.tenants.length, 'purple', 'fa-sitemap')}
+                ${card('تنبيهات حرجة', db.alerts.filter(a=>a.type==='error').length, 'red', 'fa-exclamation-triangle')}
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h3 class="font-bold mb-4">نظرة عامة على الشبكة (HQ Mode)</h3>
-                <p class="text-gray-500">مرحباً بك في لوحة القيادة المركزية. يمكنك التنقل بين الكيانات عبر القائمة العلوية.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Right Column: Governance Map (2/3) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Tenants Status -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800"><i class="fas fa-network-wired text-brand-500 ml-2"></i>حالة الفروع والكيانات</h3>
+                            <button onclick="app.loadRoute('governance')" class="text-xs text-brand-600 hover:underline">عرض الكل</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right">
+                                <thead class="bg-slate-50 text-xs text-gray-500 uppercase">
+                                    <tr>
+                                        <th class="p-3">الكيان</th>
+                                        <th class="p-3">النوع</th>
+                                        <th class="p-3">المدير</th>
+                                        <th class="p-3">الأداء</th>
+                                        <th class="p-3">الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    ${db.tenants.map(t => `
+                                        <tr class="hover:bg-slate-50 transition">
+                                            <td class="p-3 font-bold text-gray-700">${t.name}</td>
+                                            <td class="p-3 text-xs"><span class="px-2 py-1 bg-gray-100 rounded">${t.type}</span></td>
+                                            <td class="p-3 text-sm text-gray-500">${t.manager}</td>
+                                            <td class="p-3">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-xs font-bold">${t.performance}%</span>
+                                                    <div class="w-16 bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                                                        <div class="h-full ${t.performance > 90 ? 'bg-green-500' : t.performance > 70 ? 'bg-yellow-500' : 'bg-red-500'}" style="width: ${t.performance}%"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="p-3">
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${t.status === 'Healthy' ? 'bg-green-100 text-green-800' : t.status === 'Warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+                                                    <span class="w-1.5 h-1.5 rounded-full ${t.status === 'Healthy' ? 'bg-green-500' : t.status === 'Warning' ? 'bg-yellow-500' : 'bg-red-500'}"></span>
+                                                    ${t.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Charts Area (Simulated) -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                         <h3 class="font-bold text-gray-800 mb-4">تحليل الإيرادات حسب القطاع</h3>
+                         <div class="flex items-end justify-around h-40 pt-4 border-b border-gray-200">
+                            <div class="flex flex-col items-center gap-2 group w-1/5">
+                                <div class="w-full bg-blue-500 rounded-t h-24 hover:bg-blue-600 transition relative">
+                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">45%</span>
+                                </div>
+                                <span class="text-xs text-gray-500">منصات SaaS</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2 group w-1/5">
+                                <div class="w-full bg-orange-500 rounded-t h-16 hover:bg-orange-600 transition relative">
+                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">25%</span>
+                                </div>
+                                <span class="text-xs text-gray-500">الفروع</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-2 group w-1/5">
+                                <div class="w-full bg-green-500 rounded-t h-12 hover:bg-green-600 transition relative">
+                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">15%</span>
+                                </div>
+                                <span class="text-xs text-gray-500">الحاضنات</span>
+                            </div>
+                             <div class="flex flex-col items-center gap-2 group w-1/5">
+                                <div class="w-full bg-purple-500 rounded-t h-8 hover:bg-purple-600 transition relative">
+                                    <span class="absolute -top-6 w-full text-center text-xs font-bold">15%</span>
+                                </div>
+                                <span class="text-xs text-gray-500">أخرى</span>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Left Column: Tasks & Alerts (1/3) -->
+                <div class="space-y-6">
+                    
+                    <!-- HQ Tasks -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800 text-sm">مهام الإدارة العليا</h3>
+                            <button class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-brand-500 hover:text-white transition text-xs"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <ul class="space-y-3">
+                            ${db.hqTasks.map(task => `
+                                <li class="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0">
+                                    <div class="mt-1">
+                                        <input type="checkbox" ${task.status === 'Done' ? 'checked' : ''} class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium ${task.status === 'Done' ? 'line-through text-gray-400' : 'text-gray-700'}">${task.title}</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 rounded">${task.deadline}</span>
+                                            <span class="text-[10px] ${task.priority === 'High' ? 'text-red-500 font-bold' : 'text-yellow-600'}">${task.priority}</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <!-- System Alerts -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                         <h3 class="font-bold text-gray-800 text-sm mb-4">مركز الإشعارات</h3>
+                         <div class="space-y-4">
+                            ${db.alerts.map(alert => `
+                                <div class="flex gap-3">
+                                    <div class="mt-0.5">
+                                        ${alert.type === 'error' ? '<i class="fas fa-times-circle text-red-500"></i>' : 
+                                          alert.type === 'warning' ? '<i class="fas fa-exclamation-circle text-yellow-500"></i>' : 
+                                          '<i class="fas fa-check-circle text-green-500"></i>'}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-600 leading-relaxed">${alert.msg}</p>
+                                        <p class="text-[10px] text-gray-400 mt-1">${alert.time}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                         </div>
+                    </div>
+                </div>
             </div>
-        `;
+            `;
+        }
         
+        // ... (Keep existing dashboards for other roles)
         if (permissions.isClient()) return `
             <div class="bg-white p-8 rounded-xl shadow-sm text-center">
                 <h2 class="text-2xl font-bold text-gray-800">مرحباً بك في بوابة الطالب</h2>
@@ -296,7 +467,80 @@ const app = (() => {
         `;
     };
 
-    // 2. OPERATIONS RENDERER
+    // 2. NEW: GOVERNANCE RENDERER (HQ ONLY)
+    const renderGovernance = () => {
+        if (!permissions.isHQ()) return '<div class="text-red-500">غير مصرح لك بالوصول</div>';
+        
+        return `
+        <div class="space-y-6">
+            <div class="flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm hover:bg-brand-700 shadow-sm"><i class="fas fa-plus ml-2"></i>إضافة كيان جديد</button>
+                    <button class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"><i class="fas fa-file-export ml-2"></i>تصدير التقرير</button>
+                </div>
+                <div class="relative">
+                    <input type="text" placeholder="بحث عن فرع أو كيان..." class="pl-10 pr-4 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-brand-500 w-64">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                ${db.tenants.map(t => `
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:border-brand-300 transition group">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-brand-50 group-hover:text-brand-600 transition">
+                                <i class="fas ${t.type === 'BRANCH' ? 'fa-store' : t.type === 'PLATFORM' ? 'fa-server' : 'fa-building'}"></i>
+                            </div>
+                            <span class="text-[10px] px-2 py-1 rounded-full ${t.status === 'Healthy' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.status}</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 mb-1">${t.name}</h4>
+                        <p class="text-xs text-gray-500 mb-4">${t.manager}</p>
+                        <div class="flex justify-between items-center text-xs border-t border-gray-100 pt-3">
+                            <span class="text-gray-400">الأداء: <strong class="text-gray-700">${t.performance}%</strong></span>
+                            <button class="text-brand-600 hover:underline">إدارة</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="font-bold mb-4">سجل التدقيق الأخير (Audit Log)</h3>
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <tr>
+                            <th class="p-3">التاريخ</th>
+                            <th class="p-3">الحدث</th>
+                            <th class="p-3">الكيان المسؤول</th>
+                            <th class="p-3">التفاصيل</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr>
+                            <td class="p-3">2023-11-20 10:30</td>
+                            <td class="p-3 font-bold">تسجيل دخول ناجح</td>
+                            <td class="p-3">فرع العليا مول</td>
+                            <td class="p-3 text-gray-500">User: Sara</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3">2023-11-20 09:15</td>
+                            <td class="p-3 font-bold text-red-500">محاولة دخول فاشلة</td>
+                            <td class="p-3">مكتب جدة</td>
+                            <td class="p-3 text-gray-500">IP: 192.168.1.5</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3">2023-11-19 14:00</td>
+                            <td class="p-3 font-bold">تحديث بيانات عميل</td>
+                            <td class="p-3">نايوش كلاود</td>
+                            <td class="p-3 text-gray-500">Client ID: 101</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        `;
+    }
+
+    // 3. OPERATIONS RENDERER (Unchanged mainly, kept for context)
     const renderOperations = () => {
         if (permissions.isBranch()) return `
             <div class="flex gap-4 mb-6">
@@ -389,7 +633,7 @@ const app = (() => {
         return `<div>No operations view defined.</div>`;
     };
 
-    // 3. CLIENTS RENDERER
+    // 4. CLIENTS RENDERER
     const renderClients = () => {
         const clients = api.getData('clients');
         return `
@@ -408,7 +652,7 @@ const app = (() => {
         `;
     };
 
-    // 4. SUBSCRIPTIONS RENDERER
+    // 5. SUBSCRIPTIONS RENDERER
     const renderSubscriptions = () => {
         if (permissions.isClient()) {
              // Student View
@@ -451,14 +695,17 @@ const app = (() => {
         `;
     };
 
-    // 5. REPORTS RENDERER
+    // 6. REPORTS RENDERER (Updated for HQ Consolidated)
     const renderReports = () => {
         const finance = api.getData('finance');
         const income = finance.filter(f => f.type === 'credit').reduce((a,b) => a + b.amount, 0);
         const expense = finance.filter(f => f.type === 'debit').reduce((a,b) => a + Math.abs(b.amount), 0);
         
+        const title = permissions.isHQ() ? 'التقارير المالية المجمعة (Consolidated)' : 'التقارير المالية';
+
         return `
         <div class="space-y-6">
+             <h3 class="font-bold text-xl text-gray-800">${title}</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                  <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-green-500">
                     <p class="text-gray-500 text-xs uppercase font-bold">الدخل</p>
@@ -491,7 +738,7 @@ const app = (() => {
         `;
     };
 
-    // 6. TEAM RENDERER
+    // 7. TEAM RENDERER
     const renderTeam = () => {
         const team = api.getData('team');
         return `
