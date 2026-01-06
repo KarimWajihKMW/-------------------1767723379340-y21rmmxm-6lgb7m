@@ -220,6 +220,41 @@ const app = (() => {
         }, 3000);
     };
 
+    // --- MENU LOGIC ---
+    const toggleRoleMenu = (event) => {
+        if (event) event.stopPropagation();
+        const menu = document.getElementById('role-menu');
+        const chevron = document.getElementById('role-chevron');
+        const isHidden = menu.classList.contains('hidden');
+        
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            // Slight delay to allow display:block to apply before transition
+            requestAnimationFrame(() => {
+                menu.classList.remove('opacity-0', 'scale-95');
+                menu.classList.add('opacity-100', 'scale-100');
+            });
+            chevron.classList.add('rotate-180');
+        } else {
+            menu.classList.remove('opacity-100', 'scale-100');
+            menu.classList.add('opacity-0', 'scale-95');
+            chevron.classList.remove('rotate-180');
+            setTimeout(() => {
+                menu.classList.add('hidden');
+            }, 200); // Wait for transition
+        }
+    };
+
+    // Close menu when clicking outside
+    window.addEventListener('click', (e) => {
+        const menu = document.getElementById('role-menu');
+        const btn = document.querySelector('button[onclick*="toggleRoleMenu"]');
+        
+        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !btn.contains(e.target)) {
+            toggleRoleMenu();
+        }
+    });
+
     // --- INIT ---
     const init = () => {
         renderSidebar();
@@ -231,6 +266,9 @@ const app = (() => {
     const switchUser = (id) => {
         const u = db.users.find(x => x.id === id);
         if (u) {
+            // Close menu first
+            toggleRoleMenu();
+
             logAction('LOGOUT', `تسجيل خروج المستخدم ${currentUser.name}`);
             currentUser = u;
             logAction('LOGIN', `تسجيل دخول للدور ${currentUser.tenantType} - ${currentUser.role}`);
@@ -697,7 +735,8 @@ const app = (() => {
         loadRoute,
         openAdBuilderModal,
         updateAdCost,
-        submitAd
+        submitAd,
+        toggleRoleMenu // Exported for onclick
     };
 })();
 
