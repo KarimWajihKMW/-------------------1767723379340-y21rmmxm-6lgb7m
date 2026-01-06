@@ -450,8 +450,8 @@ const app = (() => {
                         border: { display: false }
                     },
                     x: {
-                        grid: {
-                            display: false
+                        grid: { 
+                            display: false 
                         },
                         ticks: {
                             font: { family: 'Cairo', weight: 'bold' }
@@ -793,7 +793,7 @@ const app = (() => {
 
     const submitAd = () => {
         const title = document.getElementById('ad-title').value;
-        const levelKey = document.querySelector('input[name="adLevel"]:checked')?.value;
+        const levelKey = document.querySelector('input[name="adLevel":checked')?.value;
         
         if (!title || !levelKey) {
             showToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
