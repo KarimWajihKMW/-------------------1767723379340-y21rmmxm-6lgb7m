@@ -23,11 +23,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
+    from { opacity: 0; transform: translateY(15px); } /* Reduced motion slightly */
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Utilities */
-.nav-item.active {
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+/* Sidebar Link Active State Marker (Optional if JS adds class) */
+.nav-link-active {
     @apply bg-slate-800 text-white;
 }
