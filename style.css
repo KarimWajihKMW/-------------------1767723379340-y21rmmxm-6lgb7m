@@ -23,7 +23,7 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); } /* Reduced motion slightly */
+    from { opacity: 0; transform: translateY(15px); } 
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -31,7 +31,11 @@
     width: 4px;
 }
 
-/* Sidebar Link Active State Marker (Optional if JS adds class) */
-.nav-link-active {
-    @apply bg-slate-800 text-white;
+/* Modal Specifics */
+#ad-modal {
+    transition: opacity 0.3s ease;
+}
+
+#ad-modal > div {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
