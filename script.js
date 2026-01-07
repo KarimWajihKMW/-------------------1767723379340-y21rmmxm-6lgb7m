@@ -4,6 +4,31 @@
  */
 
 const app = (() => {
+    // --- API CONFIGURATION ---
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3000/api'
+        : '/api';
+    
+    // Helper function to fetch data from API
+    async function fetchAPI(endpoint, options = {}) {
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+    
     // --- CONFIGURATION ---
     const TENANT_TYPES = {
         HQ: { id: 'HQ', label: 'المكتب الرئيسي (Provider)', icon: 'fa-building', color: 'text-purple-600', bg: 'bg-purple-50', theme: 'purple' },
@@ -52,53 +77,12 @@ const app = (() => {
 
     // --- DATA LAYER (Multi-Tenant) ---
     const db = {
-        users: [
-            { id: 1, name: 'م. أحمد العلي', role: ROLES.ADMIN, tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' },
-            { id: 2, name: 'سارة محمد', role: ROLES.ADMIN, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' },
-            { id: 3, name: 'د. خالد الزهراني', role: ROLES.ADMIN, tenantType: 'INCUBATOR', entityId: 'INC03', entityName: 'حاضنة السلامة' },
-            { id: 4, name: 'فريق التقنية', role: ROLES.ADMIN, tenantType: 'PLATFORM', entityId: 'PLT01', entityName: 'نايوش كلاود' },
-            { id: 5, name: 'يوسف المكتب', role: ROLES.ADMIN, tenantType: 'OFFICE', entityId: 'OFF01', entityName: 'مكتب الدمام' },
-            { id: 6, name: 'أ. منى المالية', role: ROLES.FINANCE, tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' },
-            { id: 7, name: 'خدمة العملاء', role: ROLES.SUPPORT, tenantType: 'PLATFORM', entityId: 'PLT01', entityName: 'نايوش كلاود' },
-            { id: 8, name: 'كريم التسويق', role: ROLES.ADVERTISER, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' },
-            { id: 9, name: 'فهد السبيعي', role: ROLES.ADMIN, tenantType: 'BRANCH', entityId: 'BR016', entityName: 'فرع مول الرياض' },
-            { id: 10, name: 'زائر النظام', role: ROLES.USER, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' }
-        ],
-
-        entities: [
-            { id: 'HQ001', name: 'المكتب الرئيسي', type: 'HQ', status: 'Active', balance: 2500000, location: 'الرياض', users: 15, plan: 'ENTERPRISE', expiry: '2030-12-31', theme: 'BLUE' },
-            { id: 'BR015', name: 'فرع العليا مول', type: 'BRANCH', status: 'Active', balance: 45000, location: 'الرياض - العليا', users: 8, plan: 'PRO', expiry: '2024-06-15', theme: 'BLUE' },
-            { id: 'BR016', name: 'فرع مول الرياض', type: 'BRANCH', status: 'Active', balance: 32000, location: 'الرياض - النخيل', users: 12, plan: 'BASIC', expiry: '2024-05-20', theme: 'BLUE' },
-            { id: 'INC03', name: 'حاضنة السلامة', type: 'INCUBATOR', status: 'Active', balance: 120000, location: 'جدة', users: 45, plan: 'ENTERPRISE', expiry: '2025-01-01', theme: 'EMERALD' },
-            { id: 'INC04', name: 'حاضنة الرياض تك', type: 'INCUBATOR', status: 'Active', balance: 200000, location: 'الرياض', users: 60, plan: 'ENTERPRISE', expiry: '2025-03-01', theme: 'AMBER' },
-            { id: 'PLT01', name: 'نايوش كلاود', type: 'PLATFORM', status: 'Active', balance: 500000, location: 'سحابي', users: 1200, plan: 'PRO', expiry: '2024-11-30', theme: 'PURPLE' },
-            { id: 'OFF01', name: 'مكتب الدمام', type: 'OFFICE', status: 'Active', balance: 15000, location: 'الدمام', users: 4, plan: 'BASIC', expiry: '2024-04-10', theme: 'BLUE' }
-        ],
-
-        invoices: [
-            { id: 'INV-1001', entityId: 'BR015', type: 'SUBSCRIPTION', title: 'اشتراك باقة المحترفين - أكتوبر', amount: 2499, paidAmount: 2499, status: 'PAID', date: '2023-10-01', dueDate: '2023-10-07' },
-            { id: 'INV-1002', entityId: 'BR015', type: 'SUBSCRIPTION', title: 'اشتراك باقة المحترفين - نوفمبر', amount: 2499, paidAmount: 1000, status: 'PARTIAL', date: '2023-11-01', dueDate: '2023-11-07' },
-            { id: 'INV-1003', entityId: 'INC03', type: 'SUBSCRIPTION', title: 'اشتراك المؤسسات - نوفمبر', amount: 4999, paidAmount: 0, status: 'UNPAID', date: '2023-11-01', dueDate: '2023-11-07' },
-            { id: 'INV-1004', entityId: 'BR015', type: 'SERVICE', title: 'حملة إعلانية مخصصة (L2)', amount: 500, paidAmount: 0, status: 'OVERDUE', date: '2023-10-20', dueDate: '2023-10-25' }
-        ],
-
-        transactions: [
-            { id: 'TRX-501', invoiceId: 'INV-1001', entityId: 'BR015', type: 'PAYMENT', amount: 2499, method: 'Bank Transfer', date: '2023-10-05', ref: 'REF123', user: 'سارة محمد' },
-            { id: 'TRX-502', invoiceId: 'INV-1002', entityId: 'BR015', type: 'PAYMENT', amount: 1000, method: 'Credit Card', date: '2023-11-03', ref: 'CC999', user: 'سارة محمد' }
-        ],
-
-        ledger: [
-            { id: 1, entityId: 'BR015', trxId: 'TRX-501', date: '2023-10-05', desc: 'سداد فاتورة INV-1001', debit: 0, credit: 2499, balance: 2499, type: 'Credit' },
-            { id: 2, entityId: 'BR015', trxId: 'TRX-502', date: '2023-11-03', desc: 'سداد جزئي INV-1002', debit: 0, credit: 1000, balance: 3499, type: 'Credit' }
-        ],
-
-        ads: [
-            { id: 1, title: 'تحديث سياسات SaaS 2024', content: 'نلفت انتباه جميع المستأجرين لتحديث السياسات.', level: 'L5_CROSS_INC', scope: 'GLOBAL', status: 'ACTIVE', sourceEntityId: 'HQ001', targetIds: [], date: '2023-11-20', cost: 0, sourceType: 'HQ', budget: 0, spent: 0, impressions: 12050, clicks: 450, startDate: '2023-11-20', endDate: '2023-12-31' },
-            { id: 2, title: 'اجتماع داخلي - العليا', content: 'مناقشة تارجت الشهر القادم.', level: 'L1_LOCAL', scope: 'LOCAL', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015'], date: '2023-11-21', cost: 0, sourceType: 'BRANCH', budget: 0, spent: 0, impressions: 8, clicks: 8, startDate: '2023-11-21', endDate: '2023-11-21' },
-            { id: 3, title: 'عرض مشترك للفروع', content: 'خصم موحد 15%.', level: 'L2_MULTI', scope: 'MULTI', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015', 'BR016'], date: '2023-11-22', cost: 500, sourceType: 'BRANCH', budget: 2000, spent: 500, impressions: 850, clicks: 120, startDate: '2023-11-22', endDate: '2023-11-30' },
-            { id: 4, title: 'ورشة رواد الأعمال', content: 'مخصصة لمنسوبي الحاضنة.', level: 'L3_INC_INT', scope: 'INCUBATOR', status: 'ACTIVE', sourceEntityId: 'INC03', targetIds: ['INC03'], date: '2023-11-23', cost: 100, sourceType: 'INCUBATOR', budget: 1000, spent: 100, impressions: 150, clicks: 45, startDate: '2023-11-23', endDate: '2023-12-01' },
-            { id: 6, title: 'صيانة المنصة السحابية', content: 'وقت توقف مجدول.', level: 'L4_PLT_INT', scope: 'PLATFORM', status: 'ACTIVE', sourceEntityId: 'PLT01', targetIds: [], date: '2023-11-25', cost: 1000, sourceType: 'PLATFORM', budget: 0, spent: 0, impressions: 5000, clicks: 200, startDate: '2023-11-25', endDate: '2023-11-26' }
-        ],
+        users: [],
+        entities: [],
+        invoices: [],
+        transactions: [],
+        ledger: [],
+        ads: [],
 
         tasks: [
             { id: 101, title: 'تجديد اشتراك SaaS', dueDate: '2023-11-30', status: 'Pending', priority: 'High', type: 'Billing', entityId: 'BR015' },
@@ -195,8 +179,137 @@ const app = (() => {
         });
     };
 
+    // --- DATA LOADING FROM API ---
+    async function loadDataFromAPI() {
+        try {
+            // Load entities
+            const entities = await fetchAPI('/entities');
+            db.entities = entities.map(e => ({
+                id: e.id,
+                name: e.name,
+                type: e.type,
+                status: e.status,
+                balance: parseFloat(e.balance) || 0,
+                location: e.location,
+                users: e.users_count || 0,
+                plan: e.plan,
+                expiry: e.expiry_date,
+                theme: e.theme
+            }));
+
+            // Load users
+            const users = await fetchAPI('/users');
+            db.users = users.map(u => ({
+                id: u.id,
+                name: u.name,
+                role: u.role,
+                tenantType: u.tenant_type,
+                entityId: u.entity_id,
+                entityName: u.entity_name
+            }));
+
+            // Load invoices
+            const invoices = await fetchAPI('/invoices');
+            db.invoices = invoices.map(inv => ({
+                id: inv.id,
+                entityId: inv.entity_id,
+                type: inv.type,
+                title: inv.title,
+                amount: parseFloat(inv.amount),
+                paidAmount: parseFloat(inv.paid_amount),
+                status: inv.status,
+                date: inv.issue_date,
+                dueDate: inv.due_date
+            }));
+
+            // Load transactions
+            const transactions = await fetchAPI('/transactions');
+            db.transactions = transactions.map(t => ({
+                id: t.id,
+                invoiceId: t.invoice_id,
+                entityId: t.entity_id,
+                type: t.type,
+                amount: parseFloat(t.amount),
+                method: t.payment_method,
+                date: t.transaction_date,
+                ref: t.reference_code,
+                user: t.user_name
+            }));
+
+            // Load ledger
+            const ledger = await fetchAPI('/ledger');
+            db.ledger = ledger.map(l => ({
+                id: l.id,
+                entityId: l.entity_id,
+                trxId: l.transaction_id,
+                date: l.transaction_date,
+                desc: l.description,
+                debit: parseFloat(l.debit),
+                credit: parseFloat(l.credit),
+                balance: parseFloat(l.balance),
+                type: l.type
+            }));
+
+            // Load ads
+            const ads = await fetchAPI('/ads');
+            db.ads = ads.map(ad => ({
+                id: ad.id,
+                title: ad.title,
+                content: ad.content,
+                level: ad.level,
+                scope: ad.scope,
+                status: ad.status,
+                sourceEntityId: ad.source_entity_id,
+                targetIds: ad.target_ids || [],
+                date: ad.created_at,
+                cost: parseFloat(ad.cost),
+                sourceType: ad.source_type,
+                budget: parseFloat(ad.budget),
+                spent: parseFloat(ad.spent),
+                impressions: ad.impressions || 0,
+                clicks: ad.clicks || 0,
+                startDate: ad.start_date,
+                endDate: ad.end_date
+            }));
+
+            console.log('✅ تم تحميل جميع البيانات من قاعدة البيانات');
+        } catch (error) {
+            console.error('❌ خطأ في تحميل البيانات:', error);
+            showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
+        }
+    }
+
     // --- INIT & NAV ---
-    const init = () => {
+    const init = async () => {
+        // Show loading
+        const view = document.getElementById('main-view');
+        view.innerHTML = `
+            <div class="flex h-full items-center justify-center flex-col gap-6">
+                <div class="relative">
+                    <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
+                    <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
+                </div>
+                <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات من قاعدة البيانات...</p>
+            </div>`;
+        
+        // Load data from API
+        await loadDataFromAPI();
+        
+        // Set default user if users exist
+        if (db.users.length > 0) {
+            currentUser = db.users[0];
+        }
+        
+        renderSidebar();
+        updateHeader();
+        const tenant = db.entities.find(e => e.id === currentUser?.entityId);
+        if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
+        
+        loadRoute('dashboard');
+        showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
+    };
+
+    const init_old = () => {
         renderSidebar();
         updateHeader();
         const tenant = db.entities.find(e => e.id === currentUser.entityId);
