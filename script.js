@@ -333,7 +333,7 @@ const app = (() => {
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية'
         };
-        return map[r] || 'نايوش SaaS';
+        return map[r] || 'نظام نايوش';
     };
 
     const renderSidebar = () => {
