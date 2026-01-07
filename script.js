@@ -318,57 +318,39 @@ const app = (() => {
 
     // --- INIT & NAV ---
     const init = async () => {
-        try {
-            // Show loading
-            const view = document.getElementById('main-view');
-            view.innerHTML = `
-                <div class="flex h-full items-center justify-center flex-col gap-6">
-                    <div class="relative">
-                        <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
-                        <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
-                    </div>
-                    <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات من قاعدة البيانات...</p>
-                </div>`;
-            
-            // Load data from API
-            await loadDataFromAPI();
-            
-            // Set default user if users exist
-            if (db.users.length > 0) {
-                currentUser = db.users[0];
-            } else {
-                showToast('تحذير: لا يوجد مستخدمين في النظام', 'error');
-                console.error('❌ لا يوجد مستخدمين في قاعدة البيانات');
-                return;
-            }
-            
-            // Render UI
-            renderSidebar();
-            updateHeader();
-            
-            // Apply theme
-            const tenant = db.entities.find(e => e.id === currentUser?.entityId);
-            if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
-            
-            // Load initial route
-            loadRoute('dashboard');
-            showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
-        } catch (error) {
-            console.error('❌ خطأ في تهيئة التطبيق:', error);
-            showToast('خطأ في تهيئة التطبيق: ' + error.message, 'error');
-            
-            // Show error in view
-            const view = document.getElementById('main-view');
-            view.innerHTML = `
-                <div class="flex h-full items-center justify-center flex-col gap-6">
-                    <i class="fas fa-exclamation-triangle text-6xl text-red-600"></i>
-                    <p class="text-slate-800 font-bold text-xl">خطأ في تهيئة التطبيق</p>
-                    <p class="text-slate-600">${error.message}</p>
-                    <button onclick="location.reload()" class="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700">
-                        <i class="fas fa-redo mr-2"></i>إعادة المحاولة
-                    </button>
-                </div>`;
+        console.log('🔄 بدء التهيئة...');
+        
+        // Show loading
+        const view = document.getElementById('main-view');
+        view.innerHTML = `
+            <div class="flex h-full items-center justify-center flex-col gap-6">
+                <div class="relative">
+                    <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
+                    <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
+                </div>
+                <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات من قاعدة البيانات...</p>
+            </div>`;
+        
+        // Load data from API
+        await loadDataFromAPI();
+        console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length });
+        
+        // Set default user if users exist
+        if (db.users.length > 0) {
+            currentUser = db.users[0];
+            console.log('👤 المستخدم الحالي:', currentUser);
+        } else {
+            console.error('❌ لا توجد مستخدمين في قاعدة البيانات!');
         }
+        
+        renderSidebar();
+        updateHeader();
+        const tenant = db.entities.find(e => e.id === currentUser?.entityId);
+        if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
+        
+        loadRoute('dashboard');
+        showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
+        console.log('✅ اكتملت التهيئة');
     };
 
     const init_old = () => {
@@ -468,7 +450,7 @@ const app = (() => {
         }
     };
 
-    const loadRoute = async (route) => {
+    const loadRoute = (route) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
 
@@ -533,9 +515,11 @@ const app = (() => {
     };
 
     const renderSidebar = () => {
+        console.log('🔄 رسم القائمة الجانبية...', { currentUser });
         const menu = document.getElementById('nav-menu');
         if (!currentUser) {
             menu.innerHTML = '<li class="px-4 py-2 text-slate-400">جاري التحميل...</li>';
+            console.warn('⚠️ لا يوجد مستخدم حالي!');
             return;
         }
         
@@ -1594,16 +1578,10 @@ const app = (() => {
 // ========================================
 
 async function renderIncubator() {
-  // Use the currentUser from the app scope
-  if (!currentUser) {
-    const container = document.getElementById('main-view');
-    container.innerHTML = `<div class="text-red-600 p-6">خطأ: لم يتم تحميل بيانات المستخدم</div>`;
-    return;
-  }
-  
+  const currentUser = db.users[0]; // Use first user as default
   const currentEntity = db.entities.find(e => e.id === currentUser?.entityId);
   
-  const container = document.getElementById('main-view');
+  const container = document.querySelector('#content');
   
   container.innerHTML = `
     <div class="space-y-6">
