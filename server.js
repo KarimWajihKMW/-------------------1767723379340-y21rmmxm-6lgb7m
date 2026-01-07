@@ -1177,7 +1177,9 @@ app.use((err, req, res, next) => {
 // ========================================
 // Start Server
 // ========================================
-app.listen(PORT, () => {
-  console.log(`🚀 نظام نايوش يعمل على المنفذ ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 نظام نايوش يعمل على ${HOST}:${PORT}`);
   console.log(`📊 API متاح على: http://localhost:${PORT}/api`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
