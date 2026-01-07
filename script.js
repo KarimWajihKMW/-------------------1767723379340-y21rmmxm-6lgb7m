@@ -1,6 +1,6 @@
 /**
  * NAYOSH ERP - SaaS Multi-Tenant Architecture
- * Features: Strict Isolation, Tenant Scopes, Subscription Mgmt
+ * Features: Strict Isolation, Tenant Scopes, Subscription Mgmt, Advertiser Panel
  */
 
 const app = (() => {
@@ -94,7 +94,6 @@ const app = (() => {
             { id: 10, name: 'زائر النظام', role: ROLES.USER, tenantType: 'BRANCH', entityId: 'BR015', entityName: 'فرع العليا مول' }
         ],
 
-        // Entities act as Tenants in this SaaS model
         entities: [
             { id: 'HQ001', name: 'المكتب الرئيسي', type: 'HQ', status: 'Active', balance: 2500000, location: 'الرياض', users: 15, plan: 'ENTERPRISE', expiry: '2030-12-31', theme: 'BLUE' },
             { id: 'BR015', name: 'فرع العليا مول', type: 'BRANCH', status: 'Active', balance: 45000, location: 'الرياض - العليا', users: 8, plan: 'PRO', expiry: '2024-06-15', theme: 'BLUE' },
@@ -106,11 +105,11 @@ const app = (() => {
         ],
 
         ads: [
-            { id: 1, title: 'تحديث سياسات SaaS 2024', content: 'نلفت انتباه جميع المستأجرين لتحديث السياسات.', level: 'L5_CROSS_INC', scope: 'GLOBAL', status: 'ACTIVE', sourceEntityId: 'HQ001', targetIds: [], date: '2023-11-20', cost: 0, sourceType: 'HQ' },
-            { id: 2, title: 'اجتماع داخلي - العليا', content: 'مناقشة تارجت الشهر القادم.', level: 'L1_LOCAL', scope: 'LOCAL', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015'], date: '2023-11-21', cost: 0, sourceType: 'BRANCH' },
-            { id: 3, title: 'عرض مشترك للفروع', content: 'خصم موحد 15%.', level: 'L2_MULTI', scope: 'MULTI', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015', 'BR016'], date: '2023-11-22', cost: 500, sourceType: 'BRANCH' },
-            { id: 4, title: 'ورشة رواد الأعمال', content: 'مخصصة لمنسوبي الحاضنة.', level: 'L3_INC_INT', scope: 'INCUBATOR', status: 'ACTIVE', sourceEntityId: 'INC03', targetIds: ['INC03'], date: '2023-11-23', cost: 100, sourceType: 'INCUBATOR' },
-            { id: 6, title: 'صيانة المنصة السحابية', content: 'وقت توقف مجدول.', level: 'L4_PLT_INT', scope: 'PLATFORM', status: 'ACTIVE', sourceEntityId: 'PLT01', targetIds: [], date: '2023-11-25', cost: 1000, sourceType: 'PLATFORM' }
+            { id: 1, title: 'تحديث سياسات SaaS 2024', content: 'نلفت انتباه جميع المستأجرين لتحديث السياسات.', level: 'L5_CROSS_INC', scope: 'GLOBAL', status: 'ACTIVE', sourceEntityId: 'HQ001', targetIds: [], date: '2023-11-20', cost: 0, sourceType: 'HQ', budget: 0, spent: 0, impressions: 12050, clicks: 450, startDate: '2023-11-20', endDate: '2023-12-31' },
+            { id: 2, title: 'اجتماع داخلي - العليا', content: 'مناقشة تارجت الشهر القادم.', level: 'L1_LOCAL', scope: 'LOCAL', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015'], date: '2023-11-21', cost: 0, sourceType: 'BRANCH', budget: 0, spent: 0, impressions: 8, clicks: 8, startDate: '2023-11-21', endDate: '2023-11-21' },
+            { id: 3, title: 'عرض مشترك للفروع', content: 'خصم موحد 15%.', level: 'L2_MULTI', scope: 'MULTI', status: 'ACTIVE', sourceEntityId: 'BR015', targetIds: ['BR015', 'BR016'], date: '2023-11-22', cost: 500, sourceType: 'BRANCH', budget: 2000, spent: 500, impressions: 850, clicks: 120, startDate: '2023-11-22', endDate: '2023-11-30' },
+            { id: 4, title: 'ورشة رواد الأعمال', content: 'مخصصة لمنسوبي الحاضنة.', level: 'L3_INC_INT', scope: 'INCUBATOR', status: 'ACTIVE', sourceEntityId: 'INC03', targetIds: ['INC03'], date: '2023-11-23', cost: 100, sourceType: 'INCUBATOR', budget: 1000, spent: 100, impressions: 150, clicks: 45, startDate: '2023-11-23', endDate: '2023-12-01' },
+            { id: 6, title: 'صيانة المنصة السحابية', content: 'وقت توقف مجدول.', level: 'L4_PLT_INT', scope: 'PLATFORM', status: 'ACTIVE', sourceEntityId: 'PLT01', targetIds: [], date: '2023-11-25', cost: 1000, sourceType: 'PLATFORM', budget: 0, spent: 0, impressions: 5000, clicks: 200, startDate: '2023-11-25', endDate: '2023-11-26' }
         ],
 
         tasks: [
@@ -132,6 +131,8 @@ const app = (() => {
 
     let currentUser = db.users[0];
     let activeChart = null;
+    let analyticsChart = null;
+    let adWizardData = {}; // Temporary storage for wizard
 
     // --- ISOLATION & PERMISSIONS LAYER ---
     const perms = {
@@ -176,6 +177,11 @@ const app = (() => {
 
                 return false;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
+        },
+
+        getManagedAds: () => {
+            // Ads created by this tenant for management purposes
+            return db.ads.filter(ad => ad.sourceEntityId === currentUser.entityId);
         },
 
         getVisibleAuditLogs: () => {
@@ -242,7 +248,6 @@ const app = (() => {
             sidebar.classList.add('translate-x-0');
             
             backdrop.classList.remove('hidden');
-            // Small delay to allow display:block to apply before opacity transition
             requestAnimationFrame(() => {
                 backdrop.classList.remove('opacity-0');
             });
@@ -262,8 +267,6 @@ const app = (() => {
         const u = db.users.find(x => x.id === id);
         if (u) {
             toggleRoleMenu();
-            
-            // Close mobile menu if open
             const sidebar = document.getElementById('sidebar');
             if (sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) {
                 toggleMobileMenu();
@@ -273,7 +276,6 @@ const app = (() => {
             const tenant = db.entities.find(e => e.id === currentUser.entityId);
             if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
 
-            // Visual Loading State
             const view = document.getElementById('main-view');
             view.innerHTML = `
                 <div class="flex h-full items-center justify-center flex-col gap-6">
@@ -324,7 +326,6 @@ const app = (() => {
     };
 
     const loadRoute = (route) => {
-        // Close mobile menu if open
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) {
             toggleMobileMenu();
@@ -333,9 +334,9 @@ const app = (() => {
         const view = document.getElementById('main-view');
         document.getElementById('page-title').innerText = getTitle(route);
         if (activeChart) { activeChart.destroy(); activeChart = null; }
+        if (analyticsChart) { analyticsChart.destroy(); analyticsChart = null; }
         
         let content = '';
-        // Routing Logic
         if (route === 'dashboard') content = renderDashboard();
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
@@ -350,13 +351,12 @@ const app = (() => {
         updateActiveLink(route);
 
         if (route === 'dashboard') requestAnimationFrame(initDashboardChart);
+        if (route === 'ads' && perms.canManageAds()) requestAnimationFrame(initAnalyticsChart);
     };
 
     const updateActiveLink = (route) => {
         document.querySelectorAll('#nav-menu a').forEach(l => {
-            // Remove active styles
             l.classList.remove('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
-            // Add inactive hover text style if needed
             l.classList.add('text-slate-400');
         });
         
@@ -364,13 +364,6 @@ const app = (() => {
         if(active) {
             active.classList.remove('text-slate-400');
             active.classList.add('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
-        } else if(route === 'register-tenant') {
-             // Keep entities active if registering
-             const entitiesLink = document.getElementById('link-entities');
-             if(entitiesLink) {
-                 entitiesLink.classList.remove('text-slate-400');
-                 entitiesLink.classList.add('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
-             }
         }
     };
 
@@ -380,7 +373,7 @@ const app = (() => {
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
             'entities': perms.isHQ() ? 'إدارة المستأجرين' : 'بيانات الكيان',
             'register-tenant': 'تسجيل مستأجر جديد',
-            'ads': 'منصة الإعلانات المركزية',
+            'ads': perms.canManageAds() ? 'لوحة المعلن المركزية' : 'منصة الإعلانات',
             'tasks': 'المهام الداخلية',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية'
@@ -394,7 +387,7 @@ const app = (() => {
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
-            { id: 'ads', icon: 'fa-bullhorn', label: 'الإعلانات', show: true },
+            { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
             { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
             { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() },
             { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() }
@@ -581,7 +574,7 @@ const app = (() => {
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fas fa-bullhorn text-brand-500"></i> التعاميم والإعلانات</h3>
-                ${perms.canManageAds() ? `<button onclick="app.openAdBuilderModal()" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-brand-600 transition">+ نشر إعلان</button>` : ''}
+                ${perms.canManageAds() ? `<button onclick="app.loadRoute('ads')" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-brand-600 transition"><i class="fas fa-cog"></i> إدارة الإعلانات</button>` : ''}
             </div>
             <div class="p-6 space-y-6">
                 ${categorized.hq.length > 0 ? `<div class="space-y-3"><h4 class="text-xs font-extrabold text-purple-600 uppercase tracking-widest">تعاميم المكتب الرئيسي (Global)</h4>${categorized.hq.map(renderAdCard).join('')}</div>` : ''}
@@ -606,6 +599,351 @@ const app = (() => {
             </div>
             <p class="text-sm text-gray-500 pr-4 pl-2 line-clamp-2 leading-relaxed">${ad.content}</p>
         </div>`;
+    };
+
+    const renderAdsManager = () => {
+        if (!perms.canManageAds()) {
+            return renderAdsFeed();
+        }
+
+        const myAds = perms.getManagedAds();
+        const totalImpressions = myAds.reduce((sum, ad) => sum + (ad.impressions || 0), 0);
+        const totalClicks = myAds.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
+        const totalSpent = myAds.reduce((sum, ad) => sum + (ad.spent || 0), 0);
+        const ctr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
+
+        return `
+        <div class="animate-fade-in space-y-8">
+            <!-- Header & Actions -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">لوحة المعلن (Advertiser Console)</h2>
+                    <p class="text-slate-500 mt-1">إدارة الحملات والتحليل الرقمي للمستأجر: <span class="font-bold text-brand-600">${currentUser.entityName}</span></p>
+                </div>
+                <button onclick="app.openAdWizard()" class="w-full md:w-auto bg-gradient-to-r from-brand-600 to-brand-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-brand-500/40 hover:-translate-y-1 transition transform flex items-center justify-center gap-2">
+                    <i class="fas fa-plus-circle"></i> إنشاء حملة إعلانية
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                ${renderKpiCard('إجمالي المشاهدات', totalImpressions.toLocaleString(), 'fa-eye', 'text-blue-600', 'bg-blue-50')}
+                ${renderKpiCard('النقرات (Clicks)', totalClicks.toLocaleString(), 'fa-mouse-pointer', 'text-purple-600', 'bg-purple-50')}
+                ${renderKpiCard('معدل النقر (CTR)', ctr + '%', 'fa-percent', 'text-green-600', 'bg-green-50')}
+                ${renderKpiCard('الإنفاق الكلي', totalSpent.toLocaleString() + ' ر.س', 'fa-coins', 'text-orange-600', 'bg-orange-50')}
+            </div>
+
+            <!-- Analytics Chart -->
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-800"><i class="fas fa-chart-line text-brand-500 mr-2"></i> أداء الحملات (آخر 7 أيام)</h3>
+                    <select class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-brand-200">
+                        <option>آخر 7 أيام</option>
+                        <option>آخر 30 يوم</option>
+                    </select>
+                </div>
+                <div class="p-6 h-72 relative">
+                    <canvas id="analyticsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Campaigns Table -->
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+                 <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800">سجل الحملات النشطة</h3>
+                 </div>
+                 <div class="overflow-x-auto">
+                     <table class="w-full text-right whitespace-nowrap">
+                        <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-5">اسم الحملة</th>
+                                <th class="p-5">النطاق/المستوى</th>
+                                <th class="p-5">المدة (الجدولة)</th>
+                                <th class="p-5">الميزانية</th>
+                                <th class="p-5">النتائج</th>
+                                <th class="p-5">الحالة</th>
+                                <th class="p-5">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50 text-sm">
+                            ${myAds.length > 0 ? myAds.map(ad => {
+                                const level = Object.values(AD_LEVELS).find(l => l.key === ad.level);
+                                const progress = ad.budget > 0 ? Math.min(100, (ad.spent / ad.budget) * 100) : 0;
+                                return `
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-5 font-bold text-slate-700">${ad.title}</td>
+                                    <td class="p-5"><span class="text-[10px] font-bold px-2 py-1 rounded border bg-white ${level.badgeClass}">${level.label}</span></td>
+                                    <td class="p-5">
+                                        <div class="text-xs text-slate-600"><span class="font-bold">بدء:</span> ${ad.startDate}</div>
+                                        <div class="text-xs text-slate-400"><span class="font-bold">انتهاء:</span> ${ad.endDate}</div>
+                                    </td>
+                                    <td class="p-5 min-w-[150px]">
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span>${ad.spent}</span>
+                                            <span class="text-slate-400">/ ${ad.budget} ر.س</span>
+                                        </div>
+                                        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-brand-500 rounded-full" style="width: ${progress}%"></div>
+                                        </div>
+                                    </td>
+                                    <td class="p-5 text-xs">
+                                        <div class="font-bold text-slate-700">${ad.impressions.toLocaleString()} <span class="font-normal text-slate-400">مشاهدة</span></div>
+                                        <div class="text-brand-600">${ad.clicks.toLocaleString()} <span class="font-normal text-slate-400">نقرة</span></div>
+                                    </td>
+                                    <td class="p-5"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${ad.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">${ad.status}</span></td>
+                                    <td class="p-5">
+                                        <button class="text-slate-400 hover:text-brand-600 transition"><i class="fas fa-ellipsis-v"></i></button>
+                                    </td>
+                                </tr>`;
+                            }).join('') : `<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد حملات إعلانية مسجلة.</td></tr>`}
+                        </tbody>
+                    </table>
+                 </div>
+            </div>
+        </div>`;
+    };
+
+    const initAnalyticsChart = () => {
+        const ctx = document.getElementById('analyticsChart');
+        if (!ctx) return;
+
+        // Mock Trend Data
+        const labels = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+        const impressions = [120, 300, 450, 320, 500, 650, 400];
+        const clicks = [5, 12, 25, 15, 30, 45, 20];
+
+        analyticsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'مشاهدات (Impressions)',
+                        data: impressions,
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'نقرات (Clicks)',
+                        data: clicks,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: { type: 'linear', display: true, position: 'right', grid: { color: '#f1f5f9' } },
+                    y1: { type: 'linear', display: true, position: 'left', grid: { display: false } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } } }
+            }
+        });
+    };
+
+    // --- AD WIZARD ---
+    const openAdWizard = () => {
+        // Reset Wizard Data
+        adWizardData = { step: 1, title: '', content: '', level: 'L1_LOCAL', budget: 100, startDate: '', endDate: '' };
+        
+        const modal = document.createElement('div');
+        modal.id = 'ad-wizard-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 animate-scale-up flex flex-col max-h-[90vh]">
+                <!-- Wizard Header -->
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                    <h3 class="font-bold text-lg text-slate-800">معالج إنشاء الحملات</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1 rounded-full">خطوة <span id="wiz-step-num">1</span> من 4</span>
+                        <button onclick="document.getElementById('ad-wizard-modal').remove()" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center transition text-slate-500"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                
+                <!-- Wizard Body -->
+                <div id="wizard-body" class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                    <!-- Content Injected Here -->
+                </div>
+
+                <!-- Wizard Footer -->
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between shrink-0">
+                    <button id="wiz-prev-btn" onclick="app.wizardPrev()" class="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition hidden">سابق</button>
+                    <button id="wiz-next-btn" onclick="app.wizardNext()" class="px-6 py-2 rounded-xl font-bold bg-brand-600 text-white shadow-lg hover:shadow-brand-500/30 hover:bg-brand-700 transition ml-auto">التالي <i class="fas fa-arrow-left mr-2"></i></button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+        renderWizardStep(1);
+    };
+
+    const renderWizardStep = (step) => {
+        const body = document.getElementById('wizard-body');
+        const nextBtn = document.getElementById('wiz-next-btn');
+        const prevBtn = document.getElementById('wiz-prev-btn');
+        document.getElementById('wiz-step-num').innerText = step;
+        adWizardData.step = step;
+
+        if (step === 1) {
+            prevBtn.classList.add('hidden');
+            nextBtn.innerHTML = 'التالي <i class="fas fa-arrow-left mr-2"></i>';
+            body.innerHTML = `
+                <div class="space-y-4 animate-fade-in">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4">تفاصيل المحتوى</h4>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">عنوان الحملة</label>
+                        <input type="text" id="wiz-title" value="${adWizardData.title}" placeholder="مثال: خصومات نهاية العام" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">نص الإعلان</label>
+                        <textarea id="wiz-content" rows="4" placeholder="اكتب محتوى الإعلان الجذاب هنا..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">${adWizardData.content}</textarea>
+                    </div>
+                    <div class="p-4 bg-brand-50 rounded-xl border border-brand-100 flex gap-3">
+                        <i class="fas fa-lightbulb text-brand-500 mt-1"></i>
+                        <p class="text-xs text-brand-700 leading-relaxed">نصيحة: الإعلانات التي تحتوي على أرقام واضحة (مثل: خصم 50%) تحصل على تفاعل أعلى بنسبة 30%.</p>
+                    </div>
+                </div>`;
+        } else if (step === 2) {
+            prevBtn.classList.remove('hidden');
+            nextBtn.innerHTML = 'التالي <i class="fas fa-arrow-left mr-2"></i>';
+            body.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4">الميزانية والجدولة</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ البدء</label>
+                            <input type="date" id="wiz-start" value="${adWizardData.startDate}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الانتهاء</label>
+                            <input type="date" id="wiz-end" value="${adWizardData.endDate}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
+                        </div>
+                    </div>
+                    <div>
+                         <label class="block text-xs font-bold text-slate-600 mb-1.5">الميزانية المرصودة (ر.س)</label>
+                         <div class="relative">
+                            <input type="number" id="wiz-budget" value="${adWizardData.budget}" class="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-mono font-bold text-lg">
+                            <span class="absolute top-3.5 right-4 text-slate-400 font-bold text-sm">SAR</span>
+                         </div>
+                    </div>
+                </div>`;
+        } else if (step === 3) {
+            prevBtn.classList.remove('hidden');
+            nextBtn.innerHTML = 'مراجعة <i class="fas fa-check mr-2"></i>';
+            const levelsHtml = Object.values(AD_LEVELS).map(l => 
+                `<label class="relative flex items-center gap-4 p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all duration-200 group border-slate-200 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
+                    <input type="radio" name="wiz-level" value="${l.key}" class="peer w-5 h-5 text-brand-600 focus:ring-brand-500" ${adWizardData.level === l.key ? 'checked' : ''}>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-1"><span class="font-bold text-sm text-slate-800 peer-checked:text-brand-800">${l.label}</span><span class="text-[10px] font-bold bg-white border px-2 py-0.5 rounded text-slate-500 shadow-sm">${l.cost} ر.س / يوم</span></div>
+                        <span class="block text-xs text-slate-500 peer-checked:text-brand-600">${l.desc}</span>
+                    </div>
+                </label>`
+            ).join('');
+            body.innerHTML = `
+                <div class="space-y-4 animate-fade-in">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4">الاستهداف ونطاق النشر</h4>
+                    <div class="grid grid-cols-1 gap-3">${levelsHtml}</div>
+                </div>`;
+        } else if (step === 4) {
+            prevBtn.classList.remove('hidden');
+            nextBtn.innerHTML = 'تأكيد ونشر <i class="fas fa-rocket mr-2"></i>';
+            nextBtn.onclick = app.submitAdWizard;
+            
+            const level = Object.values(AD_LEVELS).find(l => l.key === adWizardData.level);
+            body.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4">مراجعة نهائية</h4>
+                    
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-slate-500">العنوان</span>
+                            <span class="font-bold text-slate-800">${adWizardData.title}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-slate-500">النطاق</span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded border bg-white">${level.label}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-slate-500">المدة</span>
+                            <span class="font-bold text-slate-800">${adWizardData.startDate} <i class="fas fa-arrow-left text-xs mx-1"></i> ${adWizardData.endDate}</span>
+                        </div>
+                        <div class="flex justify-between pt-3 border-t border-slate-200">
+                            <span class="text-sm font-bold text-slate-600">الميزانية الكلية</span>
+                            <span class="font-black text-xl text-brand-600">${adWizardData.budget} ر.س</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                        <input type="checkbox" id="wiz-confirm" class="mt-1 text-brand-600 focus:ring-brand-500 rounded">
+                        <label for="wiz-confirm" class="text-xs text-yellow-800 leading-relaxed font-semibold cursor-pointer">أوافق على سياسة الإعلانات والمدفوعات. سيتم خصم المبلغ من رصيد المحفظة عند الموافقة.</label>
+                    </div>
+                </div>`;
+        }
+    };
+
+    const wizardNext = () => {
+        // Capture Data based on step
+        if (adWizardData.step === 1) {
+            const t = document.getElementById('wiz-title').value;
+            const c = document.getElementById('wiz-content').value;
+            if (!t || !c) return showToast('يرجى تعبئة جميع الحقول', 'error');
+            adWizardData.title = t; adWizardData.content = c;
+        } else if (adWizardData.step === 2) {
+            const s = document.getElementById('wiz-start').value;
+            const e = document.getElementById('wiz-end').value;
+            const b = document.getElementById('wiz-budget').value;
+            if (!s || !e || !b) return showToast('يرجى تحديد التواريخ والميزانية', 'error');
+            adWizardData.startDate = s; adWizardData.endDate = e; adWizardData.budget = b;
+        } else if (adWizardData.step === 3) {
+            const l = document.querySelector('input[name="wiz-level"]:checked')?.value;
+            if (!l) return showToast('اختر نطاق الاستهداف', 'error');
+            adWizardData.level = l;
+        }
+        renderWizardStep(adWizardData.step + 1);
+    };
+
+    const wizardPrev = () => {
+        renderWizardStep(adWizardData.step - 1);
+    };
+
+    const submitAdWizard = () => {
+        if (!document.getElementById('wiz-confirm').checked) {
+            return showToast('يجب الموافقة على الشروط أولاً', 'error');
+        }
+
+        // Create Ad Object
+        const newAd = {
+            id: db.ads.length + 1,
+            title: adWizardData.title,
+            content: adWizardData.content,
+            level: adWizardData.level,
+            scope: 'LOCAL',
+            status: 'ACTIVE',
+            cost: 0,
+            sourceEntityId: currentUser.entityId,
+            targetIds: [currentUser.entityId],
+            date: new Date().toISOString().slice(0, 10),
+            sourceType: currentUser.tenantType,
+            budget: parseInt(adWizardData.budget),
+            spent: 0,
+            startDate: adWizardData.startDate,
+            endDate: adWizardData.endDate,
+            impressions: 0,
+            clicks: 0
+        };
+
+        db.ads.unshift(newAd);
+        logAction('CREATE_CAMPAIGN', `Created Ad: ${newAd.title} (${newAd.level})`);
+        
+        document.getElementById('ad-wizard-modal').remove();
+        showToast('تم إطلاق الحملة الإعلانية بنجاح!', 'success');
+        loadRoute('ads');
     };
 
     const renderEntitiesManager = () => `
@@ -750,28 +1088,6 @@ const app = (() => {
         logAction('CREATE_TENANT', `Created new tenant ${name} (${newId})`);
         showToast(`تم إنشاء المستأجر ${name} بنجاح!`, 'success');
         loadRoute('entities');
-    };
-
-    const renderAdsManager = () => {
-        const ads = perms.getVisibleAds();
-        return `
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-slate-800">إدارة الحملات الإعلانية</h2>
-            ${perms.canManageAds() ? `<button onclick="app.openAdBuilderModal()" class="bg-brand-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg hover:scale-105 transition">+ حملة جديدة</button>` : ''}
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
-             <table class="w-full text-right whitespace-nowrap">
-                <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase tracking-wider"><tr><th class="p-5">العنوان</th><th class="p-5">المستوى</th><th class="p-5">الحالة</th></tr></thead>
-                <tbody class="divide-y divide-slate-50 text-sm">
-                    ${ads.map(ad => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-5 font-bold text-slate-700">${ad.title}</td>
-                            <td class="p-5"><span class="text-[10px] font-bold px-2 py-1 rounded border bg-gray-50">${ad.level}</span></td>
-                            <td class="p-5"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${ad.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">${ad.status}</span></td>
-                        </tr>`).join('')}
-                </tbody>
-            </table>
-        </div>`;
     };
 
     const renderTasksManager = () => {
@@ -922,58 +1238,21 @@ const app = (() => {
             <p class="text-slate-500 mt-2 max-w-md mx-auto">${msg}</p>
         </div>`;
 
-    const openAdBuilderModal = () => {
-        const modal = document.createElement('div');
-        modal.id = 'ad-modal';
-        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
-        const levelsHtml = Object.values(AD_LEVELS).map(l => 
-            `<label class="relative flex items-center gap-4 p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all duration-200 group border-slate-200 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
-                <input type="radio" name="adLevel" value="${l.key}" class="peer w-4 h-4 text-brand-600 focus:ring-brand-500">
-                <div class="flex-1">
-                    <div class="flex justify-between items-center mb-1"><span class="font-bold text-sm text-slate-800 peer-checked:text-brand-800">${l.label}</span><span class="text-[10px] font-bold bg-white border px-2 py-0.5 rounded text-slate-500 shadow-sm">${l.cost} ر.س</span></div>
-                    <span class="block text-xs text-slate-500 peer-checked:text-brand-600">${l.desc}</span>
-                </div>
-            </label>`
-        ).join('');
-        modal.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 animate-scale-up">
-                <div class="bg-slate-900 text-white p-5 flex justify-between items-center">
-                    <h3 class="font-bold text-lg">إنشاء حملة جديدة</h3>
-                    <button onclick="document.getElementById('ad-modal').remove()" class="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="p-6 space-y-5 overflow-y-auto max-h-[70vh] custom-scrollbar">
-                    <div><label class="block text-xs font-bold text-slate-700 mb-2">عنوان الحملة</label><input type="text" id="ad-title" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-500 outline-none"></div>
-                    <div><label class="block text-xs font-bold text-slate-700 mb-2">نطاق النشر (Targeting)</label><div class="grid grid-cols-1 gap-3">${levelsHtml}</div></div>
-                    <button onclick="app.submitAd()" class="w-full bg-brand-600 text-white py-3.5 rounded-xl font-bold hover:shadow-lg transition">تأكيد ونشر</button>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-    };
-
-    const submitAd = () => {
-        const title = document.getElementById('ad-title').value;
-        const levelKey = document.querySelector('input[name="adLevel"]:checked')?.value;
-        if (title && levelKey) {
-            db.ads.unshift({ id: db.ads.length + 1, title, content: 'محتوى تجريبي...', level: levelKey, scope: 'LOCAL', status: 'ACTIVE', cost: 0, sourceEntityId: currentUser.entityId, targetIds: [currentUser.entityId], date: new Date().toISOString().slice(0,10), sourceType: currentUser.tenantType });
-            document.getElementById('ad-modal').remove();
-            showToast('تم نشر الإعلان بنجاح', 'success');
-            loadRoute('ads');
-        }
-    };
-
     // Expose functions
     return { 
         init, 
         switchUser, 
         loadRoute, 
-        openAdBuilderModal, 
-        submitAd, 
+        openAdWizard, 
+        submitAdWizard, 
         toggleRoleMenu, 
         submitTenantRegistration,
         renderSettings,
         saveSettings,
         previewTheme,
-        toggleMobileMenu
+        toggleMobileMenu,
+        wizardNext,
+        wizardPrev
     };
 })();
 
