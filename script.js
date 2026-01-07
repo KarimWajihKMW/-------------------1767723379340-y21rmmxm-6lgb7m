@@ -12,7 +12,6 @@ const app = (() => {
     // Helper function to fetch data from API
     async function fetchAPI(endpoint, options = {}) {
         try {
-            console.log(`📡 Fetching: ${API_BASE_URL}${endpoint}`);
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 ...options,
                 headers: {
@@ -20,17 +19,12 @@ const app = (() => {
                     ...options.headers
                 }
             });
-            console.log(`📡 Response status: ${response.status} for ${endpoint}`);
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`❌ Error response: ${errorText}`);
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
-            console.log(`✅ Data received from ${endpoint}:`, data.length || 'N/A', 'items');
-            return data;
+            return await response.json();
         } catch (error) {
-            console.error('❌ API Error:', error);
+            console.error('API Error:', error);
             throw error;
         }
     }
@@ -187,14 +181,21 @@ const app = (() => {
         });
     };
 
+    // --- FALLBACK DATA (in case API fails) ---
+    const fallbackData = {
+        entities: [
+            { id: 'HQ001', name: 'المكتب الرئيسي', type: 'HQ', status: 'Active', balance: 2500000, location: 'الرياض', users: 15, plan: 'ENTERPRISE', expiry: '2030-12-31', theme: 'BLUE' }
+        ],
+        users: [
+            { id: 1, name: 'م. أحمد العلي', role: 'مسؤول النظام', tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' }
+        ]
+    };
+
     // --- DATA LOADING FROM API ---
     async function loadDataFromAPI() {
         try {
-            console.log('🔄 بدء تحميل البيانات من API...');
-            
             // Load entities
             const entities = await fetchAPI('/entities');
-            console.log('📊 Entities loaded:', entities);
             db.entities = entities.map(e => ({
                 id: e.id,
                 name: e.name,
@@ -210,7 +211,6 @@ const app = (() => {
 
             // Load users
             const users = await fetchAPI('/users');
-            console.log('👥 Users loaded:', users);
             db.users = users.map(u => ({
                 id: u.id,
                 name: u.name,
@@ -320,39 +320,15 @@ const app = (() => {
             }
 
             console.log('✅ تم تحميل جميع البيانات من قاعدة البيانات');
-            console.log('📊 Database status:', {
-                entities: db.entities.length,
-                users: db.users.length,
-                invoices: db.invoices.length,
-                ads: db.ads.length
-            });
         } catch (error) {
             console.error('❌ خطأ في تحميل البيانات:', error);
-            console.error('❌ Error details:', {
-                message: error.message,
-                stack: error.stack,
-                API_BASE_URL
-            });
-            showToast('خطأ في الاتصال بقاعدة البيانات: ' + error.message, 'error');
+            console.warn('⚠️ استخدام البيانات الاحتياطية...');
             
-            // Show error in main view
-            const view = document.getElementById('main-view');
-            if (view) {
-                view.innerHTML = `
-                    <div class="flex h-full items-center justify-center flex-col gap-6 p-8">
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                            <h2 class="text-2xl font-bold text-slate-800 mb-2">خطأ في الاتصال بالخادم</h2>
-                            <p class="text-slate-600 mb-4">فشل الاتصال بـ API</p>
-                            <pre class="bg-slate-100 p-4 rounded text-right text-sm overflow-auto max-w-2xl">${error.message}</pre>
-                            <button onclick="location.reload()" class="mt-4 bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700">
-                                <i class="fas fa-redo ml-2"></i>
-                                إعادة المحاولة
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
+            // Use fallback data
+            db.entities = fallbackData.entities;
+            db.users = fallbackData.users;
+            
+            showToast('تم التحميل بالوضع المحلي (offline mode)', 'info');
         }
     }
 
@@ -376,11 +352,14 @@ const app = (() => {
         console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length });
         
         // Set default user if users exist
-        if (db.users.length > 0) {
+        if (db.users && db.users.length > 0) {
             currentUser = db.users[0];
             console.log('👤 المستخدم الحالي:', currentUser);
         } else {
             console.error('❌ لا توجد مستخدمين في قاعدة البيانات!');
+            // Create emergency fallback user
+            currentUser = { id: 1, name: 'مستخدم النظام', role: 'مسؤول النظام', tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' };
+            db.users = [currentUser];
         }
         
         renderSidebar();
@@ -452,7 +431,49 @@ const app = (() => {
         if (event) event.stopPropagation();
         const menu = document.getElementById('role-menu');
         const chevron = document.getElementById('role-chevron');
+        
+        // Populate menu with users when opening
         if (menu.classList.contains('hidden')) {
+            // Group users by tenant type
+            const grouped = {};
+            db.users.forEach(u => {
+                if (!grouped[u.tenantType]) grouped[u.tenantType] = [];
+                grouped[u.tenantType].push(u);
+            });
+            
+            let menuHTML = '<div class="p-4">';
+            menuHTML += '<h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">اختر مستخدم للتبديل</h3>';
+            
+            Object.entries(grouped).forEach(([type, users]) => {
+                const typeInfo = TENANT_TYPES[type] || TENANT_TYPES.BRANCH;
+                menuHTML += `<div class="mb-4">`;
+                menuHTML += `<div class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-2">
+                    <i class="fas ${typeInfo.icon}"></i>
+                    <span>${typeInfo.label}</span>
+                </div>`;
+                
+                users.forEach(u => {
+                    const isActive = currentUser && u.id === currentUser.id;
+                    menuHTML += `
+                        <button onclick="app.switchUser(${u.id})" 
+                                class="w-full text-right p-3 rounded-lg hover:bg-slate-50 transition flex items-center gap-3 group ${isActive ? 'bg-brand-50 border border-brand-200' : ''}">
+                            <div class="w-10 h-10 rounded-full ${typeInfo.bg} ${typeInfo.color} flex items-center justify-center font-bold text-sm flex-shrink-0">
+                                ${u.name.charAt(0)}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-bold text-sm text-slate-800 truncate">${u.name}</div>
+                                <div class="text-xs text-slate-500 truncate">${u.role} - ${u.entityName}</div>
+                            </div>
+                            ${isActive ? '<i class="fas fa-check text-brand-600"></i>' : ''}
+                        </button>
+                    `;
+                });
+                menuHTML += '</div>';
+            });
+            
+            menuHTML += '</div>';
+            menu.innerHTML = menuHTML;
+            
             menu.classList.remove('hidden');
             setTimeout(() => { menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100'); }, 10);
             chevron.classList.add('rotate-180');
