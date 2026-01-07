@@ -1,5 +1,4 @@
 :root {
-    /* Default Theme (Sky Blue) RGB Values for Tailwind Opacity Support */
     --brand-50: 240 249 255;
     --brand-100: 224 242 254;
     --brand-400: 56 189 248;
@@ -9,7 +8,6 @@
     --brand-900: 12 74 110;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -32,7 +30,6 @@
     width: 4px;
 }
 
-/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -73,14 +70,12 @@
     animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* Interactive Elements */
 .group-item:hover i {
     transform: scale(1.2); 
     transition: transform 0.2s;
 }
 
-/* Modal Transitions */
-#ad-modal, #ad-wizard-modal {
+#ad-modal, #ad-wizard-modal, #invoice-modal, #pay-modal {
     transition: opacity 0.3s ease;
 }
 
@@ -88,7 +83,6 @@
     background-image: radial-gradient(circle at 10% 20%, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 90%);
 }
 
-/* Mobile Optimization */
 @media (max-width: 768px) {
     .custom-scrollbar::-webkit-scrollbar {
         width: 0px;
@@ -96,8 +90,27 @@
     }
 }
 
-/* Glassmorphism helpers */
 .backdrop-blur-md {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+}
+
+/* Tooltip styling */
+.tooltip {
+    position: relative;
+}
+.tooltip:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 50;
+    margin-bottom: 5px;
 }
