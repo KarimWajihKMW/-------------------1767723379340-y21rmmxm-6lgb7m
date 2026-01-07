@@ -83,6 +83,8 @@ const app = (() => {
         transactions: [],
         ledger: [],
         ads: [],
+        approvals: [],
+        notifications: [],
 
         tasks: [
             { id: 101, title: 'تجديد اشتراك SaaS', dueDate: '2023-11-30', status: 'Pending', priority: 'High', type: 'Billing', entityId: 'BR015' },
@@ -272,6 +274,41 @@ const app = (() => {
                 endDate: ad.end_date
             }));
 
+            // Load approvals
+            const approvals = await fetchAPI('/approvals');
+            db.approvals = approvals.map(a => ({
+                id: a.id,
+                entityId: a.entity_id,
+                itemType: a.item_type,
+                itemId: a.item_id,
+                itemTitle: a.item_title,
+                amount: parseFloat(a.amount),
+                currentLevel: a.current_level,
+                status: a.status,
+                createdBy: a.created_by,
+                createdByName: a.created_by_name,
+                createdAt: a.created_at,
+                steps: a.steps || []
+            }));
+
+            // Load notifications for current user
+            if (currentUser?.id) {
+                const notifications = await fetchAPI(`/notifications?user_id=${currentUser.id}`);
+                db.notifications = notifications.map(n => ({
+                    id: n.id,
+                    userId: n.user_id,
+                    entityId: n.entity_id,
+                    type: n.type,
+                    title: n.title,
+                    message: n.message,
+                    linkType: n.link_type,
+                    linkId: n.link_id,
+                    isRead: n.is_read,
+                    priority: n.priority,
+                    createdAt: n.created_at
+                }));
+            }
+
             console.log('✅ تم تحميل جميع البيانات من قاعدة البيانات');
         } catch (error) {
             console.error('❌ خطأ في تحميل البيانات:', error);
@@ -392,6 +429,16 @@ const app = (() => {
         document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
         document.getElementById('tenant-id-display').innerText = currentUser.entityId;
         document.getElementById('tenant-badge').className = `hidden md:flex items-center gap-2 border px-3 py-1 rounded-full animate-fade-in ${TENANT_TYPES[currentUser.tenantType].bg} ${TENANT_TYPES[currentUser.tenantType].color} border-current border-opacity-20`;
+        
+        // Update notification bell
+        const unreadCount = db.notifications.filter(n => !n.isRead).length;
+        const notificationBell = document.getElementById('notification-bell');
+        if (notificationBell) {
+            notificationBell.innerHTML = `
+                <i class="fas fa-bell text-lg"></i>
+                ${unreadCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">${unreadCount > 9 ? '9+' : unreadCount}</span>` : ''}
+            `;
+        }
     };
 
     const loadRoute = (route) => {
@@ -408,6 +455,7 @@ const app = (() => {
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'billing') content = renderBilling();
+        else if (route === 'approvals') content = renderApprovals();
         else if (route === 'entities') content = renderEntitiesManager();
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
@@ -439,6 +487,7 @@ const app = (() => {
             'dashboard': 'لوحة القيادة (Tenant Dashboard)',
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
             'billing': 'الإدارة المالية والفواتير',
+            'approvals': 'الموافقات المالية التدريجية',
             'entities': perms.isHQ() ? 'إدارة المستأجرين' : 'بيانات الكيان',
             'register-tenant': 'تسجيل مستأجر جديد',
             'ads': perms.canManageAds() ? 'لوحة المعلن المركزية' : 'منصة الإعلانات',
@@ -451,10 +500,17 @@ const app = (() => {
 
     const renderSidebar = () => {
         const menu = document.getElementById('nav-menu');
+        const unreadCount = db.notifications.filter(n => !n.isRead).length;
+        const pendingApprovals = db.approvals.filter(a => 
+            a.status === 'PENDING' && 
+            a.steps.some(s => s.approver_id === currentUser.id && s.status === 'PENDING')
+        ).length;
+        
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
+            { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
             { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
@@ -468,6 +524,7 @@ const app = (() => {
                    class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all group relative overflow-hidden">
                    <i class="fas ${item.icon} w-6 text-center group-hover:text-brand-400 transition-colors z-10"></i> 
                    <span class="z-10 relative font-medium">${item.label}</span>
+                   ${item.badge ? `<span class="mr-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">${item.badge}</span>` : ''}
                 </a>
             </li>`
         ).join('');
@@ -1138,6 +1195,211 @@ const app = (() => {
         loadRoute('ads');
     };
 
+    // --- APPROVALS MODULE ---
+    const renderApprovals = () => {
+        const myApprovals = db.approvals.filter(a => 
+            a.steps.some(s => s.approver_id === currentUser.id)
+        );
+        
+        const pendingForMe = myApprovals.filter(a => 
+            a.steps.some(s => s.approver_id === currentUser.id && s.status === 'PENDING')
+        );
+        
+        const myRequests = db.approvals.filter(a => a.createdBy === currentUser.id);
+        
+        const statusBadge = (status) => {
+            const badges = {
+                'PENDING': '<span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">قيد الانتظار</span>',
+                'IN_REVIEW': '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">قيد المراجعة</span>',
+                'APPROVED': '<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">معتمد</span>',
+                'REJECTED': '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">مرفوض</span>'
+            };
+            return badges[status] || status;
+        };
+        
+        const stepStatusBadge = (status) => {
+            const badges = {
+                'PENDING': '<span class="bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded text-xs">منتظر</span>',
+                'APPROVED': '<span class="bg-green-50 text-green-600 px-2 py-0.5 rounded text-xs"><i class="fas fa-check"></i> موافق</span>',
+                'REJECTED': '<span class="bg-red-50 text-red-600 px-2 py-0.5 rounded text-xs"><i class="fas fa-times"></i> مرفوض</span>',
+                'SKIPPED': '<span class="bg-gray-50 text-gray-500 px-2 py-0.5 rounded text-xs">متخطى</span>'
+            };
+            return badges[status] || status;
+        };
+        
+        return `
+        <div class="space-y-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">الموافقات المالية التدريجية</h2>
+                    <p class="text-slate-500">نظام الموافقات: محاسب → مدير مالي → CFO/الإدارة</p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                ${renderKpiCard('المعلقة عليك', pendingForMe.length, 'fa-hourglass-half', 'text-yellow-600', 'bg-yellow-50')}
+                ${renderKpiCard('طلباتي', myRequests.length, 'fa-paper-plane', 'text-blue-600', 'bg-blue-50')}
+                ${renderKpiCard('إجمالي الموافقات', myApprovals.length, 'fa-check-circle', 'text-green-600', 'bg-green-50')}
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-100">
+                    <button onclick="app.switchTab('pending-approvals')" id="tab-btn-pending-approvals" class="flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition">
+                        المعلقة عليك ${pendingForMe.length > 0 ? `<span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs mr-2">${pendingForMe.length}</span>` : ''}
+                    </button>
+                    <button onclick="app.switchTab('my-requests')" id="tab-btn-my-requests" class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">طلباتي</button>
+                    <button onclick="app.switchTab('all-approvals')" id="tab-btn-all-approvals" class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">جميع الموافقات</button>
+                </div>
+
+                <!-- Pending Approvals Tab -->
+                <div id="tab-content-pending-approvals" class="p-6">
+                    ${pendingForMe.length === 0 ? `
+                        <div class="text-center py-12">
+                            <i class="fas fa-check-double text-6xl text-slate-200 mb-4"></i>
+                            <p class="text-slate-500">لا توجد موافقات معلقة عليك حالياً</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${pendingForMe.map(approval => {
+                                const myStep = approval.steps.find(s => s.approver_id === currentUser.id && s.status === 'PENDING');
+                                return `
+                                    <div class="border border-slate-200 rounded-xl p-5 hover:shadow-md transition">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div class="flex-1">
+                                                <h3 class="text-lg font-bold text-slate-800 mb-1">${approval.itemTitle}</h3>
+                                                <p class="text-sm text-slate-500">بواسطة: ${approval.createdByName} • ${new Date(approval.createdAt).toLocaleDateString('ar-SA')}</p>
+                                            </div>
+                                            <div class="text-left">
+                                                <div class="text-2xl font-bold text-brand-600">${approval.amount.toLocaleString()} ر.س</div>
+                                                ${statusBadge(approval.status)}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Approval Steps Progress -->
+                                        <div class="mb-4 bg-slate-50 rounded-lg p-4">
+                                            <div class="text-xs font-bold text-slate-600 mb-3">مسار الموافقة:</div>
+                                            <div class="flex items-center gap-2">
+                                                ${approval.steps.map((step, idx) => `
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="text-center ${step.approver_id === currentUser.id && step.status === 'PENDING' ? 'animate-pulse' : ''}">
+                                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold mb-1
+                                                                ${step.status === 'APPROVED' ? 'bg-green-500 text-white' : 
+                                                                  step.status === 'REJECTED' ? 'bg-red-500 text-white' :
+                                                                  step.approver_id === currentUser.id && step.status === 'PENDING' ? 'bg-yellow-400 text-white' :
+                                                                  'bg-slate-200 text-slate-600'}">
+                                                                ${step.status === 'APPROVED' ? '<i class="fas fa-check"></i>' :
+                                                                  step.status === 'REJECTED' ? '<i class="fas fa-times"></i>' :
+                                                                  (idx + 1)}
+                                                            </div>
+                                                            <div class="text-xs text-slate-600 max-w-[80px] truncate">${step.approver_name}</div>
+                                                            <div class="text-xs text-slate-500">${step.approver_role}</div>
+                                                        </div>
+                                                        ${idx < approval.steps.length - 1 ? '<i class="fas fa-arrow-left text-slate-300"></i>' : ''}
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                        
+                                        ${myStep ? `
+                                            <div class="flex gap-3 mt-4">
+                                                <button onclick="app.handleApprovalDecision(${approval.id}, ${myStep.id}, 'APPROVED')" 
+                                                    class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg font-bold transition">
+                                                    <i class="fas fa-check ml-2"></i>اعتماد
+                                                </button>
+                                                <button onclick="app.handleApprovalDecision(${approval.id}, ${myStep.id}, 'REJECTED')" 
+                                                    class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg font-bold transition">
+                                                    <i class="fas fa-times ml-2"></i>رفض
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+
+                <!-- My Requests Tab -->
+                <div id="tab-content-my-requests" class="p-6 hidden">
+                    ${myRequests.length === 0 ? `
+                        <div class="text-center py-12">
+                            <i class="fas fa-inbox text-6xl text-slate-200 mb-4"></i>
+                            <p class="text-slate-500">لم تقم بإنشاء أي طلبات موافقة بعد</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${myRequests.map(approval => `
+                                <div class="border border-slate-200 rounded-xl p-5">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 class="text-lg font-bold text-slate-800">${approval.itemTitle}</h3>
+                                            <p class="text-sm text-slate-500">${new Date(approval.createdAt).toLocaleDateString('ar-SA')}</p>
+                                        </div>
+                                        <div class="text-left">
+                                            <div class="text-xl font-bold text-brand-600">${approval.amount.toLocaleString()} ر.س</div>
+                                            ${statusBadge(approval.status)}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Steps Progress -->
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <div class="space-y-2">
+                                            ${approval.steps.map((step, idx) => `
+                                                <div class="flex items-center gap-3">
+                                                    <div class="text-sm font-bold text-slate-600 w-8">${idx + 1}.</div>
+                                                    <div class="flex-1">
+                                                        <div class="font-semibold text-slate-700">${step.approver_name}</div>
+                                                        <div class="text-xs text-slate-500">${step.approver_role}</div>
+                                                        ${step.comments ? `<div class="text-xs text-slate-600 mt-1 italic">"${step.comments}"</div>` : ''}
+                                                        ${step.rejection_reason ? `<div class="text-xs text-red-600 mt-1"><strong>سبب الرفض:</strong> ${step.rejection_reason}</div>` : ''}
+                                                    </div>
+                                                    <div>${stepStatusBadge(step.status)}</div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+
+                <!-- All Approvals Tab -->
+                <div id="tab-content-all-approvals" class="p-6 hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right">
+                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                <tr>
+                                    <th class="p-3">العنوان</th>
+                                    <th class="p-3">المبلغ</th>
+                                    <th class="p-3">المستوى الحالي</th>
+                                    <th class="p-3">الحالة</th>
+                                    <th class="p-3">طالب الموافقة</th>
+                                    <th class="p-3">التاريخ</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                ${myApprovals.map(approval => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="p-3 font-semibold">${approval.itemTitle}</td>
+                                        <td class="p-3 text-brand-600 font-bold">${approval.amount.toLocaleString()} ر.س</td>
+                                        <td class="p-3">${approval.currentLevel} / ${approval.steps.length}</td>
+                                        <td class="p-3">${statusBadge(approval.status)}</td>
+                                        <td class="p-3">${approval.createdByName}</td>
+                                        <td class="p-3 text-slate-500">${new Date(approval.createdAt).toLocaleDateString('ar-SA')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
     const renderEntitiesManager = () => `
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h2 class="text-2xl font-bold text-slate-800">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
@@ -1236,11 +1498,50 @@ const app = (() => {
             <p class="text-slate-500 mt-2 max-w-md mx-auto">${msg}</p>
         </div>`;
 
+    // --- APPROVAL ACTIONS ---
+    const handleApprovalDecision = async (workflowId, stepId, decision) => {
+        let comments = null;
+        let rejectionReason = null;
+        
+        if (decision === 'REJECTED') {
+            rejectionReason = prompt('يرجى إدخال سبب الرفض:');
+            if (!rejectionReason || rejectionReason.trim() === '') {
+                showToast('يجب إدخال سبب الرفض', 'error');
+                return;
+            }
+        } else {
+            comments = prompt('تعليقات (اختياري):');
+        }
+        
+        try {
+            await fetchAPI(`/approvals/${workflowId}/decide`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    step_id: stepId,
+                    decision: decision,
+                    comments: comments || '',
+                    rejection_reason: rejectionReason,
+                    approver_id: currentUser.id
+                })
+            });
+            
+            showToast(decision === 'APPROVED' ? 'تمت الموافقة بنجاح' : 'تم رفض الطلب', 'success');
+            
+            // Reload data and refresh view
+            await loadDataFromAPI();
+            loadRoute('approvals');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('حدث خطأ في معالجة القرار', 'error');
+        }
+    };
+
     // Expose functions
     return { 
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
-        openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction
+        openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
+        handleApprovalDecision
     };
 })();
 
