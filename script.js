@@ -1642,7 +1642,7 @@ async function renderIncubator() {
   const currentUser = db.users[0]; // Use first user as default
   const currentEntity = db.entities.find(e => e.id === currentUser?.entityId);
   
-  const container = document.querySelector('#content');
+  const container = document.querySelector('#main-view');
   
   container.innerHTML = `
     <div class="space-y-6">
