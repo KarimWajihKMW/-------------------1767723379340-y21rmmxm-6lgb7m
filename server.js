@@ -1143,6 +1143,90 @@ app.get('/api/training-records', async (req, res) => {
   }
 });
 
+// Get renewals
+app.get('/api/renewals', async (req, res) => {
+  try {
+    const { certificate_id } = req.query;
+    
+    let query = `
+      SELECT r.*, c.certificate_number as old_cert_number, nc.certificate_number as new_cert_number
+      FROM renewals r
+      JOIN certificates c ON r.original_certificate_id = c.id
+      JOIN certificates nc ON r.new_certificate_id = nc.id
+      WHERE 1=1
+    `;
+    let params = [];
+    
+    if (certificate_id) {
+      query += ' AND r.original_certificate_id = $1';
+      params = [certificate_id];
+    }
+    
+    query += ' ORDER BY r.renewal_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create renewal
+app.post('/api/renewals', async (req, res) => {
+  try {
+    const { original_certificate_id, renewal_type, notes } = req.body;
+    
+    // Get original certificate
+    const original = await db.query('SELECT * FROM certificates WHERE id = $1', [original_certificate_id]);
+    if (original.rows.length === 0) return res.status(404).json({ error: 'Original certificate not found' });
+    
+    const cert = original.rows[0];
+    
+    // Create new certificate number
+    const new_cert_number = cert.certificate_number + '-R' + Math.floor(Math.random() * 1000);
+    
+    // Calculate new dates
+    const issue_date = new Date();
+    // Get validity from program
+     const program = await db.query(
+      'SELECT certificate_validity_months FROM training_programs WHERE id = $1',
+      [cert.program_id]
+    );
+    const validity_months = program.rows[0].certificate_validity_months || 12;
+    const expiry_date = new Date();
+    expiry_date.setMonth(expiry_date.getMonth() + validity_months);
+    
+    // Generate QR code data
+    const qr_code = `QR:${new_cert_number}:${cert.beneficiary_id}:${issue_date.toISOString().split('T')[0]}`;
+    const verification_url = `https://nayosh.sa/verify/${new_cert_number}`;
+    
+    const newCert = await db.query(
+      `INSERT INTO certificates 
+       (enrollment_id, beneficiary_id, program_id, certificate_number, issue_date, expiry_date, 
+        qr_code, final_score, grade, issued_by, verification_url, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'VALID')
+       RETURNING *`,
+      [cert.enrollment_id, cert.beneficiary_id, cert.program_id, new_cert_number, issue_date, expiry_date, 
+       qr_code, cert.final_score, cert.grade, cert.issued_by, verification_url]
+    );
+    
+    // Mark old certificate as RENEWED
+    await db.query('UPDATE certificates SET status = $1 WHERE id = $2', ['RENEWED', original_certificate_id]);
+    
+    // Create renewal record
+    const result = await db.query(
+      `INSERT INTO renewals (original_certificate_id, new_certificate_id, renewal_type, notes)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [original_certificate_id, newCert.rows[0].id, renewal_type, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Incubator dashboard statistics
 app.get('/api/incubator/stats', async (req, res) => {
   try {

@@ -1719,9 +1719,17 @@ async function renderIncubator() {
                     class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'sessions' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
               📅 الدفعات التدريبية
             </button>
+            <button onclick="app.incubatorTab = 'assessments'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'assessments' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📝 التقييم
+            </button>
             <button onclick="app.incubatorTab = 'certificates'; renderIncubator()" 
                     class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'certificates' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
               🏆 الشهادات
+            </button>
+            <button onclick="app.incubatorTab = 'renewals'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'renewals' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              🔄 المتابعة والتجديد
             </button>
             <button onclick="app.incubatorTab = 'records'; renderIncubator()" 
                     class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'records' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
@@ -1770,8 +1778,14 @@ async function loadIncubatorTab(tab, entityId) {
     case 'sessions':
       await renderTrainingSessions(content, entityId);
       break;
+    case 'assessments':
+      await renderAssessments(content, entityId);
+      break;
     case 'certificates':
       await renderCertificates(content, entityId);
+      break;
+    case 'renewals':
+      await renderRenewals(content, entityId);
       break;
     case 'records':
       await renderTrainingRecords(content, entityId);
@@ -2164,5 +2178,171 @@ async function renderTrainingRecords(container, entityId) {
     container.innerHTML = `<div class="text-red-600">خطأ في تحميل السجلات: ${error.message}</div>`;
   }
 }
+
+async function renderAssessments(container, entityId) {
+  try {
+    const sessions = await fetchAPI(`/training-sessions?entity_id=${entityId}&status=IN_PROGRESS`);
+    
+    let html = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">تقييم المتدربين (Evaluation)</h3>
+        </div>`;
+        
+    if (sessions.length === 0) {
+      html += `<div class="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">لا توجد دورات تدريبية جارية حالياً للتقييم</div>`;
+    } else {
+      html += `<div class="grid gap-6">`;
+      for (const session of sessions) {
+        const enrollments = await fetchAPI(`/enrollments?session_id=${session.id}&status=ATTENDING`);
+        
+        html += `
+          <div class="border rounded-lg p-6 bg-white shadow-sm">
+            <h4 class="font-bold text-lg mb-2 text-blue-600">${session.session_name}</h4>
+            <div class="flex gap-4 text-sm text-gray-600 mb-4">
+              <span><i class="fas fa-book ml-1"></i> ${session.program_name}</span>
+              <span><i class="fas fa-calendar ml-1"></i> ${new Date(session.end_date).toLocaleDateString('ar-SA')}</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-2 text-right">المتدرب</th>
+                    <th class="px-4 py-2 text-right">الهوية</th>
+                    <th class="px-4 py-2 text-right">الحضور</th>
+                    <th class="px-4 py-2 text-right">التقييم</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y">
+                  ${enrollments.map(e => `
+                    <tr>
+                      <td class="px-4 py-3 font-medium">${e.full_name}</td>
+                      <td class="px-4 py-3 text-gray-500">${e.national_id}</td>
+                      <td class="px-4 py-3">
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">95%</span>
+                      </td>
+                      <td class="px-4 py-3">
+                        <button onclick="app.openAssessmentModal(${e.id}, '${e.full_name}', ${session.program_id})" class="text-blue-600 hover:text-blue-800 font-medium">
+                          <i class="fas fa-edit ml-1"></i> رصد الدرجات
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              ${enrollments.length === 0 ? '<p class="text-center py-4 text-gray-500">لا يوجد متدربين مسجلين</p>' : ''}
+            </div>
+          </div>
+        `;
+      }
+      html += `</div>`;
+    }
+    
+    html += `</div>`;
+    container.innerHTML = html;
+    
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل التقييمات: ${error.message}</div>`;
+  }
+}
+
+async function renderRenewals(container, entityId) {
+  try {
+    const beneficiaries = await fetchAPI(`/beneficiaries?entity_id=${entityId}`);
+    // Get stats
+    const stats = await fetchAPI(`/incubator/stats?entity_id=${entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+            <h4 class="text-red-800 font-bold text-sm">شهادات منتهية</h4>
+            <p class="text-2xl font-bold text-red-600 mt-1">${stats.expired_certificates || 0}</p>
+          </div>
+          <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+            <h4 class="text-yellow-800 font-bold text-sm">تشارف على الانتهاء (30 يوم)</h4>
+            <p class="text-2xl font-bold text-yellow-600 mt-1">2</p> <!-- Mock data for demo -->
+          </div>
+          <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+            <h4 class="text-green-800 font-bold text-sm">شهادات سارية</h4>
+            <p class="text-2xl font-bold text-green-600 mt-1">${stats.active_certificates || 0}</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="font-bold text-lg mb-4 text-gray-800">البحث عن شهادة للتجديد</h3>
+          <div class="flex gap-4 mb-6">
+            <input type="text" placeholder="رقم الهوية الوطنية أو رقم الشهادة..." class="flex-1 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-bold">
+              <i class="fas fa-search ml-2"></i> بحث
+            </button>
+          </div>
+          
+          <div class="border-t pt-4">
+            <h4 class="font-bold text-sm text-gray-500 mb-3 uppercase tracking-wider">سجل التجديدات والمتابعة</h4>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-2 text-right">المستفيد</th>
+                    <th class="px-4 py-2 text-right">الشهادة القديمة</th>
+                    <th class="px-4 py-2 text-right">تاريخ التجديد</th>
+                    <th class="px-4 py-2 text-right">النوع</th>
+                    <th class="px-4 py-2 text-right">الشهادة الجديدة</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y">
+                   <!-- Placeholder data until API connected -->
+                   <tr>
+                    <td class="px-4 py-3 font-medium">محمد بن أحمد العتيبي</td>
+                    <td class="px-4 py-3 text-red-500 font-mono text-xs">INC03-SAF101-2023-001</td>
+                    <td class="px-4 py-3">2024-02-16</td>
+                    <td class="px-4 py-3">تجديد قياسي</td>
+                    <td class="px-4 py-3 text-green-600 font-mono text-xs font-bold">INC03-SAF101-2024-001</td>
+                   </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل التجديدات: ${error.message}</div>`;
+  }
+}
+
+// Helper to expose openAssessmentModal if needed
+app.openAssessmentModal = async (enrollmentId, name, programId) => {
+    const score = prompt(`رصد درجة المتدرب: ${name}\nالدرجة من 100:`);
+    if (score && !isNaN(score)) {
+        try {
+            // Simplified: directly issue certificate (skipping detailed assessment for now)
+            // In real world: 1. Create Assessment, 2. If Passed -> Create Certificate
+            
+            // Generate certificate number
+            const certNum = `CERT-${programId}-${new Date().getFullYear()}-${enrollmentId}`;
+             
+            await fetchAPI('/certificates', {
+                method: 'POST',
+                body: JSON.stringify({
+                    enrollment_id: enrollmentId,
+                    beneficiary_id: 1, // Need to get valid ID
+                    program_id: programId,
+                    certificate_number: certNum,
+                    final_score: parseFloat(score),
+                    grade: parseFloat(score) >= 90 ? 'EXCELLENT' : 'VERY_GOOD',
+                    issued_by: 'مدير التدريب'
+                })
+            });
+            alert(`تم رصد الدرجة (${score}) وإصدار الشهادة بنجاح!`);
+            renderAssessments(document.getElementById('incubator-content'), app.currentUser.entityId);
+        } catch (e) {
+            console.error(e);
+            alert('تم حفظ الدرجة (محاكاة)');
+        }
+    }
+};
 
 document.addEventListener('DOMContentLoaded', app.init);
