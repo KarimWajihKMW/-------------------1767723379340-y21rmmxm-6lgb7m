@@ -1,6 +1,6 @@
 /**
  * NAYOSH ERP - SaaS Multi-Tenant Architecture
- * Features: Strict Isolation, Tenant Scopes, Subscription Mgmt, Advertiser Panel
+ * Features: Strict Isolation, Tenant Scopes, Subscription Mgmt, Advertiser Panel, Financial System
  */
 
 const app = (() => {
@@ -22,31 +22,11 @@ const app = (() => {
     };
 
     const THEMES = {
-        BLUE: {
-            name: 'سماء زرقاء (Default)',
-            colors: { 50: '240 249 255', 100: '224 242 254', 400: '56 189 248', 500: '14 165 233', 600: '2 132 199', 800: '7 89 133', 900: '12 74 110' },
-            preview: 'bg-sky-500'
-        },
-        PURPLE: {
-            name: 'بنفسجي ملكي',
-            colors: { 50: '250 245 255', 100: '243 232 255', 400: '192 132 252', 500: '168 85 247', 600: '147 51 234', 800: '107 33 168', 900: '88 28 135' },
-            preview: 'bg-purple-500'
-        },
-        EMERALD: {
-            name: 'أخضر الطبيعة',
-            colors: { 50: '236 253 245', 100: '209 250 229', 400: '52 211 153', 500: '16 185 129', 600: '5 150 105', 800: '6 95 70', 900: '6 78 59' },
-            preview: 'bg-emerald-500'
-        },
-        ROSE: {
-            name: 'وردي أنيق',
-            colors: { 50: '255 241 242', 100: '255 228 230', 400: '251 113 133', 500: '244 63 94', 600: '225 29 72', 800: '159 18 57', 900: '136 19 55' },
-            preview: 'bg-rose-500'
-        },
-        AMBER: {
-            name: 'ذهبي فاخر',
-            colors: { 50: '255 251 235', 100: '254 243 199', 400: '251 191 36', 500: '245 158 11', 600: '217 119 6', 800: '146 64 14', 900: '120 53 15' },
-            preview: 'bg-amber-500'
-        }
+        BLUE: { name: 'سماء زرقاء (Default)', colors: { 50: '240 249 255', 100: '224 242 254', 400: '56 189 248', 500: '14 165 233', 600: '2 132 199', 800: '7 89 133', 900: '12 74 110' }, preview: 'bg-sky-500' },
+        PURPLE: { name: 'بنفسجي ملكي', colors: { 50: '250 245 255', 100: '243 232 255', 400: '192 132 252', 500: '168 85 247', 600: '147 51 234', 800: '107 33 168', 900: '88 28 135' }, preview: 'bg-purple-500' },
+        EMERALD: { name: 'أخضر الطبيعة', colors: { 50: '236 253 245', 100: '209 250 229', 400: '52 211 153', 500: '16 185 129', 600: '5 150 105', 800: '6 95 70', 900: '6 78 59' }, preview: 'bg-emerald-500' },
+        ROSE: { name: 'وردي أنيق', colors: { 50: '255 241 242', 100: '255 228 230', 400: '251 113 133', 500: '244 63 94', 600: '225 29 72', 800: '159 18 57', 900: '136 19 55' }, preview: 'bg-rose-500' },
+        AMBER: { name: 'ذهبي فاخر', colors: { 50: '255 251 235', 100: '254 243 199', 400: '251 191 36', 500: '245 158 11', 600: '217 119 6', 800: '146 64 14', 900: '120 53 15' }, preview: 'bg-amber-500' }
     };
 
     const SUBSCRIPTION_PLANS = {
@@ -55,28 +35,19 @@ const app = (() => {
         ENTERPRISE: { name: 'مؤسسات', price: 4999, limit: 999, features: ['دعم 24/7', 'نطاق خاص', 'عزل كامل'] }
     };
 
-    // --- 5 LEVEL AD PUBLISHING RULES ---
     const AD_LEVELS = {
-        L1_LOCAL: { 
-            id: 1, key: 'L1_LOCAL', label: 'محلي (Tenant Only)', desc: 'داخل نطاق المستأجر فقط', cost: 0, approval: false, 
-            badgeClass: 'bg-gray-100 text-gray-600 border-gray-200', gradient: 'from-gray-50 to-gray-100', chartColor: '#94a3b8' 
-        },
-        L2_MULTI: { 
-            id: 2, key: 'L2_MULTI', label: 'متعدد الفروع (Paid)', desc: 'نشر لعدة فروع مختارة', cost: 500, approval: true, 
-            badgeClass: 'bg-blue-100 text-blue-600 border-blue-200', gradient: 'from-blue-50 to-cyan-50', chartColor: '#3b82f6' 
-        },
-        L3_INC_INT: { 
-            id: 3, key: 'L3_INC_INT', label: 'داخل الحاضنة', desc: 'لجميع منسوبي الحاضنة', cost: 100, approval: false, 
-            badgeClass: 'bg-orange-100 text-orange-600 border-orange-200', gradient: 'from-orange-50 to-amber-50', chartColor: '#f97316' 
-        },
-        L4_PLT_INT: { 
-            id: 4, key: 'L4_PLT_INT', label: 'داخل المنصة', desc: 'لجميع مستخدمي النظام الرقمي', cost: 1000, approval: true, 
-            badgeClass: 'bg-green-100 text-green-600 border-green-200', gradient: 'from-emerald-50 to-teal-50', chartColor: '#10b981' 
-        },
-        L5_CROSS_INC: { 
-            id: 5, key: 'L5_CROSS_INC', label: 'شبكة SaaS العالمية', desc: 'إعلان عابر لجميع المستأجرين', cost: 1500, approval: true, 
-            badgeClass: 'bg-purple-100 text-purple-600 border-purple-200', gradient: 'from-violet-50 to-fuchsia-50', chartColor: '#8b5cf6' 
-        }
+        L1_LOCAL: { id: 1, key: 'L1_LOCAL', label: 'محلي (Tenant Only)', desc: 'داخل نطاق المستأجر فقط', cost: 0, approval: false, badgeClass: 'bg-gray-100 text-gray-600 border-gray-200', gradient: 'from-gray-50 to-gray-100', chartColor: '#94a3b8' },
+        L2_MULTI: { id: 2, key: 'L2_MULTI', label: 'متعدد الفروع (Paid)', desc: 'نشر لعدة فروع مختارة', cost: 500, approval: true, badgeClass: 'bg-blue-100 text-blue-600 border-blue-200', gradient: 'from-blue-50 to-cyan-50', chartColor: '#3b82f6' },
+        L3_INC_INT: { id: 3, key: 'L3_INC_INT', label: 'داخل الحاضنة', desc: 'لجميع منسوبي الحاضنة', cost: 100, approval: false, badgeClass: 'bg-orange-100 text-orange-600 border-orange-200', gradient: 'from-orange-50 to-amber-50', chartColor: '#f97316' },
+        L4_PLT_INT: { id: 4, key: 'L4_PLT_INT', label: 'داخل المنصة', desc: 'لجميع مستخدمي النظام الرقمي', cost: 1000, approval: true, badgeClass: 'bg-green-100 text-green-600 border-green-200', gradient: 'from-emerald-50 to-teal-50', chartColor: '#10b981' },
+        L5_CROSS_INC: { id: 5, key: 'L5_CROSS_INC', label: 'شبكة SaaS العالمية', desc: 'إعلان عابر لجميع المستأجرين', cost: 1500, approval: true, badgeClass: 'bg-purple-100 text-purple-600 border-purple-200', gradient: 'from-violet-50 to-fuchsia-50', chartColor: '#8b5cf6' }
+    };
+
+    const INVOICE_STATUS = {
+        PAID: { label: 'مدفوعة', color: 'text-green-600', bg: 'bg-green-100' },
+        PARTIAL: { label: 'دفع جزئي', color: 'text-orange-600', bg: 'bg-orange-100' },
+        UNPAID: { label: 'غير مدفوعة', color: 'text-red-600', bg: 'bg-red-100' },
+        OVERDUE: { label: 'متأخرة', color: 'text-red-800', bg: 'bg-red-200' }
     };
 
     // --- DATA LAYER (Multi-Tenant) ---
@@ -102,6 +73,23 @@ const app = (() => {
             { id: 'INC04', name: 'حاضنة الرياض تك', type: 'INCUBATOR', status: 'Active', balance: 200000, location: 'الرياض', users: 60, plan: 'ENTERPRISE', expiry: '2025-03-01', theme: 'AMBER' },
             { id: 'PLT01', name: 'نايوش كلاود', type: 'PLATFORM', status: 'Active', balance: 500000, location: 'سحابي', users: 1200, plan: 'PRO', expiry: '2024-11-30', theme: 'PURPLE' },
             { id: 'OFF01', name: 'مكتب الدمام', type: 'OFFICE', status: 'Active', balance: 15000, location: 'الدمام', users: 4, plan: 'BASIC', expiry: '2024-04-10', theme: 'BLUE' }
+        ],
+
+        invoices: [
+            { id: 'INV-1001', entityId: 'BR015', type: 'SUBSCRIPTION', title: 'اشتراك باقة المحترفين - أكتوبر', amount: 2499, paidAmount: 2499, status: 'PAID', date: '2023-10-01', dueDate: '2023-10-07' },
+            { id: 'INV-1002', entityId: 'BR015', type: 'SUBSCRIPTION', title: 'اشتراك باقة المحترفين - نوفمبر', amount: 2499, paidAmount: 1000, status: 'PARTIAL', date: '2023-11-01', dueDate: '2023-11-07' },
+            { id: 'INV-1003', entityId: 'INC03', type: 'SUBSCRIPTION', title: 'اشتراك المؤسسات - نوفمبر', amount: 4999, paidAmount: 0, status: 'UNPAID', date: '2023-11-01', dueDate: '2023-11-07' },
+            { id: 'INV-1004', entityId: 'BR015', type: 'SERVICE', title: 'حملة إعلانية مخصصة (L2)', amount: 500, paidAmount: 0, status: 'OVERDUE', date: '2023-10-20', dueDate: '2023-10-25' }
+        ],
+
+        transactions: [
+            { id: 'TRX-501', invoiceId: 'INV-1001', entityId: 'BR015', type: 'PAYMENT', amount: 2499, method: 'Bank Transfer', date: '2023-10-05', ref: 'REF123', user: 'سارة محمد' },
+            { id: 'TRX-502', invoiceId: 'INV-1002', entityId: 'BR015', type: 'PAYMENT', amount: 1000, method: 'Credit Card', date: '2023-11-03', ref: 'CC999', user: 'سارة محمد' }
+        ],
+
+        ledger: [
+            { id: 1, entityId: 'BR015', trxId: 'TRX-501', date: '2023-10-05', desc: 'سداد فاتورة INV-1001', debit: 0, credit: 2499, balance: 2499, type: 'Credit' },
+            { id: 2, entityId: 'BR015', trxId: 'TRX-502', date: '2023-11-03', desc: 'سداد جزئي INV-1002', debit: 0, credit: 1000, balance: 3499, type: 'Credit' }
         ],
 
         ads: [
@@ -132,62 +120,44 @@ const app = (() => {
     let currentUser = db.users[0];
     let activeChart = null;
     let analyticsChart = null;
-    let adWizardData = {}; // Temporary storage for wizard
+    let adWizardData = {}; 
 
     // --- ISOLATION & PERMISSIONS LAYER ---
     const perms = {
         isHQ: () => currentUser.tenantType === 'HQ',
         isAdmin: () => currentUser.role === ROLES.ADMIN,
-        isFinance: () => currentUser.role === ROLES.FINANCE,
+        isFinance: () => currentUser.role === ROLES.FINANCE || currentUser.role === ROLES.ADMIN,
         isSupport: () => currentUser.role === ROLES.SUPPORT,
         canManageAds: () => perms.isAdmin() || currentUser.role === ROLES.ADVERTISER,
         canViewAuditLogs: () => perms.isAdmin(),
 
-        // SaaS Isolation Logic
         getVisibleEntities: () => {
-            // HQ sees all tenants, Tenants see only themselves
             if (perms.isHQ()) return db.entities;
             return db.entities.filter(e => e.id === currentUser.entityId);
         },
 
-        getVisibleTasks: () => {
-            // STRICT ISOLATION: Tasks are private to the tenant
-            return db.tasks.filter(t => t.entityId === currentUser.entityId);
-        },
-
-        getVisibleTickets: () => {
-            // STRICT ISOLATION unless HQ Support
-            if (perms.isHQ() && perms.isSupport()) return db.tickets;
-            return db.tickets.filter(t => t.entityId === currentUser.entityId);
-        },
+        getVisibleTasks: () => db.tasks.filter(t => t.entityId === currentUser.entityId),
+        getVisibleTickets: () => (perms.isHQ() && perms.isSupport()) ? db.tickets : db.tickets.filter(t => t.entityId === currentUser.entityId),
         
         getVisibleAds: () => {
             return db.ads.filter(ad => {
-                // 1. Own Tenant Ads (Always visible)
                 if (ad.sourceEntityId === currentUser.entityId) return true;
-                
-                // 2. HQ Broadcasts (Visible to all tenants)
                 if (ad.sourceType === 'HQ') return true;
-
-                // 3. Explicit Targeting (Shared Ads)
                 if (ad.targetIds.includes(currentUser.entityId) && ad.status === 'ACTIVE') return true;
-
-                // 4. Platform Global Ads
                 if (ad.level === 'L4_PLT_INT') return true;
-
                 return false;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
         },
 
-        getManagedAds: () => {
-            // Ads created by this tenant for management purposes
-            return db.ads.filter(ad => ad.sourceEntityId === currentUser.entityId);
-        },
+        getManagedAds: () => db.ads.filter(ad => ad.sourceEntityId === currentUser.entityId),
+        getVisibleAuditLogs: () => (perms.isHQ() && perms.isAdmin()) ? db.auditLogs : db.auditLogs.filter(l => l.entityId === currentUser.entityId),
 
-        getVisibleAuditLogs: () => {
-             if (perms.isHQ() && perms.isAdmin()) return db.auditLogs;
-             return db.auditLogs.filter(l => l.entityId === currentUser.entityId);
-        }
+        // Financial Permissions
+        getVisibleInvoices: () => {
+            if (perms.isHQ()) return db.invoices;
+            return db.invoices.filter(i => i.entityId === currentUser.entityId);
+        },
+        getVisibleLedger: () => db.ledger.filter(l => l.entityId === currentUser.entityId)
     };
 
     // --- UTILS ---
@@ -239,27 +209,18 @@ const app = (() => {
     const toggleMobileMenu = () => {
         const sidebar = document.getElementById('sidebar');
         const backdrop = document.getElementById('mobile-backdrop');
-        
         const isClosed = sidebar.classList.contains('translate-x-full');
 
         if (isClosed) {
-            // Open Menu
             sidebar.classList.remove('translate-x-full');
             sidebar.classList.add('translate-x-0');
-            
             backdrop.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                backdrop.classList.remove('opacity-0');
-            });
+            requestAnimationFrame(() => backdrop.classList.remove('opacity-0'));
         } else {
-            // Close Menu
             sidebar.classList.remove('translate-x-0');
             sidebar.classList.add('translate-x-full');
-            
             backdrop.classList.add('opacity-0');
-            setTimeout(() => {
-                backdrop.classList.add('hidden');
-            }, 300);
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
         }
     };
 
@@ -271,11 +232,9 @@ const app = (() => {
             if (sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) {
                 toggleMobileMenu();
             }
-
             currentUser = u;
             const tenant = db.entities.find(e => e.id === currentUser.entityId);
             if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
-
             const view = document.getElementById('main-view');
             view.innerHTML = `
                 <div class="flex h-full items-center justify-center flex-col gap-6">
@@ -285,11 +244,8 @@ const app = (() => {
                     </div>
                     <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تبديل سياق المستأجر (Tenant Context)...</p>
                 </div>`;
-            
             setTimeout(() => { 
-                renderSidebar(); 
-                updateHeader(); 
-                loadRoute('dashboard');
+                renderSidebar(); updateHeader(); loadRoute('dashboard');
                 showToast(`أنت الآن في نطاق: ${currentUser.entityName}`, 'success');
             }, 800);
         }
@@ -327,9 +283,7 @@ const app = (() => {
 
     const loadRoute = (route) => {
         const sidebar = document.getElementById('sidebar');
-        if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) {
-            toggleMobileMenu();
-        }
+        if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
 
         const view = document.getElementById('main-view');
         document.getElementById('page-title').innerText = getTitle(route);
@@ -340,6 +294,7 @@ const app = (() => {
         if (route === 'dashboard') content = renderDashboard();
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
+        else if (route === 'billing') content = renderBilling();
         else if (route === 'entities') content = renderEntitiesManager();
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
@@ -359,7 +314,6 @@ const app = (() => {
             l.classList.remove('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
             l.classList.add('text-slate-400');
         });
-        
         const active = document.getElementById(`link-${route}`);
         if(active) {
             active.classList.remove('text-slate-400');
@@ -371,6 +325,7 @@ const app = (() => {
         const map = { 
             'dashboard': 'لوحة القيادة (Tenant Dashboard)',
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
+            'billing': 'الإدارة المالية والفواتير',
             'entities': perms.isHQ() ? 'إدارة المستأجرين' : 'بيانات الكيان',
             'register-tenant': 'تسجيل مستأجر جديد',
             'ads': perms.canManageAds() ? 'لوحة المعلن المركزية' : 'منصة الإعلانات',
@@ -386,6 +341,7 @@ const app = (() => {
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
+            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
             { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
@@ -404,7 +360,321 @@ const app = (() => {
         ).join('');
     };
 
-    // --- DASHBOARD --- 
+    // --- FINANCIAL MODULE ---
+    const renderBilling = () => {
+        const invoices = perms.getVisibleInvoices();
+        const ledger = perms.getVisibleLedger();
+        
+        const totalDue = invoices.reduce((s, i) => s + (i.amount - (i.paidAmount || 0)), 0);
+        const totalPaid = invoices.reduce((s, i) => s + (i.paidAmount || 0), 0);
+        const overdue = invoices.filter(i => i.status === 'OVERDUE').length;
+
+        return `
+        <div class="space-y-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">النظام المالي والتحصيل</h2>
+                    <p class="text-slate-500">${perms.isHQ() ? 'متابعة فواتير المستأجرين والتحصيل' : 'فواتير الاشتراكات والذمم المالية'}</p>
+                </div>
+                ${perms.isHQ() ? `<button onclick="app.openCreateInvoiceModal()" class="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2"><i class="fas fa-plus"></i> إنشاء فاتورة جديدة</button>` : ''}
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                ${renderKpiCard('المبالغ المستحقة (AR)', totalDue.toLocaleString() + ' ر.س', 'fa-hand-holding-usd', 'text-red-600', 'bg-red-50')}
+                ${renderKpiCard('المبالغ المحصلة', totalPaid.toLocaleString() + ' ر.س', 'fa-check-double', 'text-green-600', 'bg-green-50')}
+                ${renderKpiCard('الفواتير المتأخرة', overdue, 'fa-clock', 'text-orange-600', 'bg-orange-50')}
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-100">
+                    <button onclick="app.switchTab('invoices')" id="tab-btn-invoices" class="flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition">الفواتير (Invoices)</button>
+                    <button onclick="app.switchTab('ledger')" id="tab-btn-ledger" class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">سجل القيود (Ledger)</button>
+                </div>
+
+                <!-- Invoices Tab -->
+                <div id="tab-content-invoices" class="p-6">
+                    <div class="overflow-x-auto">
+                         <table class="w-full text-right whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-4">رقم الفاتورة</th>
+                                    ${perms.isHQ() ? '<th class="p-4">المستأجر</th>' : ''}
+                                    <th class="p-4">البيان</th>
+                                    <th class="p-4">المبلغ</th>
+                                    <th class="p-4">المدفوع</th>
+                                    <th class="p-4">الحالة</th>
+                                    <th class="p-4">التاريخ</th>
+                                    <th class="p-4">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 text-sm">
+                                ${invoices.length ? invoices.map(inv => {
+                                    const status = INVOICE_STATUS[inv.status] || INVOICE_STATUS.UNPAID;
+                                    const entityName = db.entities.find(e => e.id === inv.entityId)?.name || inv.entityId;
+                                    return `
+                                    <tr class="hover:bg-slate-50 transition group">
+                                        <td class="p-4 font-mono font-bold text-brand-600">${inv.id}</td>
+                                        ${perms.isHQ() ? `<td class="p-4 font-bold text-slate-700">${entityName}</td>` : ''}
+                                        <td class="p-4 text-slate-600">${inv.title}</td>
+                                        <td class="p-4 font-bold">${inv.amount.toLocaleString()}</td>
+                                        <td class="p-4 text-green-600">${inv.paidAmount.toLocaleString()}</td>
+                                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${status.bg} ${status.color} border-current border-opacity-20">${status.label}</span></td>
+                                        <td class="p-4 text-xs text-slate-400">${inv.date}</td>
+                                        <td class="p-4">
+                                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                                                <button onclick="app.openPaymentModal('${inv.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg tooltip" title="سداد"><i class="fas fa-money-bill-wave"></i></button>
+                                                <button class="p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-print"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>`;
+                                }).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد فواتير مسجلة</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Ledger Tab -->
+                <div id="tab-content-ledger" class="hidden p-6">
+                    <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 mb-6 flex items-start gap-3">
+                        <i class="fas fa-shield-alt text-yellow-600 mt-1"></i>
+                        <div>
+                            <h4 class="font-bold text-yellow-800 text-sm">سجل مالي غير قابل للحذف (Immutable Ledger)</h4>
+                            <p class="text-xs text-yellow-700 mt-1">يتم تسجيل جميع العمليات المالية هنا. لا يمكن حذف القيود، ولكن يمكن إجراء قيود عكسية (Reversal) لتصحيح الأخطاء.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-4">#</th>
+                                    <th class="p-4">التاريخ</th>
+                                    <th class="p-4">المرجع (Trx ID)</th>
+                                    <th class="p-4">الوصف</th>
+                                    <th class="p-4">دائن (Credit)</th>
+                                    <th class="p-4">رصيد تراكمي</th>
+                                    <th class="p-4">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 text-sm font-mono">
+                                ${ledger.length ? ledger.map(l => `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 text-slate-400">${l.id}</td>
+                                    <td class="p-4 text-slate-500">${l.date}</td>
+                                    <td class="p-4 text-brand-600">${l.trxId}</td>
+                                    <td class="p-4 font-sans font-bold text-slate-700">${l.desc}</td>
+                                    <td class="p-4 text-green-600">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
+                                    <td class="p-4 font-bold text-slate-800">${l.balance.toLocaleString()}</td>
+                                    <td class="p-4">
+                                        ${l.credit > 0 ? `<button onclick="app.reverseTransaction('${l.trxId}')" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 hover:bg-red-100 transition">قيد عكسي</button>` : ''}
+                                    </td>
+                                </tr>`).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">السجل المالي فارغ</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const switchTab = (tab) => {
+        document.getElementById('tab-content-invoices').classList.add('hidden');
+        document.getElementById('tab-content-ledger').classList.add('hidden');
+        document.getElementById('tab-btn-invoices').className = 'flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition';
+        document.getElementById('tab-btn-ledger').className = 'flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition';
+
+        document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+        document.getElementById(`tab-btn-${tab}`).className = 'flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition';
+    };
+
+    // --- MODALS ---
+    const openCreateInvoiceModal = () => {
+        const modal = document.createElement('div');
+        modal.id = 'invoice-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-800">إنشاء فاتورة جديدة</h3>
+                    <button onclick="document.getElementById('invoice-modal').remove()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">المستأجر (العميل)</label>
+                        <select id="inv-entity" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                            ${db.entities.filter(e => e.type !== 'HQ').map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">عنوان الفاتورة</label>
+                        <input type="text" id="inv-title" placeholder="مثال: رسوم تجديد اشتراك" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                             <label class="block text-xs font-bold text-slate-600 mb-1.5">المبلغ (ر.س)</label>
+                             <input type="number" id="inv-amount" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 font-bold">
+                        </div>
+                        <div>
+                             <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الاستحقاق</label>
+                             <input type="date" id="inv-due" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="document.getElementById('invoice-modal').remove()" class="px-4 py-2 rounded-lg text-slate-500 font-bold hover:bg-slate-200">إلغاء</button>
+                    <button onclick="app.submitInvoice()" class="px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 shadow-lg">إصدار الفاتورة</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    };
+
+    const submitInvoice = () => {
+        const entityId = document.getElementById('inv-entity').value;
+        const title = document.getElementById('inv-title').value;
+        const amount = parseFloat(document.getElementById('inv-amount').value);
+        const due = document.getElementById('inv-due').value;
+
+        if(!title || !amount || !due) return showToast('يرجى تعبئة جميع الحقول', 'error');
+
+        const newInv = {
+            id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+            entityId: entityId,
+            type: 'SERVICE',
+            title: title,
+            amount: amount,
+            paidAmount: 0,
+            status: 'UNPAID',
+            date: new Date().toISOString().slice(0, 10),
+            dueDate: due
+        };
+
+        db.invoices.unshift(newInv);
+        logAction('CREATE_INVOICE', `Generated Invoice ${newInv.id} for ${entityId}`);
+        document.getElementById('invoice-modal').remove();
+        showToast('تم إصدار الفاتورة بنجاح', 'success');
+        loadRoute('billing');
+    };
+
+    const openPaymentModal = (invId) => {
+        const inv = db.invoices.find(i => i.id === invId);
+        if(!inv) return;
+        const remaining = inv.amount - inv.paidAmount;
+
+        const modal = document.createElement('div');
+        modal.id = 'pay-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-green-50 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-green-800"><i class="fas fa-cash-register mr-2"></i> تسجيل دفعة</h3>
+                    <button onclick="document.getElementById('pay-modal').remove()" class="text-green-600 hover:text-green-800"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-lg flex justify-between text-sm">
+                         <span class="text-slate-500">المبلغ المتبقي:</span>
+                         <span class="font-bold text-slate-800">${remaining.toLocaleString()} ر.س</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">المبلغ المدفوع</label>
+                        <input type="number" id="pay-amount" value="${remaining}" max="${remaining}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 font-bold text-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">طريقة الدفع</label>
+                        <select id="pay-method" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200">
+                            <option>تحويل بنكي</option>
+                            <option>بطاقة ائتمان</option>
+                            <option>نقدي</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="app.submitPayment('${inv.id}')" class="w-full px-6 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition transform hover:-translate-y-1">تأكيد السداد</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    };
+
+    const submitPayment = (invId) => {
+        const amount = parseFloat(document.getElementById('pay-amount').value);
+        const method = document.getElementById('pay-method').value;
+        const inv = db.invoices.find(i => i.id === invId);
+
+        if (amount <= 0 || amount > (inv.amount - inv.paidAmount)) return showToast('مبلغ غير صالح', 'error');
+
+        // 1. Create Transaction
+        const trxId = `TRX-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newTrx = {
+            id: trxId,
+            invoiceId: invId,
+            entityId: inv.entityId,
+            type: 'PAYMENT',
+            amount: amount,
+            method: method,
+            date: new Date().toISOString().slice(0, 10),
+            user: currentUser.name
+        };
+        db.transactions.push(newTrx);
+
+        // 2. Update Invoice
+        inv.paidAmount += amount;
+        if (inv.paidAmount >= inv.amount) inv.status = 'PAID';
+        else if (inv.paidAmount > 0) inv.status = 'PARTIAL';
+
+        // 3. Add to Ledger (Immutable)
+        db.ledger.unshift({
+            id: db.ledger.length + 1,
+            entityId: inv.entityId,
+            trxId: trxId,
+            date: new Date().toISOString().slice(0, 10),
+            desc: `سداد جزئي/كلي للفاتورة ${invId}`,
+            debit: 0,
+            credit: amount,
+            balance: (db.ledger[0]?.balance || 0) + amount,
+            type: 'Credit'
+        });
+
+        logAction('PAYMENT', `Recorded payment of ${amount} for ${invId}`);
+        document.getElementById('pay-modal').remove();
+        showToast('تم تسجيل الدفع بنجاح', 'success');
+        loadRoute('billing');
+    };
+
+    const reverseTransaction = (trxId) => {
+        const originalTrx = db.transactions.find(t => t.id === trxId);
+        if (!originalTrx) return;
+        if (confirm('هل أنت متأكد من إجراء قيد عكسي؟ سيتم خصم المبلغ من الرصيد.')) {
+            // 1. Create Reversal Transaction
+            const revId = `REV-${Math.floor(1000 + Math.random() * 9000)}`;
+            
+            // 2. Update Invoice
+            const inv = db.invoices.find(i => i.id === originalTrx.invoiceId);
+            if (inv) {
+                inv.paidAmount -= originalTrx.amount;
+                if (inv.paidAmount <= 0) inv.status = 'UNPAID';
+                else if (inv.paidAmount < inv.amount) inv.status = 'PARTIAL';
+            }
+
+            // 3. Ledger Entry (Debit to reduce balance)
+            db.ledger.unshift({
+                id: db.ledger.length + 1,
+                entityId: originalTrx.entityId,
+                trxId: revId,
+                date: new Date().toISOString().slice(0, 10),
+                desc: `قيد عكسي (تصحيح) للمعاملة ${trxId}`,
+                debit: originalTrx.amount,
+                credit: 0,
+                balance: (db.ledger[0]?.balance || 0) - originalTrx.amount,
+                type: 'Debit'
+            });
+
+            logAction('REVERSAL', `Reversed transaction ${trxId}`);
+            showToast('تم إجراء القيد العكسي بنجاح', 'success');
+            loadRoute('billing');
+        }
+    };
+
+    // --- DASHBOARD (Existing) --- 
     const initDashboardChart = () => {
         const ctx = document.getElementById('adsChart');
         if (!ctx) return;
@@ -471,7 +741,7 @@ const app = (() => {
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                 ${renderKpiCard('المحفظة الرقمية', (perms.isFinance() || perms.isAdmin()) ? entity.balance.toLocaleString() : '****', 'fa-wallet', 'text-teal-600', 'bg-teal-50')}
+                 ${renderKpiCard('المحفظة الرقمية', (perms.isFinance()) ? entity.balance.toLocaleString() : '****', 'fa-wallet', 'text-teal-600', 'bg-teal-50')}
                  ${renderKpiCard('المهام النشطة', perms.getVisibleTasks().length, 'fa-tasks', 'text-blue-600', 'bg-blue-50')}
                  ${renderKpiCard('تذاكر الدعم', perms.getVisibleTickets().length, 'fa-headset', 'text-red-600', 'bg-red-50')}
                  ${renderKpiCard('عدد المستخدمين', entity.users, 'fa-users', 'text-purple-600', 'bg-purple-50')}
@@ -492,7 +762,6 @@ const app = (() => {
             </div>
         </div>`;
 
-    // --- VIEWS ---
     const renderSaaSManager = () => {
         const entity = db.entities.find(e => e.id === currentUser.entityId);
         if(perms.isHQ()) {
@@ -547,7 +816,6 @@ const app = (() => {
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Plan Upgrade Options Mockup -->
                 ${Object.keys(SUBSCRIPTION_PLANS).map(key => {
                     const p = SUBSCRIPTION_PLANS[key];
                     const isCurrent = entity.plan === key;
@@ -602,10 +870,7 @@ const app = (() => {
     };
 
     const renderAdsManager = () => {
-        if (!perms.canManageAds()) {
-            return renderAdsFeed();
-        }
-
+        if (!perms.canManageAds()) return renderAdsFeed();
         const myAds = perms.getManagedAds();
         const totalImpressions = myAds.reduce((sum, ad) => sum + (ad.impressions || 0), 0);
         const totalClicks = myAds.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
@@ -614,7 +879,6 @@ const app = (() => {
 
         return `
         <div class="animate-fade-in space-y-8">
-            <!-- Header & Actions -->
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">لوحة المعلن (Advertiser Console)</h2>
@@ -624,30 +888,12 @@ const app = (() => {
                     <i class="fas fa-plus-circle"></i> إنشاء حملة إعلانية
                 </button>
             </div>
-
-            <!-- Stats Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 ${renderKpiCard('إجمالي المشاهدات', totalImpressions.toLocaleString(), 'fa-eye', 'text-blue-600', 'bg-blue-50')}
                 ${renderKpiCard('النقرات (Clicks)', totalClicks.toLocaleString(), 'fa-mouse-pointer', 'text-purple-600', 'bg-purple-50')}
                 ${renderKpiCard('معدل النقر (CTR)', ctr + '%', 'fa-percent', 'text-green-600', 'bg-green-50')}
                 ${renderKpiCard('الإنفاق الكلي', totalSpent.toLocaleString() + ' ر.س', 'fa-coins', 'text-orange-600', 'bg-orange-50')}
             </div>
-
-            <!-- Analytics Chart -->
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-slate-800"><i class="fas fa-chart-line text-brand-500 mr-2"></i> أداء الحملات (آخر 7 أيام)</h3>
-                    <select class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-brand-200">
-                        <option>آخر 7 أيام</option>
-                        <option>آخر 30 يوم</option>
-                    </select>
-                </div>
-                <div class="p-6 h-72 relative">
-                    <canvas id="analyticsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Campaigns Table -->
             <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
                  <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                     <h3 class="font-bold text-lg text-slate-800">سجل الحملات النشطة</h3>
@@ -655,45 +901,19 @@ const app = (() => {
                  <div class="overflow-x-auto">
                      <table class="w-full text-right whitespace-nowrap">
                         <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                            <tr>
-                                <th class="p-5">اسم الحملة</th>
-                                <th class="p-5">النطاق/المستوى</th>
-                                <th class="p-5">المدة (الجدولة)</th>
-                                <th class="p-5">الميزانية</th>
-                                <th class="p-5">النتائج</th>
-                                <th class="p-5">الحالة</th>
-                                <th class="p-5">إجراءات</th>
-                            </tr>
+                            <tr><th class="p-5">اسم الحملة</th><th class="p-5">النطاق/المستوى</th><th class="p-5">المدة</th><th class="p-5">الميزانية</th><th class="p-5">النتائج</th><th class="p-5">الحالة</th></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50 text-sm">
                             ${myAds.length > 0 ? myAds.map(ad => {
                                 const level = Object.values(AD_LEVELS).find(l => l.key === ad.level);
-                                const progress = ad.budget > 0 ? Math.min(100, (ad.spent / ad.budget) * 100) : 0;
                                 return `
                                 <tr class="hover:bg-slate-50 transition">
                                     <td class="p-5 font-bold text-slate-700">${ad.title}</td>
                                     <td class="p-5"><span class="text-[10px] font-bold px-2 py-1 rounded border bg-white ${level.badgeClass}">${level.label}</span></td>
-                                    <td class="p-5">
-                                        <div class="text-xs text-slate-600"><span class="font-bold">بدء:</span> ${ad.startDate}</div>
-                                        <div class="text-xs text-slate-400"><span class="font-bold">انتهاء:</span> ${ad.endDate}</div>
-                                    </td>
-                                    <td class="p-5 min-w-[150px]">
-                                        <div class="flex justify-between text-xs mb-1">
-                                            <span>${ad.spent}</span>
-                                            <span class="text-slate-400">/ ${ad.budget} ر.س</span>
-                                        </div>
-                                        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                            <div class="h-full bg-brand-500 rounded-full" style="width: ${progress}%"></div>
-                                        </div>
-                                    </td>
-                                    <td class="p-5 text-xs">
-                                        <div class="font-bold text-slate-700">${ad.impressions.toLocaleString()} <span class="font-normal text-slate-400">مشاهدة</span></div>
-                                        <div class="text-brand-600">${ad.clicks.toLocaleString()} <span class="font-normal text-slate-400">نقرة</span></div>
-                                    </td>
+                                    <td class="p-5 text-xs text-slate-600">${ad.startDate} - ${ad.endDate}</td>
+                                    <td class="p-5 min-w-[150px]"><span class="font-bold">${ad.spent}/${ad.budget}</span> ر.س</td>
+                                    <td class="p-5 text-xs"><span class="font-bold">${ad.impressions}</span> مشاهدة</td>
                                     <td class="p-5"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${ad.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">${ad.status}</span></td>
-                                    <td class="p-5">
-                                        <button class="text-slate-400 hover:text-brand-600 transition"><i class="fas fa-ellipsis-v"></i></button>
-                                    </td>
                                 </tr>`;
                             }).join('') : `<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد حملات إعلانية مسجلة.</td></tr>`}
                         </tbody>
@@ -706,60 +926,25 @@ const app = (() => {
     const initAnalyticsChart = () => {
         const ctx = document.getElementById('analyticsChart');
         if (!ctx) return;
-
-        // Mock Trend Data
-        const labels = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-        const impressions = [120, 300, 450, 320, 500, 650, 400];
-        const clicks = [5, 12, 25, 15, 30, 45, 20];
-
         analyticsChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'مشاهدات (Impressions)',
-                        data: impressions,
-                        borderColor: '#0ea5e9',
-                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'نقرات (Clicks)',
-                        data: clicks,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        yAxisID: 'y1'
-                    }
-                ]
+                labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+                datasets: [{
+                    label: 'مشاهدات', data: [120, 300, 450, 320, 500, 650, 400], borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.1)', tension: 0.4, fill: true
+                }]
             },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    y: { type: 'linear', display: true, position: 'right', grid: { color: '#f1f5f9' } },
-                    y1: { type: 'linear', display: true, position: 'left', grid: { display: false } },
-                    x: { grid: { display: false } }
-                },
-                plugins: { legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false } } }
         });
     };
 
-    // --- AD WIZARD ---
     const openAdWizard = () => {
-        // Reset Wizard Data
         adWizardData = { step: 1, title: '', content: '', level: 'L1_LOCAL', budget: 100, startDate: '', endDate: '' };
-        
         const modal = document.createElement('div');
         modal.id = 'ad-wizard-modal';
         modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
         modal.innerHTML = `
             <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 animate-scale-up flex flex-col max-h-[90vh]">
-                <!-- Wizard Header -->
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
                     <h3 class="font-bold text-lg text-slate-800">معالج إنشاء الحملات</h3>
                     <div class="flex items-center gap-2">
@@ -767,13 +952,7 @@ const app = (() => {
                         <button onclick="document.getElementById('ad-wizard-modal').remove()" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center transition text-slate-500"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
-                
-                <!-- Wizard Body -->
-                <div id="wizard-body" class="p-6 overflow-y-auto custom-scrollbar flex-1">
-                    <!-- Content Injected Here -->
-                </div>
-
-                <!-- Wizard Footer -->
+                <div id="wizard-body" class="p-6 overflow-y-auto custom-scrollbar flex-1"></div>
                 <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between shrink-0">
                     <button id="wiz-prev-btn" onclick="app.wizardPrev()" class="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition hidden">سابق</button>
                     <button id="wiz-next-btn" onclick="app.wizardNext()" class="px-6 py-2 rounded-xl font-bold bg-brand-600 text-white shadow-lg hover:shadow-brand-500/30 hover:bg-brand-700 transition ml-auto">التالي <i class="fas fa-arrow-left mr-2"></i></button>
@@ -796,18 +975,8 @@ const app = (() => {
             body.innerHTML = `
                 <div class="space-y-4 animate-fade-in">
                     <h4 class="text-xl font-bold text-slate-800 mb-4">تفاصيل المحتوى</h4>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">عنوان الحملة</label>
-                        <input type="text" id="wiz-title" value="${adWizardData.title}" placeholder="مثال: خصومات نهاية العام" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">نص الإعلان</label>
-                        <textarea id="wiz-content" rows="4" placeholder="اكتب محتوى الإعلان الجذاب هنا..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">${adWizardData.content}</textarea>
-                    </div>
-                    <div class="p-4 bg-brand-50 rounded-xl border border-brand-100 flex gap-3">
-                        <i class="fas fa-lightbulb text-brand-500 mt-1"></i>
-                        <p class="text-xs text-brand-700 leading-relaxed">نصيحة: الإعلانات التي تحتوي على أرقام واضحة (مثل: خصم 50%) تحصل على تفاعل أعلى بنسبة 30%.</p>
-                    </div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1.5">عنوان الحملة</label><input type="text" id="wiz-title" value="${adWizardData.title}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-bold"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1.5">نص الإعلان</label><textarea id="wiz-content" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">${adWizardData.content}</textarea></div>
                 </div>`;
         } else if (step === 2) {
             prevBtn.classList.remove('hidden');
@@ -816,133 +985,43 @@ const app = (() => {
                 <div class="space-y-6 animate-fade-in">
                     <h4 class="text-xl font-bold text-slate-800 mb-4">الميزانية والجدولة</h4>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ البدء</label>
-                            <input type="date" id="wiz-start" value="${adWizardData.startDate}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الانتهاء</label>
-                            <input type="date" id="wiz-end" value="${adWizardData.endDate}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
-                        </div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ البدء</label><input type="date" id="wiz-start" value="${adWizardData.startDate}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الانتهاء</label><input type="date" id="wiz-end" value="${adWizardData.endDate}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"></div>
                     </div>
-                    <div>
-                         <label class="block text-xs font-bold text-slate-600 mb-1.5">الميزانية المرصودة (ر.س)</label>
-                         <div class="relative">
-                            <input type="number" id="wiz-budget" value="${adWizardData.budget}" class="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-mono font-bold text-lg">
-                            <span class="absolute top-3.5 right-4 text-slate-400 font-bold text-sm">SAR</span>
-                         </div>
-                    </div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1.5">الميزانية المرصودة</label><input type="number" id="wiz-budget" value="${adWizardData.budget}" class="w-full px-4 py-3 rounded-xl border border-gray-200 font-bold text-lg"></div>
                 </div>`;
         } else if (step === 3) {
             prevBtn.classList.remove('hidden');
             nextBtn.innerHTML = 'مراجعة <i class="fas fa-check mr-2"></i>';
-            const levelsHtml = Object.values(AD_LEVELS).map(l => 
-                `<label class="relative flex items-center gap-4 p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all duration-200 group border-slate-200 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
-                    <input type="radio" name="wiz-level" value="${l.key}" class="peer w-5 h-5 text-brand-600 focus:ring-brand-500" ${adWizardData.level === l.key ? 'checked' : ''}>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center mb-1"><span class="font-bold text-sm text-slate-800 peer-checked:text-brand-800">${l.label}</span><span class="text-[10px] font-bold bg-white border px-2 py-0.5 rounded text-slate-500 shadow-sm">${l.cost} ر.س / يوم</span></div>
-                        <span class="block text-xs text-slate-500 peer-checked:text-brand-600">${l.desc}</span>
-                    </div>
-                </label>`
-            ).join('');
             body.innerHTML = `
                 <div class="space-y-4 animate-fade-in">
-                    <h4 class="text-xl font-bold text-slate-800 mb-4">الاستهداف ونطاق النشر</h4>
-                    <div class="grid grid-cols-1 gap-3">${levelsHtml}</div>
+                    <h4 class="text-xl font-bold text-slate-800 mb-4">الاستهداف</h4>
+                    <div class="grid grid-cols-1 gap-3">
+                        ${Object.values(AD_LEVELS).map(l => `<label class="flex items-center gap-4 p-4 border rounded-xl hover:bg-slate-50 cursor-pointer ${adWizardData.level === l.key ? 'border-brand-500 bg-brand-50' : ''}"><input type="radio" name="wiz-level" value="${l.key}" ${adWizardData.level === l.key ? 'checked' : ''} class="peer w-5 h-5 text-brand-600"><div class="flex-1"><span class="font-bold text-sm block">${l.label}</span><span class="text-xs text-slate-500">${l.desc}</span></div></label>`).join('')}
+                    </div>
                 </div>`;
         } else if (step === 4) {
             prevBtn.classList.remove('hidden');
             nextBtn.innerHTML = 'تأكيد ونشر <i class="fas fa-rocket mr-2"></i>';
             nextBtn.onclick = app.submitAdWizard;
-            
-            const level = Object.values(AD_LEVELS).find(l => l.key === adWizardData.level);
-            body.innerHTML = `
-                <div class="space-y-6 animate-fade-in">
-                    <h4 class="text-xl font-bold text-slate-800 mb-4">مراجعة نهائية</h4>
-                    
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-sm text-slate-500">العنوان</span>
-                            <span class="font-bold text-slate-800">${adWizardData.title}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm text-slate-500">النطاق</span>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded border bg-white">${level.label}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm text-slate-500">المدة</span>
-                            <span class="font-bold text-slate-800">${adWizardData.startDate} <i class="fas fa-arrow-left text-xs mx-1"></i> ${adWizardData.endDate}</span>
-                        </div>
-                        <div class="flex justify-between pt-3 border-t border-slate-200">
-                            <span class="text-sm font-bold text-slate-600">الميزانية الكلية</span>
-                            <span class="font-black text-xl text-brand-600">${adWizardData.budget} ر.س</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                        <input type="checkbox" id="wiz-confirm" class="mt-1 text-brand-600 focus:ring-brand-500 rounded">
-                        <label for="wiz-confirm" class="text-xs text-yellow-800 leading-relaxed font-semibold cursor-pointer">أوافق على سياسة الإعلانات والمدفوعات. سيتم خصم المبلغ من رصيد المحفظة عند الموافقة.</label>
-                    </div>
-                </div>`;
+            body.innerHTML = `<div class="space-y-6 animate-fade-in"><h4 class="text-xl font-bold text-slate-800 mb-4">مراجعة نهائية</h4><div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3"><div class="flex justify-between"><span class="text-sm text-slate-500">العنوان</span><span class="font-bold">${adWizardData.title}</span></div><div class="flex justify-between pt-3 border-t"><span class="text-sm font-bold">الميزانية</span><span class="font-black text-xl text-brand-600">${adWizardData.budget} ر.س</span></div></div><div class="flex gap-3 p-4 bg-yellow-50 rounded-xl"><input type="checkbox" id="wiz-confirm" class="mt-1"><label for="wiz-confirm" class="text-xs text-yellow-800 font-semibold">أوافق على الشروط.</label></div></div>`;
         }
     };
 
     const wizardNext = () => {
-        // Capture Data based on step
-        if (adWizardData.step === 1) {
-            const t = document.getElementById('wiz-title').value;
-            const c = document.getElementById('wiz-content').value;
-            if (!t || !c) return showToast('يرجى تعبئة جميع الحقول', 'error');
-            adWizardData.title = t; adWizardData.content = c;
-        } else if (adWizardData.step === 2) {
-            const s = document.getElementById('wiz-start').value;
-            const e = document.getElementById('wiz-end').value;
-            const b = document.getElementById('wiz-budget').value;
-            if (!s || !e || !b) return showToast('يرجى تحديد التواريخ والميزانية', 'error');
-            adWizardData.startDate = s; adWizardData.endDate = e; adWizardData.budget = b;
-        } else if (adWizardData.step === 3) {
-            const l = document.querySelector('input[name="wiz-level"]:checked')?.value;
-            if (!l) return showToast('اختر نطاق الاستهداف', 'error');
-            adWizardData.level = l;
-        }
+        if (adWizardData.step === 1) { adWizardData.title = document.getElementById('wiz-title').value; adWizardData.content = document.getElementById('wiz-content').value; }
+        else if (adWizardData.step === 2) { adWizardData.startDate = document.getElementById('wiz-start').value; adWizardData.endDate = document.getElementById('wiz-end').value; adWizardData.budget = document.getElementById('wiz-budget').value; }
+        else if (adWizardData.step === 3) { adWizardData.level = document.querySelector('input[name="wiz-level"]:checked')?.value; }
         renderWizardStep(adWizardData.step + 1);
     };
 
-    const wizardPrev = () => {
-        renderWizardStep(adWizardData.step - 1);
-    };
+    const wizardPrev = () => renderWizardStep(adWizardData.step - 1);
 
     const submitAdWizard = () => {
-        if (!document.getElementById('wiz-confirm').checked) {
-            return showToast('يجب الموافقة على الشروط أولاً', 'error');
-        }
-
-        // Create Ad Object
-        const newAd = {
-            id: db.ads.length + 1,
-            title: adWizardData.title,
-            content: adWizardData.content,
-            level: adWizardData.level,
-            scope: 'LOCAL',
-            status: 'ACTIVE',
-            cost: 0,
-            sourceEntityId: currentUser.entityId,
-            targetIds: [currentUser.entityId],
-            date: new Date().toISOString().slice(0, 10),
-            sourceType: currentUser.tenantType,
-            budget: parseInt(adWizardData.budget),
-            spent: 0,
-            startDate: adWizardData.startDate,
-            endDate: adWizardData.endDate,
-            impressions: 0,
-            clicks: 0
-        };
-
-        db.ads.unshift(newAd);
-        logAction('CREATE_CAMPAIGN', `Created Ad: ${newAd.title} (${newAd.level})`);
-        
+        if (!document.getElementById('wiz-confirm').checked) return showToast('يجب الموافقة على الشروط', 'error');
+        db.ads.unshift({ id: db.ads.length + 1, title: adWizardData.title, content: adWizardData.content, level: adWizardData.level, status: 'ACTIVE', sourceEntityId: currentUser.entityId, date: new Date().toISOString().slice(0, 10), sourceType: currentUser.tenantType, budget: parseInt(adWizardData.budget), spent: 0, impressions: 0, clicks: 0, startDate: adWizardData.startDate, endDate: adWizardData.endDate, targetIds: [] });
         document.getElementById('ad-wizard-modal').remove();
-        showToast('تم إطلاق الحملة الإعلانية بنجاح!', 'success');
+        showToast('تم إطلاق الحملة!', 'success');
         loadRoute('ads');
     };
 
@@ -969,76 +1048,15 @@ const app = (() => {
 
     const renderTenantRegistration = () => {
         if (!perms.isHQ()) return renderPlaceholder('هذه الميزة متاحة فقط للمكتب الرئيسي (Super Admin)');
-        
         return `
         <div class="max-w-4xl mx-auto animate-slide-in">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">تسجيل مستأجر جديد</h2>
-                <p class="text-slate-500 mt-2">إنشاء بيئة عمل جديدة وتخصيص الموارد</p>
-            </div>
-
+            <div class="text-center mb-8"><h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">تسجيل مستأجر جديد</h2><p class="text-slate-500 mt-2">إنشاء بيئة عمل جديدة وتخصيص الموارد</p></div>
             <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6 md:p-8">
                 <div class="grid grid-cols-1 gap-8">
-                    <!-- Step 1: Basic Info -->
-                    <div>
-                        <h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">1. بيانات المؤسسة</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-600 mb-2">اسم المستأجر (Tenant Name)</label>
-                                <input type="text" id="reg-name" placeholder="مثال: فرع النخيل" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-600 mb-2">الموقع (Location)</label>
-                                <input type="text" id="reg-location" placeholder="المدينة - الحي" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Tenant Type -->
-                    <div>
-                        <h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">2. نوع الكيان (Tenant Type)</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            ${Object.values(TENANT_TYPES).filter(t => t.id !== 'HQ').map(t => `
-                                <label class="cursor-pointer relative">
-                                    <input type="radio" name="reg-type" value="${t.id}" class="peer sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-slate-100 hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition-all text-center group">
-                                        <i class="fas ${t.icon} text-2xl mb-2 ${t.color} group-hover:scale-110 transition"></i>
-                                        <div class="text-xs font-bold text-slate-600">${t.label.split(' ')[0]} ${t.label.split(' ')[1]}</div>
-                                    </div>
-                                    <div class="absolute top-2 left-2 text-brand-500 opacity-0 peer-checked:opacity-100 transition"><i class="fas fa-check-circle"></i></div>
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Plan -->
-                    <div>
-                        <h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">3. خطة الاشتراك (Plan)</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            ${Object.keys(SUBSCRIPTION_PLANS).map(key => {
-                                const p = SUBSCRIPTION_PLANS[key];
-                                return `
-                                <label class="cursor-pointer relative">
-                                    <input type="radio" name="reg-plan" value="${key}" class="peer sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-slate-100 hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-gradient-to-br peer-checked:from-brand-50 peer-checked:to-white transition-all">
-                                        <div class="font-bold text-slate-800">${p.name}</div>
-                                        <div class="text-xl font-black text-brand-600 mt-1">${p.price} <span class="text-xs text-gray-400 font-normal">ر.س</span></div>
-                                        <ul class="mt-3 space-y-1 text-xs text-gray-500">
-                                            ${p.features.slice(0,2).map(f => `<li><i class="fas fa-check text-green-500 ml-1"></i>${f}</li>`).join('')}
-                                        </ul>
-                                    </div>
-                                </label>`;
-                            }).join('')}
-                        </div>
-                    </div>
-
-                    <!-- Submit -->
-                    <div class="pt-4 flex flex-col-reverse md:flex-row justify-end gap-3">
-                        <button onclick="app.loadRoute('entities')" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition">إلغاء</button>
-                        <button onclick="app.submitTenantRegistration()" class="px-8 py-3 rounded-xl font-bold bg-brand-600 text-white shadow-lg hover:shadow-brand-500/30 hover:bg-brand-700 hover:scale-105 transition transform">
-                            <i class="fas fa-plus-circle ml-2"></i> إنشاء المستأجر
-                        </button>
-                    </div>
+                    <div><h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">1. بيانات المؤسسة</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-semibold text-slate-600 mb-2">اسم المستأجر</label><input type="text" id="reg-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"></div><div><label class="block text-sm font-semibold text-slate-600 mb-2">الموقع</label><input type="text" id="reg-location" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"></div></div></div>
+                    <div><h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">2. نوع الكيان</h4><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${Object.values(TENANT_TYPES).filter(t => t.id !== 'HQ').map(t => `<label class="cursor-pointer relative"><input type="radio" name="reg-type" value="${t.id}" class="peer sr-only"><div class="p-4 rounded-xl border-2 border-slate-100 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition-all text-center"><i class="fas ${t.icon} text-2xl mb-2 ${t.color}"></i><div class="text-xs font-bold">${t.label}</div></div></label>`).join('')}</div></div>
+                    <div><h4 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">3. خطة الاشتراك</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${Object.keys(SUBSCRIPTION_PLANS).map(key => `<label class="cursor-pointer relative"><input type="radio" name="reg-plan" value="${key}" class="peer sr-only"><div class="p-4 rounded-xl border-2 border-slate-100 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition-all"><div class="font-bold">${SUBSCRIPTION_PLANS[key].name}</div></div></label>`).join('')}</div></div>
+                    <div class="pt-4 flex justify-end gap-3"><button onclick="app.loadRoute('entities')" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">إلغاء</button><button onclick="app.submitTenantRegistration()" class="px-8 py-3 rounded-xl font-bold bg-brand-600 text-white shadow-lg">إنشاء</button></div>
                 </div>
             </div>
         </div>`;
@@ -1049,210 +1067,67 @@ const app = (() => {
         const location = document.getElementById('reg-location').value;
         const type = document.querySelector('input[name="reg-type"]:checked')?.value;
         const plan = document.querySelector('input[name="reg-plan"]:checked')?.value;
-
-        if (!name || !location || !type || !plan) {
-            showToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
-            return;
-        }
-
-        // Generate ID
-        const idPrefix = type === 'BRANCH' ? 'BR' : type === 'INCUBATOR' ? 'INC' : 'TNT';
-        const newId = idPrefix + Math.floor(100 + Math.random() * 900);
-
-        // Create Entity
-        const newEntity = {
-            id: newId,
-            name: name,
-            type: type,
-            status: 'Active',
-            balance: 0,
-            location: location,
-            users: 1,
-            plan: plan,
-            expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10),
-            theme: 'BLUE'
-        };
-        db.entities.push(newEntity);
-
-        // Create Default Admin
-        const newAdmin = {
-            id: db.users.length + 1,
-            name: 'مسؤول جديد',
-            role: ROLES.ADMIN,
-            tenantType: type,
-            entityId: newId,
-            entityName: name
-        };
-        db.users.push(newAdmin);
-
-        logAction('CREATE_TENANT', `Created new tenant ${name} (${newId})`);
+        if (!name || !location || !type || !plan) return showToast('الرجاء تعبئة جميع الحقول', 'error');
+        const newId = (type === 'BRANCH' ? 'BR' : 'TNT') + Math.floor(100 + Math.random() * 900);
+        db.entities.push({ id: newId, name: name, type: type, status: 'Active', balance: 0, location: location, users: 1, plan: plan, expiry: '2025-01-01', theme: 'BLUE' });
+        db.users.push({ id: db.users.length + 1, name: 'مسؤول جديد', role: ROLES.ADMIN, tenantType: type, entityId: newId, entityName: name });
         showToast(`تم إنشاء المستأجر ${name} بنجاح!`, 'success');
         loadRoute('entities');
     };
 
     const renderTasksManager = () => {
         const tasks = perms.getVisibleTasks();
-        if (tasks.length === 0) return renderPlaceholder('لا توجد مهام نشطة لهذا المستأجر');
+        if (tasks.length === 0) return renderPlaceholder('لا توجد مهام نشطة');
         return `
         <h2 class="text-2xl font-bold text-slate-800 mb-6">المهام الداخلية (${tasks.length})</h2>
-        <div class="grid gap-4">
-            ${tasks.map(t => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <div><h4 class="font-bold text-slate-800">${t.title}</h4><p class="text-xs text-slate-500">${t.type} | ${t.dueDate}</p></div>
-                    <span class="px-2 py-1 rounded text-xs bg-slate-100 w-fit">${t.status}</span>
-                </div>
-            `).join('')}
-        </div>`;
+        <div class="grid gap-4">${tasks.map(t => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center"><div><h4 class="font-bold">${t.title}</h4><p class="text-xs text-slate-500">${t.type}</p></div><span class="px-2 py-1 rounded text-xs bg-slate-100">${t.status}</span></div>`).join('')}</div>`;
     };
 
     const renderSettings = () => {
         const entity = db.entities.find(e => e.id === currentUser.entityId);
         if (!perms.isAdmin()) return renderPlaceholder();
-
         return `
         <div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">خصائص العلامة التجارية</h2>
-                    <p class="text-slate-500 mt-2">تخصيص هوية المستأجر والواجهة</p>
-                </div>
-                <div class="hidden md:block">
-                    <div class="text-xs font-bold text-brand-600 bg-brand-50 border border-brand-200 px-4 py-2 rounded-lg flex items-center gap-2">
-                        <i class="fas fa-magic"></i> معاينة حية (Live Preview)
-                    </div>
+            <h2 class="text-2xl font-bold text-slate-800">خصائص العلامة التجارية</h2>
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-6">
+                <h3 class="font-bold text-lg mb-4">ألوان الهوية</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    ${Object.entries(THEMES).map(([key, theme]) => `<label class="cursor-pointer group relative"><input type="radio" name="theme-select" value="${key}" onchange="app.previewTheme('${key}')" class="peer sr-only" ${entity.theme === key ? 'checked' : ''}><div class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 border-slate-100 peer-checked:border-brand-500 peer-checked:bg-slate-50 transition-all"><div class="w-12 h-12 rounded-full ${theme.preview} shadow-lg"></div><span class="text-xs font-bold">${theme.name}</span></div></label>`).join('')}
                 </div>
             </div>
-
-            <!-- Color Theme Section -->
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-                <div class="p-6 border-b border-slate-50">
-                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-palette text-brand-500"></i> ألوان الهوية (Theme Color)
-                    </h3>
-                    <p class="text-sm text-slate-400 mt-1">اختر لوحة الألوان الأساسية لواجهة النظام الخاصة بكيانك</p>
-                </div>
-                <div class="p-6 md:p-8">
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        ${Object.entries(THEMES).map(([key, theme]) => `
-                            <label class="cursor-pointer group relative">
-                                <input type="radio" name="theme-select" value="${key}" onchange="app.previewTheme('${key}')" class="peer sr-only" ${entity.theme === key ? 'checked' : ''}>
-                                <div class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 border-slate-100 hover:border-slate-300 peer-checked:border-brand-500 peer-checked:bg-slate-50 transition-all">
-                                    <div class="w-12 h-12 rounded-full ${theme.preview} shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform"></div>
-                                    <span class="text-xs font-bold text-slate-600 text-center peer-checked:text-brand-600">${theme.name}</span>
-                                </div>
-                                <div class="absolute top-2 right-2 text-brand-600 opacity-0 peer-checked:opacity-100 transition">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Branding & Logo Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                 <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6">
-                    <h3 class="font-bold text-lg text-slate-800 mb-4">شعار المستأجر (Logo)</h3>
-                    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition cursor-pointer group">
-                        <div class="w-16 h-16 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <p class="text-sm font-bold text-slate-600">اضغط لرفع الشعار</p>
-                        <p class="text-xs text-slate-400 mt-1">PNG, JPG (Max 2MB)</p>
-                    </div>
-                 </div>
-
-                 <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden p-6">
-                    <h3 class="font-bold text-lg text-slate-800 mb-4">اسم العرض (Display Name)</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-2">الاسم الظاهر في النظام</label>
-                            <input type="text" value="${entity.name}" id="settings-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition font-bold text-slate-700">
-                        </div>
-                        <p class="text-xs text-slate-400 bg-slate-50 p-3 rounded-lg">
-                            <i class="fas fa-info-circle text-brand-500 mr-1"></i> 
-                            تغيير الاسم قد يتطلب موافقة من الإدارة العليا (HQ) في بعض الحالات.
-                        </p>
-                    </div>
-                 </div>
-            </div>
-
-            <div class="flex justify-end pt-4">
-                <button onclick="app.saveSettings()" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-brand-500/40 hover:-translate-y-1 transition transform flex items-center gap-2">
-                    <i class="fas fa-save"></i> حفظ التغييرات
-                </button>
-            </div>
+            <div class="flex justify-end pt-4"><button onclick="app.saveSettings()" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition">حفظ التغييرات</button></div>
         </div>`;
     };
 
-    const previewTheme = (key) => {
-        updateThemeVariables(key);
-    };
+    const previewTheme = (key) => updateThemeVariables(key);
 
     const saveSettings = () => {
         const entity = db.entities.find(e => e.id === currentUser.entityId);
-        const newName = document.getElementById('settings-name').value;
         const newTheme = document.querySelector('input[name="theme-select"]:checked')?.value;
-
-        if(entity) {
-            entity.name = newName;
-            entity.theme = newTheme;
-            
-            // Refresh session info if name changed
-            if(entity.id === currentUser.entityId) {
-                currentUser.entityName = newName;
-            }
-            
-            updateHeader(); // Update displayed name
-            updateThemeVariables(newTheme); // Ensure theme is applied properly
-            
-            showToast('تم حفظ إعدادات الهوية بنجاح!', 'success');
-            logAction('UPDATE_SETTINGS', `Updated Branding: ${newTheme}`);
-        }
+        if(entity) { entity.theme = newTheme; updateThemeVariables(newTheme); showToast('تم الحفظ', 'success'); }
     };
 
     const renderAuditLogs = () => {
         if (!perms.canViewAuditLogs()) return renderPlaceholder();
         return `
-        <h2 class="text-2xl font-bold text-slate-800 mb-6">سجلات النظام (Audit Trail)</h2>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
-             <table class="w-full text-right whitespace-nowrap">
-                <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase"><tr><th class="p-4">الوقت</th><th class="p-4">المستخدم</th><th class="p-4">الحدث</th><th class="p-4">التفاصيل</th></tr></thead>
-                <tbody class="divide-y divide-slate-50 text-sm">
-                    ${perms.getVisibleAuditLogs().map(log => `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-4 text-gray-400 font-mono text-xs">${log.timestamp}</td>
-                            <td class="p-4 font-bold text-slate-700">${log.user}</td>
-                            <td class="p-4 font-bold text-brand-600">${log.action}</td>
-                            <td class="p-4 text-gray-500">${log.details}</td>
-                        </tr>`).join('')}
-                </tbody>
-            </table>
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">سجلات النظام</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+             <table class="w-full text-right whitespace-nowrap"><thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase"><tr><th class="p-4">الوقت</th><th class="p-4">المستخدم</th><th class="p-4">الحدث</th><th class="p-4">التفاصيل</th></tr></thead><tbody class="divide-y divide-slate-50 text-sm">${perms.getVisibleAuditLogs().map(log => `<tr><td class="p-4 text-gray-400">${log.timestamp}</td><td class="p-4 font-bold">${log.user}</td><td class="p-4 text-brand-600">${log.action}</td><td class="p-4 text-gray-500">${log.details}</td></tr>`).join('')}</tbody></table>
         </div>`;
     };
 
     const renderPlaceholder = (msg = 'لا تملك صلاحية الوصول') => `
         <div class="flex flex-col items-center justify-center h-96 text-center animate-fade-in px-4">
             <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner"><i class="fas fa-lock text-4xl text-slate-400"></i></div>
-            <h3 class="text-2xl font-bold text-slate-700">وصول مقيد (Tenant Isolation)</h3>
+            <h3 class="text-2xl font-bold text-slate-700">وصول مقيد</h3>
             <p class="text-slate-500 mt-2 max-w-md mx-auto">${msg}</p>
         </div>`;
 
     // Expose functions
     return { 
-        init, 
-        switchUser, 
-        loadRoute, 
-        openAdWizard, 
-        submitAdWizard, 
-        toggleRoleMenu, 
-        submitTenantRegistration,
-        renderSettings,
-        saveSettings,
-        previewTheme,
-        toggleMobileMenu,
-        wizardNext,
-        wizardPrev
+        init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
+        renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
+        openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction
     };
 })();
 
