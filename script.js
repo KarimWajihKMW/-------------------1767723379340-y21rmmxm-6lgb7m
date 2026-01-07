@@ -456,6 +456,7 @@ const app = (() => {
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'billing') content = renderBilling();
         else if (route === 'approvals') content = renderApprovals();
+        else if (route === 'incubator') await renderIncubator();
         else if (route === 'entities') content = renderEntitiesManager();
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
@@ -463,7 +464,9 @@ const app = (() => {
         else if (route === 'settings') content = renderSettings();
         else content = renderPlaceholder();
 
-        view.innerHTML = `<div class="fade-in">${content}</div>`;
+        if (route !== 'incubator') {
+            view.innerHTML = `<div class="fade-in">${content}</div>`;
+        }
         updateActiveLink(route);
 
         if (route === 'dashboard') requestAnimationFrame(initDashboardChart);
@@ -488,6 +491,7 @@ const app = (() => {
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
             'billing': 'الإدارة المالية والفواتير',
             'approvals': 'الموافقات المالية التدريجية',
+            'incubator': 'حاضنة السلامة - إدارة التدريب',
             'entities': perms.isHQ() ? 'إدارة المستأجرين' : 'بيانات الكيان',
             'register-tenant': 'تسجيل مستأجر جديد',
             'ads': perms.canManageAds() ? 'لوحة المعلن المركزية' : 'منصة الإعلانات',
@@ -506,9 +510,13 @@ const app = (() => {
             a.steps.some(s => s.approver_id === currentUser.id && s.status === 'PENDING')
         ).length;
         
+        const currentEntity = db.entities.find(e => e.id === currentUser?.entity_id);
+        const isIncubator = currentEntity?.type === 'INCUBATOR';
+        
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
+            { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
             { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
@@ -1544,5 +1552,537 @@ const app = (() => {
         handleApprovalDecision
     };
 })();
+
+// ========================================
+// INCUBATOR TRAINING SYSTEM
+// نظام حاضنة السلامة
+// ========================================
+
+async function renderIncubator() {
+  const currentUser = db.users.find(u => u.id === app.currentUserId);
+  const currentEntity = db.entities.find(e => e.id === currentUser?.entity_id);
+  
+  const container = document.querySelector('#content');
+  
+  container.innerHTML = `
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
+        <p class="text-blue-100">نظام إدارة التدريب والتأهيل</p>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div id="incubator-stats" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">البرامج التدريبية</p>
+              <p class="text-3xl font-bold text-blue-600" id="stat-programs">-</p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-full">
+              <i class="fas fa-book text-blue-600 text-2xl"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">المستفيدون</p>
+              <p class="text-3xl font-bold text-green-600" id="stat-beneficiaries">-</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-full">
+              <i class="fas fa-users text-green-600 text-2xl"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">الدفعات النشطة</p>
+              <p class="text-3xl font-bold text-orange-600" id="stat-sessions">-</p>
+            </div>
+            <div class="bg-orange-100 p-3 rounded-full">
+              <i class="fas fa-chalkboard-teacher text-orange-600 text-2xl"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">الشهادات الصالحة</p>
+              <p class="text-3xl font-bold text-purple-600" id="stat-certificates">-</p>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-full">
+              <i class="fas fa-certificate text-purple-600 text-2xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="border-b border-gray-200">
+          <nav class="flex -mb-px">
+            <button onclick="app.incubatorTab = 'programs'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'programs' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📚 البرامج التدريبية
+            </button>
+            <button onclick="app.incubatorTab = 'beneficiaries'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'beneficiaries' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              👥 المستفيدون
+            </button>
+            <button onclick="app.incubatorTab = 'sessions'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'sessions' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📅 الدفعات التدريبية
+            </button>
+            <button onclick="app.incubatorTab = 'certificates'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'certificates' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              🏆 الشهادات
+            </button>
+            <button onclick="app.incubatorTab = 'records'; renderIncubator()" 
+                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'records' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📋 السجل التدريبي
+            </button>
+          </nav>
+        </div>
+
+        <div id="incubator-content" class="p-6">
+          <!-- Content will be loaded here -->
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Load statistics
+  loadIncubatorStats(currentEntity?.id || 'INC03');
+  
+  // Load tab content
+  if (!app.incubatorTab) app.incubatorTab = 'programs';
+  loadIncubatorTab(app.incubatorTab, currentEntity?.id || 'INC03');
+}
+
+async function loadIncubatorStats(entityId) {
+  try {
+    const stats = await fetchAPI(`/incubator/stats?entity_id=${entityId}`);
+    document.getElementById('stat-programs').textContent = stats.total_programs || 0;
+    document.getElementById('stat-beneficiaries').textContent = stats.total_beneficiaries || 0;
+    document.getElementById('stat-sessions').textContent = stats.active_sessions || 0;
+    document.getElementById('stat-certificates').textContent = stats.active_certificates || 0;
+  } catch (error) {
+    console.error('Error loading stats:', error);
+  }
+}
+
+async function loadIncubatorTab(tab, entityId) {
+  const content = document.getElementById('incubator-content');
+  
+  switch(tab) {
+    case 'programs':
+      await renderTrainingPrograms(content, entityId);
+      break;
+    case 'beneficiaries':
+      await renderBeneficiaries(content, entityId);
+      break;
+    case 'sessions':
+      await renderTrainingSessions(content, entityId);
+      break;
+    case 'certificates':
+      await renderCertificates(content, entityId);
+      break;
+    case 'records':
+      await renderTrainingRecords(content, entityId);
+      break;
+  }
+}
+
+async function renderTrainingPrograms(container, entityId) {
+  try {
+    const programs = await fetchAPI(`/training-programs?entity_id=${entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">البرامج التدريبية</h3>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-plus ml-2"></i> برنامج جديد
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${programs.map(program => `
+            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h4 class="font-bold text-lg text-blue-600">${program.name}</h4>
+                  <p class="text-sm text-gray-500">${program.code}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                  program.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                }">
+                  ${program.is_active ? 'نشط' : 'غير نشط'}
+                </span>
+              </div>
+              
+              <p class="text-gray-600 text-sm mb-3">${program.description || 'لا يوجد وصف'}</p>
+              
+              <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+                <div class="flex items-center text-gray-600">
+                  <i class="fas fa-clock ml-2"></i>
+                  ${program.duration_hours} ساعة
+                </div>
+                <div class="flex items-center text-gray-600">
+                  <i class="fas fa-users ml-2"></i>
+                  ${program.max_participants} متدرب
+                </div>
+                <div class="flex items-center text-gray-600">
+                  <i class="fas fa-money-bill ml-2"></i>
+                  ${program.price} ريال
+                </div>
+                <div class="flex items-center text-gray-600">
+                  <i class="fas fa-percentage ml-2"></i>
+                  ${program.passing_score}% للنجاح
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between pt-3 border-t">
+                <span class="text-xs text-gray-500">
+                  صلاحية الشهادة: ${program.certificate_validity_months} شهر
+                </span>
+                <div class="space-x-2">
+                  <button class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل البرامج: ${error.message}</div>`;
+  }
+}
+
+async function renderBeneficiaries(container, entityId) {
+  try {
+    const beneficiaries = await fetchAPI(`/beneficiaries?entity_id=${entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">المستفيدون</h3>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-plus ml-2"></i> مستفيد جديد
+          </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية الوطنية</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الجوال</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المستوى التعليمي</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              ${beneficiaries.map(b => `
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center ml-3">
+                        <i class="fas fa-user text-blue-600"></i>
+                      </div>
+                      <div>
+                        <div class="font-medium">${b.full_name}</div>
+                        <div class="text-sm text-gray-500">${b.email || 'لا يوجد بريد'}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">${b.national_id}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">${b.phone || '-'}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">${b.education_level || '-'}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs rounded-full ${
+                      b.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                      b.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' : 
+                      'bg-gray-100 text-gray-800'
+                    }">
+                      ${b.status === 'ACTIVE' ? 'نشط' : b.status === 'GRADUATED' ? 'خريج' : 'متوقف'}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <button onclick="viewBeneficiary(${b.id})" class="text-blue-600 hover:text-blue-800 ml-3">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="text-gray-600 hover:text-gray-800">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل المستفيدين: ${error.message}</div>`;
+  }
+}
+
+async function renderTrainingSessions(container, entityId) {
+  try {
+    const sessions = await fetchAPI(`/training-sessions?entity_id=${entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">الدفعات التدريبية</h3>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-plus ml-2"></i> دفعة جديدة
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          ${sessions.map(session => `
+            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+              <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                  <h4 class="font-bold text-lg">${session.session_name}</h4>
+                  <p class="text-sm text-gray-600">${session.program_name} (${session.program_code})</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                  session.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
+                  session.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                  session.status === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }">
+                  ${
+                    session.status === 'IN_PROGRESS' ? 'جارية' :
+                    session.status === 'COMPLETED' ? 'مكتملة' :
+                    session.status === 'PLANNED' ? 'مخططة' :
+                    'ملغية'
+                  }
+                </span>
+              </div>
+              
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                <div class="text-sm">
+                  <span class="text-gray-500">تاريخ البدء:</span>
+                  <p class="font-medium">${new Date(session.start_date).toLocaleDateString('ar-SA')}</p>
+                </div>
+                <div class="text-sm">
+                  <span class="text-gray-500">تاريخ الانتهاء:</span>
+                  <p class="font-medium">${new Date(session.end_date).toLocaleDateString('ar-SA')}</p>
+                </div>
+                <div class="text-sm">
+                  <span class="text-gray-500">المدرب:</span>
+                  <p class="font-medium">${session.instructor_name || '-'}</p>
+                </div>
+                <div class="text-sm">
+                  <span class="text-gray-500">المتدربون:</span>
+                  <p class="font-medium">${session.current_participants} / ${session.max_participants}</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between pt-3 border-t">
+                <span class="text-sm text-gray-600">
+                  <i class="fas fa-map-marker-alt ml-2"></i>${session.location || 'لم يحدد'}
+                </span>
+                <div class="space-x-2">
+                  <button class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm">
+                    <i class="fas fa-users ml-1"></i> المتدربون
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل الدفعات: ${error.message}</div>`;
+  }
+}
+
+async function renderCertificates(container, entityId) {
+  try {
+    const certificates = await fetchAPI(`/certificates`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">الشهادات</h3>
+          <div class="flex gap-2">
+            <input type="text" placeholder="بحث برقم الشهادة..." 
+                   class="border rounded-lg px-4 py-2" 
+                   onkeyup="searchCertificate(this.value)">
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              <i class="fas fa-search"></i> تحقق
+            </button>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${certificates.map(cert => `
+            <div class="border-2 rounded-lg p-6 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all">
+              <div class="text-center mb-4">
+                <div class="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <i class="fas fa-certificate text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg">${cert.full_name}</h4>
+                <p class="text-sm text-gray-600">${cert.national_id}</p>
+              </div>
+              
+              <div class="space-y-2 text-sm mb-4">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">البرنامج:</span>
+                  <span class="font-medium">${cert.program_name}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">رقم الشهادة:</span>
+                  <span class="font-mono text-xs">${cert.certificate_number}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">تاريخ الإصدار:</span>
+                  <span>${new Date(cert.issue_date).toLocaleDateString('ar-SA')}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">تنتهي في:</span>
+                  <span>${new Date(cert.expiry_date).toLocaleDateString('ar-SA')}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">الدرجة:</span>
+                  <span class="font-bold ${
+                    cert.grade === 'EXCELLENT' ? 'text-green-600' :
+                    cert.grade === 'VERY_GOOD' ? 'text-blue-600' :
+                    'text-gray-600'
+                  }">${cert.final_score}%</span>
+                </div>
+              </div>
+              
+              <div class="flex justify-between items-center pt-3 border-t">
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                  cert.status === 'VALID' ? 'bg-green-100 text-green-800' :
+                  cert.status === 'EXPIRED' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }">
+                  ${cert.status === 'VALID' ? 'صالحة' : cert.status === 'EXPIRED' ? 'منتهية' : 'ملغاة'}
+                </span>
+                <button onclick="viewCertificate(${cert.id})" class="text-blue-600 hover:text-blue-800 text-sm">
+                  <i class="fas fa-eye ml-1"></i> عرض
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل الشهادات: ${error.message}</div>`;
+  }
+}
+
+async function renderTrainingRecords(container, entityId) {
+  try {
+    const beneficiaries = await fetchAPI(`/beneficiaries?entity_id=${entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">السجل التدريبي للمستفيدين</h3>
+        </div>
+        
+        <div class="space-y-4">
+          ${await Promise.all(beneficiaries.map(async b => {
+            const records = await fetchAPI(`/training-records?beneficiary_id=${b.id}`);
+            return `
+              <div class="border rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center ml-3">
+                      <i class="fas fa-user text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold">${b.full_name}</h4>
+                      <p class="text-sm text-gray-500">${b.national_id}</p>
+                    </div>
+                  </div>
+                  <span class="text-sm text-gray-600">
+                    ${records.length} برنامج تدريبي
+                  </span>
+                </div>
+                
+                ${records.length > 0 ? `
+                  <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th class="px-4 py-2 text-right">البرنامج</th>
+                          <th class="px-4 py-2 text-right">الدفعة</th>
+                          <th class="px-4 py-2 text-right">الساعات</th>
+                          <th class="px-4 py-2 text-right">الدرجة</th>
+                          <th class="px-4 py-2 text-right">الحالة</th>
+                          <th class="px-4 py-2 text-right">الشهادة</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${records.map(r => `
+                          <tr class="border-t">
+                            <td class="px-4 py-2">${r.program_name}</td>
+                            <td class="px-4 py-2">${r.session_name}</td>
+                            <td class="px-4 py-2">${r.total_hours || '-'}</td>
+                            <td class="px-4 py-2">
+                              <span class="font-bold ${r.final_score >= 90 ? 'text-green-600' : r.final_score >= 70 ? 'text-blue-600' : 'text-gray-600'}">
+                                ${r.final_score || '-'}
+                              </span>
+                            </td>
+                            <td class="px-4 py-2">
+                              <span class="px-2 py-1 rounded-full text-xs ${
+                                r.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                r.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
+                                'bg-gray-100 text-gray-800'
+                              }">
+                                ${r.status === 'COMPLETED' ? 'مكتمل' : r.status === 'IN_PROGRESS' ? 'جاري' : 'منسحب'}
+                              </span>
+                            </td>
+                            <td class="px-4 py-2">
+                              ${r.certificate_number ? `
+                                <a href="#" class="text-blue-600 hover:underline text-xs">${r.certificate_number}</a>
+                              ` : '-'}
+                            </td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                ` : `
+                  <p class="text-gray-500 text-center py-4">لا توجد سجلات تدريبية</p>
+                `}
+              </div>
+            `;
+          })).then(html => html.join(''))}
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = `<div class="text-red-600">خطأ في تحميل السجلات: ${error.message}</div>`;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', app.init);

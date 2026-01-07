@@ -600,6 +600,573 @@ app.get('/api/notifications/unread-count', async (req, res) => {
 });
 
 // ========================================
+// INCUBATOR TRAINING SYSTEM ENDPOINTS
+// نظام حاضنة السلامة
+// ========================================
+
+// Get all training programs
+app.get('/api/training-programs', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    
+    let query = 'SELECT * FROM training_programs';
+    let params = [];
+    
+    if (entity_id) {
+      query += ' WHERE entity_id = $1';
+      params = [entity_id];
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single training program
+app.get('/api/training-programs/:id', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM training_programs WHERE id = $1',
+      [req.params.id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Program not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create training program
+app.post('/api/training-programs', async (req, res) => {
+  try {
+    const { entity_id, code, name, description, category, duration_hours, max_participants, price, passing_score, certificate_validity_months } = req.body;
+    
+    const result = await db.query(
+      `INSERT INTO training_programs 
+       (entity_id, code, name, description, category, duration_hours, max_participants, price, passing_score, certificate_validity_months)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [entity_id, code, name, description, category, duration_hours, max_participants, price, passing_score, certificate_validity_months]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all beneficiaries
+app.get('/api/beneficiaries', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    
+    let query = 'SELECT * FROM beneficiaries';
+    let params = [];
+    
+    if (entity_id) {
+      query += ' WHERE entity_id = $1';
+      params = [entity_id];
+    }
+    
+    query += ' ORDER BY registration_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single beneficiary with training records
+app.get('/api/beneficiaries/:id', async (req, res) => {
+  try {
+    const beneficiary = await db.query(
+      'SELECT * FROM beneficiaries WHERE id = $1',
+      [req.params.id]
+    );
+    
+    if (beneficiary.rows.length === 0) {
+      return res.status(404).json({ error: 'Beneficiary not found' });
+    }
+    
+    // Get training records
+    const records = await db.query(
+      `SELECT tr.*, tp.name as program_name, tp.code as program_code, 
+              c.certificate_number, c.issue_date, c.expiry_date
+       FROM training_records tr
+       JOIN training_programs tp ON tr.program_id = tp.id
+       LEFT JOIN certificates c ON tr.certificate_id = c.id
+       WHERE tr.beneficiary_id = $1
+       ORDER BY tr.created_at DESC`,
+      [req.params.id]
+    );
+    
+    res.json({
+      ...beneficiary.rows[0],
+      training_records: records.rows
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create beneficiary
+app.post('/api/beneficiaries', async (req, res) => {
+  try {
+    const { entity_id, national_id, full_name, email, phone, date_of_birth, gender, education_level, occupation } = req.body;
+    
+    const result = await db.query(
+      `INSERT INTO beneficiaries 
+       (entity_id, national_id, full_name, email, phone, date_of_birth, gender, education_level, occupation)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [entity_id, national_id, full_name, email, phone, date_of_birth, gender, education_level, occupation]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all training sessions
+app.get('/api/training-sessions', async (req, res) => {
+  try {
+    const { entity_id, program_id, status } = req.query;
+    
+    let query = `
+      SELECT ts.*, tp.name as program_name, tp.code as program_code
+      FROM training_sessions ts
+      JOIN training_programs tp ON ts.program_id = tp.id
+      WHERE 1=1
+    `;
+    let params = [];
+    let paramCount = 1;
+    
+    if (entity_id) {
+      query += ` AND ts.entity_id = $${paramCount}`;
+      params.push(entity_id);
+      paramCount++;
+    }
+    
+    if (program_id) {
+      query += ` AND ts.program_id = $${paramCount}`;
+      params.push(program_id);
+      paramCount++;
+    }
+    
+    if (status) {
+      query += ` AND ts.status = $${paramCount}`;
+      params.push(status);
+      paramCount++;
+    }
+    
+    query += ' ORDER BY ts.start_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single training session with enrollments
+app.get('/api/training-sessions/:id', async (req, res) => {
+  try {
+    const session = await db.query(
+      `SELECT ts.*, tp.name as program_name, tp.code as program_code, tp.duration_hours
+       FROM training_sessions ts
+       JOIN training_programs tp ON ts.program_id = tp.id
+       WHERE ts.id = $1`,
+      [req.params.id]
+    );
+    
+    if (session.rows.length === 0) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    // Get enrollments
+    const enrollments = await db.query(
+      `SELECT e.*, b.full_name, b.national_id, b.email, b.phone
+       FROM enrollments e
+       JOIN beneficiaries b ON e.beneficiary_id = b.id
+       WHERE e.session_id = $1
+       ORDER BY e.enrollment_date DESC`,
+      [req.params.id]
+    );
+    
+    res.json({
+      ...session.rows[0],
+      enrollments: enrollments.rows
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create training session
+app.post('/api/training-sessions', async (req, res) => {
+  try {
+    const { program_id, entity_id, session_code, session_name, start_date, end_date, location, instructor_name, max_participants } = req.body;
+    
+    const result = await db.query(
+      `INSERT INTO training_sessions 
+       (program_id, entity_id, session_code, session_name, start_date, end_date, location, instructor_name, max_participants)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [program_id, entity_id, session_code, session_name, start_date, end_date, location, instructor_name, max_participants]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all enrollments
+app.get('/api/enrollments', async (req, res) => {
+  try {
+    const { session_id, beneficiary_id, status } = req.query;
+    
+    let query = `
+      SELECT e.*, b.full_name, b.national_id, ts.session_name, tp.name as program_name
+      FROM enrollments e
+      JOIN beneficiaries b ON e.beneficiary_id = b.id
+      JOIN training_sessions ts ON e.session_id = ts.id
+      JOIN training_programs tp ON ts.program_id = tp.id
+      WHERE 1=1
+    `;
+    let params = [];
+    let paramCount = 1;
+    
+    if (session_id) {
+      query += ` AND e.session_id = $${paramCount}`;
+      params.push(session_id);
+      paramCount++;
+    }
+    
+    if (beneficiary_id) {
+      query += ` AND e.beneficiary_id = $${paramCount}`;
+      params.push(beneficiary_id);
+      paramCount++;
+    }
+    
+    if (status) {
+      query += ` AND e.status = $${paramCount}`;
+      params.push(status);
+      paramCount++;
+    }
+    
+    query += ' ORDER BY e.enrollment_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create enrollment
+app.post('/api/enrollments', async (req, res) => {
+  try {
+    const { session_id, beneficiary_id, notes } = req.body;
+    
+    // Check if session is full
+    const session = await db.query(
+      'SELECT max_participants, current_participants FROM training_sessions WHERE id = $1',
+      [session_id]
+    );
+    
+    if (session.rows[0].current_participants >= session.rows[0].max_participants) {
+      return res.status(400).json({ error: 'Session is full' });
+    }
+    
+    const result = await db.query(
+      `INSERT INTO enrollments (session_id, beneficiary_id, notes)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [session_id, beneficiary_id, notes]
+    );
+    
+    // Update session participant count
+    await db.query(
+      'UPDATE training_sessions SET current_participants = current_participants + 1 WHERE id = $1',
+      [session_id]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all assessments
+app.get('/api/assessments', async (req, res) => {
+  try {
+    const { enrollment_id } = req.query;
+    
+    let query = `
+      SELECT a.*, e.beneficiary_id, b.full_name
+      FROM assessments a
+      JOIN enrollments e ON a.enrollment_id = e.id
+      JOIN beneficiaries b ON e.beneficiary_id = b.id
+      WHERE 1=1
+    `;
+    let params = [];
+    
+    if (enrollment_id) {
+      query += ' AND a.enrollment_id = $1';
+      params = [enrollment_id];
+    }
+    
+    query += ' ORDER BY a.assessment_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create assessment
+app.post('/api/assessments', async (req, res) => {
+  try {
+    const { enrollment_id, assessment_type, assessment_date, score, max_score, assessor_name, feedback } = req.body;
+    
+    const passed = score >= (max_score * 0.7); // 70% passing grade
+    
+    const result = await db.query(
+      `INSERT INTO assessments 
+       (enrollment_id, assessment_type, assessment_date, score, max_score, passed, assessor_name, feedback)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [enrollment_id, assessment_type, assessment_date, score, max_score, passed, assessor_name, feedback]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all certificates
+app.get('/api/certificates', async (req, res) => {
+  try {
+    const { beneficiary_id, status } = req.query;
+    
+    let query = `
+      SELECT c.*, b.full_name, b.national_id, tp.name as program_name, tp.code as program_code
+      FROM certificates c
+      JOIN beneficiaries b ON c.beneficiary_id = b.id
+      JOIN training_programs tp ON c.program_id = tp.id
+      WHERE 1=1
+    `;
+    let params = [];
+    let paramCount = 1;
+    
+    if (beneficiary_id) {
+      query += ` AND c.beneficiary_id = $${paramCount}`;
+      params.push(beneficiary_id);
+      paramCount++;
+    }
+    
+    if (status) {
+      query += ` AND c.status = $${paramCount}`;
+      params.push(status);
+      paramCount++;
+    }
+    
+    query += ' ORDER BY c.issue_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single certificate
+app.get('/api/certificates/:id', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT c.*, b.full_name, b.national_id, b.email, 
+              tp.name as program_name, tp.code as program_code, tp.duration_hours,
+              ts.session_name, ts.start_date, ts.end_date
+       FROM certificates c
+       JOIN beneficiaries b ON c.beneficiary_id = b.id
+       JOIN training_programs tp ON c.program_id = tp.id
+       JOIN enrollments e ON c.enrollment_id = e.id
+       JOIN training_sessions ts ON e.session_id = ts.id
+       WHERE c.id = $1`,
+      [req.params.id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Certificate not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verify certificate by number
+app.get('/api/certificates/verify/:certificate_number', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT c.*, b.full_name, b.national_id, tp.name as program_name, tp.code as program_code
+       FROM certificates c
+       JOIN beneficiaries b ON c.beneficiary_id = b.id
+       JOIN training_programs tp ON c.program_id = tp.id
+       WHERE c.certificate_number = $1`,
+      [req.params.certificate_number]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Certificate not found', valid: false });
+    }
+    
+    const cert = result.rows[0];
+    const isValid = cert.status === 'VALID' && (!cert.expiry_date || new Date(cert.expiry_date) > new Date());
+    
+    res.json({
+      ...cert,
+      valid: isValid
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Issue certificate
+app.post('/api/certificates', async (req, res) => {
+  try {
+    const { enrollment_id, beneficiary_id, program_id, certificate_number, final_score, grade, issued_by } = req.body;
+    
+    // Get program details for validity period
+    const program = await db.query(
+      'SELECT certificate_validity_months FROM training_programs WHERE id = $1',
+      [program_id]
+    );
+    
+    const validity_months = program.rows[0].certificate_validity_months || 12;
+    const issue_date = new Date();
+    const expiry_date = new Date();
+    expiry_date.setMonth(expiry_date.getMonth() + validity_months);
+    
+    // Generate QR code data
+    const qr_code = `QR:${certificate_number}:${beneficiary_id}:${issue_date.toISOString().split('T')[0]}`;
+    const verification_url = `https://nayosh.sa/verify/${certificate_number}`;
+    
+    const result = await db.query(
+      `INSERT INTO certificates 
+       (enrollment_id, beneficiary_id, program_id, certificate_number, issue_date, expiry_date, 
+        qr_code, final_score, grade, issued_by, verification_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING *`,
+      [enrollment_id, beneficiary_id, program_id, certificate_number, issue_date, expiry_date, 
+       qr_code, final_score, grade, issued_by, verification_url]
+    );
+    
+    // Update enrollment status
+    await db.query(
+      'UPDATE enrollments SET status = $1 WHERE id = $2',
+      ['COMPLETED', enrollment_id]
+    );
+    
+    // Create training record
+    const session = await db.query(
+      'SELECT session_id FROM enrollments WHERE id = $1',
+      [enrollment_id]
+    );
+    
+    const programDetails = await db.query(
+      'SELECT duration_hours FROM training_programs WHERE id = $1',
+      [program_id]
+    );
+    
+    await db.query(
+      `INSERT INTO training_records 
+       (beneficiary_id, program_id, session_id, certificate_id, completion_date, total_hours, final_score, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [beneficiary_id, program_id, session.rows[0].session_id, result.rows[0].id, 
+       issue_date, programDetails.rows[0].duration_hours, final_score, 'COMPLETED']
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get training records
+app.get('/api/training-records', async (req, res) => {
+  try {
+    const { beneficiary_id } = req.query;
+    
+    let query = `
+      SELECT tr.*, tp.name as program_name, tp.code as program_code,
+             ts.session_name, c.certificate_number, c.issue_date, c.expiry_date
+      FROM training_records tr
+      JOIN training_programs tp ON tr.program_id = tp.id
+      JOIN training_sessions ts ON tr.session_id = ts.id
+      LEFT JOIN certificates c ON tr.certificate_id = c.id
+      WHERE 1=1
+    `;
+    let params = [];
+    
+    if (beneficiary_id) {
+      query += ' AND tr.beneficiary_id = $1';
+      params = [beneficiary_id];
+    }
+    
+    query += ' ORDER BY tr.created_at DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Incubator dashboard statistics
+app.get('/api/incubator/stats', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    
+    const stats = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM training_programs WHERE entity_id = $1) as total_programs,
+        (SELECT COUNT(*) FROM beneficiaries WHERE entity_id = $1) as total_beneficiaries,
+        (SELECT COUNT(*) FROM training_sessions WHERE entity_id = $1) as total_sessions,
+        (SELECT COUNT(*) FROM training_sessions WHERE entity_id = $1 AND status = 'IN_PROGRESS') as active_sessions,
+        (SELECT COUNT(*) FROM enrollments e 
+         JOIN training_sessions ts ON e.session_id = ts.id 
+         WHERE ts.entity_id = $1 AND e.status = 'ATTENDING') as current_enrollments,
+        (SELECT COUNT(*) FROM certificates c 
+         JOIN training_programs tp ON c.program_id = tp.id 
+         WHERE tp.entity_id = $1 AND c.status = 'VALID') as active_certificates,
+        (SELECT COUNT(*) FROM certificates c 
+         JOIN training_programs tp ON c.program_id = tp.id 
+         WHERE tp.entity_id = $1 AND c.expiry_date < CURRENT_DATE) as expired_certificates
+    `, [entity_id]);
+    
+    res.json(stats.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // Error handling middleware
 // ========================================
 app.use((err, req, res, next) => {
