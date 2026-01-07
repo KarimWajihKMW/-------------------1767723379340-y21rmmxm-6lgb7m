@@ -103,7 +103,7 @@ const app = (() => {
         ]
     };
 
-    let currentUser = db.users[0];
+    let currentUser = null;
     let activeChart = null;
     let analyticsChart = null;
     let adWizardData = {}; 
@@ -318,32 +318,57 @@ const app = (() => {
 
     // --- INIT & NAV ---
     const init = async () => {
-        // Show loading
-        const view = document.getElementById('main-view');
-        view.innerHTML = `
-            <div class="flex h-full items-center justify-center flex-col gap-6">
-                <div class="relative">
-                    <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
-                    <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
-                </div>
-                <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات من قاعدة البيانات...</p>
-            </div>`;
-        
-        // Load data from API
-        await loadDataFromAPI();
-        
-        // Set default user if users exist
-        if (db.users.length > 0) {
-            currentUser = db.users[0];
+        try {
+            // Show loading
+            const view = document.getElementById('main-view');
+            view.innerHTML = `
+                <div class="flex h-full items-center justify-center flex-col gap-6">
+                    <div class="relative">
+                        <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
+                        <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات من قاعدة البيانات...</p>
+                </div>`;
+            
+            // Load data from API
+            await loadDataFromAPI();
+            
+            // Set default user if users exist
+            if (db.users.length > 0) {
+                currentUser = db.users[0];
+            } else {
+                showToast('تحذير: لا يوجد مستخدمين في النظام', 'error');
+                console.error('❌ لا يوجد مستخدمين في قاعدة البيانات');
+                return;
+            }
+            
+            // Render UI
+            renderSidebar();
+            updateHeader();
+            
+            // Apply theme
+            const tenant = db.entities.find(e => e.id === currentUser?.entityId);
+            if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
+            
+            // Load initial route
+            loadRoute('dashboard');
+            showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
+        } catch (error) {
+            console.error('❌ خطأ في تهيئة التطبيق:', error);
+            showToast('خطأ في تهيئة التطبيق: ' + error.message, 'error');
+            
+            // Show error in view
+            const view = document.getElementById('main-view');
+            view.innerHTML = `
+                <div class="flex h-full items-center justify-center flex-col gap-6">
+                    <i class="fas fa-exclamation-triangle text-6xl text-red-600"></i>
+                    <p class="text-slate-800 font-bold text-xl">خطأ في تهيئة التطبيق</p>
+                    <p class="text-slate-600">${error.message}</p>
+                    <button onclick="location.reload()" class="bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700">
+                        <i class="fas fa-redo mr-2"></i>إعادة المحاولة
+                    </button>
+                </div>`;
         }
-        
-        renderSidebar();
-        updateHeader();
-        const tenant = db.entities.find(e => e.id === currentUser?.entityId);
-        if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
-        
-        loadRoute('dashboard');
-        showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
     };
 
     const init_old = () => {
@@ -424,6 +449,8 @@ const app = (() => {
     });
 
     const updateHeader = () => {
+        if (!currentUser) return;
+        
         document.getElementById('user-name').innerText = currentUser.name;
         document.getElementById('user-role').innerText = TENANT_TYPES[currentUser.tenantType].label;
         document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
@@ -441,7 +468,7 @@ const app = (() => {
         }
     };
 
-    const loadRoute = (route) => {
+    const loadRoute = async (route) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
 
@@ -456,7 +483,10 @@ const app = (() => {
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'billing') content = renderBilling();
         else if (route === 'approvals') content = renderApprovals();
-        else if (route === 'incubator') await renderIncubator();
+        else if (route === 'incubator') {
+            view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+            await renderIncubator();
+        }
         else if (route === 'entities') content = renderEntitiesManager();
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
@@ -504,13 +534,18 @@ const app = (() => {
 
     const renderSidebar = () => {
         const menu = document.getElementById('nav-menu');
+        if (!currentUser) {
+            menu.innerHTML = '<li class="px-4 py-2 text-slate-400">جاري التحميل...</li>';
+            return;
+        }
+        
         const unreadCount = db.notifications.filter(n => !n.isRead).length;
         const pendingApprovals = db.approvals.filter(a => 
             a.status === 'PENDING' && 
             a.steps.some(s => s.approver_id === currentUser.id && s.status === 'PENDING')
         ).length;
         
-        const currentEntity = db.entities.find(e => e.id === currentUser?.entity_id);
+        const currentEntity = db.entities.find(e => e.id === currentUser.entityId);
         const isIncubator = currentEntity?.type === 'INCUBATOR';
         
         const items = [
@@ -1559,10 +1594,16 @@ const app = (() => {
 // ========================================
 
 async function renderIncubator() {
-  const currentUser = db.users.find(u => u.id === app.currentUserId);
-  const currentEntity = db.entities.find(e => e.id === currentUser?.entity_id);
+  // Use the currentUser from the app scope
+  if (!currentUser) {
+    const container = document.getElementById('main-view');
+    container.innerHTML = `<div class="text-red-600 p-6">خطأ: لم يتم تحميل بيانات المستخدم</div>`;
+    return;
+  }
   
-  const container = document.querySelector('#content');
+  const currentEntity = db.entities.find(e => e.id === currentUser?.entityId);
+  
+  const container = document.getElementById('main-view');
   
   container.innerHTML = `
     <div class="space-y-6">
