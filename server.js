@@ -15,6 +15,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Serve static files
 app.use(express.static('.'));
 
+// Root health check for Railway
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
 // ========================================
 // API Routes
 // ========================================
@@ -1178,8 +1183,22 @@ app.use((err, req, res, next) => {
 // Start Server
 // ========================================
 const HOST = process.env.HOST || '0.0.0.0';
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 نظام نايوش يعمل على ${HOST}:${PORT}`);
   console.log(`📊 API متاح على: http://localhost:${PORT}/api`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ Server is ready to accept connections`);
+});
+
+// Keep server alive
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, closing server gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
