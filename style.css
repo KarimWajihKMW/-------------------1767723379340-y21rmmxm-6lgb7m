@@ -80,7 +80,7 @@
 }
 
 /* Modal Transitions */
-#ad-modal {
+#ad-modal, #ad-wizard-modal {
     transition: opacity 0.3s ease;
 }
 
