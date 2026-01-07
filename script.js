@@ -511,7 +511,7 @@ const app = (() => {
         }
     };
 
-    const loadRoute = (route) => {
+    const loadRoute = async (route) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
 
