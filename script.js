@@ -12,6 +12,7 @@ const app = (() => {
     // Helper function to fetch data from API
     async function fetchAPI(endpoint, options = {}) {
         try {
+            console.log(`📡 Fetching: ${API_BASE_URL}${endpoint}`);
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 ...options,
                 headers: {
@@ -19,12 +20,17 @@ const app = (() => {
                     ...options.headers
                 }
             });
+            console.log(`📡 Response status: ${response.status} for ${endpoint}`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error(`❌ Error response: ${errorText}`);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
-            return await response.json();
+            const data = await response.json();
+            console.log(`✅ Data received from ${endpoint}:`, data.length || 'N/A', 'items');
+            return data;
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('❌ API Error:', error);
             throw error;
         }
     }
@@ -184,8 +190,11 @@ const app = (() => {
     // --- DATA LOADING FROM API ---
     async function loadDataFromAPI() {
         try {
+            console.log('🔄 بدء تحميل البيانات من API...');
+            
             // Load entities
             const entities = await fetchAPI('/entities');
+            console.log('📊 Entities loaded:', entities);
             db.entities = entities.map(e => ({
                 id: e.id,
                 name: e.name,
@@ -201,6 +210,7 @@ const app = (() => {
 
             // Load users
             const users = await fetchAPI('/users');
+            console.log('👥 Users loaded:', users);
             db.users = users.map(u => ({
                 id: u.id,
                 name: u.name,
@@ -310,9 +320,39 @@ const app = (() => {
             }
 
             console.log('✅ تم تحميل جميع البيانات من قاعدة البيانات');
+            console.log('📊 Database status:', {
+                entities: db.entities.length,
+                users: db.users.length,
+                invoices: db.invoices.length,
+                ads: db.ads.length
+            });
         } catch (error) {
             console.error('❌ خطأ في تحميل البيانات:', error);
-            showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
+            console.error('❌ Error details:', {
+                message: error.message,
+                stack: error.stack,
+                API_BASE_URL
+            });
+            showToast('خطأ في الاتصال بقاعدة البيانات: ' + error.message, 'error');
+            
+            // Show error in main view
+            const view = document.getElementById('main-view');
+            if (view) {
+                view.innerHTML = `
+                    <div class="flex h-full items-center justify-center flex-col gap-6 p-8">
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                            <h2 class="text-2xl font-bold text-slate-800 mb-2">خطأ في الاتصال بالخادم</h2>
+                            <p class="text-slate-600 mb-4">فشل الاتصال بـ API</p>
+                            <pre class="bg-slate-100 p-4 rounded text-right text-sm overflow-auto max-w-2xl">${error.message}</pre>
+                            <button onclick="location.reload()" class="mt-4 bg-brand-600 text-white px-6 py-2 rounded-lg hover:bg-brand-700">
+                                <i class="fas fa-redo ml-2"></i>
+                                إعادة المحاولة
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
         }
     }
 
