@@ -283,19 +283,19 @@ app.get('/api/ads', async (req, res) => {
     let params = [];
     let paramIndex = 1;
     
-    // Apply user's entity filter - ads are scoped by source_entity_id
+    // Apply user's entity filter - use entity_id column for data isolation
     if (req.userEntity.type === 'HQ') {
       // HQ sees all ads
     } else {
-      // Other entities see their own ads
-      query += ` AND source_entity_id = $${paramIndex}`;
+      // Other entities see their own ads via entity_id
+      query += ` AND entity_id = $${paramIndex}`;
       params.push(req.userEntity.id);
       paramIndex++;
     }
     
     // Additional filters
     if (entity_id) {
-      query += ` AND source_entity_id = $${paramIndex}`;
+      query += ` AND entity_id = $${paramIndex}`;
       params.push(entity_id);
       paramIndex++;
     }

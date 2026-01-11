@@ -56,7 +56,7 @@ async function testDataIsolation() {
       tests: [
         { endpoint: '/api/employees', expectedMin: 3, expectedMax: 5, label: 'الموظفين' },
         { endpoint: '/api/invoices', expectedMin: 3, expectedMax: 5, label: 'الفواتير' },
-        { endpoint: '/api/ads', expectedMin: 4, expectedMax: 6, label: 'الإعلانات' },
+        { endpoint: '/api/ads', expectedMin: 8, expectedMax: 12, label: 'الإعلانات' },
         { endpoint: '/api/users', expectedMin: 8, expectedMax: 12, label: 'المستخدمين' }
       ]
     },
