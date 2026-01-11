@@ -20,9 +20,14 @@ const app = (() => {
             };
             
             // إضافة headers عزل البيانات إذا كان المستخدم مسجل دخول
-            if (currentUser) {
-                headers['x-entity-type'] = currentUser.tenantType;
-                headers['x-entity-id'] = currentUser.entityId;
+            // استخدم currentUser أو fallback على window.currentUserData
+            const user = currentUser || window.currentUserData;
+            if (user) {
+                headers['x-entity-type'] = user.tenantType;
+                headers['x-entity-id'] = user.entityId;
+                console.log('📤 [fetchAPI] Sending headers:', { endpoint, entityType: user.tenantType, entityId: user.entityId });
+            } else {
+                console.warn('⚠️ [fetchAPI] No user data available for:', endpoint);
             }
             
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -305,6 +310,7 @@ const app = (() => {
 
             // Load invoices
             const invoices = await fetchAPI('/invoices');
+            console.log('📄 [loadDataFromAPI] Loaded invoices:', invoices.length);
             db.invoices = invoices.map(inv => ({
                 id: inv.id,
                 entityId: inv.entity_id,
@@ -319,6 +325,7 @@ const app = (() => {
 
             // Load transactions
             const transactions = await fetchAPI('/transactions');
+            console.log('💳 [loadDataFromAPI] Loaded transactions:', transactions.length);
             db.transactions = transactions.map(t => ({
                 id: t.id,
                 invoiceId: t.invoice_id,
@@ -347,6 +354,7 @@ const app = (() => {
 
             // Load ads
             const ads = await fetchAPI('/ads');
+            console.log('📢 [loadDataFromAPI] Loaded ads:', ads.length);
             db.ads = ads.map(ad => ({
                 id: ad.id,
                 title: ad.title,
