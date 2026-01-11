@@ -2174,6 +2174,26 @@ const app = (() => {
     };
 })();
 
+// Make fetchAPI available globally for employee functions
+window.fetchAPI = async function(endpoint, options = {}) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+};
+
 // ========================================
 // INCUBATOR TRAINING SYSTEM
 // نظام حاضنة السلامة
@@ -2892,11 +2912,11 @@ app.openAssessmentModal = async (enrollmentId, name, programId) => {
 
 const renderEmployees = async () => {
     try {
-        const employees = await fetchAPI('/employees');
-        const branches = await fetchAPI('/branches');
-        const incubators = await fetchAPI('/incubators');
-        const platforms = await fetchAPI('/platforms');
-        const offices = await fetchAPI('/offices');
+        const employees = await window.fetchAPI('/employees');
+        const branches = await window.fetchAPI('/branches');
+        const incubators = await window.fetchAPI('/incubators');
+        const platforms = await window.fetchAPI('/platforms');
+        const offices = await window.fetchAPI('/offices');
 
         // Group by entity type
         const byType = employees.reduce((acc, emp) => {
@@ -3112,7 +3132,7 @@ app.resetEmployeeFilters = function() {
 // View employee details
 app.viewEmployee = async function(id) {
     try {
-        const employee = await fetchAPI(`/employees/${id}`);
+        const employee = await window.fetchAPI(`/employees/${id}`);
         alert(`معلومات الموظف:\n\nالاسم: ${employee.full_name}\nالمسمى: ${employee.position}\nالقسم: ${employee.department}\nالكيان: ${employee.entity_name}\nالراتب: ${employee.salary} SAR`);
     } catch (error) {
         alert('خطأ في تحميل بيانات الموظف');
@@ -3128,7 +3148,7 @@ app.editEmployee = function(id) {
 app.deleteEmployee = async function(id, name) {
     if (confirm(`هل أنت متأكد من حذف الموظف "${name}"؟`)) {
         try {
-            await fetchAPI(`/employees/${id}`, { method: 'DELETE' });
+            await window.fetchAPI(`/employees/${id}`, { method: 'DELETE' });
             alert('تم حذف الموظف بنجاح');
             app.navigate('employees');
         } catch (error) {
@@ -3186,7 +3206,7 @@ app.loadEntitiesForEmployee = async function() {
                 break;
         }
 
-        const entities = await fetchAPI(endpoint);
+        const entities = await window.fetchAPI(endpoint);
         
         entitySelect.innerHTML = '<option value="">-- اختر الكيان --</option>';
         entities.forEach(entity => {
@@ -3262,7 +3282,7 @@ app.submitCreateEmployee = async function() {
     }
 
     try {
-        await fetchAPI('/employees', {
+        await window.fetchAPI('/employees', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(employeeData)
