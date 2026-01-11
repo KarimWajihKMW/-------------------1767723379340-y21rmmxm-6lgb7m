@@ -3250,7 +3250,7 @@ app.deleteEmployee = async function(id, name) {
         try {
             await window.fetchAPI(`/employees/${id}`, { method: 'DELETE' });
             alert('تم حذف الموظف بنجاح');
-            app.navigate('employees');
+            window.location.reload();
         } catch (error) {
             alert('خطأ في حذف الموظف: ' + error.message);
         }
@@ -3387,7 +3387,7 @@ app.submitCreateEmployee = async function() {
 
         alert('تم إضافة الموظف بنجاح!');
         app.closeCreateEmployeeModal();
-        app.navigate('employees'); // Refresh employees page
+        window.location.reload(); // Refresh employees page
     } catch (error) {
         alert('خطأ في إضافة الموظف: ' + error.message);
     }
@@ -3437,7 +3437,7 @@ window.submitEditEmployee = async function() {
 
         alert('تم تحديث بيانات الموظف بنجاح!');
         window.closeEditEmployeeModal();
-        app.navigate('employees'); // Refresh employees page
+        window.location.reload(); // Refresh employees page
     } catch (error) {
         alert('خطأ في تحديث بيانات الموظف: ' + error.message);
     }
