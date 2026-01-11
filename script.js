@@ -11,15 +11,23 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
 const app = (() => {
     // --- API CONFIGURATION (using global) ---
     
-    // Helper function to fetch data from API
+    // Helper function to fetch data from API with data isolation headers
     async function fetchAPI(endpoint, options = {}) {
         try {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            // إضافة headers عزل البيانات إذا كان المستخدم مسجل دخول
+            if (currentUser) {
+                headers['x-entity-type'] = currentUser.tenantType;
+                headers['x-entity-id'] = currentUser.entityId;
+            }
+            
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                }
+                headers
             });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -195,6 +203,72 @@ const app = (() => {
         ]
     };
 
+    // --- SELECT TENANT MODAL (for proper data isolation) ---
+    async function showTenantSelector() {
+        return new Promise((resolve) => {
+            // First load all entities to show available tenants
+            const showSelector = async () => {
+                // Get all entities first WITHOUT headers (for selection screen)
+                const response = await fetch(`${API_BASE_URL}/entities`);
+                const entities = await response.json();
+                
+                const modal = document.createElement('div');
+                modal.id = 'tenant-selector';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
+                        <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-8 text-white">
+                            <h1 class="text-3xl font-bold mb-2">🏢 نظام نايوش ERP</h1>
+                            <p class="text-purple-100">اختر الكيان الذي تريد تسجيل الدخول منه</p>
+                        </div>
+                        <div class="p-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${entities.map(e => `
+                                    <div class="tenant-card cursor-pointer p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all transform hover:scale-105"
+                                         onclick="selectTenant('${e.id}', '${e.type}')">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <h3 class="font-bold text-lg mb-2 text-gray-900">${e.name}</h3>
+                                                <p class="text-sm text-gray-600 mb-4">النوع: <span class="font-semibold">${e.type === 'HQ' ? 'المكتب الرئيسي' : 'فرع'}</span></p>
+                                                <div class="flex gap-4">
+                                                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-full">الحالة: ${e.status === 'active' ? '✅ نشط' : '⏸️ معطل'}</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-3xl">
+                                                ${e.type === 'HQ' ? '🏛️' : e.type === 'BRANCH' ? '🏪' : e.type === 'INCUBATOR' ? '🌱' : e.type === 'PLATFORM' ? '💻' : '📋'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p class="text-center text-sm text-gray-500 mt-8 pt-8 border-t">
+                                💡 اختيار الكيان سيحدد البيانات التي تراها في النظام
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                window.selectTenant = (tenantId, tenantType) => {
+                    const selectedEntity = entities.find(e => e.id === tenantId);
+                    currentUser = {
+                        id: 1,
+                        name: selectedEntity.name + ' - مسؤول',
+                        role: 'مسؤول النظام',
+                        tenantType: tenantType,
+                        entityId: tenantId,
+                        entityName: selectedEntity.name
+                    };
+                    modal.remove();
+                    resolve(currentUser);
+                };
+            };
+            
+            showSelector();
+        });
+    }
+
     // --- DATA LOADING FROM API ---
     async function loadDataFromAPI() {
         try {
@@ -340,31 +414,30 @@ const app = (() => {
     const init = async () => {
         console.log('🔄 بدء التهيئة...');
         
-        // Show loading
+        // Show tenant selector first
         const view = document.getElementById('main-view');
+        view.innerHTML = `<div class="flex h-full items-center justify-center"></div>`;
+        
+        // Show tenant selector modal
+        await showTenantSelector();
+        console.log('✅ تم اختيار الكيان:', currentUser);
+        
+        // Show loading
         view.innerHTML = `
             <div class="flex h-full items-center justify-center flex-col gap-6">
                 <div class="relative">
                     <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
                     <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
                 </div>
-                <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات من قاعدة البيانات...</p>
+                <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات للكيان: <strong>${currentUser.entityName}</strong></p>
             </div>`;
         
-        // Load data from API
+        // Load data from API (now with proper entity headers)
         await loadDataFromAPI();
-        console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length });
+        console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length, invoices: db.invoices.length });
         
-        // Set default user if users exist
-        if (db.users && db.users.length > 0) {
-            currentUser = db.users[0];
-            console.log('👤 المستخدم الحالي:', currentUser);
-        } else {
-            console.error('❌ لا توجد مستخدمين في قاعدة البيانات!');
-            // Create emergency fallback user
-            currentUser = { id: 1, name: 'مستخدم النظام', role: 'مسؤول النظام', tenantType: 'HQ', entityId: 'HQ001', entityName: 'المكتب الرئيسي' };
-            db.users = [currentUser];
-        }
+        // User is already selected from tenant selector
+        console.log('👤 المستخدم الحالي:', currentUser);
         
         renderSidebar();
         updateHeader();
