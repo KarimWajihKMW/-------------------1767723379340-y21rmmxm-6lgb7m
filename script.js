@@ -149,6 +149,13 @@ const app = (() => {
             
             const filtered = db.ads.filter(ad => {
                 const sourceId = ad.sourceEntityId || ad.entityId;
+                
+                // Check 0: HQ sees everything!
+                if (currentUser.tenantType === 'HQ') {
+                    console.log(`✅ Ad "${ad.title}" visible: HQ sees all`);
+                    return true;
+                }
+                
                 // Check 1: Own ads
                 if (sourceId === currentUser.entityId) {
                     console.log(`✅ Ad "${ad.title}" visible: Own ad`);
