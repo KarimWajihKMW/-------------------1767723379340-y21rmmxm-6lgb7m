@@ -1673,6 +1673,104 @@ const app = (() => {
                     </div>
                 </div>
 
+                <!-- Entity Creation Buttons -->
+                <div class="bg-white rounded-2xl shadow-lg border-2 border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-white/20 rounded-full p-3">
+                                <i class="fas fa-plus-circle text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black">تعريف الكيانات</h3>
+                                <p class="text-sm opacity-90">إنشاء وإضافة كيانات جديدة للهيكل التنظيمي</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Create Branch Button -->
+                            <button onclick="openCreateBranchModal()" 
+                                    class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
+                                        <i class="fas fa-store text-3xl"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h4 class="font-black text-lg mb-1">إنشاء فرع</h4>
+                                        <p class="text-xs opacity-90">Branch تابع للمقر الرئيسي</p>
+                                    </div>
+                                    <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                        <i class="fas fa-plus ml-1"></i> جديد
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <!-- Create Incubator Button -->
+                            <button onclick="openCreateIncubatorModal()" 
+                                    class="group bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
+                                        <i class="fas fa-seedling text-3xl"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h4 class="font-black text-lg mb-1">إنشاء حاضنة</h4>
+                                        <p class="text-xs opacity-90">Incubator تابع لفرع</p>
+                                    </div>
+                                    <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                        <i class="fas fa-plus ml-1"></i> جديد
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <!-- Create Platform Button -->
+                            <button onclick="openCreatePlatformModal()" 
+                                    class="group bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
+                                        <i class="fas fa-server text-3xl"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h4 class="font-black text-lg mb-1">إنشاء منصة</h4>
+                                        <p class="text-xs opacity-90">Platform تابع لحاضنة</p>
+                                    </div>
+                                    <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                        <i class="fas fa-plus ml-1"></i> جديد
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <!-- Create Office Button -->
+                            <button onclick="openCreateOfficeModal()" 
+                                    class="group bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
+                                        <i class="fas fa-briefcase text-3xl"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h4 class="font-black text-lg mb-1">إنشاء مكتب</h4>
+                                        <p class="text-xs opacity-90">Office تابع لحاضنة/منصة</p>
+                                    </div>
+                                    <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                        <i class="fas fa-plus ml-1"></i> جديد
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <!-- Info Box -->
+                        <div class="mt-6 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-info-circle text-blue-600 text-xl mt-0.5"></i>
+                                <div class="flex-1">
+                                    <h5 class="font-bold text-blue-900 mb-1">ملاحظة هامة</h5>
+                                    <p class="text-sm text-blue-700">يجب إنشاء الكيانات بالترتيب الهرمي: فرع ← حاضنة ← منصة ← مكتب. كل كيان يجب أن يكون تابعاً للمستوى الأعلى منه.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Office-Platform Links Section -->
                 <div class="bg-white rounded-2xl shadow-lg border-2 border-pink-200 overflow-hidden">
                     <div class="bg-gradient-to-r from-pink-600 to-pink-700 p-6 text-white">
@@ -2780,6 +2878,252 @@ app.openAssessmentModal = async (enrollmentId, name, programId) => {
             alert('تم حفظ الدرجة (محاكاة)');
         }
     }
+};
+
+// ========================================
+// ENTITY CREATION FUNCTIONS
+// ========================================
+
+// Open Create Branch Modal
+window.openCreateBranchModal = function() {
+  const modal = document.getElementById('createBranchModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+};
+
+// Close Create Branch Modal
+window.closeCreateBranchModal = function() {
+  const modal = document.getElementById('createBranchModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createBranchForm').reset();
+  }
+};
+
+// Submit Create Branch
+window.submitCreateBranch = async function() {
+  const formData = {
+    hq_id: parseInt(document.getElementById('branch_hq_id').value),
+    name: document.getElementById('branch_name').value,
+    code: document.getElementById('branch_code').value,
+    description: document.getElementById('branch_description').value,
+    country: document.getElementById('branch_country').value,
+    city: document.getElementById('branch_city').value,
+    address: document.getElementById('branch_address').value,
+    contact_email: document.getElementById('branch_email').value,
+    contact_phone: document.getElementById('branch_phone').value,
+    manager_name: document.getElementById('branch_manager').value
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء الفرع');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء الفرع "${result.name}" بنجاح!`);
+    closeCreateBranchModal();
+    location.reload(); // Refresh the hierarchy
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Open Create Incubator Modal
+window.openCreateIncubatorModal = function() {
+  const modal = document.getElementById('createIncubatorModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    loadBranchesForIncubator();
+  }
+};
+
+// Close Create Incubator Modal
+window.closeCreateIncubatorModal = function() {
+  const modal = document.getElementById('createIncubatorModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createIncubatorForm').reset();
+  }
+};
+
+// Load branches for incubator dropdown
+async function loadBranchesForIncubator() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`);
+    const branches = await response.json();
+    const select = document.getElementById('incubator_branch_id');
+    select.innerHTML = '<option value="">-- اختر فرع --</option>' +
+      branches.map(b => `<option value="${b.id}">${b.name} (${b.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading branches:', error);
+  }
+}
+
+// Submit Create Incubator
+window.submitCreateIncubator = async function() {
+  const formData = {
+    branch_id: parseInt(document.getElementById('incubator_branch_id').value),
+    name: document.getElementById('incubator_name').value,
+    code: document.getElementById('incubator_code').value,
+    description: document.getElementById('incubator_description').value,
+    program_type: document.getElementById('incubator_program_type').value,
+    capacity: parseInt(document.getElementById('incubator_capacity').value),
+    contact_email: document.getElementById('incubator_email').value,
+    contact_phone: document.getElementById('incubator_phone').value,
+    manager_name: document.getElementById('incubator_manager').value,
+    start_date: document.getElementById('incubator_start_date').value || null,
+    end_date: document.getElementById('incubator_end_date').value || null
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء الحاضنة');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء الحاضنة "${result.name}" بنجاح!`);
+    closeCreateIncubatorModal();
+    location.reload();
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Open Create Platform Modal
+window.openCreatePlatformModal = function() {
+  const modal = document.getElementById('createPlatformModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    loadIncubatorsForPlatform();
+  }
+};
+
+// Close Create Platform Modal
+window.closeCreatePlatformModal = function() {
+  const modal = document.getElementById('createPlatformModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createPlatformForm').reset();
+  }
+};
+
+// Load incubators for platform dropdown
+async function loadIncubatorsForPlatform() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators`);
+    const incubators = await response.json();
+    const select = document.getElementById('platform_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Submit Create Platform
+window.submitCreatePlatform = async function() {
+  const formData = {
+    incubator_id: parseInt(document.getElementById('platform_incubator_id').value),
+    name: document.getElementById('platform_name').value,
+    code: document.getElementById('platform_code').value,
+    description: document.getElementById('platform_description').value,
+    platform_type: document.getElementById('platform_type').value,
+    pricing_model: document.getElementById('platform_pricing_model').value,
+    base_price: parseFloat(document.getElementById('platform_base_price').value) || 0,
+    currency: document.getElementById('platform_currency').value || 'USD'
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/platforms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء المنصة');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء المنصة "${result.name}" بنجاح!`);
+    closeCreatePlatformModal();
+    location.reload();
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Open Create Office Modal
+window.openCreateOfficeModal = function() {
+  const modal = document.getElementById('createOfficeModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    loadIncubatorsForOffice();
+  }
+};
+
+// Close Create Office Modal
+window.closeCreateOfficeModal = function() {
+  const modal = document.getElementById('createOfficeModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createOfficeForm').reset();
+  }
+};
+
+// Load incubators for office dropdown
+async function loadIncubatorsForOffice() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators`);
+    const incubators = await response.json();
+    const select = document.getElementById('office_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Submit Create Office
+window.submitCreateOffice = async function() {
+  const formData = {
+    incubator_id: parseInt(document.getElementById('office_incubator_id').value),
+    name: document.getElementById('office_name').value,
+    code: document.getElementById('office_code').value,
+    description: document.getElementById('office_description').value,
+    office_type: document.getElementById('office_type').value,
+    location: document.getElementById('office_location').value,
+    address: document.getElementById('office_address').value,
+    capacity: parseInt(document.getElementById('office_capacity').value) || 0,
+    contact_email: document.getElementById('office_email').value,
+    contact_phone: document.getElementById('office_phone').value,
+    manager_name: document.getElementById('office_manager').value
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/offices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء المكتب');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء المكتب "${result.name}" بنجاح!`);
+    closeCreateOfficeModal();
+    location.reload();
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
 };
 
 document.addEventListener('DOMContentLoaded', app.init);

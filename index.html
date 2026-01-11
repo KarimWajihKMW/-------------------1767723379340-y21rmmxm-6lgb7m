@@ -146,6 +146,364 @@
         </div>
     </div>
 
+    <!-- ========================================
+         ENTITY CREATION MODALS
+         ======================================== -->
+
+    <!-- Create Branch Modal -->
+    <div id="createBranchModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-blue-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-store"></i>
+                    إنشاء فرع جديد
+                </h2>
+                <button onclick="closeCreateBranchModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="createBranchForm" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">المكتب الرئيسي (HQ)</label>
+                        <select id="branch_hq_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="1">المكتب الرئيسي - Nayosh HQ</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الفرع *</label>
+                        <input type="text" id="branch_name" required placeholder="مثال: فرع الرياض" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">رمز الفرع *</label>
+                        <input type="text" id="branch_code" required placeholder="مثال: BR-RYD" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                        <textarea id="branch_description" rows="2" placeholder="وصف مختصر للفرع..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الدولة *</label>
+                        <input type="text" id="branch_country" required placeholder="المملكة العربية السعودية" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">المدينة *</label>
+                        <input type="text" id="branch_city" required placeholder="الرياض" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">العنوان</label>
+                        <input type="text" id="branch_address" placeholder="123 شارع الملك فهد..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني *</label>
+                        <input type="email" id="branch_email" required placeholder="branch@nayosh.com" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الهاتف *</label>
+                        <input type="tel" id="branch_phone" required placeholder="+966 xx xxx xxxx" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم المدير</label>
+                        <input type="text" id="branch_manager" placeholder="اسم مدير الفرع" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t">
+                    <button type="button" onclick="closeCreateBranchModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="submitCreateBranch()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition shadow-lg">
+                        <i class="fas fa-plus ml-2"></i>
+                        إنشاء الفرع
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Incubator Modal -->
+    <div id="createIncubatorModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-orange-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-seedling"></i>
+                    إنشاء حاضنة جديدة
+                </h2>
+                <button onclick="closeCreateIncubatorModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="createIncubatorForm" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الفرع التابع له *</label>
+                        <select id="incubator_branch_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="">-- اختر فرع --</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الحاضنة *</label>
+                        <input type="text" id="incubator_name" required placeholder="مثال: حاضنة الرياض التقنية" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">رمز الحاضنة *</label>
+                        <input type="text" id="incubator_code" required placeholder="مثال: INC-RYD-01" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                        <textarea id="incubator_description" rows="2" placeholder="وصف مختصر للحاضنة..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع البرنامج *</label>
+                        <select id="incubator_program_type" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="TECHNOLOGY">تقنية (Technology)</option>
+                            <option value="BUSINESS">أعمال (Business)</option>
+                            <option value="SOCIAL">اجتماعي (Social)</option>
+                            <option value="MIXED">مختلط (Mixed)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">السعة القصوى</label>
+                        <input type="number" id="incubator_capacity" placeholder="عدد المشاريع" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني *</label>
+                        <input type="email" id="incubator_email" required placeholder="incubator@nayosh.com" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الهاتف *</label>
+                        <input type="tel" id="incubator_phone" required placeholder="+966 xx xxx xxxx" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم المدير</label>
+                        <input type="text" id="incubator_manager" placeholder="اسم مدير الحاضنة" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ البدء</label>
+                        <input type="date" id="incubator_start_date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الانتهاء</label>
+                        <input type="date" id="incubator_end_date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t">
+                    <button type="button" onclick="closeCreateIncubatorModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="submitCreateIncubator()" class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-bold transition shadow-lg">
+                        <i class="fas fa-plus ml-2"></i>
+                        إنشاء الحاضنة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Platform Modal -->
+    <div id="createPlatformModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-green-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-server"></i>
+                    إنشاء منصة رقمية جديدة
+                </h2>
+                <button onclick="closeCreatePlatformModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="createPlatformForm" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الحاضنة التابعة لها *</label>
+                        <select id="platform_incubator_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="">-- اختر حاضنة --</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم المنصة *</label>
+                        <input type="text" id="platform_name" required placeholder="مثال: منصة التجارة الإلكترونية" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">رمز المنصة *</label>
+                        <input type="text" id="platform_code" required placeholder="مثال: PLT-ECOM-01" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                        <textarea id="platform_description" rows="2" placeholder="وصف مختصر للمنصة..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع المنصة *</label>
+                        <select id="platform_type" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="ECOMMERCE">تجارة إلكترونية</option>
+                            <option value="SAAS">برمجيات كخدمة (SaaS)</option>
+                            <option value="MARKETPLACE">سوق إلكتروني</option>
+                            <option value="EDUCATION">تعليمية</option>
+                            <option value="OTHER">أخرى</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نموذج التسعير *</label>
+                        <select id="platform_pricing_model" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="SUBSCRIPTION">اشتراك (Subscription)</option>
+                            <option value="PAY_PER_USE">الدفع عند الاستخدام</option>
+                            <option value="FREEMIUM">مجاني مع خصائص مدفوعة</option>
+                            <option value="ONE_TIME">دفعة واحدة</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">السعر الأساسي</label>
+                        <input type="number" step="0.01" id="platform_base_price" placeholder="0.00" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">العملة</label>
+                        <select id="platform_currency" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="SAR">ريال سعودي (SAR)</option>
+                            <option value="USD">دولار أمريكي (USD)</option>
+                            <option value="EUR">يورو (EUR)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t">
+                    <button type="button" onclick="closeCreatePlatformModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="submitCreatePlatform()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold transition shadow-lg">
+                        <i class="fas fa-plus ml-2"></i>
+                        إنشاء المنصة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Office Modal -->
+    <div id="createOfficeModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gray-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-briefcase"></i>
+                    إنشاء مكتب إداري جديد
+                </h2>
+                <button onclick="closeCreateOfficeModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="createOfficeForm" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الحاضنة التابع لها *</label>
+                        <select id="office_incubator_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                            <option value="">-- اختر حاضنة --</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم المكتب *</label>
+                        <input type="text" id="office_name" required placeholder="مثال: مكتب العمليات" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">رمز المكتب *</label>
+                        <input type="text" id="office_code" required placeholder="مثال: OFF-OPS-01" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                        <textarea id="office_description" rows="2" placeholder="وصف مختصر للمكتب..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع المكتب *</label>
+                        <select id="office_type" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                            <option value="ADMINISTRATIVE">إداري</option>
+                            <option value="TECHNICAL">تقني</option>
+                            <option value="CUSTOMER_SERVICE">خدمة عملاء</option>
+                            <option value="SALES">مبيعات</option>
+                            <option value="OTHER">أخرى</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الموقع</label>
+                        <input type="text" id="office_location" placeholder="مثال: الدور الثاني" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">العنوان</label>
+                        <input type="text" id="office_address" placeholder="123 شارع..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">السعة (عدد الموظفين)</label>
+                        <input type="number" id="office_capacity" placeholder="عدد الموظفين" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني *</label>
+                        <input type="email" id="office_email" required placeholder="office@nayosh.com" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الهاتف *</label>
+                        <input type="tel" id="office_phone" required placeholder="+966 xx xxx xxxx" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم المدير</label>
+                        <input type="text" id="office_manager" placeholder="اسم مدير المكتب" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t">
+                    <button type="button" onclick="closeCreateOfficeModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="submitCreateOffice()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-bold transition shadow-lg">
+                        <i class="fas fa-plus ml-2"></i>
+                        إنشاء المكتب
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

@@ -19,6 +19,19 @@
         },
         "git add": true,
         "git commit": true,
-        "git push": true
+        "git push": true,
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && echo \"✅ script\\.js بناء ناجح\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node server\\.js &$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-entity-creation\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "timeout": true
     }
 }
