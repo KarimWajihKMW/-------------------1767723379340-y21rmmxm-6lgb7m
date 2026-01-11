@@ -1592,6 +1592,25 @@ const app = (() => {
             const incubators = await fetchAPI('/incubators');
             const platforms = await fetchAPI('/platforms');
             const offices = await fetchAPI('/offices');
+            
+            // جلب روابط المكاتب بالمنصات
+            const officeLinks = [];
+            for (const office of offices) {
+                try {
+                    const linkedPlatforms = await fetchAPI(`/offices/${office.id}/platforms`);
+                    linkedPlatforms.forEach(platform => {
+                        officeLinks.push({
+                            office_id: office.id,
+                            office_name: office.name,
+                            platform_id: platform.id,
+                            platform_name: platform.name,
+                            is_active: platform.is_linked
+                        });
+                    });
+                } catch (err) {
+                    console.warn(`Could not load platforms for office ${office.id}`);
+                }
+            }
 
             return `
             <div class="space-y-8 animate-fade-in">
@@ -1651,6 +1670,120 @@ const app = (() => {
                             <span class="text-3xl font-black">${stats.active_links || 0}</span>
                         </div>
                         <p class="text-xs font-semibold opacity-90">روابط</p>
+                    </div>
+                </div>
+
+                <!-- Office-Platform Links Section -->
+                <div class="bg-white rounded-2xl shadow-lg border-2 border-pink-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pink-600 to-pink-700 p-6 text-white">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-white/20 rounded-full p-3">
+                                <i class="fas fa-link text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black">روابط المكاتب بالمنصات</h3>
+                                <p class="text-sm opacity-90">عرض العلاقات بين المكاتب والمنصات المرتبطة بها</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        ${officeLinks.length > 0 ? `
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">
+                                                <i class="fas fa-briefcase text-teal-500 ml-2"></i>المكتب
+                                            </th>
+                                            <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
+                                                <i class="fas fa-arrows-alt-h text-pink-500 ml-2"></i>الربط
+                                            </th>
+                                            <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">
+                                                <i class="fas fa-server text-orange-500 ml-2"></i>المنصة
+                                            </th>
+                                            <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
+                                                الحالة
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${officeLinks.map(link => `
+                                            <tr class="hover:bg-slate-50 transition-colors">
+                                                <td class="px-4 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+                                                            <i class="fas fa-briefcase text-teal-600"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-semibold text-slate-800 text-sm">${link.office_name}</p>
+                                                            <p class="text-xs text-slate-500">معرف: ${link.office_id}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 text-center">
+                                                    <i class="fas fa-exchange-alt text-pink-500 text-xl"></i>
+                                                </td>
+                                                <td class="px-4 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                                                            <i class="fas fa-server text-orange-600"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-semibold text-slate-800 text-sm">${link.platform_name}</p>
+                                                            <p class="text-xs text-slate-500">معرف: ${link.platform_id}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 text-center">
+                                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${link.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
+                                                        <i class="fas ${link.is_active ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                                                        ${link.is_active ? 'نشط' : 'معطل'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Summary Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
+                                <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4 border border-teal-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs font-semibold text-teal-600 mb-1">إجمالي المكاتب المرتبطة</p>
+                                            <p class="text-2xl font-black text-teal-700">${new Set(officeLinks.map(l => l.office_id)).size}</p>
+                                        </div>
+                                        <i class="fas fa-briefcase text-3xl text-teal-400"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs font-semibold text-orange-600 mb-1">إجمالي المنصات المرتبطة</p>
+                                            <p class="text-2xl font-black text-orange-700">${new Set(officeLinks.map(l => l.platform_id)).size}</p>
+                                        </div>
+                                        <i class="fas fa-server text-3xl text-orange-400"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border border-pink-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-xs font-semibold text-pink-600 mb-1">إجمالي الروابط النشطة</p>
+                                            <p class="text-2xl font-black text-pink-700">${officeLinks.filter(l => l.is_active).length}</p>
+                                        </div>
+                                        <i class="fas fa-link text-3xl text-pink-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="text-center py-12">
+                                <i class="fas fa-unlink text-6xl text-slate-300 mb-4"></i>
+                                <h4 class="text-xl font-bold text-slate-600 mb-2">لا توجد روابط</h4>
+                                <p class="text-slate-500">لم يتم ربط أي مكتب بأي منصة بعد</p>
+                            </div>
+                        `}
                     </div>
                 </div>
 
