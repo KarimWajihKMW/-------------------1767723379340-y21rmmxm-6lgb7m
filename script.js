@@ -44,6 +44,7 @@ const app = (() => {
         ADMIN: 'مسؤول النظام',       // Tenant Admin
         FINANCE: 'مسؤول مالي',      // Finance Access
         SUPPORT: 'دعم فني',         // Support Tickets
+        HR: 'موارد بشرية',          // Human Resources
         ADVERTISER: 'معلن',         // Ad Publisher
         USER: 'مستخدم'             // Standard User
     };
@@ -116,6 +117,7 @@ const app = (() => {
         isAdmin: () => currentUser.role === ROLES.ADMIN,
         isFinance: () => currentUser.role === ROLES.FINANCE || currentUser.role === ROLES.ADMIN,
         isSupport: () => currentUser.role === ROLES.SUPPORT,
+        isHR: () => currentUser.role === ROLES.HR || currentUser.role === ROLES.ADMIN,
         canManageAds: () => perms.isAdmin() || currentUser.role === ROLES.ADVERTISER,
         canViewAuditLogs: () => perms.isAdmin(),
 
@@ -525,6 +527,7 @@ const app = (() => {
         let content = '';
         if (route === 'dashboard') content = renderDashboard();
         else if (route === 'hierarchy') content = await renderHierarchy();
+        else if (route === 'employees') content = await renderEmployees();
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'billing') content = renderBilling();
@@ -605,6 +608,7 @@ const app = (() => {
             { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
+            { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
             { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
             { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() },
@@ -2881,6 +2885,402 @@ app.openAssessmentModal = async (enrollmentId, name, programId) => {
         }
     }
 };
+
+// ========================================
+// EMPLOYEES MANAGEMENT
+// ========================================
+
+const renderEmployees = async () => {
+    try {
+        const employees = await fetchAPI('/employees');
+        const branches = await fetchAPI('/branches');
+        const incubators = await fetchAPI('/incubators');
+        const platforms = await fetchAPI('/platforms');
+        const offices = await fetchAPI('/offices');
+
+        // Group by entity type
+        const byType = employees.reduce((acc, emp) => {
+            acc[emp.assigned_entity_type] = (acc[emp.assigned_entity_type] || []);
+            acc[emp.assigned_entity_type].push(emp);
+            return acc;
+        }, {});
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">إدارة الموظفين</h2>
+                    <p class="text-slate-500">عرض وإدارة جميع الموظفين في النظام</p>
+                </div>
+                <button onclick="app.openCreateEmployeeModal()" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg">
+                    <i class="fas fa-user-plus"></i> إضافة موظف جديد
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-users text-2xl opacity-80"></i>
+                        <span class="text-3xl font-black">${employees.length}</span>
+                    </div>
+                    <p class="text-xs font-semibold opacity-90">إجمالي الموظفين</p>
+                </div>
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-store text-2xl opacity-80"></i>
+                        <span class="text-3xl font-black">${byType.BRANCH?.length || 0}</span>
+                    </div>
+                    <p class="text-xs font-semibold opacity-90">موظفو الفروع</p>
+                </div>
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-seedling text-2xl opacity-80"></i>
+                        <span class="text-3xl font-black">${byType.INCUBATOR?.length || 0}</span>
+                    </div>
+                    <p class="text-xs font-semibold opacity-90">موظفو الحاضنات</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-server text-2xl opacity-80"></i>
+                        <span class="text-3xl font-black">${byType.PLATFORM?.length || 0}</span>
+                    </div>
+                    <p class="text-xs font-semibold opacity-90">موظفو المنصات</p>
+                </div>
+                <div class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl p-4 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-briefcase text-2xl opacity-80"></i>
+                        <span class="text-3xl font-black">${byType.OFFICE?.length || 0}</span>
+                    </div>
+                    <p class="text-xs font-semibold opacity-90">موظفو المكاتب</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-xl shadow-md border-2 border-slate-200 p-4">
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع الكيان</label>
+                        <select id="filterEntityType" onchange="app.filterEmployees()" class="w-full border border-gray-300 rounded-lg px-4 py-2">
+                            <option value="">الكل</option>
+                            <option value="HQ">المقر الرئيسي</option>
+                            <option value="BRANCH">الفروع</option>
+                            <option value="INCUBATOR">الحاضنات</option>
+                            <option value="PLATFORM">المنصات</option>
+                            <option value="OFFICE">المكاتب</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">بحث</label>
+                        <input type="text" id="searchEmployee" onkeyup="app.filterEmployees()" placeholder="اسم، بريد، رقم موظف..." class="w-full border border-gray-300 rounded-lg px-4 py-2">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="app.resetEmployeeFilters()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-bold">
+                            <i class="fas fa-redo ml-2"></i> إعادة تعيين
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employees Table -->
+            <div class="bg-white rounded-xl shadow-md border-2 border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+                    <h3 class="text-xl font-black flex items-center gap-3">
+                        <i class="fas fa-users text-2xl"></i>
+                        قائمة الموظفين
+                    </h3>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full" id="employeesTable">
+                        <thead class="bg-slate-50 border-b-2 border-slate-200">
+                            <tr>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">رقم الموظف</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">الاسم</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">المسمى الوظيفي</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">القسم</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">الكيان</th>
+                                <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">الراتب</th>
+                                <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">الحالة</th>
+                                <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${employees.map(emp => `
+                                <tr class="hover:bg-slate-50 transition-colors employee-row" data-entity-type="${emp.assigned_entity_type}" data-search="${emp.full_name} ${emp.email} ${emp.employee_number}">
+                                    <td class="px-4 py-4">
+                                        <span class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">${emp.employee_number}</span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <span class="font-bold text-blue-600">${emp.full_name.charAt(0)}</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-semibold text-slate-800">${emp.full_name}</p>
+                                                <p class="text-xs text-slate-500">${emp.email || 'لا يوجد بريد'}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span class="text-sm font-medium text-slate-700">${emp.position || '-'}</span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span class="text-sm text-slate-600">${emp.department || '-'}</span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-800">${emp.entity_name || 'غير محدد'}</p>
+                                            <p class="text-xs text-slate-500">${emp.assigned_entity_type}</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="font-bold text-green-600">${emp.salary ? parseFloat(emp.salary).toLocaleString() + ' SAR' : '-'}</span>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${emp.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                            <i class="fas ${emp.is_active ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                                            ${emp.is_active ? 'نشط' : 'معطل'}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button onclick="app.viewEmployee(${emp.id})" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="app.editEmployee(${emp.id})" class="text-orange-600 hover:text-orange-800 p-2 rounded-lg hover:bg-orange-50" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="app.deleteEmployee(${emp.id}, '${emp.full_name}')" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    ${employees.length === 0 ? `
+                        <div class="text-center py-12">
+                            <i class="fas fa-users text-6xl text-slate-300 mb-4"></i>
+                            <h4 class="text-xl font-bold text-slate-600 mb-2">لا يوجد موظفين</h4>
+                            <p class="text-slate-500 mb-4">ابدأ بإضافة موظف جديد للنظام</p>
+                            <button onclick="app.openCreateEmployeeModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-bold">
+                                <i class="fas fa-plus ml-2"></i> إضافة موظف
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+        `;
+    } catch (error) {
+        return `<div class="text-red-600 p-8 bg-red-50 rounded-lg border border-red-200">
+            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+            <p class="font-bold">خطأ في تحميل الموظفين</p>
+            <p class="text-sm">${error.message}</p>
+        </div>`;
+    }
+};
+
+// Filter employees
+app.filterEmployees = function() {
+    const entityType = document.getElementById('filterEntityType').value;
+    const searchTerm = document.getElementById('searchEmployee').value.toLowerCase();
+    const rows = document.querySelectorAll('.employee-row');
+
+    rows.forEach(row => {
+        const rowEntityType = row.dataset.entityType;
+        const rowSearch = row.dataset.search.toLowerCase();
+        
+        const matchesType = !entityType || rowEntityType === entityType;
+        const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+        
+        row.style.display = matchesType && matchesSearch ? '' : 'none';
+    });
+};
+
+// Reset filters
+app.resetEmployeeFilters = function() {
+    document.getElementById('filterEntityType').value = '';
+    document.getElementById('searchEmployee').value = '';
+    app.filterEmployees();
+};
+
+// View employee details
+app.viewEmployee = async function(id) {
+    try {
+        const employee = await fetchAPI(`/employees/${id}`);
+        alert(`معلومات الموظف:\n\nالاسم: ${employee.full_name}\nالمسمى: ${employee.position}\nالقسم: ${employee.department}\nالكيان: ${employee.entity_name}\nالراتب: ${employee.salary} SAR`);
+    } catch (error) {
+        alert('خطأ في تحميل بيانات الموظف');
+    }
+};
+
+// Edit employee
+app.editEmployee = function(id) {
+    alert('سيتم إضافة واجهة التعديل قريباً');
+};
+
+// Delete employee
+app.deleteEmployee = async function(id, name) {
+    if (confirm(`هل أنت متأكد من حذف الموظف "${name}"؟`)) {
+        try {
+            await fetchAPI(`/employees/${id}`, { method: 'DELETE' });
+            alert('تم حذف الموظف بنجاح');
+            app.navigate('employees');
+        } catch (error) {
+            alert('خطأ في حذف الموظف: ' + error.message);
+        }
+    }
+};
+
+// Open create employee modal
+app.openCreateEmployeeModal = function() {
+    const modal = document.getElementById('createEmployeeModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        loadEntitiesForEmployee();
+    }
+};
+
+// Close create employee modal
+app.closeCreateEmployeeModal = function() {
+    const modal = document.getElementById('createEmployeeModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('createEmployeeForm').reset();
+        document.getElementById('entity_select').innerHTML = '<option value="">-- اختر الكيان --</option>';
+    }
+};
+
+// Load entities for employee assignment
+app.loadEntitiesForEmployee = async function() {
+    const entityType = document.getElementById('assigned_entity_type').value;
+    const entitySelect = document.getElementById('entity_select');
+    
+    if (!entityType) {
+        entitySelect.innerHTML = '<option value="">-- اختر الكيان --</option>';
+        return;
+    }
+
+    try {
+        let endpoint = '';
+        switch (entityType) {
+            case 'HQ':
+                entitySelect.innerHTML = '<option value="HQ-1">المقر الرئيسي</option>';
+                return;
+            case 'BRANCH':
+                endpoint = '/branches';
+                break;
+            case 'INCUBATOR':
+                endpoint = '/incubators';
+                break;
+            case 'PLATFORM':
+                endpoint = '/platforms';
+                break;
+            case 'OFFICE':
+                endpoint = '/offices';
+                break;
+        }
+
+        const entities = await fetchAPI(endpoint);
+        
+        entitySelect.innerHTML = '<option value="">-- اختر الكيان --</option>';
+        entities.forEach(entity => {
+            const option = document.createElement('option');
+            option.value = entity.id;
+            option.textContent = entity.name;
+            entitySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading entities:', error);
+        entitySelect.innerHTML = '<option value="">خطأ في تحميل الكيانات</option>';
+    }
+};
+
+// Submit create employee form
+app.submitCreateEmployee = async function() {
+    const form = document.getElementById('createEmployeeForm');
+    const formData = new FormData(form);
+    
+    // Get form values
+    const employeeData = {
+        employee_number: document.getElementById('employee_number').value,
+        full_name: document.getElementById('full_name').value,
+        email: document.getElementById('email').value || null,
+        phone: document.getElementById('phone').value || null,
+        national_id: document.getElementById('national_id').value || null,
+        position: document.getElementById('position').value,
+        department: document.getElementById('department').value,
+        hire_date: document.getElementById('hire_date').value || null,
+        salary: document.getElementById('salary').value ? parseFloat(document.getElementById('salary').value) : null,
+        employment_type: document.getElementById('employment_type').value,
+        address: document.getElementById('address').value || null,
+        emergency_contact: document.getElementById('emergency_contact').value || null,
+        emergency_phone: document.getElementById('emergency_phone').value || null
+    };
+
+    // Handle entity assignment
+    const entityType = document.getElementById('assigned_entity_type').value;
+    const entityId = document.getElementById('entity_select').value;
+    
+    // Add entity type to data
+    employeeData.assigned_entity_type = entityType;
+    
+    if (entityType === 'HQ') {
+        // For HQ employees, only set the boolean flag
+        employeeData.assigned_hq = true;
+        // Don't set any other entity IDs
+    } else if (entityType && entityId) {
+        // For other entities, set the specific ID
+        employeeData.assigned_hq = false; // Explicitly set to false
+        switch (entityType) {
+            case 'BRANCH':
+                employeeData.assigned_branch_id = parseInt(entityId);
+                break;
+            case 'INCUBATOR':
+                employeeData.assigned_incubator_id = parseInt(entityId);
+                break;
+            case 'PLATFORM':
+                employeeData.assigned_platform_id = parseInt(entityId);
+                break;
+            case 'OFFICE':
+                employeeData.assigned_office_id = parseInt(entityId);
+                break;
+        }
+    }
+
+    // Validate required fields
+    if (!employeeData.employee_number || !employeeData.full_name || !employeeData.position || 
+        !employeeData.department || !employeeData.employment_type || !entityType || 
+        (entityType !== 'HQ' && !entityId)) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+
+    try {
+        await fetchAPI('/employees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employeeData)
+        });
+
+        alert('تم إضافة الموظف بنجاح!');
+        app.closeCreateEmployeeModal();
+        app.navigate('employees'); // Refresh employees page
+    } catch (error) {
+        alert('خطأ في إضافة الموظف: ' + error.message);
+    }
+};
+
+// Make functions available globally
+window.openCreateEmployeeModal = app.openCreateEmployeeModal;
+window.closeCreateEmployeeModal = app.closeCreateEmployeeModal;
+window.loadEntityOptions = app.loadEntitiesForEmployee;
+window.submitCreateEmployee = app.submitCreateEmployee;
 
 // ========================================
 // ENTITY CREATION FUNCTIONS
