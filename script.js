@@ -143,6 +143,10 @@ const app = (() => {
         getVisibleTickets: () => (perms.isHQ() && perms.isSupport()) ? db.tickets : db.tickets.filter(t => t.entityId === currentUser.entityId),
         
         getVisibleAds: () => {
+            console.log(`🔍 [getVisibleAds] Called for user: ${currentUser.entityId} (${currentUser.tenantType})`);
+            console.log(`📊 [getVisibleAds] Total ads in db.ads: ${db.ads.length}`);
+            console.log(`📋 [getVisibleAds] Ads:`, db.ads.map(a => `${a.title} (${a.sourceType})`));
+            
             const filtered = db.ads.filter(ad => {
                 const sourceId = ad.sourceEntityId || ad.entityId;
                 // Check 1: Own ads
