@@ -260,6 +260,11 @@ const app = (() => {
                         entityId: tenantId,
                         entityName: selectedEntity.name
                     };
+                    
+                    // 🔑 حفظ currentUser في window حتى يكون متاح لـ window.fetchAPI
+                    window.currentUserData = currentUser;
+                    console.log('💾 تم حفظ بيانات المستخدم الحالي:', window.currentUserData);
+                    
                     modal.remove();
                     resolve(currentUser);
                 };
@@ -421,6 +426,9 @@ const app = (() => {
         // Show tenant selector modal
         await showTenantSelector();
         console.log('✅ تم اختيار الكيان:', currentUser);
+        
+        // 🔑 تأكد من حفظ currentUser في window
+        window.currentUserData = currentUser;
         
         // Show loading
         view.innerHTML = `
@@ -2248,14 +2256,25 @@ const app = (() => {
 })();
 
 // Make fetchAPI available globally for employee functions
+// This version MUST include data isolation headers from currentUser
 window.fetchAPI = async function(endpoint, options = {}) {
     try {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+        
+        // Get currentUser from the app closure
+        // Note: This is a bit of a workaround - ideally currentUser would be global or in sessionStorage
+        if (window.currentUserData) {
+            headers['x-entity-type'] = window.currentUserData.tenantType;
+            headers['x-entity-id'] = window.currentUserData.entityId;
+            console.log('📤 Sending isolation headers:', { entityType: window.currentUserData.tenantType, entityId: window.currentUserData.entityId });
+        }
+        
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
+            headers
         });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
