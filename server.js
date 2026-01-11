@@ -1861,6 +1861,348 @@ app.get('/api/hierarchy/stats', async (req, res) => {
 });
 
 // ========================================
+// EMPLOYEES APIs
+// ========================================
+
+// Get all employees
+app.get('/api/employees', async (req, res) => {
+  try {
+    const { entity_type, entity_id, is_active } = req.query;
+    let query = 'SELECT * FROM employees_with_entity WHERE 1=1';
+    const params = [];
+    let paramIndex = 1;
+
+    if (entity_type) {
+      query += ` AND assigned_entity_type = $${paramIndex}`;
+      params.push(entity_type);
+      paramIndex++;
+    }
+
+    if (entity_id) {
+      query += ` AND (
+        (assigned_entity_type = 'HQ' AND hq_id = $${paramIndex}) OR
+        (assigned_entity_type = 'BRANCH' AND branch_id = $${paramIndex}) OR
+        (assigned_entity_type = 'INCUBATOR' AND incubator_id = $${paramIndex}) OR
+        (assigned_entity_type = 'PLATFORM' AND platform_id = $${paramIndex}) OR
+        (assigned_entity_type = 'OFFICE' AND office_id = $${paramIndex})
+      )`;
+      params.push(entity_id);
+      paramIndex++;
+    }
+
+    if (is_active !== undefined) {
+      query += ` AND is_active = $${paramIndex}`;
+      params.push(is_active === 'true');
+      paramIndex++;
+    }
+
+    query += ' ORDER BY full_name';
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get employee by ID
+app.get('/api/employees/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM employees_with_entity WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الموظف غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create employee
+app.post('/api/employees', async (req, res) => {
+  try {
+    const { 
+      employee_number, full_name, email, phone, national_id, 
+      position, department, assigned_entity_type,
+      hq_id, branch_id, incubator_id, platform_id, office_id,
+      hire_date, salary, employment_type, address, 
+      emergency_contact, emergency_phone 
+    } = req.body;
+
+    const result = await db.query(
+      `INSERT INTO employees (
+        employee_number, full_name, email, phone, national_id,
+        position, department, assigned_entity_type,
+        hq_id, branch_id, incubator_id, platform_id, office_id,
+        hire_date, salary, employment_type, address,
+        emergency_contact, emergency_phone
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) 
+      RETURNING *`,
+      [
+        employee_number, full_name, email, phone, national_id,
+        position, department, assigned_entity_type,
+        hq_id, branch_id, incubator_id, platform_id, office_id,
+        hire_date, salary, employment_type, address,
+        emergency_contact, emergency_phone
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update employee
+app.put('/api/employees/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      full_name, email, phone, position, department,
+      salary, employment_type, is_active, address,
+      emergency_contact, emergency_phone
+    } = req.body;
+
+    const result = await db.query(
+      `UPDATE employees SET
+        full_name = COALESCE($1, full_name),
+        email = COALESCE($2, email),
+        phone = COALESCE($3, phone),
+        position = COALESCE($4, position),
+        department = COALESCE($5, department),
+        salary = COALESCE($6, salary),
+        employment_type = COALESCE($7, employment_type),
+        is_active = COALESCE($8, is_active),
+        address = COALESCE($9, address),
+        emergency_contact = COALESCE($10, emergency_contact),
+        emergency_phone = COALESCE($11, emergency_phone),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $12 RETURNING *`,
+      [full_name, email, phone, position, department, salary, employment_type, is_active, address, emergency_contact, emergency_phone, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الموظف غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete employee
+app.delete('/api/employees/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM employees WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الموظف غير موجود' });
+    }
+    res.json({ message: 'تم حذف الموظف بنجاح', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get employees by entity
+app.get('/api/entities/:entity_type/:entity_id/employees', async (req, res) => {
+  try {
+    const { entity_type, entity_id } = req.params;
+    const result = await db.query(
+      'SELECT * FROM employees_with_entity WHERE assigned_entity_type = $1 AND CASE WHEN $1 = \'HQ\' THEN hq_id = $2 WHEN $1 = \'BRANCH\' THEN branch_id = $2 WHEN $1 = \'INCUBATOR\' THEN incubator_id = $2 WHEN $1 = \'PLATFORM\' THEN platform_id = $2 WHEN $1 = \'OFFICE\' THEN office_id = $2 END',
+      [entity_type.toUpperCase(), entity_id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
+// ENHANCED USERS APIs (with entity relationships)
+// ========================================
+
+// Update user to link with new entities
+app.put('/api/users/:id/link-entity', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { entity_type, branch_id, incubator_id, platform_id, office_id } = req.body;
+
+    const result = await db.query(
+      `UPDATE users SET
+        branch_id = $1,
+        incubator_id = $2,
+        platform_id = $3,
+        office_id = $4,
+        linked_entity_type = $5,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6 RETURNING *`,
+      [branch_id, incubator_id, platform_id, office_id, entity_type, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المستخدم غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get users with full entity details
+app.get('/api/users-with-entity', async (req, res) => {
+  try {
+    const { entity_type, is_active } = req.query;
+    let query = 'SELECT * FROM users_with_entity WHERE 1=1';
+    const params = [];
+
+    if (entity_type) {
+      query += ' AND (linked_entity_type = $1 OR tenant_type = $1)';
+      params.push(entity_type);
+    }
+
+    if (is_active !== undefined) {
+      query += ` AND is_active = $${params.length + 1}`;
+      params.push(is_active === 'true');
+    }
+
+    query += ' ORDER BY name';
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
+// ENHANCED INVOICES APIs (with entity relationships)
+// ========================================
+
+// Get invoices with full details
+app.get('/api/invoices-with-details', async (req, res) => {
+  try {
+    const { entity_type, status, user_id } = req.query;
+    let query = 'SELECT * FROM invoices_with_details WHERE 1=1';
+    const params = [];
+    let paramIndex = 1;
+
+    if (entity_type) {
+      query += ` AND issuer_entity_type = $${paramIndex}`;
+      params.push(entity_type);
+      paramIndex++;
+    }
+
+    if (status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+
+    if (user_id) {
+      query += ` AND user_id = $${paramIndex}`;
+      params.push(user_id);
+      paramIndex++;
+    }
+
+    query += ' ORDER BY issue_date DESC';
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Link invoice to user and entity
+app.put('/api/invoices/:id/link', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_id, branch_id, office_id, incubator_id, issuer_entity_type } = req.body;
+
+    const result = await db.query(
+      `UPDATE invoices SET
+        user_id = $1,
+        branch_id = $2,
+        office_id = $3,
+        incubator_id = $4,
+        issuer_entity_type = $5,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6 RETURNING *`,
+      [user_id, branch_id, office_id, incubator_id, issuer_entity_type, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الفاتورة غير موجودة' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
+// ENHANCED ADS APIs (with entity relationships)
+// ========================================
+
+// Get ads with source entity details
+app.get('/api/ads-with-source', async (req, res) => {
+  try {
+    const { entity_type, status } = req.query;
+    let query = 'SELECT * FROM ads_with_source WHERE 1=1';
+    const params = [];
+    let paramIndex = 1;
+
+    if (entity_type) {
+      query += ` AND ad_source_entity_type = $${paramIndex}`;
+      params.push(entity_type);
+      paramIndex++;
+    }
+
+    if (status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Link ad to new hierarchy entity
+app.put('/api/ads/:id/link-source', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { entity_type, hq_id, branch_id, incubator_id, platform_id, office_id } = req.body;
+
+    const result = await db.query(
+      `UPDATE ads SET
+        hq_id = $1,
+        new_branch_id = $2,
+        new_incubator_id = $3,
+        new_platform_id = $4,
+        new_office_id = $5,
+        ad_source_entity_type = $6,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $7 RETURNING *`,
+      [hq_id, branch_id, incubator_id, platform_id, office_id, entity_type, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الإعلان غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // Error handling middleware
 // ========================================
 app.use((err, req, res, next) => {
