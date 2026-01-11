@@ -2017,22 +2017,6 @@ app.get('/api/employees', async (req, res) => {
   try {
     const { entity_type, entity_id, is_active } = req.query;
     
-    // First, resolve the user's entity string ID to the numeric DB ID if needed
-    let userEntityDbId = req.userEntity.id;
-    
-    if (req.userEntity.type !== 'HQ') {
-      // Try to resolve the entity ID to get its numeric DB ID
-      const entityRes = await db.query(
-        'SELECT id FROM entities WHERE id = $1', 
-        [req.userEntity.id]
-      );
-      if (entityRes.rows.length === 0) {
-        // Entity not found
-        return res.json([]);
-      }
-      userEntityDbId = entityRes.rows[0].id;
-    }
-    
     // Build base query with data isolation
     let query = `
       SELECT 
@@ -2043,6 +2027,7 @@ app.get('/api/employees', async (req, res) => {
         emp.position,
         emp.department,
         emp.assigned_entity_type,
+        COALESCE(hq.entity_id, b.entity_id, i.entity_id, p.entity_id, o.entity_id, 'HQ001') as entity_id,
         COALESCE(hq.name, b.name, i.name, p.name, o.name) as entity_name,
         COALESCE(b.code, i.code, p.code, o.code) as entity_code,
         emp.hire_date,
@@ -2060,19 +2045,12 @@ app.get('/api/employees', async (req, res) => {
     const params = [];
     let paramIndex = 1;
 
-    // Apply user's entity filter
+    // Apply user's entity filter by entity ID string
     if (req.userEntity.type !== 'HQ') {
       // Non-HQ entities see only their own employees
-      if (req.userEntity.type === 'BRANCH') {
-        query += ` AND emp.branch_id = $${paramIndex}`;
-      } else if (req.userEntity.type === 'INCUBATOR') {
-        query += ` AND emp.incubator_id = $${paramIndex}`;
-      } else if (req.userEntity.type === 'PLATFORM') {
-        query += ` AND emp.platform_id = $${paramIndex}`;
-      } else if (req.userEntity.type === 'OFFICE') {
-        query += ` AND emp.office_id = $${paramIndex}`;
-      }
-      params.push(userEntityDbId);
+      // Use entity_id from the joined tables
+      query += ` AND COALESCE(b.entity_id, i.entity_id, p.entity_id, o.entity_id) = $${paramIndex}`;
+      params.push(req.userEntity.id);
       paramIndex++;
     }
 
@@ -2084,18 +2062,9 @@ app.get('/api/employees', async (req, res) => {
     }
 
     if (entity_id) {
-      // Resolve entity_id to numeric DB ID
-      const eidRes = await db.query(
-        'SELECT id FROM entities WHERE id = $1 OR id::text = $1',
-        [entity_id]
-      );
-      if (eidRes.rows.length > 0) {
-        query += ` AND COALESCE(emp.hq_id, emp.branch_id, emp.incubator_id, emp.platform_id, emp.office_id) = $${paramIndex}`;
-        params.push(eidRes.rows[0].id);
-        paramIndex++;
-      } else {
-        return res.json([]);
-      }
+      query += ` AND COALESCE(b.entity_id, i.entity_id, p.entity_id, o.entity_id) = $${paramIndex}`;
+      params.push(entity_id);
+      paramIndex++;
     }
 
     if (is_active !== undefined) {
