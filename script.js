@@ -1676,14 +1676,19 @@ const app = (() => {
                 <!-- Office-Platform Links Section -->
                 <div class="bg-white rounded-2xl shadow-lg border-2 border-pink-200 overflow-hidden">
                     <div class="bg-gradient-to-r from-pink-600 to-pink-700 p-6 text-white">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-white/20 rounded-full p-3">
-                                <i class="fas fa-link text-2xl"></i>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/20 rounded-full p-3">
+                                    <i class="fas fa-link text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-black">روابط المكاتب بالمنصات</h3>
+                                    <p class="text-sm opacity-90">عرض العلاقات بين المكاتب والمنصات المرتبطة بها</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-xl font-black">روابط المكاتب بالمنصات</h3>
-                                <p class="text-sm opacity-90">عرض العلاقات بين المكاتب والمنصات المرتبطة بها</p>
-                            </div>
+                            <button onclick="app.openCreateLinkModal()" class="bg-white text-pink-600 px-4 py-2 rounded-xl font-bold hover:bg-pink-50 transition flex items-center gap-2 shadow-lg">
+                                <i class="fas fa-plus"></i> ربط جديد
+                            </button>
                         </div>
                     </div>
                     
@@ -1704,6 +1709,9 @@ const app = (() => {
                                             </th>
                                             <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
                                                 الحالة
+                                            </th>
+                                            <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
+                                                <i class="fas fa-cog ml-2"></i>الإجراءات
                                             </th>
                                         </tr>
                                     </thead>
@@ -1740,6 +1748,12 @@ const app = (() => {
                                                         <i class="fas ${link.is_active ? 'fa-check-circle' : 'fa-times-circle'}"></i>
                                                         ${link.is_active ? 'نشط' : 'معطل'}
                                                     </span>
+                                                </td>
+                                                <td class="px-4 py-4 text-center">
+                                                    <button onclick="app.deleteLink(${link.office_id}, ${link.platform_id}, '${link.office_name}', '${link.platform_name}')" 
+                                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto">
+                                                        <i class="fas fa-unlink"></i> حذف
+                                                    </button>
                                                 </td>
                                             </tr>
                                         `).join('')}
@@ -1881,6 +1895,45 @@ const app = (() => {
                         <p class="text-slate-500">لم يتم إنشاء أي هيكل تنظيمي بعد</p>
                     </div>
                 ` : ''}
+
+                <!-- Create Link Modal -->
+                <div id="createLinkModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-fade-in">
+                        <div class="bg-gradient-to-r from-pink-600 to-pink-700 p-6 text-white rounded-t-2xl">
+                            <h3 class="text-xl font-black flex items-center gap-2">
+                                <i class="fas fa-link"></i> إنشاء ربط جديد
+                            </h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">
+                                    <i class="fas fa-briefcase text-teal-500 ml-1"></i> اختر المكتب
+                                </label>
+                                <select id="linkOfficeSelect" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition">
+                                    <option value="">-- اختر المكتب --</option>
+                                    ${offices.map(o => `<option value="${o.id}">${o.name} (${o.code})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">
+                                    <i class="fas fa-server text-orange-500 ml-1"></i> اختر المنصة
+                                </label>
+                                <select id="linkPlatformSelect" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition">
+                                    <option value="">-- اختر المنصة --</option>
+                                    ${platforms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 p-6 bg-slate-50 rounded-b-2xl">
+                            <button onclick="app.closeCreateLinkModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-3 rounded-xl font-bold transition">
+                                إلغاء
+                            </button>
+                            <button onclick="app.submitCreateLink()" class="flex-1 bg-pink-600 hover:bg-pink-700 text-white px-4 py-3 rounded-xl font-bold transition">
+                                <i class="fas fa-link ml-1"></i> إنشاء الربط
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>`;
         } catch (error) {
             console.error('Error loading hierarchy:', error);
@@ -1900,6 +1953,74 @@ const app = (() => {
             <h3 class="text-2xl font-bold text-slate-700">وصول مقيد</h3>
             <p class="text-slate-500 mt-2 max-w-md mx-auto">${msg}</p>
         </div>`;
+
+    // --- OFFICE-PLATFORM LINK MANAGEMENT ---
+    const openCreateLinkModal = () => {
+        const modal = document.getElementById('createLinkModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.getElementById('linkOfficeSelect').value = '';
+            document.getElementById('linkPlatformSelect').value = '';
+        }
+    };
+
+    const closeCreateLinkModal = () => {
+        const modal = document.getElementById('createLinkModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    const submitCreateLink = async () => {
+        const officeId = document.getElementById('linkOfficeSelect').value;
+        const platformId = document.getElementById('linkPlatformSelect').value;
+
+        if (!officeId || !platformId) {
+            showToast('يرجى اختيار المكتب والمنصة', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/offices/${officeId}/platforms/${platformId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'فشل إنشاء الربط');
+            }
+
+            showToast('تم إنشاء الربط بنجاح', 'success');
+            closeCreateLinkModal();
+            loadRoute('hierarchy'); // إعادة تحميل الصفحة
+        } catch (error) {
+            console.error('Error creating link:', error);
+            showToast(error.message || 'فشل إنشاء الربط', 'error');
+        }
+    };
+
+    const deleteLink = async (officeId, platformId, officeName, platformName) => {
+        const confirm = window.confirm(`هل أنت متأكد من حذف الربط بين:\n\n💼 ${officeName}\n↕️\n🖥️ ${platformName}\n\n⚠️ لا يمكن التراجع عن هذا الإجراء!`);
+        
+        if (!confirm) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/offices/${officeId}/platforms/${platformId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'فشل حذف الربط');
+            }
+
+            showToast('تم حذف الربط بنجاح', 'success');
+            loadRoute('hierarchy'); // إعادة تحميل الصفحة
+        } catch (error) {
+            console.error('Error deleting link:', error);
+            showToast(error.message || 'فشل حذف الربط', 'error');
+        }
+    };
 
     // --- APPROVAL ACTIONS ---
     const handleApprovalDecision = async (workflowId, stepId, decision) => {
@@ -1944,7 +2065,8 @@ const app = (() => {
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
-        handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy')
+        handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
+        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink
     };
 })();
 
