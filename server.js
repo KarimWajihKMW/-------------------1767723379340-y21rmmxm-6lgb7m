@@ -1256,6 +1256,611 @@ app.get('/api/incubator/stats', async (req, res) => {
 });
 
 // ========================================
+// Multi-Tenant APIs - نظام متعدد المستأجرين
+// ========================================
+
+// ---- HeadQuarters APIs (المقرات الرئيسية) ----
+
+// Get all headquarters
+app.get('/api/headquarters', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM headquarters ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get headquarters by ID
+app.get('/api/headquarters/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM headquarters WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المقر الرئيسي غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new headquarters
+app.post('/api/headquarters', async (req, res) => {
+  try {
+    const { name, code, description, country, contact_email, contact_phone, logo_url, settings } = req.body;
+    const result = await db.query(
+      `INSERT INTO headquarters (name, code, description, country, contact_email, contact_phone, logo_url, settings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [name, code, description, country, contact_email, contact_phone, logo_url, settings || {}]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update headquarters
+app.put('/api/headquarters/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, description, country, contact_email, contact_phone, logo_url, settings, is_active } = req.body;
+    const result = await db.query(
+      `UPDATE headquarters 
+       SET name = COALESCE($1, name),
+           code = COALESCE($2, code),
+           description = COALESCE($3, description),
+           country = COALESCE($4, country),
+           contact_email = COALESCE($5, contact_email),
+           contact_phone = COALESCE($6, contact_phone),
+           logo_url = COALESCE($7, logo_url),
+           settings = COALESCE($8, settings),
+           is_active = COALESCE($9, is_active)
+       WHERE id = $10 RETURNING *`,
+      [name, code, description, country, contact_email, contact_phone, logo_url, settings, is_active, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المقر الرئيسي غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete headquarters
+app.delete('/api/headquarters/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM headquarters WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المقر الرئيسي غير موجود' });
+    }
+    res.json({ message: 'تم حذف المقر الرئيسي بنجاح', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ---- Branches APIs (الفروع) ----
+
+// Get all branches (with optional HQ filter)
+app.get('/api/branches', async (req, res) => {
+  try {
+    const { hq_id } = req.query;
+    let query = `
+      SELECT b.*, hq.name as hq_name, hq.code as hq_code
+      FROM branches b
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+    `;
+    const params = [];
+    if (hq_id) {
+      query += ' WHERE b.hq_id = $1';
+      params.push(hq_id);
+    }
+    query += ' ORDER BY b.created_at DESC';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get branch by ID
+app.get('/api/branches/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(`
+      SELECT b.*, hq.name as hq_name, hq.code as hq_code
+      FROM branches b
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+      WHERE b.id = $1
+    `, [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الفرع غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new branch
+app.post('/api/branches', async (req, res) => {
+  try {
+    const { hq_id, name, code, description, country, city, address, contact_email, contact_phone, manager_name, settings } = req.body;
+    const result = await db.query(
+      `INSERT INTO branches (hq_id, name, code, description, country, city, address, contact_email, contact_phone, manager_name, settings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [hq_id, name, code, description, country, city, address, contact_email, contact_phone, manager_name, settings || {}]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update branch
+app.put('/api/branches/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, description, country, city, address, contact_email, contact_phone, manager_name, settings, is_active } = req.body;
+    const result = await db.query(
+      `UPDATE branches 
+       SET name = COALESCE($1, name),
+           code = COALESCE($2, code),
+           description = COALESCE($3, description),
+           country = COALESCE($4, country),
+           city = COALESCE($5, city),
+           address = COALESCE($6, address),
+           contact_email = COALESCE($7, contact_email),
+           contact_phone = COALESCE($8, contact_phone),
+           manager_name = COALESCE($9, manager_name),
+           settings = COALESCE($10, settings),
+           is_active = COALESCE($11, is_active)
+       WHERE id = $12 RETURNING *`,
+      [name, code, description, country, city, address, contact_email, contact_phone, manager_name, settings, is_active, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الفرع غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete branch
+app.delete('/api/branches/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM branches WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الفرع غير موجود' });
+    }
+    res.json({ message: 'تم حذف الفرع بنجاح', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ---- Incubators APIs (الحاضنات) ----
+
+// Get all incubators (with optional branch filter)
+app.get('/api/incubators', async (req, res) => {
+  try {
+    const { branch_id } = req.query;
+    let query = `
+      SELECT i.*, 
+             b.name as branch_name, b.code as branch_code,
+             hq.name as hq_name, hq.code as hq_code
+      FROM incubators i
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+    `;
+    const params = [];
+    if (branch_id) {
+      query += ' WHERE i.branch_id = $1';
+      params.push(branch_id);
+    }
+    query += ' ORDER BY i.created_at DESC';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get incubator by ID
+app.get('/api/incubators/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(`
+      SELECT i.*, 
+             b.name as branch_name, b.code as branch_code,
+             hq.name as hq_name, hq.code as hq_code
+      FROM incubators i
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+      WHERE i.id = $1
+    `, [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الحاضنة غير موجودة' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new incubator
+app.post('/api/incubators', async (req, res) => {
+  try {
+    const { branch_id, name, code, description, program_type, capacity, contact_email, contact_phone, manager_name, start_date, end_date, settings } = req.body;
+    const result = await db.query(
+      `INSERT INTO incubators (branch_id, name, code, description, program_type, capacity, contact_email, contact_phone, manager_name, start_date, end_date, settings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [branch_id, name, code, description, program_type, capacity, contact_email, contact_phone, manager_name, start_date, end_date, settings || {}]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update incubator
+app.put('/api/incubators/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, description, program_type, capacity, contact_email, contact_phone, manager_name, start_date, end_date, settings, is_active } = req.body;
+    const result = await db.query(
+      `UPDATE incubators 
+       SET name = COALESCE($1, name),
+           code = COALESCE($2, code),
+           description = COALESCE($3, description),
+           program_type = COALESCE($4, program_type),
+           capacity = COALESCE($5, capacity),
+           contact_email = COALESCE($6, contact_email),
+           contact_phone = COALESCE($7, contact_phone),
+           manager_name = COALESCE($8, manager_name),
+           start_date = COALESCE($9, start_date),
+           end_date = COALESCE($10, end_date),
+           settings = COALESCE($11, settings),
+           is_active = COALESCE($12, is_active)
+       WHERE id = $13 RETURNING *`,
+      [name, code, description, program_type, capacity, contact_email, contact_phone, manager_name, start_date, end_date, settings, is_active, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الحاضنة غير موجودة' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete incubator
+app.delete('/api/incubators/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM incubators WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الحاضنة غير موجودة' });
+    }
+    res.json({ message: 'تم حذف الحاضنة بنجاح', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ---- Platforms APIs (المنصات) ----
+
+// Get all platforms (with optional incubator filter)
+app.get('/api/platforms', async (req, res) => {
+  try {
+    const { incubator_id } = req.query;
+    let query = `
+      SELECT p.*, 
+             i.name as incubator_name, i.code as incubator_code,
+             b.name as branch_name,
+             hq.name as hq_name
+      FROM platforms p
+      LEFT JOIN incubators i ON p.incubator_id = i.id
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+    `;
+    const params = [];
+    if (incubator_id) {
+      query += ' WHERE p.incubator_id = $1';
+      params.push(incubator_id);
+    }
+    query += ' ORDER BY p.created_at DESC';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get platform by ID
+app.get('/api/platforms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(`
+      SELECT p.*, 
+             i.name as incubator_name, i.code as incubator_code,
+             b.name as branch_name,
+             hq.name as hq_name
+      FROM platforms p
+      LEFT JOIN incubators i ON p.incubator_id = i.id
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+      WHERE p.id = $1
+    `, [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المنصة غير موجودة' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new platform
+app.post('/api/platforms', async (req, res) => {
+  try {
+    const { incubator_id, name, code, description, platform_type, pricing_model, base_price, currency, features, settings } = req.body;
+    const result = await db.query(
+      `INSERT INTO platforms (incubator_id, name, code, description, platform_type, pricing_model, base_price, currency, features, settings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [incubator_id, name, code, description, platform_type, pricing_model, base_price || 0, currency || 'USD', features || [], settings || {}]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update platform
+app.put('/api/platforms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, description, platform_type, pricing_model, base_price, currency, features, settings, is_active } = req.body;
+    const result = await db.query(
+      `UPDATE platforms 
+       SET name = COALESCE($1, name),
+           code = COALESCE($2, code),
+           description = COALESCE($3, description),
+           platform_type = COALESCE($4, platform_type),
+           pricing_model = COALESCE($5, pricing_model),
+           base_price = COALESCE($6, base_price),
+           currency = COALESCE($7, currency),
+           features = COALESCE($8, features),
+           settings = COALESCE($9, settings),
+           is_active = COALESCE($10, is_active)
+       WHERE id = $11 RETURNING *`,
+      [name, code, description, platform_type, pricing_model, base_price, currency, features, settings, is_active, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المنصة غير موجودة' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete platform
+app.delete('/api/platforms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM platforms WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المنصة غير موجودة' });
+    }
+    res.json({ message: 'تم حذف المنصة بنجاح', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ---- Offices APIs (المكاتب) ----
+
+// Get all offices (with optional incubator filter)
+app.get('/api/offices', async (req, res) => {
+  try {
+    const { incubator_id } = req.query;
+    let query = `
+      SELECT o.*, 
+             i.name as incubator_name, i.code as incubator_code,
+             b.name as branch_name,
+             hq.name as hq_name
+      FROM offices o
+      LEFT JOIN incubators i ON o.incubator_id = i.id
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+    `;
+    const params = [];
+    if (incubator_id) {
+      query += ' WHERE o.incubator_id = $1';
+      params.push(incubator_id);
+    }
+    query += ' ORDER BY o.created_at DESC';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get office by ID
+app.get('/api/offices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(`
+      SELECT o.*, 
+             i.name as incubator_name, i.code as incubator_code,
+             b.name as branch_name,
+             hq.name as hq_name
+      FROM offices o
+      LEFT JOIN incubators i ON o.incubator_id = i.id
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+      WHERE o.id = $1
+    `, [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المكتب غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new office
+app.post('/api/offices', async (req, res) => {
+  try {
+    const { incubator_id, name, code, description, office_type, location, address, capacity, working_hours, contact_email, contact_phone, manager_name, settings } = req.body;
+    const result = await db.query(
+      `INSERT INTO offices (incubator_id, name, code, description, office_type, location, address, capacity, working_hours, contact_email, contact_phone, manager_name, settings)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [incubator_id, name, code, description, office_type, location, address, capacity || 0, working_hours || {}, contact_email, contact_phone, manager_name, settings || {}]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update office
+app.put('/api/offices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, description, office_type, location, address, capacity, working_hours, contact_email, contact_phone, manager_name, settings, is_active } = req.body;
+    const result = await db.query(
+      `UPDATE offices 
+       SET name = COALESCE($1, name),
+           code = COALESCE($2, code),
+           description = COALESCE($3, description),
+           office_type = COALESCE($4, office_type),
+           location = COALESCE($5, location),
+           address = COALESCE($6, address),
+           capacity = COALESCE($7, capacity),
+           working_hours = COALESCE($8, working_hours),
+           contact_email = COALESCE($9, contact_email),
+           contact_phone = COALESCE($10, contact_phone),
+           manager_name = COALESCE($11, manager_name),
+           settings = COALESCE($12, settings),
+           is_active = COALESCE($13, is_active)
+       WHERE id = $14 RETURNING *`,
+      [name, code, description, office_type, location, address, capacity, working_hours, contact_email, contact_phone, manager_name, settings, is_active, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المكتب غير موجود' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete office
+app.delete('/api/offices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM offices WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'المكتب غير موجود' });
+    }
+    res.json({ message: 'تم حذف المكتب بنجاح', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get platforms for a specific office
+app.get('/api/offices/:id/platforms', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(`
+      SELECT p.*, op.is_active as is_linked
+      FROM office_platforms op
+      JOIN platforms p ON op.platform_id = p.id
+      WHERE op.office_id = $1 AND op.is_active = true
+      ORDER BY p.name
+    `, [id]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Link office to platform
+app.post('/api/offices/:office_id/platforms/:platform_id', async (req, res) => {
+  try {
+    const { office_id, platform_id } = req.params;
+    const result = await db.query(
+      `INSERT INTO office_platforms (office_id, platform_id)
+       VALUES ($1, $2)
+       ON CONFLICT (office_id, platform_id) DO UPDATE SET is_active = true
+       RETURNING *`,
+      [office_id, platform_id]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Unlink office from platform
+app.delete('/api/offices/:office_id/platforms/:platform_id', async (req, res) => {
+  try {
+    const { office_id, platform_id } = req.params;
+    const result = await db.query(
+      'DELETE FROM office_platforms WHERE office_id = $1 AND platform_id = $2 RETURNING *',
+      [office_id, platform_id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الربط غير موجود' });
+    }
+    res.json({ message: 'تم إلغاء ربط المكتب بالمنصة', data: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get full hierarchy view
+app.get('/api/hierarchy', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT * FROM entity_hierarchy
+      ORDER BY hq_id, branch_id, incubator_id, platform_id, office_id
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get hierarchy statistics
+app.get('/api/hierarchy/stats', async (req, res) => {
+  try {
+    const stats = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM headquarters WHERE is_active = true) as active_hqs,
+        (SELECT COUNT(*) FROM branches WHERE is_active = true) as active_branches,
+        (SELECT COUNT(*) FROM incubators WHERE is_active = true) as active_incubators,
+        (SELECT COUNT(*) FROM platforms WHERE is_active = true) as active_platforms,
+        (SELECT COUNT(*) FROM offices WHERE is_active = true) as active_offices,
+        (SELECT COUNT(*) FROM office_platforms WHERE is_active = true) as active_links
+    `);
+    res.json(stats.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // Error handling middleware
 // ========================================
 app.use((err, req, res, next) => {

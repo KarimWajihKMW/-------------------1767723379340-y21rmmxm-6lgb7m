@@ -1,0 +1,22 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node add-multi-tenant-system\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-multi-tenant\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "npm install": true,
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c server\\.js && echo \"✅ server\\.js بناء ناجح\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c db\\.js && echo \"✅ db\\.js بناء ناجح\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "git add": true
+    }
+}
