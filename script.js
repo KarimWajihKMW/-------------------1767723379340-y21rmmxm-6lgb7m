@@ -522,6 +522,7 @@ const app = (() => {
         
         let content = '';
         if (route === 'dashboard') content = renderDashboard();
+        else if (route === 'hierarchy') content = await renderHierarchy();
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'billing') content = renderBilling();
@@ -561,6 +562,7 @@ const app = (() => {
     const getTitle = (r) => {
         const map = { 
             'dashboard': 'لوحة القيادة (Tenant Dashboard)',
+            'hierarchy': 'الهيكل الهرمي - Multi-Tenant',
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
             'billing': 'الإدارة المالية والفواتير',
             'approvals': 'الموافقات المالية التدريجية',
@@ -595,6 +597,7 @@ const app = (() => {
         
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
+            { id: 'hierarchy', icon: 'fa-sitemap', label: 'الهيكل الهرمي', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
             { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
@@ -1579,6 +1582,185 @@ const app = (() => {
         </div>`;
     };
 
+    // --- HIERARCHY VIEWER (Multi-Tenant Structure) ---
+    const renderHierarchy = async () => {
+        try {
+            // جلب البيانات من API
+            const stats = await fetchAPI('/hierarchy/stats');
+            const headquarters = await fetchAPI('/headquarters');
+            const branches = await fetchAPI('/branches');
+            const incubators = await fetchAPI('/incubators');
+            const platforms = await fetchAPI('/platforms');
+            const offices = await fetchAPI('/offices');
+
+            return `
+            <div class="space-y-8 animate-fade-in">
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">الهيكل الهرمي للمنصة</h2>
+                        <p class="text-slate-500">عرض شامل للمقرات → الفروع → الحاضنات → المنصات → المكاتب</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="app.refreshHierarchy()" class="bg-brand-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2">
+                            <i class="fas fa-sync-alt"></i> تحديث
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-building text-2xl opacity-80"></i>
+                            <span class="text-3xl font-black">${stats.active_hqs || 0}</span>
+                        </div>
+                        <p class="text-xs font-semibold opacity-90">مقرات رئيسية</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-map-marked-alt text-2xl opacity-80"></i>
+                            <span class="text-3xl font-black">${stats.active_branches || 0}</span>
+                        </div>
+                        <p class="text-xs font-semibold opacity-90">فروع</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-seedling text-2xl opacity-80"></i>
+                            <span class="text-3xl font-black">${stats.active_incubators || 0}</span>
+                        </div>
+                        <p class="text-xs font-semibold opacity-90">حاضنات</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-server text-2xl opacity-80"></i>
+                            <span class="text-3xl font-black">${stats.active_platforms || 0}</span>
+                        </div>
+                        <p class="text-xs font-semibold opacity-90">منصات</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-4 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-briefcase text-2xl opacity-80"></i>
+                            <span class="text-3xl font-black">${stats.active_offices || 0}</span>
+                        </div>
+                        <p class="text-xs font-semibold opacity-90">مكاتب</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-4 text-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-link text-2xl opacity-80"></i>
+                            <span class="text-3xl font-black">${stats.active_links || 0}</span>
+                        </div>
+                        <p class="text-xs font-semibold opacity-90">روابط</p>
+                    </div>
+                </div>
+
+                <!-- Hierarchical Tree View -->
+                ${headquarters.map(hq => `
+                    <div class="bg-white rounded-2xl shadow-lg border-2 border-purple-200 overflow-hidden">
+                        <!-- HQ Header -->
+                        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-white/20 rounded-full p-3">
+                                        <i class="fas fa-building text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-black">${hq.name}</h3>
+                                        <p class="text-sm opacity-90">رمز: ${hq.code} | ${hq.country || 'عالمي'}</p>
+                                    </div>
+                                </div>
+                                <span class="px-4 py-1 rounded-full text-xs font-bold ${hq.is_active ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}">
+                                    ${hq.is_active ? 'نشط' : 'غير نشط'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Branches -->
+                        <div class="p-6 space-y-4">
+                            ${branches.filter(b => b.hq_id === hq.id).map(branch => `
+                                <div class="border-r-4 border-blue-400 bg-blue-50 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas fa-map-marked-alt text-xl text-blue-600"></i>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800">${branch.name}</h4>
+                                                <p class="text-xs text-slate-500">${branch.city}, ${branch.country} | ${branch.code}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-bold px-3 py-1 rounded-full ${branch.is_active ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}">
+                                            ${branch.is_active ? 'فعال' : 'معطل'}
+                                        </span>
+                                    </div>
+
+                                    <!-- Incubators -->
+                                    ${incubators.filter(i => i.branch_id === branch.id).map(incubator => `
+                                        <div class="mr-6 mt-3 border-r-4 border-green-400 bg-white rounded-lg p-4">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-2">
+                                                    <i class="fas fa-seedling text-green-600"></i>
+                                                    <div>
+                                                        <h5 class="font-bold text-sm text-slate-800">${incubator.name}</h5>
+                                                        <p class="text-xs text-slate-500">${incubator.program_type} | السعة: ${incubator.capacity}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Platforms & Offices in Grid -->
+                                            <div class="mr-4 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <!-- Platforms -->
+                                                <div class="space-y-2">
+                                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                                                        <i class="fas fa-server text-orange-500"></i> المنصات
+                                                    </p>
+                                                    ${platforms.filter(p => p.incubator_id === incubator.id).map(platform => `
+                                                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                                                            <p class="text-xs font-semibold text-slate-700">${platform.name}</p>
+                                                            <p class="text-xs text-slate-500">${platform.pricing_model} - ${platform.base_price} ${platform.currency}</p>
+                                                        </div>
+                                                    `).join('') || '<p class="text-xs text-slate-400 italic">لا توجد منصات</p>'}
+                                                </div>
+
+                                                <!-- Offices -->
+                                                <div class="space-y-2">
+                                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                                                        <i class="fas fa-briefcase text-teal-500"></i> المكاتب
+                                                    </p>
+                                                    ${offices.filter(o => o.incubator_id === incubator.id).map(office => `
+                                                        <div class="bg-teal-50 border border-teal-200 rounded-lg p-2">
+                                                            <p class="text-xs font-semibold text-slate-700">${office.name}</p>
+                                                            <p class="text-xs text-slate-500">${office.office_type} - السعة: ${office.capacity}</p>
+                                                        </div>
+                                                    `).join('') || '<p class="text-xs text-slate-400 italic">لا توجد مكاتب</p>'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') || '<p class="text-xs text-slate-400 italic mr-6 mt-2">لا توجد حاضنات في هذا الفرع</p>'}
+                                </div>
+                            `).join('') || '<p class="text-slate-500 text-center py-8">لا توجد فروع لهذا المقر</p>'}
+                        </div>
+                    </div>
+                `).join('')}
+
+                ${headquarters.length === 0 ? `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+                        <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
+                        <h3 class="text-xl font-bold text-slate-700 mb-2">لا توجد مقرات رئيسية</h3>
+                        <p class="text-slate-500">لم يتم إنشاء أي هيكل تنظيمي بعد</p>
+                    </div>
+                ` : ''}
+            </div>`;
+        } catch (error) {
+            console.error('Error loading hierarchy:', error);
+            showToast('فشل تحميل الهيكل الهرمي', 'error');
+            return `
+            <div class="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-red-700 mb-2">خطأ في التحميل</h3>
+                <p class="text-red-600">${error.message}</p>
+            </div>`;
+        }
+    };
+
     const renderPlaceholder = (msg = 'لا تملك صلاحية الوصول') => `
         <div class="flex flex-col items-center justify-center h-96 text-center animate-fade-in px-4">
             <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner"><i class="fas fa-lock text-4xl text-slate-400"></i></div>
@@ -1629,7 +1811,7 @@ const app = (() => {
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
-        handleApprovalDecision
+        handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy')
     };
 })();
 
