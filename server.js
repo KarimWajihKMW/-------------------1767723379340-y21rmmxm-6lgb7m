@@ -15,6 +15,50 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Serve static files
 app.use(express.static('.'));
 
+// ========================================
+// DATA ISOLATION MIDDLEWARE
+// ========================================
+
+// Middleware to extract and validate user entity
+app.use((req, res, next) => {
+  try {
+    // In real production, this would come from JWT token
+    // For now, we'll extract it from headers or use default
+    const userEntityType = req.headers['x-entity-type'] || 'HQ';
+    const userEntityId = req.headers['x-entity-id'] || 'HQ001';
+    
+    // Attach to request for use in routes
+    req.userEntity = {
+      type: userEntityType,
+      id: userEntityId
+    };
+    
+    next();
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid entity context' });
+  }
+});
+
+// Helper function to build entity filter WHERE clause
+const getEntityFilter = (userEntity, tableAlias = '') => {
+  const alias = tableAlias ? `${tableAlias}.` : '';
+  
+  if (userEntity.type === 'HQ') {
+    // HQ sees all data
+    return '1=1';
+  } else if (userEntity.type === 'BRANCH') {
+    return `${alias}branch_id = '${userEntity.id}' OR ${alias}entity_id = '${userEntity.id}'`;
+  } else if (userEntity.type === 'INCUBATOR') {
+    return `${alias}incubator_id = '${userEntity.id}' OR ${alias}entity_id = '${userEntity.id}'`;
+  } else if (userEntity.type === 'PLATFORM') {
+    return `${alias}platform_id = '${userEntity.id}' OR ${alias}entity_id = '${userEntity.id}'`;
+  } else if (userEntity.type === 'OFFICE') {
+    return `${alias}office_id = '${userEntity.id}' OR ${alias}entity_id = '${userEntity.id}'`;
+  }
+  
+  return `${alias}entity_id = '${userEntity.id}'`;
+};
+
 // Root health check for Railway
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -58,19 +102,21 @@ app.get('/api/entities/:id', async (req, res) => {
   }
 });
 
-// Get all users
+// Get all users with data isolation
 app.get('/api/users', async (req, res) => {
   try {
-    const { entity_id } = req.query;
-    let query = 'SELECT * FROM users ORDER BY created_at DESC';
-    let params = [];
+    const entityFilter = getEntityFilter(req.userEntity);
     
-    if (entity_id) {
-      query = 'SELECT * FROM users WHERE entity_id = $1 ORDER BY created_at DESC';
-      params = [entity_id];
-    }
+    const query = `
+      SELECT u.*, 
+        COALESCE(e.name, 'غير محدد') as entity_name
+      FROM users u
+      LEFT JOIN entities e ON u.entity_id = e.id
+      WHERE ${entityFilter}
+      ORDER BY u.created_at DESC
+    `;
     
-    const result = await db.query(query, params);
+    const result = await db.query(query);
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -91,24 +137,49 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
-// Get all invoices
+// Get all invoices with data isolation
 app.get('/api/invoices', async (req, res) => {
   try {
     const { entity_id, status } = req.query;
-    let query = 'SELECT * FROM invoices ORDER BY created_at DESC';
+    let query = 'SELECT * FROM invoices WHERE 1=1';
     let params = [];
+    let paramIndex = 1;
     
-    if (entity_id && status) {
-      query = 'SELECT * FROM invoices WHERE entity_id = $1 AND status = $2 ORDER BY created_at DESC';
-      params = [entity_id, status];
-    } else if (entity_id) {
-      query = 'SELECT * FROM invoices WHERE entity_id = $1 ORDER BY created_at DESC';
-      params = [entity_id];
-    } else if (status) {
-      query = 'SELECT * FROM invoices WHERE status = $1 ORDER BY created_at DESC';
-      params = [status];
+    // Apply user's entity filter
+    if (req.userEntity.type === 'HQ') {
+      // HQ sees all invoices
+    } else if (req.userEntity.type === 'BRANCH') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'INCUBATOR') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'PLATFORM') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'OFFICE') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
     }
     
+    // Additional filters
+    if (entity_id) {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(entity_id);
+      paramIndex++;
+    }
+    
+    if (status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY created_at DESC';
     const result = await db.query(query, params);
     res.json(result.rows);
   } catch (error) {
@@ -120,14 +191,39 @@ app.get('/api/invoices', async (req, res) => {
 app.get('/api/transactions', async (req, res) => {
   try {
     const { entity_id } = req.query;
-    let query = 'SELECT * FROM transactions ORDER BY transaction_date DESC';
+    let query = 'SELECT * FROM transactions WHERE 1=1';
     let params = [];
+    let paramIndex = 1;
     
-    if (entity_id) {
-      query = 'SELECT * FROM transactions WHERE entity_id = $1 ORDER BY transaction_date DESC';
-      params = [entity_id];
+    // Apply user's entity filter
+    if (req.userEntity.type === 'HQ') {
+      // HQ sees all transactions
+    } else if (req.userEntity.type === 'BRANCH') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'INCUBATOR') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'PLATFORM') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'OFFICE') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
     }
     
+    // Additional entity_id filter if provided
+    if (entity_id) {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(entity_id);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY transaction_date DESC';
     const result = await db.query(query, params);
     res.json(result.rows);
   } catch (error) {
@@ -135,18 +231,43 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
-// Get ledger entries
+// Get ledger entries with data isolation
 app.get('/api/ledger', async (req, res) => {
   try {
     const { entity_id } = req.query;
-    let query = 'SELECT * FROM ledger ORDER BY transaction_date DESC';
+    let query = 'SELECT * FROM ledger WHERE 1=1';
     let params = [];
+    let paramIndex = 1;
     
-    if (entity_id) {
-      query = 'SELECT * FROM ledger WHERE entity_id = $1 ORDER BY transaction_date DESC';
-      params = [entity_id];
+    // Apply user's entity filter
+    if (req.userEntity.type === 'HQ') {
+      // HQ sees all ledger entries
+    } else if (req.userEntity.type === 'BRANCH') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'INCUBATOR') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'PLATFORM') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    } else if (req.userEntity.type === 'OFFICE') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
     }
     
+    // Additional entity_id filter if provided
+    if (entity_id) {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(entity_id);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY transaction_date DESC';
     const result = await db.query(query, params);
     res.json(result.rows);
   } catch (error) {
@@ -154,27 +275,44 @@ app.get('/api/ledger', async (req, res) => {
   }
 });
 
-// Get all ads
+// Get all ads with data isolation
 app.get('/api/ads', async (req, res) => {
   try {
     const { entity_id, status, level } = req.query;
-    let query = 'SELECT * FROM ads ORDER BY created_at DESC';
+    let query = 'SELECT * FROM ads WHERE 1=1';
     let params = [];
+    let paramIndex = 1;
     
-    if (entity_id && status) {
-      query = 'SELECT * FROM ads WHERE source_entity_id = $1 AND status = $2 ORDER BY created_at DESC';
-      params = [entity_id, status];
-    } else if (entity_id) {
-      query = 'SELECT * FROM ads WHERE source_entity_id = $1 ORDER BY created_at DESC';
-      params = [entity_id];
-    } else if (status) {
-      query = 'SELECT * FROM ads WHERE status = $1 ORDER BY created_at DESC';
-      params = [status];
-    } else if (level) {
-      query = 'SELECT * FROM ads WHERE level = $1 ORDER BY created_at DESC';
-      params = [level];
+    // Apply user's entity filter - ads are scoped by source_entity_id
+    if (req.userEntity.type === 'HQ') {
+      // HQ sees all ads
+    } else {
+      // Other entities see their own ads
+      query += ` AND source_entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
     }
     
+    // Additional filters
+    if (entity_id) {
+      query += ` AND source_entity_id = $${paramIndex}`;
+      params.push(entity_id);
+      paramIndex++;
+    }
+    
+    if (status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+    
+    if (level) {
+      query += ` AND level = $${paramIndex}`;
+      params.push(level);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY created_at DESC';
     const result = await db.query(query, params);
     res.json(result.rows);
   } catch (error) {
@@ -300,21 +438,31 @@ app.get('/api/approvals', async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
+    let paramIndex = 1;
+    
+    // Apply user's entity filter
+    if (req.userEntity.type !== 'HQ') {
+      query += ` AND w.entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    }
     
     if (entity_id) {
+      query += ` AND w.entity_id = $${paramIndex}`;
       params.push(entity_id);
-      query += ` AND w.entity_id = $${params.length}`;
+      paramIndex++;
     }
     
     if (status) {
+      query += ` AND w.status = $${paramIndex}`;
       params.push(status);
-      query += ` AND w.status = $${params.length}`;
+      paramIndex++;
     }
     
     if (approver_id) {
       query += ` AND w.id IN (
         SELECT workflow_id FROM approval_steps 
-        WHERE approver_id = $${params.length + 1} AND status = 'PENDING'
+        WHERE approver_id = $${paramIndex} AND status = 'PENDING'
       )`;
       params.push(approver_id);
     }
@@ -1864,39 +2012,99 @@ app.get('/api/hierarchy/stats', async (req, res) => {
 // EMPLOYEES APIs
 // ========================================
 
-// Get all employees
+// Get all employees with data isolation
 app.get('/api/employees', async (req, res) => {
   try {
     const { entity_type, entity_id, is_active } = req.query;
-    let query = 'SELECT * FROM employees_with_entity WHERE 1=1';
+    
+    // First, resolve the user's entity string ID to the numeric DB ID if needed
+    let userEntityDbId = req.userEntity.id;
+    
+    if (req.userEntity.type !== 'HQ') {
+      // Try to resolve the entity ID to get its numeric DB ID
+      const entityRes = await db.query(
+        'SELECT id FROM entities WHERE id = $1', 
+        [req.userEntity.id]
+      );
+      if (entityRes.rows.length === 0) {
+        // Entity not found
+        return res.json([]);
+      }
+      userEntityDbId = entityRes.rows[0].id;
+    }
+    
+    // Build base query with data isolation
+    let query = `
+      SELECT 
+        emp.id,
+        emp.employee_number,
+        emp.full_name,
+        emp.email,
+        emp.position,
+        emp.department,
+        emp.assigned_entity_type,
+        COALESCE(hq.name, b.name, i.name, p.name, o.name) as entity_name,
+        COALESCE(b.code, i.code, p.code, o.code) as entity_code,
+        emp.hire_date,
+        emp.salary,
+        emp.employment_type,
+        emp.is_active
+      FROM employees emp
+      LEFT JOIN headquarters hq ON emp.hq_id = hq.id
+      LEFT JOIN branches b ON emp.branch_id = b.id
+      LEFT JOIN incubators i ON emp.incubator_id = i.id
+      LEFT JOIN platforms p ON emp.platform_id = p.id
+      LEFT JOIN offices o ON emp.office_id = o.id
+      WHERE 1=1
+    `;
     const params = [];
     let paramIndex = 1;
 
+    // Apply user's entity filter
+    if (req.userEntity.type !== 'HQ') {
+      // Non-HQ entities see only their own employees
+      if (req.userEntity.type === 'BRANCH') {
+        query += ` AND emp.branch_id = $${paramIndex}`;
+      } else if (req.userEntity.type === 'INCUBATOR') {
+        query += ` AND emp.incubator_id = $${paramIndex}`;
+      } else if (req.userEntity.type === 'PLATFORM') {
+        query += ` AND emp.platform_id = $${paramIndex}`;
+      } else if (req.userEntity.type === 'OFFICE') {
+        query += ` AND emp.office_id = $${paramIndex}`;
+      }
+      params.push(userEntityDbId);
+      paramIndex++;
+    }
+
+    // Additional filters
     if (entity_type) {
-      query += ` AND assigned_entity_type = $${paramIndex}`;
+      query += ` AND emp.assigned_entity_type = $${paramIndex}`;
       params.push(entity_type);
       paramIndex++;
     }
 
     if (entity_id) {
-      query += ` AND (
-        (assigned_entity_type = 'HQ' AND hq_id = $${paramIndex}) OR
-        (assigned_entity_type = 'BRANCH' AND branch_id = $${paramIndex}) OR
-        (assigned_entity_type = 'INCUBATOR' AND incubator_id = $${paramIndex}) OR
-        (assigned_entity_type = 'PLATFORM' AND platform_id = $${paramIndex}) OR
-        (assigned_entity_type = 'OFFICE' AND office_id = $${paramIndex})
-      )`;
-      params.push(entity_id);
-      paramIndex++;
+      // Resolve entity_id to numeric DB ID
+      const eidRes = await db.query(
+        'SELECT id FROM entities WHERE id = $1 OR id::text = $1',
+        [entity_id]
+      );
+      if (eidRes.rows.length > 0) {
+        query += ` AND COALESCE(emp.hq_id, emp.branch_id, emp.incubator_id, emp.platform_id, emp.office_id) = $${paramIndex}`;
+        params.push(eidRes.rows[0].id);
+        paramIndex++;
+      } else {
+        return res.json([]);
+      }
     }
 
     if (is_active !== undefined) {
-      query += ` AND is_active = $${paramIndex}`;
+      query += ` AND emp.is_active = $${paramIndex}`;
       params.push(is_active === 'true');
       paramIndex++;
     }
 
-    query += ' ORDER BY full_name';
+    query += ' ORDER BY emp.full_name';
 
     const result = await db.query(query, params);
     res.json(result.rows);
