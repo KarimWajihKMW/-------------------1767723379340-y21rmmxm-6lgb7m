@@ -144,7 +144,8 @@ const app = (() => {
         
         getVisibleAds: () => {
             return db.ads.filter(ad => {
-                if (ad.sourceEntityId === currentUser.entityId) return true;
+                const sourceId = ad.sourceEntityId || ad.entityId;
+                if (sourceId === currentUser.entityId) return true;
                 if (ad.sourceType === 'HQ') return true;
                 if (ad.targetIds.includes(currentUser.entityId) && ad.status === 'ACTIVE') return true;
                 if (ad.level === 'L4_PLT_INT') return true;
@@ -355,25 +356,30 @@ const app = (() => {
             // Load ads
             const ads = await fetchAPI('/ads');
             console.log('📢 [loadDataFromAPI] Loaded ads:', ads.length);
-            db.ads = ads.map(ad => ({
-                id: ad.id,
-                title: ad.title,
-                content: ad.content,
-                level: ad.level,
-                scope: ad.scope,
-                status: ad.status,
-                sourceEntityId: ad.source_entity_id,
-                targetIds: ad.target_ids || [],
-                date: ad.created_at,
-                cost: parseFloat(ad.cost),
-                sourceType: ad.source_type,
-                budget: parseFloat(ad.budget),
-                spent: parseFloat(ad.spent),
-                impressions: ad.impressions || 0,
-                clicks: ad.clicks || 0,
-                startDate: ad.start_date,
-                endDate: ad.end_date
-            }));
+            console.log('📢 [DEBUG] First ad:', ads[0]);
+            db.ads = ads.map(ad => {
+                const sourceId = ad.source_entity_id || ad.entity_id;
+                return {
+                    id: ad.id,
+                    title: ad.title,
+                    content: ad.content,
+                    level: ad.level,
+                    scope: ad.scope,
+                    status: ad.status,
+                    sourceEntityId: sourceId,
+                    entityId: ad.entity_id,
+                    targetIds: ad.target_ids || [],
+                    date: ad.created_at,
+                    cost: parseFloat(ad.cost),
+                    sourceType: ad.source_type,
+                    budget: parseFloat(ad.budget),
+                    spent: parseFloat(ad.spent),
+                    impressions: ad.impressions || 0,
+                    clicks: ad.clicks || 0,
+                    startDate: ad.start_date,
+                    endDate: ad.end_date
+                };
+            });
 
             // Load approvals
             const approvals = await fetchAPI('/approvals');
