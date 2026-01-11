@@ -143,14 +143,33 @@ const app = (() => {
         getVisibleTickets: () => (perms.isHQ() && perms.isSupport()) ? db.tickets : db.tickets.filter(t => t.entityId === currentUser.entityId),
         
         getVisibleAds: () => {
-            return db.ads.filter(ad => {
+            const filtered = db.ads.filter(ad => {
                 const sourceId = ad.sourceEntityId || ad.entityId;
-                if (sourceId === currentUser.entityId) return true;
-                if (ad.sourceType === 'HQ') return true;
-                if (ad.targetIds.includes(currentUser.entityId) && ad.status === 'ACTIVE') return true;
-                if (ad.level === 'L4_PLT_INT') return true;
+                // Check 1: Own ads
+                if (sourceId === currentUser.entityId) {
+                    console.log(`✅ Ad "${ad.title}" visible: Own ad`);
+                    return true;
+                }
+                // Check 2: HQ ads (visible to all)
+                if (ad.sourceType === 'HQ') {
+                    console.log(`✅ Ad "${ad.title}" visible: HQ source`);
+                    return true;
+                }
+                // Check 3: Targeted ads
+                if (Array.isArray(ad.targetIds) && ad.targetIds.includes(currentUser.entityId) && ad.status === 'ACTIVE') {
+                    console.log(`✅ Ad "${ad.title}" visible: Targeted`);
+                    return true;
+                }
+                // Check 4: Platform internal ads
+                if (ad.level === 'L4_PLT_INT') {
+                    console.log(`✅ Ad "${ad.title}" visible: Platform internal`);
+                    return true;
+                }
+                console.log(`❌ Ad "${ad.title}" NOT visible (sourceType: ${ad.sourceType}, targetIds: ${JSON.stringify(ad.targetIds)})`);
                 return false;
-            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+            });
+            console.log(`📊 Total visible ads for ${currentUser.entityId}: ${filtered.length} out of ${db.ads.length}`);
+            return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
         },
 
         getManagedAds: () => db.ads.filter(ad => ad.sourceEntityId === currentUser.entityId),
@@ -359,6 +378,13 @@ const app = (() => {
             console.log('📢 [DEBUG] First ad:', ads[0]);
             db.ads = ads.map(ad => {
                 const sourceId = ad.source_entity_id || ad.entity_id;
+                // Convert target_ids from string to array
+                let targetIds = [];
+                if (ad.target_ids) {
+                    targetIds = typeof ad.target_ids === 'string' 
+                        ? ad.target_ids.split(',').filter(id => id.trim()) 
+                        : ad.target_ids;
+                }
                 return {
                     id: ad.id,
                     title: ad.title,
@@ -368,12 +394,12 @@ const app = (() => {
                     status: ad.status,
                     sourceEntityId: sourceId,
                     entityId: ad.entity_id,
-                    targetIds: ad.target_ids || [],
+                    targetIds: targetIds,
                     date: ad.created_at,
-                    cost: parseFloat(ad.cost),
+                    cost: parseFloat(ad.cost) || 0,
                     sourceType: ad.source_type,
-                    budget: parseFloat(ad.budget),
-                    spent: parseFloat(ad.spent),
+                    budget: parseFloat(ad.budget) || 0,
+                    spent: parseFloat(ad.spent) || 0,
                     impressions: ad.impressions || 0,
                     clicks: ad.clicks || 0,
                     startDate: ad.start_date,
@@ -3455,4 +3481,346 @@ app.submitCreateEmployee = async function() {
     const entityType = document.getElementById('assigned_entity_type').value;
     const entityId = document.getElementById('entity_select').value;
     
+    // Add entity type to data
+    employeeData.assigned_entity_type = entityType;
     
+    // Set entity IDs based on type (matching server.js schema)
+    if (entityType === 'HQ') {
+        employeeData.hq_id = 1; // HQ ID
+    } else if (entityType && entityId) {
+        switch (entityType) {
+            case 'BRANCH':
+                employeeData.branch_id = parseInt(entityId);
+                break;
+            case 'INCUBATOR':
+                employeeData.incubator_id = parseInt(entityId);
+                break;
+            case 'PLATFORM':
+                employeeData.platform_id = parseInt(entityId);
+                break;
+            case 'OFFICE':
+                employeeData.office_id = parseInt(entityId);
+                break;
+        }
+    }
+
+    // Validate required fields
+    if (!employeeData.employee_number || !employeeData.full_name || !employeeData.position || 
+        !employeeData.department || !employeeData.employment_type || !entityType || 
+        (entityType !== 'HQ' && !entityId)) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+
+    try {
+        await window.fetchAPI('/employees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employeeData)
+        });
+
+        alert('تم إضافة الموظف بنجاح!');
+        app.closeCreateEmployeeModal();
+        window.location.reload(); // Refresh employees page
+    } catch (error) {
+        alert('خطأ في إضافة الموظف: ' + error.message);
+    }
+};
+
+// Make functions available globally
+window.openCreateEmployeeModal = app.openCreateEmployeeModal;
+window.closeCreateEmployeeModal = app.closeCreateEmployeeModal;
+window.loadEntityOptions = app.loadEntitiesForEmployee;
+window.submitCreateEmployee = app.submitCreateEmployee;
+
+// Close edit employee modal
+window.closeEditEmployeeModal = function() {
+    const modal = document.getElementById('editEmployeeModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('editEmployeeForm').reset();
+    }
+};
+
+// Submit edit employee form
+window.submitEditEmployee = async function() {
+    const id = document.getElementById('edit_employee_id').value;
+    const employeeData = {
+        full_name: document.getElementById('edit_full_name').value,
+        email: document.getElementById('edit_email').value || null,
+        phone: document.getElementById('edit_phone').value || null,
+        position: document.getElementById('edit_position').value,
+        department: document.getElementById('edit_department').value,
+        salary: document.getElementById('edit_salary').value ? parseFloat(document.getElementById('edit_salary').value) : null,
+        employment_type: document.getElementById('edit_employment_type').value,
+        address: document.getElementById('edit_address').value || null
+    };
+
+    // Validate required fields
+    if (!employeeData.full_name || !employeeData.position || !employeeData.department || !employeeData.employment_type) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+
+    try {
+        await window.fetchAPI(`/employees/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employeeData)
+        });
+
+        alert('تم تحديث بيانات الموظف بنجاح!');
+        window.closeEditEmployeeModal();
+        window.location.reload(); // Refresh employees page
+    } catch (error) {
+        alert('خطأ في تحديث بيانات الموظف: ' + error.message);
+    }
+};
+
+// ========================================
+// ENTITY CREATION FUNCTIONS
+// ========================================
+
+// Open Create Branch Modal
+window.openCreateBranchModal = function() {
+  const modal = document.getElementById('createBranchModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+};
+
+// Close Create Branch Modal
+window.closeCreateBranchModal = function() {
+  const modal = document.getElementById('createBranchModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createBranchForm').reset();
+  }
+};
+
+// Submit Create Branch
+window.submitCreateBranch = async function() {
+  const formData = {
+    hq_id: parseInt(document.getElementById('branch_hq_id').value),
+    name: document.getElementById('branch_name').value,
+    code: document.getElementById('branch_code').value,
+    description: document.getElementById('branch_description').value,
+    country: document.getElementById('branch_country').value,
+    city: document.getElementById('branch_city').value,
+    address: document.getElementById('branch_address').value,
+    contact_email: document.getElementById('branch_email').value,
+    contact_phone: document.getElementById('branch_phone').value,
+    manager_name: document.getElementById('branch_manager').value
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء الفرع');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء الفرع "${result.name}" بنجاح!`);
+    closeCreateBranchModal();
+    location.reload(); // Refresh the hierarchy
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Open Create Incubator Modal
+window.openCreateIncubatorModal = function() {
+  const modal = document.getElementById('createIncubatorModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    loadBranchesForIncubator();
+  }
+};
+
+// Close Create Incubator Modal
+window.closeCreateIncubatorModal = function() {
+  const modal = document.getElementById('createIncubatorModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createIncubatorForm').reset();
+  }
+};
+
+// Load branches for incubator dropdown
+async function loadBranchesForIncubator() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`);
+    const branches = await response.json();
+    const select = document.getElementById('incubator_branch_id');
+    select.innerHTML = '<option value="">-- اختر فرع --</option>' +
+      branches.map(b => `<option value="${b.id}">${b.name} (${b.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading branches:', error);
+  }
+}
+
+// Submit Create Incubator
+window.submitCreateIncubator = async function() {
+  const formData = {
+    branch_id: parseInt(document.getElementById('incubator_branch_id').value),
+    name: document.getElementById('incubator_name').value,
+    code: document.getElementById('incubator_code').value,
+    description: document.getElementById('incubator_description').value,
+    program_type: document.getElementById('incubator_program_type').value,
+    capacity: parseInt(document.getElementById('incubator_capacity').value),
+    contact_email: document.getElementById('incubator_email').value,
+    contact_phone: document.getElementById('incubator_phone').value,
+    manager_name: document.getElementById('incubator_manager').value,
+    start_date: document.getElementById('incubator_start_date').value || null,
+    end_date: document.getElementById('incubator_end_date').value || null
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء الحاضنة');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء الحاضنة "${result.name}" بنجاح!`);
+    closeCreateIncubatorModal();
+    location.reload();
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Open Create Platform Modal
+window.openCreatePlatformModal = function() {
+  const modal = document.getElementById('createPlatformModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    loadIncubatorsForPlatform();
+  }
+};
+
+// Close Create Platform Modal
+window.closeCreatePlatformModal = function() {
+  const modal = document.getElementById('createPlatformModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createPlatformForm').reset();
+  }
+};
+
+// Load incubators for platform dropdown
+async function loadIncubatorsForPlatform() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators`);
+    const incubators = await response.json();
+    const select = document.getElementById('platform_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Submit Create Platform
+window.submitCreatePlatform = async function() {
+  const formData = {
+    incubator_id: parseInt(document.getElementById('platform_incubator_id').value),
+    name: document.getElementById('platform_name').value,
+    code: document.getElementById('platform_code').value,
+    description: document.getElementById('platform_description').value,
+    platform_type: document.getElementById('platform_type').value,
+    pricing_model: document.getElementById('platform_pricing_model').value,
+    base_price: parseFloat(document.getElementById('platform_base_price').value) || 0,
+    currency: document.getElementById('platform_currency').value || 'USD'
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/platforms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء المنصة');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء المنصة "${result.name}" بنجاح!`);
+    closeCreatePlatformModal();
+    location.reload();
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Open Create Office Modal
+window.openCreateOfficeModal = function() {
+  const modal = document.getElementById('createOfficeModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    loadIncubatorsForOffice();
+  }
+};
+
+// Close Create Office Modal
+window.closeCreateOfficeModal = function() {
+  const modal = document.getElementById('createOfficeModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createOfficeForm').reset();
+  }
+};
+
+// Load incubators for office dropdown
+async function loadIncubatorsForOffice() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators`);
+    const incubators = await response.json();
+    const select = document.getElementById('office_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Submit Create Office
+window.submitCreateOffice = async function() {
+  const formData = {
+    incubator_id: parseInt(document.getElementById('office_incubator_id').value),
+    name: document.getElementById('office_name').value,
+    code: document.getElementById('office_code').value,
+    description: document.getElementById('office_description').value,
+    office_type: document.getElementById('office_type').value,
+    location: document.getElementById('office_location').value,
+    address: document.getElementById('office_address').value,
+    capacity: parseInt(document.getElementById('office_capacity').value) || 0,
+    contact_email: document.getElementById('office_email').value,
+    contact_phone: document.getElementById('office_phone').value,
+    manager_name: document.getElementById('office_manager').value
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/offices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) throw new Error('فشل في إنشاء المكتب');
+
+    const result = await response.json();
+    alert(`✅ تم إنشاء المكتب "${result.name}" بنجاح!`);
+    closeCreateOfficeModal();
+    location.reload();
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+document.addEventListener('DOMContentLoaded', app.init);
