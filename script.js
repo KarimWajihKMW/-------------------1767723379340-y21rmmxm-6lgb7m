@@ -3133,15 +3133,115 @@ app.resetEmployeeFilters = function() {
 app.viewEmployee = async function(id) {
     try {
         const employee = await window.fetchAPI(`/employees/${id}`);
-        alert(`معلومات الموظف:\n\nالاسم: ${employee.full_name}\nالمسمى: ${employee.position}\nالقسم: ${employee.department}\nالكيان: ${employee.entity_name}\nالراتب: ${employee.salary} SAR`);
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold flex items-center gap-3">
+                            <i class="fas fa-user-circle"></i>
+                            معلومات الموظف
+                        </h2>
+                        <button onclick="this.closest('.fixed').remove()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">رقم الموظف</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.employee_number}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">الاسم الكامل</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.full_name}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">المسمى الوظيفي</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.position}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">القسم</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.department}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">الكيان</label>
+                            <p class="text-lg font-semibold text-blue-600">${employee.entity_name || 'غير محدد'}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">نوع التوظيف</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.employment_type === 'FULL_TIME' ? 'دوام كامل' : employee.employment_type === 'PART_TIME' ? 'دوام جزئي' : employee.employment_type}</p>
+                        </div>
+                        ${employee.email ? `
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">البريد الإلكتروني</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.email}</p>
+                        </div>` : ''}
+                        ${employee.phone ? `
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">الهاتف</label>
+                            <p class="text-lg font-semibold text-gray-800">${employee.phone}</p>
+                        </div>` : ''}
+                        ${employee.salary ? `
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">الراتب</label>
+                            <p class="text-lg font-semibold text-green-600">${parseFloat(employee.salary).toLocaleString()} SAR</p>
+                        </div>` : ''}
+                        ${employee.hire_date ? `
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-500">تاريخ التوظيف</label>
+                            <p class="text-lg font-semibold text-gray-800">${new Date(employee.hire_date).toLocaleDateString('ar-SA')}</p>
+                        </div>` : ''}
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-6 rounded-b-2xl flex gap-3 justify-end">
+                    <button onclick="this.closest('.fixed').remove()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إغلاق
+                    </button>
+                    <button onclick="app.editEmployee(${id}); this.closest('.fixed').remove();" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition">
+                        <i class="fas fa-edit ml-2"></i>
+                        تعديل البيانات
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     } catch (error) {
         alert('خطأ في تحميل بيانات الموظف');
     }
 };
 
 // Edit employee
-app.editEmployee = function(id) {
-    alert('سيتم إضافة واجهة التعديل قريباً');
+app.editEmployee = async function(id) {
+    try {
+        const employee = await window.fetchAPI(`/employees/${id}`);
+        const modal = document.getElementById('editEmployeeModal');
+        if (!modal) {
+            console.error('Edit modal not found');
+            return;
+        }
+        
+        // Fill form with employee data
+        document.getElementById('edit_employee_id').value = id;
+        document.getElementById('edit_employee_number').value = employee.employee_number;
+        document.getElementById('edit_full_name').value = employee.full_name;
+        document.getElementById('edit_email').value = employee.email || '';
+        document.getElementById('edit_phone').value = employee.phone || '';
+        document.getElementById('edit_position').value = employee.position;
+        document.getElementById('edit_department').value = employee.department;
+        document.getElementById('edit_salary').value = employee.salary || '';
+        document.getElementById('edit_employment_type').value = employee.employment_type;
+        document.getElementById('edit_address').value = employee.address || '';
+        
+        modal.classList.remove('hidden');
+    } catch (error) {
+        alert('خطأ في تحميل بيانات الموظف للتعديل');
+    }
 };
 
 // Delete employee
@@ -3250,25 +3350,22 @@ app.submitCreateEmployee = async function() {
     // Add entity type to data
     employeeData.assigned_entity_type = entityType;
     
+    // Set entity IDs based on type (matching server.js schema)
     if (entityType === 'HQ') {
-        // For HQ employees, only set the boolean flag
-        employeeData.assigned_hq = true;
-        // Don't set any other entity IDs
+        employeeData.hq_id = 1; // HQ ID
     } else if (entityType && entityId) {
-        // For other entities, set the specific ID
-        employeeData.assigned_hq = false; // Explicitly set to false
         switch (entityType) {
             case 'BRANCH':
-                employeeData.assigned_branch_id = parseInt(entityId);
+                employeeData.branch_id = parseInt(entityId);
                 break;
             case 'INCUBATOR':
-                employeeData.assigned_incubator_id = parseInt(entityId);
+                employeeData.incubator_id = parseInt(entityId);
                 break;
             case 'PLATFORM':
-                employeeData.assigned_platform_id = parseInt(entityId);
+                employeeData.platform_id = parseInt(entityId);
                 break;
             case 'OFFICE':
-                employeeData.assigned_office_id = parseInt(entityId);
+                employeeData.office_id = parseInt(entityId);
                 break;
         }
     }
@@ -3301,6 +3398,50 @@ window.openCreateEmployeeModal = app.openCreateEmployeeModal;
 window.closeCreateEmployeeModal = app.closeCreateEmployeeModal;
 window.loadEntityOptions = app.loadEntitiesForEmployee;
 window.submitCreateEmployee = app.submitCreateEmployee;
+
+// Close edit employee modal
+window.closeEditEmployeeModal = function() {
+    const modal = document.getElementById('editEmployeeModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('editEmployeeForm').reset();
+    }
+};
+
+// Submit edit employee form
+window.submitEditEmployee = async function() {
+    const id = document.getElementById('edit_employee_id').value;
+    const employeeData = {
+        full_name: document.getElementById('edit_full_name').value,
+        email: document.getElementById('edit_email').value || null,
+        phone: document.getElementById('edit_phone').value || null,
+        position: document.getElementById('edit_position').value,
+        department: document.getElementById('edit_department').value,
+        salary: document.getElementById('edit_salary').value ? parseFloat(document.getElementById('edit_salary').value) : null,
+        employment_type: document.getElementById('edit_employment_type').value,
+        address: document.getElementById('edit_address').value || null
+    };
+
+    // Validate required fields
+    if (!employeeData.full_name || !employeeData.position || !employeeData.department || !employeeData.employment_type) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+
+    try {
+        await window.fetchAPI(`/employees/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employeeData)
+        });
+
+        alert('تم تحديث بيانات الموظف بنجاح!');
+        window.closeEditEmployeeModal();
+        app.navigate('employees'); // Refresh employees page
+    } catch (error) {
+        alert('خطأ في تحديث بيانات الموظف: ' + error.message);
+    }
+};
 
 // ========================================
 // ENTITY CREATION FUNCTIONS
