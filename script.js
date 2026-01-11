@@ -3,11 +3,13 @@
  * Features: Strict Isolation, Tenant Scopes, Subscription Mgmt, Advertiser Panel, Financial System
  */
 
+// Global API Configuration (accessible from all functions)
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+
 const app = (() => {
-    // --- API CONFIGURATION ---
-    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:3000/api'
-        : '/api';
+    // --- API CONFIGURATION (using global) ---
     
     // Helper function to fetch data from API
     async function fetchAPI(endpoint, options = {}) {
