@@ -1110,11 +1110,26 @@ const app = (() => {
             const dashboardType = await fetchAPI(`/dashboard/type?entity_id=${currentUser.entityId}`);
             
             if (dashboardType.dashboard_type === 'incubator') {
-                return await renderIncubatorDashboard();
+                try {
+                    return await renderIncubatorDashboard();
+                } catch (error) {
+                    console.error('Incubator dashboard error:', error);
+                    showToast('حدث خطأ في تحميل لوحة الحاضنة، سيتم عرض اللوحة الافتراضية', 'warning');
+                }
             } else if (dashboardType.dashboard_type === 'platform') {
-                return await renderPlatformDashboard();
+                try {
+                    return await renderPlatformDashboard();
+                } catch (error) {
+                    console.error('Platform dashboard error:', error);
+                    showToast('حدث خطأ في تحميل لوحة المنصة، سيتم عرض اللوحة الافتراضية', 'warning');
+                }
             } else if (dashboardType.dashboard_type === 'office') {
-                return await renderOfficeDashboard();
+                try {
+                    return await renderOfficeDashboard();
+                } catch (error) {
+                    console.error('Office dashboard error:', error);
+                    showToast('حدث خطأ في تحميل لوحة المكتب، سيتم عرض اللوحة الافتراضية', 'warning');
+                }
             }
         } catch (error) {
             console.log('Using default dashboard:', error.message);
