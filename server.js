@@ -1296,8 +1296,11 @@ app.get('/api/incubators/:id/platforms', async (req, res) => {
     
     // Support both numeric ID and entity_id (like 'INC03')
     let incubatorId;
-    if (isNaN(id)) {
+    const numericId = parseInt(id, 10);
+    
+    if (isNaN(numericId) || id !== numericId.toString()) {
       // It's an entity_id (like 'INC03'), get the numeric ID
+      console.log('→ Looking up entity_id:', id);
       const incubatorResult = await db.query(`
         SELECT id FROM incubators WHERE entity_id = $1
       `, [id]);
@@ -1309,7 +1312,8 @@ app.get('/api/incubators/:id/platforms', async (req, res) => {
       incubatorId = incubatorResult.rows[0].id;
       console.log('✅ Found incubator ID:', incubatorId, 'for entity_id:', id);
     } else {
-      incubatorId = parseInt(id);
+      incubatorId = numericId;
+      console.log('→ Using numeric ID:', incubatorId);
     }
     
     const result = await db.query(`
