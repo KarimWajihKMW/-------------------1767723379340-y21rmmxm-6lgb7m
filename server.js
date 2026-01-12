@@ -2657,6 +2657,183 @@ app.get('/api/dashboard/type', async (req, res) => {
 });
 
 // ========================================
+// INCUBATOR SYSTEM ENDPOINTS
+// ========================================
+
+// Get incubator stats
+app.get('/api/incubator/stats', async (req, res) => {
+  try {
+    const entityId = req.query.entity_id;
+    
+    if (!entityId) {
+      return res.status(400).json({ error: 'entity_id is required' });
+    }
+    
+    const filter = getEntityFilter(req.userEntity);
+    
+    // Get counts from database
+    const programsResult = await db.query(
+      `SELECT COUNT(*) as count FROM training_programs WHERE ${filter} AND is_active = true`
+    );
+    
+    const beneficiariesResult = await db.query(
+      `SELECT COUNT(*) as count FROM beneficiaries WHERE ${filter} AND status = 'ACTIVE'`
+    );
+    
+    const sessionsResult = await db.query(
+      `SELECT COUNT(*) as count FROM training_sessions WHERE ${filter} AND status = 'IN_PROGRESS'`
+    );
+    
+    const certificatesResult = await db.query(
+      `SELECT COUNT(*) as count FROM certificates WHERE ${filter} AND status = 'VALID'`
+    );
+    
+    res.json({
+      total_programs: parseInt(programsResult.rows[0]?.count || 0),
+      total_beneficiaries: parseInt(beneficiariesResult.rows[0]?.count || 0),
+      active_sessions: parseInt(sessionsResult.rows[0]?.count || 0),
+      active_certificates: parseInt(certificatesResult.rows[0]?.count || 0),
+      expired_certificates: 0
+    });
+  } catch (error) {
+    console.error('Error fetching incubator stats:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Training Programs
+app.get('/api/training-programs', async (req, res) => {
+  try {
+    const filter = getEntityFilter(req.userEntity);
+    const result = await db.query(
+      `SELECT * FROM training_programs WHERE ${filter} ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching training programs:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/training-programs', async (req, res) => {
+  try {
+    const { entity_id, name, code, description, duration_hours, max_participants, price, passing_score, certificate_validity_months, is_active } = req.body;
+    
+    const result = await db.query(
+      `INSERT INTO training_programs (
+        entity_id, name, code, description, duration_hours, max_participants, 
+        price, passing_score, certificate_validity_months, is_active,
+        incubator_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [entity_id, name, code, description, duration_hours, max_participants, price, passing_score, certificate_validity_months, is_active || true, entity_id]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating training program:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Beneficiaries
+app.get('/api/beneficiaries', async (req, res) => {
+  try {
+    const filter = getEntityFilter(req.userEntity);
+    const result = await db.query(
+      `SELECT * FROM beneficiaries WHERE ${filter} ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching beneficiaries:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/beneficiaries', async (req, res) => {
+  try {
+    const { entity_id, full_name, national_id, phone, email, education_level, status } = req.body;
+    
+    const result = await db.query(
+      `INSERT INTO beneficiaries (
+        entity_id, full_name, national_id, phone, email, education_level, status,
+        incubator_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [entity_id, full_name, national_id, phone, email, education_level, status || 'ACTIVE', entity_id]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating beneficiary:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Training Sessions
+app.get('/api/training-sessions', async (req, res) => {
+  try {
+    const filter = getEntityFilter(req.userEntity);
+    const result = await db.query(
+      `SELECT 
+        ts.*,
+        tp.name as program_name,
+        tp.code as program_code,
+        tp.max_participants
+      FROM training_sessions ts
+      LEFT JOIN training_programs tp ON ts.program_id = tp.id
+      WHERE ${filter.replace('ts.', 'ts.')}
+      ORDER BY ts.start_date DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching training sessions:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/training-sessions', async (req, res) => {
+  try {
+    const { entity_id, session_name, program_id, start_date, end_date, instructor_name, location, status } = req.body;
+    
+    const result = await db.query(
+      `INSERT INTO training_sessions (
+        entity_id, session_name, program_id, start_date, end_date, 
+        instructor_name, location, status, current_participants,
+        incubator_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9) RETURNING *`,
+      [entity_id, session_name, program_id, start_date, end_date, instructor_name, location, status || 'PLANNED', entity_id]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating training session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Certificates
+app.get('/api/certificates', async (req, res) => {
+  try {
+    const filter = getEntityFilter(req.userEntity);
+    const result = await db.query(
+      `SELECT 
+        c.*,
+        b.full_name,
+        b.national_id,
+        tp.name as program_name
+      FROM certificates c
+      LEFT JOIN beneficiaries b ON c.beneficiary_id = b.id
+      LEFT JOIN training_programs tp ON c.program_id = tp.id
+      WHERE ${filter.replace('c.', 'c.')}
+      ORDER BY c.issue_date DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching certificates:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // Error handling middleware
 // ========================================
 app.use((err, req, res, next) => {
