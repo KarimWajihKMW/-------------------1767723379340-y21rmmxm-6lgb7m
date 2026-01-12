@@ -2668,6 +2668,18 @@ app.use((err, req, res, next) => {
 // Start Server
 // ========================================
 const HOST = process.env.HOST || '0.0.0.0';
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  console.error('💥 Uncaught Exception:', error);
+  // Don't exit - let the process continue
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit - let the process continue
+});
+
 const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 نظام نايوش يعمل على ${HOST}:${PORT}`);
   console.log(`📊 API متاح على: http://localhost:${PORT}/api`);
@@ -2675,15 +2687,43 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`✅ Server is ready to accept connections`);
 });
 
-// Keep server alive
-server.keepAliveTimeout = 65000;
-server.headersTimeout = 66000;
+// Keep server alive - increase timeouts for Railway
+server.keepAliveTimeout = 120000; // 120 seconds
+server.headersTimeout = 121000;   // 121 seconds
+server.timeout = 120000;          // 120 seconds
 
 // Graceful shutdown
+let isShuttingDown = false;
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, closing server gracefully...');
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  
+  console.log('⚠️  SIGTERM received, starting graceful shutdown...');
+  
+  // Give active connections time to finish
+  server.close((err) => {
+    if (err) {
+      console.error('❌ Error during shutdown:', err);
+      process.exit(1);
+    }
+    console.log('✅ Server closed gracefully');
+    process.exit(0);
+  });
+  
+  // Force close after 30 seconds
+  setTimeout(() => {
+    console.error('⏰ Forced shutdown after timeout');
+    process.exit(1);
+  }, 30000);
+});
+
+process.on('SIGINT', () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  
+  console.log('⚠️  SIGINT received, shutting down...');
   server.close(() => {
-    console.log('Server closed');
+    console.log('✅ Server closed');
     process.exit(0);
   });
 });

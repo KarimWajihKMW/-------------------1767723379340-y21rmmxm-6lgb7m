@@ -470,42 +470,69 @@ const app = (() => {
     const init = async () => {
         console.log('🔄 بدء التهيئة...');
         
-        // Show tenant selector first
-        const view = document.getElementById('main-view');
-        view.innerHTML = `<div class="flex h-full items-center justify-center"></div>`;
-        
-        // Show tenant selector modal
-        await showTenantSelector();
-        console.log('✅ تم اختيار الكيان:', currentUser);
-        
-        // 🔑 تأكد من حفظ currentUser في window
-        window.currentUserData = currentUser;
-        
-        // Show loading
-        view.innerHTML = `
-            <div class="flex h-full items-center justify-center flex-col gap-6">
-                <div class="relative">
-                    <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
-                    <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
+        try {
+            // Show tenant selector first
+            const view = document.getElementById('main-view');
+            view.innerHTML = `<div class="flex h-full items-center justify-center"></div>`;
+            
+            // Show tenant selector modal
+            await showTenantSelector();
+            console.log('✅ تم اختيار الكيان:', currentUser);
+            
+            // 🔑 تأكد من حفظ currentUser في window
+            window.currentUserData = currentUser;
+            
+            // Show loading
+            view.innerHTML = `
+                <div class="flex h-full items-center justify-center flex-col gap-6">
+                    <div class="relative">
+                        <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
+                        <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات للكيان: <strong>${currentUser.entityName}</strong></p>
+                </div>`;
+            
+            // Load data from API (now with proper entity headers)
+            try {
+                await loadDataFromAPI();
+                console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length, invoices: db.invoices.length });
+            } catch (apiError) {
+                console.error('❌ خطأ في تحميل البيانات من API:', apiError);
+                // Continue with empty data - app will still work
+                console.log('⚠️ الاستمرار مع بيانات فارغة...');
+            }
+            
+            // User is already selected from tenant selector
+            console.log('👤 المستخدم الحالي:', currentUser);
+            
+            renderSidebar();
+            updateHeader();
+            const tenant = db.entities.find(e => e.id === currentUser?.entityId);
+            if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
+            
+            loadRoute('dashboard');
+            showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
+            console.log('✅ اكتملت التهيئة');
+        } catch (error) {
+            console.error('❌ خطأ فادح في التهيئة:', error);
+            const view = document.getElementById('main-view');
+            view.innerHTML = `
+                <div class="flex h-full items-center justify-center flex-col gap-6 p-8">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2">عذراً، حدث خطأ في تحميل النظام</h2>
+                        <p class="text-slate-600 mb-4">يرجى تحديث الصفحة أو المحاولة لاحقاً</p>
+                        <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            تحديث الصفحة
+                        </button>
+                    </div>
+                    <div class="text-sm text-slate-400 bg-slate-100 p-4 rounded-lg max-w-2xl">
+                        <strong>تفاصيل الخطأ:</strong> ${error.message}
+                    </div>
                 </div>
-                <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات للكيان: <strong>${currentUser.entityName}</strong></p>
-            </div>`;
-        
-        // Load data from API (now with proper entity headers)
-        await loadDataFromAPI();
-        console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length, invoices: db.invoices.length });
-        
-        // User is already selected from tenant selector
-        console.log('👤 المستخدم الحالي:', currentUser);
-        
-        renderSidebar();
-        updateHeader();
-        const tenant = db.entities.find(e => e.id === currentUser?.entityId);
-        if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
-        
-        loadRoute('dashboard');
-        showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
-        console.log('✅ اكتملت التهيئة');
+            `;
+        }
     };
 
     const init_old = () => {
