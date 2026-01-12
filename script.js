@@ -4209,69 +4209,68 @@ window.manageEnrollments = async function(sessionId, sessionName) {
           
           <!-- Current Enrollments -->
           <h3 class="font-bold mb-3">المتدربون المسجلون (${enrollments.length})</h3>
-          ${enrollments.length > 0 ? `
-            <div class="overflow-x-auto">
-              <table class="min-w-full bg-white border rounded-lg">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">تاريخ التسجيل</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">نسبة الحضور</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التقييم النهائي</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border rounded-lg">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">تاريخ التسجيل</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">نسبة الحضور</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التقييم النهائي</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                ${enrollments.length > 0 ? enrollments.map((enrollment, idx) => `
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${idx + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="font-medium">${enrollment.beneficiary_name || 'غير محدد'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.beneficiary_national_id || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(enrollment.enrollment_date).toLocaleDateString('ar-SA')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.attendance_percentage || 0}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      ${enrollment.final_grade ? `<span class="font-bold">${enrollment.final_grade}%</span>` : '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 py-1 text-xs rounded-full ${
+                        enrollment.status === 'ATTENDING' ? 'bg-green-100 text-green-800' :
+                        enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                        enrollment.status === 'REGISTERED' ? 'bg-yellow-100 text-yellow-800' :
+                        enrollment.status === 'WITHDRAWN' ? 'bg-gray-100 text-gray-800' :
+                        'bg-red-100 text-red-800'
+                      }">
+                        ${
+                          enrollment.status === 'ATTENDING' ? 'يحضر' :
+                          enrollment.status === 'COMPLETED' ? 'مكتمل' :
+                          enrollment.status === 'REGISTERED' ? 'مسجل' :
+                          enrollment.status === 'WITHDRAWN' ? 'منسحب' :
+                          'راسب'
+                        }
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                      <button onclick="window.removeEnrollment(${enrollment.id}, ${sessionId}, '${sessionName}')" 
+                              class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition text-sm font-bold">
+                        <i class="fas fa-trash ml-1"></i> حذف
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  ${enrollments.map((enrollment, idx) => `
-                    <tr class="hover:bg-gray-50">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">${idx + 1}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="font-medium">${enrollment.beneficiary_name || 'غير محدد'}</div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.beneficiary_national_id || '-'}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(enrollment.enrollment_date).toLocaleDateString('ar-SA')}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.attendance_percentage || 0}%</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${enrollment.final_grade ? `<span class="font-bold">${enrollment.final_grade}%</span>` : '-'}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs rounded-full ${
-                          enrollment.status === 'ATTENDING' ? 'bg-green-100 text-green-800' :
-                          enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
-                          enrollment.status === 'REGISTERED' ? 'bg-yellow-100 text-yellow-800' :
-                          enrollment.status === 'WITHDRAWN' ? 'bg-gray-100 text-gray-800' :
-                          'bg-red-100 text-red-800'
-                        }">
-                          ${
-                            enrollment.status === 'ATTENDING' ? 'يحضر' :
-                            enrollment.status === 'COMPLETED' ? 'مكتمل' :
-                            enrollment.status === 'REGISTERED' ? 'مسجل' :
-                            enrollment.status === 'WITHDRAWN' ? 'منسحب' :
-                            'راسب'
-                          }
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <button onclick="window.removeEnrollment(${enrollment.id}, ${sessionId}, '${sessionName}')" 
-                                class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition text-sm font-bold">
-                          <i class="fas fa-trash ml-1"></i> حذف
-                        </button>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          ` : `
-            <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <i class="fas fa-users-slash text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-700 font-bold text-lg mb-2">لا يوجد متدربون مسجلون بعد</p>
-              <p class="text-gray-500 text-sm">استخدم حقل "إضافة متدرب جديد" أعلاه لإضافة أول متدرب</p>
-            </div>
-          `}
+                `).join('') : `
+                  <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                      <i class="fas fa-inbox text-4xl mb-3 block text-gray-400"></i>
+                      <p class="font-bold">لا يوجد متدربون مسجلون بعد</p>
+                    </td>
+                  </tr>
+                `}
+              </tbody>
+            </table>
+          </div>
           
           <!-- Actions -->
           <div class="flex gap-3 pt-6 border-t mt-6">

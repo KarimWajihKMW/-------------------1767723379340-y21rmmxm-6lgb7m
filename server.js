@@ -2291,6 +2291,7 @@ app.get('/api/certificates', async (req, res) => {
 app.get('/api/enrollments', async (req, res) => {
   try {
     const { session_id, beneficiary_id } = req.query;
+    const entityFilter = getEntityFilter(req);
     
     let query = `
       SELECT 
@@ -2309,6 +2310,11 @@ app.get('/api/enrollments', async (req, res) => {
     `;
     const params = [];
     
+    // Add entity filter
+    if (entityFilter) {
+      query += ` AND e.entity_id = ${entityFilter.entity_id} AND e.entity_type = '${entityFilter.entity_type}'`;
+    }
+    
     if (session_id) {
       params.push(session_id);
       query += ` AND e.session_id = $${params.length}`;
@@ -2321,10 +2327,12 @@ app.get('/api/enrollments', async (req, res) => {
     
     query += ' ORDER BY e.enrollment_date DESC';
     
+    console.log('📋 Fetching enrollments:', { session_id, beneficiary_id, query });
     const result = await db.query(query, params);
+    console.log('✅ Found enrollments:', result.rows.length);
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching enrollments:', error);
+    console.error('❌ Error fetching enrollments:', error);
     res.status(500).json({ error: error.message });
   }
 });
