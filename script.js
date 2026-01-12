@@ -3812,16 +3812,27 @@ window.openAddSessionModal = async function() {
   document.getElementById('add-session-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    
+    const program_id = formData.get('program_id');
+    
+    // Validate program selection
+    if (!program_id) {
+      alert('⚠️ يجب اختيار البرنامج التدريبي');
+      return;
+    }
+    
     const data = {
       entity_id: window.currentUserData.entityId,
       session_name: formData.get('session_name'),
-      program_id: parseInt(formData.get('program_id')),
+      program_id: parseInt(program_id),
       start_date: formData.get('start_date'),
       end_date: formData.get('end_date'),
       instructor_name: formData.get('instructor_name') || null,
       location: formData.get('location') || null,
       status: formData.get('status')
     };
+    
+    console.log('📤 Sending training session data:', data);
     
     try {
       await window.fetchAPI('/training-sessions', {
@@ -3833,6 +3844,7 @@ window.openAddSessionModal = async function() {
       alert('✅ تم إضافة الدفعة بنجاح!');
       window.switchIncubatorTab('sessions');
     } catch (error) {
+      console.error('Error adding session:', error);
       alert('❌ حدث خطأ: ' + error.message);
     }
   });

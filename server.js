@@ -2794,6 +2794,19 @@ app.post('/api/training-sessions', async (req, res) => {
   try {
     const { entity_id, session_name, program_id, start_date, end_date, instructor_name, location, status } = req.body;
     
+    console.log('📝 Creating training session with data:', {
+      entity_id, session_name, program_id, start_date, end_date, instructor_name, location, status
+    });
+    
+    // Validate required fields
+    if (!entity_id || !session_name || !program_id || !start_date || !end_date) {
+      console.error('❌ Missing required fields');
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: { entity_id, session_name, program_id, start_date, end_date }
+      });
+    }
+    
     // Generate unique session code
     const session_code = `SESSION-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     
@@ -2802,13 +2815,15 @@ app.post('/api/training-sessions', async (req, res) => {
         entity_id, session_name, session_code, program_id, start_date, end_date, 
         instructor_name, location, status, current_participants, max_participants
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-      [entity_id, session_name, session_code, program_id, start_date, end_date, instructor_name, location, status || 'PLANNED', 0, 30]
+      [entity_id, session_name, session_code, program_id, start_date, end_date, instructor_name || null, location || null, status || 'PLANNED', 0, 30]
     );
     
+    console.log('✅ Training session created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error creating training session:', error);
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error creating training session:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ error: error.message, details: error.detail });
   }
 });
 
