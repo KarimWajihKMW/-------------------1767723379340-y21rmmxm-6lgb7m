@@ -1288,19 +1288,63 @@ app.get('/api/offices/:id/platforms', async (req, res) => {
   }
 });
 
-// Get platforms for a specific incubator
+// Get platforms for a specific incubator or headquarters
 app.get('/api/incubators/:id/platforms', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('📋 Fetching platforms for incubator:', id);
+    console.log('📋 Fetching platforms for:', id);
     
-    // Support both numeric ID and entity_id (like 'INC03')
-    let incubatorId;
+    let incubatorIds = [];
     const numericId = parseInt(id, 10);
     
-    if (isNaN(numericId) || id !== numericId.toString()) {
-      // It's an entity_id (like 'INC03'), get the numeric ID
-      console.log('→ Looking up entity_id:', id);
+    // Check if it's a headquarters entity_id (like 'HQ001')
+    if (id.startsWith('HQ')) {
+      console.log('→ Detected HQ entity_id, finding all incubators for HQ branches');
+      
+      // Get HQ ID
+      const hqResult = await db.query(`
+        SELECT id FROM headquarters WHERE entity_id = $1
+      `, [id]);
+      
+      if (hqResult.rows.length === 0) {
+        console.log('❌ HQ not found for entity_id:', id);
+        return res.status(404).json({ error: 'Headquarters not found' });
+      }
+      
+      const hqId = hqResult.rows[0].id;
+      console.log('✅ Found HQ ID:', hqId);
+      
+      // Get all branches for this HQ
+      const branchResult = await db.query(`
+        SELECT id FROM branches WHERE hq_id = $1
+      `, [hqId]);
+      
+      console.log('✅ Found branches:', branchResult.rows.length);
+      
+      if (branchResult.rows.length === 0) {
+        console.log('⚠️  No branches found for HQ');
+        return res.json([]);
+      }
+      
+      const branchIds = branchResult.rows.map(b => b.id);
+      
+      // Get all incubators for these branches
+      const incubatorResult = await db.query(`
+        SELECT id FROM incubators WHERE branch_id = ANY($1)
+      `, [branchIds]);
+      
+      console.log('✅ Found incubators:', incubatorResult.rows.length);
+      
+      if (incubatorResult.rows.length === 0) {
+        console.log('⚠️  No incubators found for these branches');
+        return res.json([]);
+      }
+      
+      incubatorIds = incubatorResult.rows.map(i => i.id);
+      
+    } else if (isNaN(numericId) || id !== numericId.toString()) {
+      // It's an incubator entity_id (like 'INC03')
+      console.log('→ Looking up incubator entity_id:', id);
       const incubatorResult = await db.query(`
         SELECT id FROM incubators WHERE entity_id = $1
       `, [id]);
@@ -1309,19 +1353,22 @@ app.get('/api/incubators/:id/platforms', async (req, res) => {
         console.log('❌ Incubator not found for entity_id:', id);
         return res.status(404).json({ error: 'Incubator not found' });
       }
-      incubatorId = incubatorResult.rows[0].id;
-      console.log('✅ Found incubator ID:', incubatorId, 'for entity_id:', id);
+      incubatorIds = [incubatorResult.rows[0].id];
+      console.log('✅ Found incubator ID:', incubatorIds[0], 'for entity_id:', id);
     } else {
-      incubatorId = numericId;
-      console.log('→ Using numeric ID:', incubatorId);
+      // Numeric ID
+      incubatorIds = [numericId];
+      console.log('→ Using numeric ID:', numericId);
     }
     
+    // Get platforms for all incubators
     const result = await db.query(`
       SELECT id, name, incubator_id, description, code
       FROM platforms
-      WHERE incubator_id = $1
+      WHERE incubator_id = ANY($1)
       ORDER BY name
-    `, [incubatorId]);
+    `, [incubatorIds]);
+    
     console.log('✅ Found platforms:', result.rows.length);
     res.json(result.rows);
   } catch (error) {
