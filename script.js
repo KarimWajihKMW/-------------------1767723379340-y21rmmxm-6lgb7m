@@ -657,7 +657,10 @@ const app = (() => {
         if (analyticsChart) { analyticsChart.destroy(); analyticsChart = null; }
         
         let content = '';
-        if (route === 'dashboard') content = renderDashboard();
+        if (route === 'dashboard') {
+            view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+            content = await renderDashboard();
+        }
         else if (route === 'hierarchy') content = await renderHierarchy();
         else if (route === 'employees') content = await renderEmployees();
         else if (route === 'saas') content = renderSaaSManager();
@@ -1098,10 +1101,26 @@ const app = (() => {
         });
     };
 
-    const renderDashboard = () => {
+    const renderDashboard = async () => {
         const entity = db.entities.find(e => e.id === currentUser.entityId);
         if (!entity) return renderPlaceholder('Entity Not Found');
 
+        // Check if entity has specific dashboard type
+        try {
+            const dashboardType = await fetchAPI(`/dashboard/type?entity_id=${currentUser.entityId}`);
+            
+            if (dashboardType.dashboard_type === 'incubator') {
+                return await renderIncubatorDashboard();
+            } else if (dashboardType.dashboard_type === 'platform') {
+                return await renderPlatformDashboard();
+            } else if (dashboardType.dashboard_type === 'office') {
+                return await renderOfficeDashboard();
+            }
+        } catch (error) {
+            console.log('Using default dashboard:', error.message);
+        }
+
+        // Default dashboard
         return `
         <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
@@ -1144,6 +1163,370 @@ const app = (() => {
                  ${renderKpiCard('المهام النشطة', perms.getVisibleTasks().length, 'fa-tasks', 'text-blue-600', 'bg-blue-50')}
                  ${renderKpiCard('تذاكر الدعم', perms.getVisibleTickets().length, 'fa-headset', 'text-red-600', 'bg-red-50')}
                  ${renderKpiCard('عدد المستخدمين', entity.users, 'fa-users', 'text-purple-600', 'bg-purple-50')}
+            </div>
+        </div>`;
+    };
+
+    // Incubator Dashboard - Customer Journey & Programs
+    const renderIncubatorDashboard = async () => {
+        const data = await fetchAPI(`/dashboard/incubator?entity_id=${currentUser.entityId}`);
+        const stats = data.statistics || {};
+        
+        return `
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                    <i class="fas fa-seedling text-2xl text-orange-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800">لوحة الحاضنة</h2>
+                    <p class="text-gray-500">رحلة العملاء والبرامج التدريبية</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            ${renderKpiCard('إجمالي المستفيدين', stats.total_beneficiaries || 0, 'fa-users', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('البرامج النشطة', stats.total_programs || 0, 'fa-graduation-cap', 'text-green-600', 'bg-green-50')}
+            ${renderKpiCard('الجلسات المنعقدة', stats.total_sessions || 0, 'fa-calendar-check', 'text-purple-600', 'bg-purple-50')}
+            ${renderKpiCard('نسبة الإنجاز', Math.round(stats.overall_completion_rate || 0) + '%', 'fa-chart-line', 'text-orange-600', 'bg-orange-50')}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-route text-orange-500"></i> رحلة المستفيدين
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.beneficiaries && data.beneficiaries.length > 0 ? data.beneficiaries.map(b => `
+                        <div class="mb-4 p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">${b.name}</h4>
+                                    <p class="text-sm text-slate-500">${b.email}</p>
+                                </div>
+                                <span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-bold">
+                                    ${Math.round(b.avg_completion || 0)}% مكتمل
+                                </span>
+                            </div>
+                            <div class="flex gap-4 text-xs text-slate-600 mt-2">
+                                <span><i class="fas fa-book-open text-blue-500"></i> ${b.enrollment_count} تسجيل</span>
+                                <span><i class="fas fa-calendar text-green-500"></i> ${b.sessions_attended} جلسة</span>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا يوجد مستفيدين</p>'}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-graduation-cap text-green-500"></i> البرامج التدريبية
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.programs && data.programs.length > 0 ? data.programs.map(p => `
+                        <div class="mb-4 p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                            <h4 class="font-bold text-slate-800 mb-2">${p.name}</h4>
+                            <p class="text-sm text-slate-600 mb-3">${p.description || ''}</p>
+                            <div class="flex gap-4 text-xs text-slate-600">
+                                <span><i class="fas fa-users text-blue-500"></i> ${p.total_beneficiaries} مستفيد</span>
+                                <span><i class="fas fa-calendar text-purple-500"></i> ${p.total_sessions} جلسة</span>
+                                <span><i class="fas fa-percent text-green-500"></i> ${Math.round(p.avg_completion_rate || 0)}%</span>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا توجد برامج</p>'}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-purple-500"></i> الجلسات الأخيرة
+                </h3>
+            </div>
+            <div class="p-6">
+                ${data.recent_sessions && data.recent_sessions.length > 0 ? `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${data.recent_sessions.map(s => `
+                            <div class="p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-bold text-slate-800">${s.program_name}</h4>
+                                    <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                                        ${new Date(s.session_date).toLocaleDateString('ar-SA')}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-2">${s.location || 'موقع غير محدد'}</p>
+                                <div class="flex items-center gap-2 text-xs text-slate-500">
+                                    <i class="fas fa-user-friends"></i> ${s.attendees_count} حضور
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p class="text-slate-400 text-center py-8">لا توجد جلسات</p>'}
+            </div>
+        </div>`;
+    };
+
+    // Platform Dashboard - Services/Content/Subscriptions
+    const renderPlatformDashboard = async () => {
+        const data = await fetchAPI(`/dashboard/platform?entity_id=${currentUser.entityId}`);
+        const stats = data.statistics || {};
+        const revenue = data.revenue || {};
+        
+        return `
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-server text-2xl text-green-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800">لوحة المنصة</h2>
+                    <p class="text-gray-500">الخدمات والمحتوى والاشتراكات</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            ${renderKpiCard('الخدمات المتاحة', stats.total_services || 0, 'fa-box', 'text-green-600', 'bg-green-50')}
+            ${renderKpiCard('الاشتراكات النشطة', stats.active_subscriptions || 0, 'fa-users-cog', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('إجمالي العملاء', stats.total_customers || 0, 'fa-user-tie', 'text-purple-600', 'bg-purple-50')}
+            ${renderKpiCard('الإيرادات', (revenue.total_revenue || 0).toLocaleString() + ' ر.س', 'fa-dollar-sign', 'text-orange-600', 'bg-orange-50')}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-shopping-bag text-green-500"></i> الخدمات والمنتجات
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.services && data.services.length > 0 ? data.services.map(s => `
+                        <div class="mb-4 p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-800">${s.title}</h4>
+                                <span class="text-xs ${s.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full font-bold">
+                                    ${s.status}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 line-clamp-2">${s.content || ''}</p>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا توجد خدمات</p>'}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-users-cog text-blue-500"></i> الاشتراكات
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.subscriptions && data.subscriptions.length > 0 ? data.subscriptions.map(sub => `
+                        <div class="mb-4 p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">${sub.customer_name}</h4>
+                                    <p class="text-sm text-slate-500">${sub.customer_email}</p>
+                                </div>
+                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-bold">
+                                    ${sub.status}
+                                </span>
+                            </div>
+                            <div class="flex gap-4 text-xs text-slate-600 mt-2">
+                                <span><i class="fas fa-box text-green-500"></i> ${sub.service_name}</span>
+                                <span><i class="fas fa-dollar-sign text-orange-500"></i> ${sub.price} ر.س</span>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا توجد اشتراكات</p>'}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-purple-500"></i> إحصائيات المحتوى
+                    </h3>
+                </div>
+                <div class="p-6">
+                    ${data.content_stats && data.content_stats.length > 0 ? `
+                        <div class="space-y-3">
+                            ${data.content_stats.map(stat => `
+                                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                    <span class="font-bold text-slate-700">${stat.status}</span>
+                                    <div class="flex gap-4 text-sm">
+                                        <span class="text-slate-600">إجمالي: ${stat.count}</span>
+                                        <span class="text-green-600">جديد: ${stat.new_this_week || 0}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p class="text-slate-400 text-center py-8">لا توجد إحصائيات</p>'}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave text-orange-500"></i> الإيرادات
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="text-center p-6 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl">
+                            <p class="text-sm text-slate-600 mb-2">الإيرادات الإجمالية</p>
+                            <p class="text-3xl font-black text-orange-600">${(revenue.total_revenue || 0).toLocaleString()} ر.س</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500 mb-1">إيرادات الشهر</p>
+                                <p class="text-lg font-bold text-slate-800">${(revenue.monthly_revenue || 0).toLocaleString()} ر.س</p>
+                            </div>
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500 mb-1">معاملات الشهر</p>
+                                <p class="text-lg font-bold text-slate-800">${revenue.monthly_transactions || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // Office Dashboard - Service Execution & Customer Appointments
+    const renderOfficeDashboard = async () => {
+        const data = await fetchAPI(`/dashboard/office?entity_id=${currentUser.entityId}`);
+        const stats = data.statistics || {};
+        
+        return `
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <i class="fas fa-briefcase text-2xl text-gray-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800">لوحة المكتب</h2>
+                    <p class="text-gray-500">تنفيذ الخدمات ومواعيد العملاء</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            ${renderKpiCard('المواعيد القادمة', stats.upcoming_appointments || 0, 'fa-calendar-alt', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('مواعيد اليوم', stats.today_appointments || 0, 'fa-calendar-day', 'text-green-600', 'bg-green-50')}
+            ${renderKpiCard('العملاء', stats.total_customers || 0, 'fa-users', 'text-purple-600', 'bg-purple-50')}
+            ${renderKpiCard('الخدمات النشطة', stats.active_services || 0, 'fa-cogs', 'text-orange-600', 'bg-orange-50')}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-calendar-check text-blue-500"></i> جدول اليوم
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.today_schedule && data.today_schedule.length > 0 ? data.today_schedule.map(apt => `
+                        <div class="mb-4 p-4 border-r-4 border-blue-500 bg-blue-50/30 rounded-lg hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">${apt.service_name}</h4>
+                                    <p class="text-sm text-slate-500">${new Date(apt.session_date).toLocaleTimeString('ar-SA', {hour: '2-digit', minute: '2-digit'})}</p>
+                                </div>
+                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-bold">
+                                    ${apt.duration || 60} دقيقة
+                                </span>
+                            </div>
+                            <div class="flex gap-2 text-xs text-slate-600">
+                                <i class="fas fa-users"></i> ${apt.attendees} عميل
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا توجد مواعيد اليوم</p>'}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-clock text-green-500"></i> المواعيد القادمة
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.appointments && data.appointments.length > 0 ? data.appointments.map(apt => `
+                        <div class="mb-4 p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-800">${apt.service_name}</h4>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                                    ${new Date(apt.session_date).toLocaleDateString('ar-SA')}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-2">${apt.location || 'موقع غير محدد'}</p>
+                            <div class="flex gap-4 text-xs text-slate-600">
+                                <span><i class="fas fa-users text-blue-500"></i> ${apt.booked_slots}/${apt.total_slots || '∞'}</span>
+                                <span class="text-${apt.booked_slots >= (apt.total_slots || 999) ? 'red' : 'green'}-600">
+                                    ${apt.booked_slots >= (apt.total_slots || 999) ? 'مكتمل' : 'متاح'}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا توجد مواعيد</p>'}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-user-friends text-purple-500"></i> العملاء
+                    </h3>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    ${data.customers && data.customers.length > 0 ? data.customers.map(c => `
+                        <div class="mb-4 p-4 border border-slate-100 rounded-lg hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">${c.name}</h4>
+                                    <p class="text-sm text-slate-500">${c.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 text-xs text-slate-600 mt-2">
+                                <span><i class="fas fa-calendar text-blue-500"></i> ${c.total_bookings} حجز</span>
+                                <span><i class="fas fa-check-circle text-green-500"></i> ${c.active_bookings} نشط</span>
+                                ${c.last_visit ? `<span><i class="fas fa-clock text-orange-500"></i> ${new Date(c.last_visit).toLocaleDateString('ar-SA')}</span>` : ''}
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-slate-400 text-center py-8">لا يوجد عملاء</p>'}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-tasks text-orange-500"></i> حالة التنفيذ
+                    </h3>
+                </div>
+                <div class="p-6">
+                    ${data.execution_status && data.execution_status.length > 0 ? `
+                        <div class="space-y-3">
+                            ${data.execution_status.map(stat => `
+                                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                    <span class="font-bold text-slate-700">${stat.status}</span>
+                                    <div class="flex gap-4 text-sm">
+                                        <span class="text-slate-600">إجمالي: ${stat.count}</span>
+                                        <span class="text-blue-600">قادم: ${stat.upcoming || 0}</span>
+                                        <span class="text-green-600">منتهي: ${stat.completed || 0}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p class="text-slate-400 text-center py-8">لا توجد إحصائيات</p>'}
+                </div>
             </div>
         </div>`;
     };

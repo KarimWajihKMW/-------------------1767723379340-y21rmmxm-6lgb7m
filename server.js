@@ -2380,6 +2380,283 @@ app.put('/api/ads/:id/link-source', async (req, res) => {
 });
 
 // ========================================
+// DASHBOARD ENDPOINTS
+// ========================================
+
+// Incubator Dashboard - Customer Journey & Programs
+app.get('/api/dashboard/incubator', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    const entityFilter = entity_id || req.userEntity.id;
+    
+    // Get beneficiaries (customers) with their journey status
+    const beneficiariesResult = await db.query(`
+      SELECT 
+        b.*,
+        b.full_name as name,
+        COUNT(DISTINCT e.id) as enrollment_count,
+        COUNT(DISTINCT ts.id) as sessions_attended,
+        COALESCE(AVG(e.attendance_percentage), 0) as avg_completion
+      FROM beneficiaries b
+      LEFT JOIN enrollments e ON e.beneficiary_id = b.id
+      LEFT JOIN training_sessions ts ON ts.id = e.session_id
+      WHERE b.entity_id = $1
+      GROUP BY b.id, b.full_name
+      ORDER BY b.created_at DESC
+    `, [entityFilter]);
+    
+    // Get training programs
+    const programsResult = await db.query(`
+      SELECT 
+        tp.*,
+        COUNT(DISTINCT ts.id) as total_sessions,
+        COUNT(DISTINCT e.beneficiary_id) as total_beneficiaries,
+        COALESCE(AVG(e.attendance_percentage), 0) as avg_completion_rate
+      FROM training_programs tp
+      LEFT JOIN training_sessions ts ON ts.program_id = tp.id
+      LEFT JOIN enrollments e ON e.session_id = ts.id
+      WHERE tp.entity_id = $1
+      GROUP BY tp.id
+      ORDER BY tp.created_at DESC
+    `, [entityFilter]);
+    
+    // Get recent sessions
+    const sessionsResult = await db.query(`
+      SELECT 
+        ts.*,
+        tp.name as program_name,
+        COUNT(DISTINCT e.beneficiary_id) as attendees_count
+      FROM training_sessions ts
+      JOIN training_programs tp ON tp.id = ts.program_id
+      LEFT JOIN enrollments e ON e.session_id = ts.id
+      WHERE ts.entity_id = $1
+      GROUP BY ts.id, tp.name
+      ORDER BY ts.start_date DESC
+      LIMIT 10
+    `, [entityFilter]);
+    
+    // Get statistics
+    const statsResult = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM beneficiaries WHERE entity_id = $1) as total_beneficiaries,
+        (SELECT COUNT(*) FROM training_programs WHERE entity_id = $1) as total_programs,
+        (SELECT COUNT(*) FROM training_sessions WHERE entity_id = $1) as total_sessions,
+        (SELECT COUNT(*) FROM enrollments e JOIN training_sessions ts ON ts.id = e.session_id WHERE ts.entity_id = $1) as total_enrollments,
+        COALESCE((SELECT AVG(attendance_percentage) FROM enrollments e JOIN training_sessions ts ON ts.id = e.session_id WHERE ts.entity_id = $1), 0) as overall_completion_rate
+    `, [entityFilter]);
+    
+    res.json({
+      beneficiaries: beneficiariesResult.rows,
+      programs: programsResult.rows,
+      recent_sessions: sessionsResult.rows,
+      statistics: statsResult.rows[0] || {}
+    });
+  } catch (error) {
+    console.error('Incubator dashboard error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Platform Dashboard - Services/Content/Subscriptions
+app.get('/api/dashboard/platform', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    const entityFilter = entity_id || req.userEntity.id;
+    
+    // Get services/products
+    const servicesResult = await db.query(`
+      SELECT 
+        *
+      FROM ads
+      WHERE entity_id = $1 AND level = 'Platform'
+      ORDER BY created_at DESC
+    `, [entityFilter]);
+    
+    // Get subscriptions (from enrollments - treating them as subscriptions)
+    const subscriptionsResult = await db.query(`
+      SELECT 
+        e.*,
+        b.full_name as customer_name,
+        b.email as customer_email,
+        tp.name as service_name,
+        tp.price
+      FROM enrollments e
+      JOIN beneficiaries b ON b.id = e.beneficiary_id
+      JOIN training_sessions ts ON ts.id = e.session_id
+      JOIN training_programs tp ON tp.id = ts.program_id
+      WHERE ts.entity_id = $1
+      ORDER BY e.created_at DESC
+    `, [entityFilter]);
+    
+    // Get content/ads statistics
+    const contentResult = await db.query(`
+      SELECT 
+        status,
+        COUNT(*) as count,
+        COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') as new_this_week
+      FROM ads
+      WHERE entity_id = $1
+      GROUP BY status
+    `, [entityFilter]);
+    
+    // Get revenue statistics (from transactions)
+    const revenueResult = await db.query(`
+      SELECT 
+        COALESCE(SUM(amount), 0) as total_revenue,
+        COALESCE(SUM(amount) FILTER (WHERE transaction_date >= NOW() - INTERVAL '30 days'), 0) as monthly_revenue,
+        COUNT(*) as total_transactions,
+        COUNT(*) FILTER (WHERE transaction_date >= NOW() - INTERVAL '30 days') as monthly_transactions
+      FROM transactions
+      WHERE entity_id = $1 AND type = 'income'
+    `, [entityFilter]);
+    
+    // Get statistics
+    const statsResult = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM ads WHERE entity_id = $1 AND level = 'Platform') as total_services,
+        (SELECT COUNT(*) FROM enrollments e JOIN training_sessions ts ON ts.id = e.session_id WHERE ts.entity_id = $1) as active_subscriptions,
+        (SELECT COUNT(*) FROM beneficiaries WHERE entity_id = $1) as total_customers,
+        COALESCE((SELECT SUM(amount) FROM transactions WHERE entity_id = $1 AND type = 'income'), 0) as total_revenue
+    `, [entityFilter]);
+    
+    res.json({
+      services: servicesResult.rows,
+      subscriptions: subscriptionsResult.rows,
+      content_stats: contentResult.rows,
+      revenue: revenueResult.rows[0] || {},
+      statistics: statsResult.rows[0] || {}
+    });
+  } catch (error) {
+    console.error('Platform dashboard error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Office Dashboard - Service Execution & Customer Appointments
+app.get('/api/dashboard/office', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    const entityFilter = entity_id || req.userEntity.id;
+    
+    // Get upcoming appointments (training sessions as appointments)
+    const appointmentsResult = await db.query(`
+      SELECT 
+        ts.*,
+        tp.name as service_name,
+        tp.description,
+        ts.current_participants as booked_slots,
+        ts.max_participants as total_slots
+      FROM training_sessions ts
+      JOIN training_programs tp ON tp.id = ts.program_id
+      WHERE ts.entity_id = $1
+      ORDER BY ts.start_date ASC
+    `, [entityFilter]);
+    
+    // Get customers with their appointments
+    const customersResult = await db.query(`
+      SELECT 
+        b.*,
+        b.full_name as name,
+        COUNT(DISTINCT e.id) as total_bookings,
+        COUNT(DISTINCT e.id) FILTER (WHERE e.status = 'active') as active_bookings,
+        MAX(ts.start_date) as last_visit
+      FROM beneficiaries b
+      LEFT JOIN enrollments e ON e.beneficiary_id = b.id
+      LEFT JOIN training_sessions ts ON ts.id = e.session_id
+      WHERE b.entity_id = $1
+      GROUP BY b.id, b.full_name
+      ORDER BY last_visit DESC NULLS LAST
+    `, [entityFilter]);
+    
+    // Get service execution status
+    const executionResult = await db.query(`
+      SELECT 
+        ts.status,
+        COUNT(*) as count,
+        COUNT(*) FILTER (WHERE ts.start_date >= NOW()) as upcoming,
+        COUNT(*) FILTER (WHERE ts.end_date < NOW()) as completed
+      FROM training_sessions ts
+      WHERE ts.entity_id = $1
+      GROUP BY ts.status
+    `, [entityFilter]);
+    
+    // Get daily schedule (today's appointments)
+    const todayScheduleResult = await db.query(`
+      SELECT 
+        ts.*,
+        tp.name as service_name,
+        tp.duration_hours as duration,
+        ts.current_participants as attendees
+      FROM training_sessions ts
+      JOIN training_programs tp ON tp.id = ts.program_id
+      WHERE ts.entity_id = $1 
+        AND DATE(ts.start_date) = CURRENT_DATE
+      ORDER BY ts.start_date ASC
+    `, [entityFilter]);
+    
+    // Get statistics
+    const statsResult = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM training_sessions WHERE entity_id = $1) as total_appointments,
+        (SELECT COUNT(*) FROM training_sessions WHERE entity_id = $1 AND start_date >= NOW()) as upcoming_appointments,
+        (SELECT COUNT(*) FROM training_sessions WHERE entity_id = $1 AND DATE(start_date) = CURRENT_DATE) as today_appointments,
+        (SELECT COUNT(*) FROM beneficiaries WHERE entity_id = $1) as total_customers,
+        (SELECT COUNT(*) FROM enrollments e JOIN training_sessions ts ON ts.id = e.session_id WHERE ts.entity_id = $1 AND e.status = 'active') as active_services
+    `, [entityFilter]);
+    
+    res.json({
+      appointments: appointmentsResult.rows,
+      customers: customersResult.rows,
+      execution_status: executionResult.rows,
+      today_schedule: todayScheduleResult.rows,
+      statistics: statsResult.rows[0] || {}
+    });
+  } catch (error) {
+    console.error('Office dashboard error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get dashboard type based on entity
+app.get('/api/dashboard/type', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    const entityFilter = entity_id || req.userEntity.id;
+    
+    // Get entity information to determine dashboard type
+    const entityResult = await db.query(`
+      SELECT type, name FROM entities WHERE id = $1
+    `, [entityFilter]);
+    
+    if (entityResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Entity not found' });
+    }
+    
+    const entity = entityResult.rows[0];
+    let dashboardType = 'general';
+    
+    // Determine dashboard type based on entity type
+    if (entity.type === 'INCUBATOR') {
+      dashboardType = 'incubator';
+    } else if (entity.type === 'PLATFORM') {
+      dashboardType = 'platform';
+    } else if (entity.type === 'OFFICE') {
+      dashboardType = 'office';
+    }
+    
+    res.json({
+      entity_id: entityFilter,
+      entity_type: entity.type,
+      entity_name: entity.name,
+      dashboard_type: dashboardType
+    });
+  } catch (error) {
+    console.error('Dashboard type error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // Error handling middleware
 // ========================================
 app.use((err, req, res, next) => {
