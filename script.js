@@ -4474,8 +4474,325 @@ window.viewCertificateDetails = async function(certificateId) {
 };
 
 // Print Certificate
-window.printCertificate = function(certificateId) {
-  alert('🚧 قريباً: طباعة الشهادة\n\nسيتم تفعيل هذه الميزة قريباً.');
+window.printCertificate = async function(certificateId) {
+  try {
+    // Get certificate data
+    const response = await window.fetchAPI(`/certificates?id=${certificateId}`);
+    const cert = response[0];
+    
+    if (!cert) {
+      alert('❌ لم يتم العثور على الشهادة');
+      return;
+    }
+    
+    // Create printable certificate
+    const printWindow = window.open('', '_blank', 'width=800,height=1000');
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>شهادة - ${cert.certificate_number}</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+          }
+          
+          .certificate {
+            width: 210mm;
+            height: 297mm;
+            padding: 40mm 20mm;
+            box-sizing: border-box;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          
+          .certificate-inner {
+            background: white;
+            height: 100%;
+            border: 8px solid #f7d794;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+            position: relative;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+          }
+          
+          .logo {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 10px;
+          }
+          
+          .org-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+          }
+          
+          .cert-title {
+            text-align: center;
+            margin: 40px 0;
+          }
+          
+          .cert-title h1 {
+            font-size: 42px;
+            color: #667eea;
+            margin: 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+          }
+          
+          .recipient {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 18px;
+            color: #555;
+          }
+          
+          .recipient-name {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0;
+            text-decoration: underline;
+            text-decoration-color: #f7d794;
+            text-decoration-thickness: 3px;
+          }
+          
+          .program-info {
+            text-align: center;
+            margin: 30px 0;
+          }
+          
+          .program-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+          }
+          
+          .score-box {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            margin: 20px 0;
+          }
+          
+          .score-box .score {
+            font-size: 32px;
+            font-weight: bold;
+          }
+          
+          .score-box .grade {
+            font-size: 18px;
+            margin-top: 5px;
+          }
+          
+          .details {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+          }
+          
+          .detail-item {
+            text-align: center;
+          }
+          
+          .detail-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+          }
+          
+          .detail-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+          }
+          
+          .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+          }
+          
+          .cert-number {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+          }
+          
+          .verify-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+          }
+          
+          .signature {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+          }
+          
+          .signature-line {
+            text-align: center;
+          }
+          
+          .signature-line .line {
+            width: 200px;
+            border-top: 2px solid #333;
+            margin: 0 auto 10px;
+          }
+          
+          .signature-line .title {
+            font-size: 14px;
+            color: #666;
+            font-weight: bold;
+          }
+          
+          .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120px;
+            color: rgba(102, 126, 234, 0.05);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+          }
+          
+          @media print {
+            body {
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="certificate">
+          <div class="certificate-inner">
+            <div class="watermark">نايوش</div>
+            
+            <div class="header">
+              <div class="logo">🎓</div>
+              <h2 class="org-name">نظام نايوش - حاضنة السلامة</h2>
+            </div>
+            
+            <div class="cert-title">
+              <h1>شهـــادة تقديــــر</h1>
+            </div>
+            
+            <div class="recipient">
+              <p>تشهد حاضنة السلامة بأن</p>
+              <div class="recipient-name">${cert.beneficiary_name}</div>
+              <p>قد أتم بنجاح برنامج</p>
+            </div>
+            
+            <div class="program-info">
+              <div class="program-name">${cert.program_name}</div>
+              
+              <div class="score-box">
+                <div class="score">${cert.final_score}%</div>
+                <div class="grade">
+                  ${
+                    cert.grade === 'EXCELLENT' ? 'ممتاز' :
+                    cert.grade === 'VERY_GOOD' ? 'جيد جداً' :
+                    cert.grade === 'GOOD' ? 'جيد' :
+                    cert.grade === 'PASS' ? 'مقبول' : 'راسب'
+                  }
+                </div>
+              </div>
+            </div>
+            
+            <div class="details">
+              <div class="detail-item">
+                <div class="detail-label">رقم الشهادة</div>
+                <div class="detail-value">${cert.certificate_number}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">تاريخ الإصدار</div>
+                <div class="detail-value">${new Date(cert.issue_date).toLocaleDateString('ar-SA', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+                })}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">تاريخ الانتهاء</div>
+                <div class="detail-value">${new Date(cert.expiry_date).toLocaleDateString('ar-SA', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+                })}</div>
+              </div>
+            </div>
+            
+            <div class="signature">
+              <div class="signature-line">
+                <div class="line"></div>
+                <div class="title">توقيع المدير</div>
+              </div>
+              <div class="signature-line">
+                <div class="line"></div>
+                <div class="title">ختم المؤسسة</div>
+              </div>
+            </div>
+            
+            <div class="footer">
+              <div class="cert-number">رقم الشهادة: ${cert.certificate_number}</div>
+              <div class="verify-info">
+                للتحقق من صحة الشهادة، يرجى زيارة: ${cert.verification_url || 'https://nayosh.sa/verify/' + cert.certificate_number}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            // Auto print when loaded
+            setTimeout(function() {
+              window.print();
+            }, 500);
+          };
+          
+          // Close window after printing
+          window.onafterprint = function() {
+            setTimeout(function() {
+              window.close();
+            }, 100);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    
+  } catch (error) {
+    console.error('Error printing certificate:', error);
+    alert('❌ حدث خطأ في طباعة الشهادة');
+  }
 };
 
 // ========================================
