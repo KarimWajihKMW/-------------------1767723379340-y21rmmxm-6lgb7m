@@ -258,17 +258,30 @@ const app = (() => {
 
     // --- SELECT TENANT MODAL (for proper data isolation) ---
     async function showTenantSelector() {
+        console.log('🔐 عرض نافذة اختيار الكيان...');
         return new Promise((resolve) => {
             // First load all entities to show available tenants
             const showSelector = async () => {
-                // Get all entities first WITHOUT headers (for selection screen)
-                const response = await fetch(`${API_BASE_URL}/entities`);
-                const entities = await response.json();
-                
-                const modal = document.createElement('div');
-                modal.id = 'tenant-selector';
-                modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm';
-                modal.innerHTML = `
+                try {
+                    console.log('📥 تحميل قائمة الكيانات...');
+                    // Get all entities first WITHOUT headers (for selection screen)
+                    const response = await fetch(`${API_BASE_URL}/entities`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const entities = await response.json();
+                    console.log(`✅ تم تحميل ${entities.length} كيان`);
+                    
+                    if (!entities || entities.length === 0) {
+                        throw new Error('لا توجد كيانات متاحة');
+                    }
+                    
+                    const modal = document.createElement('div');
+                    modal.id = 'tenant-selector';
+                    modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm';
+                    modal.innerHTML = `
                     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
                         <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-8 text-white">
                             <h1 class="text-3xl font-bold mb-2">🏢 نظام نايوش ERP</h1>
@@ -321,6 +334,26 @@ const app = (() => {
                     modal.remove();
                     resolve(currentUser);
                 };
+                
+                } catch (error) {
+                    console.error('❌ خطأ في تحميل نافذة اختيار الكيان:', error);
+                    // Show error message to user
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50';
+                    errorDiv.innerHTML = `
+                        <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+                            <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">خطأ في الاتصال بالسيرفر</h2>
+                            <p class="text-gray-600 mb-4">لا يمكن تحميل قائمة الكيانات</p>
+                            <p class="text-sm text-gray-500 mb-4">${error.message}</p>
+                            <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                إعادة المحاولة
+                            </button>
+                        </div>
+                    `;
+                    document.body.appendChild(errorDiv);
+                }
             };
             
             showSelector();
