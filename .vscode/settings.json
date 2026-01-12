@@ -104,6 +104,55 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-after-platform-deletion\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node final-platforms-report\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "psql": true,
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ const res = await db\\.query\\(\\\\\"SELECT table_name FROM information_schema\\.tables WHERE table_schema = 'public' ORDER BY table_name\\\\\"\\); console\\.log\\('Tables:', res\\.rows\\.map\\(r => r\\.table_name\\)\\.join\\(', '\\)\\); process\\.exit\\(0\\); \\} catch\\(e\\) \\{ console\\.error\\(e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ const res = await db\\.query\\('SELECT id, name, type FROM entities ORDER BY id'\\); console\\.log\\(JSON\\.stringify\\(res\\.rows, null, 2\\)\\); process\\.exit\\(0\\); \\} catch\\(e\\) \\{ console\\.error\\(e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ const res = await db\\.query\\('SELECT \\* FROM branches LIMIT 5'\\); console\\.log\\(JSON\\.stringify\\(res\\.rows, null, 2\\)\\); process\\.exit\\(0\\); \\} catch\\(e\\) \\{ console\\.error\\(e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ const res = await db\\.query\\('SELECT \\* FROM incubators ORDER BY id'\\); console\\.log\\(JSON\\.stringify\\(res\\.rows, null, 2\\)\\); process\\.exit\\(0\\); \\} catch\\(e\\) \\{ console\\.error\\(e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ \n  // إضافة entity_id للحاضنات إذا لم تكن موجودة\n  const result = await db\\.query\\(\\\\`\n    UPDATE incubators \n    SET entity_id = 'INC' \\|\\| LPAD\\(id::text, 2, '0'\\)\n    WHERE entity_id IS NULL\n  \\\\`\\);\n  console\\.log\\('تم تحديث entity_id للحاضنات:', result\\.rowCount\\);\n  \n  // عرض البيانات المحدثة\n  const check = await db\\.query\\('SELECT id, name, entity_id, branch_id FROM incubators'\\);\n  console\\.log\\(JSON\\.stringify\\(check\\.rows, null, 2\\)\\);\n  process\\.exit\\(0\\);\n\\} catch\\(e\\) \\{ console\\.error\\(e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ \n  // التحقق من البيانات الحالية للمنصات والمكاتب\n  const platforms = await db\\.query\\('SELECT id, name, entity_id, incubator_id FROM platforms LIMIT 3'\\);\n  console\\.log\\('=== Platforms ==='\\);\n  console\\.log\\(JSON\\.stringify\\(platforms\\.rows, null, 2\\)\\);\n  \n  const offices = await db\\.query\\('SELECT id, name, entity_id, incubator_id FROM offices LIMIT 3'\\);\n  console\\.log\\('=== Offices ==='\\);\n  console\\.log\\(JSON\\.stringify\\(offices\\.rows, null, 2\\)\\);\n  process\\.exit\\(0\\);\n\\} catch\\(e\\) \\{ console\\.error\\(e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -e \"const db = require\\('\\./db'\\); \\(async \\(\\) => \\{ try \\{ \n  // أولاً: إنشاء entity_id للحاضنات في جدول entities\n  const incubators = await db\\.query\\('SELECT id, name FROM incubators WHERE entity_id IS NULL'\\);\n  \n  for \\(const inc of incubators\\.rows\\) \\{\n    const entityId = 'INC' \\+ String\\(inc\\.id\\)\\.padStart\\(2, '0'\\);\n    \n    // إضافة إلى جدول entities\n    await db\\.query\\(\\\\`\n      INSERT INTO entities \\(id, name, type, status, balance, users_count, plan, theme\\)\n      VALUES \\(\\$1, \\$2, 'INCUBATOR', 'Active', 0, 0, 'BASIC', 'BLUE'\\)\n      ON CONFLICT \\(id\\) DO NOTHING\n    \\\\`, \\[entityId, inc\\.name\\]\\);\n    \n    // تحديث incubators\n    await db\\.query\\('UPDATE incubators SET entity_id = \\$1 WHERE id = \\$2', \\[entityId, inc\\.id\\]\\);\n    \n    console\\.log\\(\\\\`Created entity: \\\\\\$\\{entityId\\} for incubator: \\\\\\$\\{inc\\.name\\}\\\\`\\);\n  \\}\n  \n  console\\.log\\('تم إنشاء الكيانات بنجاح'\\);\n  process\\.exit\\(0\\);\n\\} catch\\(e\\) \\{ console\\.error\\('Error:', e\\.message\\); process\\.exit\\(1\\); \\} \\}\\)\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node << 'EOF'\nconst db = require\\('\\./db'\\);\n\n\\(async \\(\\) => \\{\n  try \\{\n    // أولاً: إنشاء entity_id للحاضنات في جدول entities\n    const incubators = await db\\.query\\('SELECT id, name FROM incubators WHERE entity_id IS NULL'\\);\n    \n    for \\(const inc of incubators\\.rows\\) \\{\n      const entityId = 'INC' \\+ String\\(inc\\.id\\)\\.padStart\\(2, '0'\\);\n      \n      // إضافة إلى جدول entities\n      await db\\.query\\(\n        `INSERT INTO entities \\(id, name, type, status, balance, users_count, plan, theme\\)\n         VALUES \\(\\$1, \\$2, \\$3, \\$4, \\$5, \\$6, \\$7, \\$8\\)\n         ON CONFLICT \\(id\\) DO NOTHING`,\n        \\[entityId, inc\\.name, 'INCUBATOR', 'Active', 0, 0, 'BASIC', 'BLUE'\\]\n      \\);\n      \n      // تحديث incubators\n      await db\\.query\\('UPDATE incubators SET entity_id = \\$1 WHERE id = \\$2', \\[entityId, inc\\.id\\]\\);\n      \n      console\\.log\\(`Created entity: \\$\\{entityId\\} for incubator: \\$\\{inc\\.name\\}`\\);\n    \\}\n    \n    console\\.log\\('✅ تم إنشاء الكيانات بنجاح'\\);\n    process\\.exit\\(0\\);\n  \\} catch\\(e\\) \\{\n    console\\.error\\('❌ Error:', e\\.message\\);\n    process\\.exit\\(1\\);\n  \\}\n\\}\\)\\(\\);\nEOF$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node add-sample-hierarchy-data\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node << 'EOF'\nconst db = require\\('\\./db'\\);\n\n\\(async \\(\\) => \\{\n  try \\{\n    const result = await db\\.query\\(`\n      SELECT column_name, data_type \n      FROM information_schema\\.columns \n      WHERE table_name = 'platforms' \n      ORDER BY ordinal_position\n    `\\);\n    \n    console\\.log\\('=== أعمدة جدول platforms ==='\\);\n    result\\.rows\\.forEach\\(col => \\{\n      console\\.log\\(`\\$\\{col\\.column_name\\}: \\$\\{col\\.data_type\\}`\\);\n    \\}\\);\n    \n    process\\.exit\\(0\\);\n  \\} catch\\(e\\) \\{\n    console\\.error\\('Error:', e\\.message\\);\n    process\\.exit\\(1\\);\n  \\}\n\\}\\)\\(\\);\nEOF$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node << 'EOF'\nconst db = require\\('\\./db'\\);\n\n\\(async \\(\\) => \\{\n  try \\{\n    const result = await db\\.query\\(`\n      SELECT column_name, data_type \n      FROM information_schema\\.columns \n      WHERE table_name = 'offices' \n      ORDER BY ordinal_position\n    `\\);\n    \n    console\\.log\\('=== أعمدة جدول offices ==='\\);\n    result\\.rows\\.forEach\\(col => \\{\n      console\\.log\\(`\\$\\{col\\.column_name\\}: \\$\\{col\\.data_type\\}`\\);\n    \\}\\);\n    \n    process\\.exit\\(0\\);\n  \\} catch\\(e\\) \\{\n    console\\.error\\('Error:', e\\.message\\);\n    process\\.exit\\(1\\);\n  \\}\n\\}\\)\\(\\);\nEOF$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

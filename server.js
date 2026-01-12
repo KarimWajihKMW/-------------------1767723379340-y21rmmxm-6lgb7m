@@ -2497,6 +2497,142 @@ app.delete('/api/enrollments/:id', async (req, res) => {
 // ========================================
 // Error handling middleware
 // ========================================
+// ========================================
+// HIERARCHY DETAIL VIEW API
+// ========================================
+
+// Get entity details with all children based on entity type and ID
+app.get('/api/hierarchy/entity/:type/:id', async (req, res) => {
+  try {
+    const { type, id } = req.params;
+    const entityType = type.toUpperCase();
+    const entityData = {};
+
+    // Get entity basic info
+    if (entityType === 'BRANCH') {
+      const branch = await db.query(`
+        SELECT b.*, hq.name as hq_name 
+        FROM branches b
+        LEFT JOIN headquarters hq ON b.hq_id = hq.id
+        WHERE b.id = $1
+      `, [id]);
+      
+      if (branch.rows.length === 0) {
+        return res.status(404).json({ error: 'الفرع غير موجود' });
+      }
+      
+      entityData.entity = branch.rows[0];
+      entityData.entity.type = 'BRANCH';
+      
+      // Get incubators, platforms, and offices under this branch
+      const incubators = await db.query('SELECT * FROM incubators WHERE branch_id = $1 AND is_active = true ORDER BY name', [id]);
+      const platforms = await db.query(`
+        SELECT p.* FROM platforms p
+        INNER JOIN incubators i ON p.incubator_id = i.id
+        WHERE i.branch_id = $1 AND p.is_active = true
+        ORDER BY p.name
+      `, [id]);
+      const offices = await db.query(`
+        SELECT o.* FROM offices o
+        INNER JOIN incubators i ON o.incubator_id = i.id
+        WHERE i.branch_id = $1 AND o.is_active = true
+        ORDER BY o.name
+      `, [id]);
+      
+      entityData.incubators = incubators.rows;
+      entityData.platforms = platforms.rows;
+      entityData.offices = offices.rows;
+      
+    } else if (entityType === 'INCUBATOR') {
+      const incubator = await db.query(`
+        SELECT i.*, b.name as branch_name, b.city, b.country 
+        FROM incubators i
+        LEFT JOIN branches b ON i.branch_id = b.id
+        WHERE i.id = $1
+      `, [id]);
+      
+      if (incubator.rows.length === 0) {
+        return res.status(404).json({ error: 'الحاضنة غير موجودة' });
+      }
+      
+      entityData.entity = incubator.rows[0];
+      entityData.entity.type = 'INCUBATOR';
+      
+      // Get platforms and offices under this incubator
+      const platforms = await db.query('SELECT * FROM platforms WHERE incubator_id = $1 AND is_active = true ORDER BY name', [id]);
+      const offices = await db.query('SELECT * FROM offices WHERE incubator_id = $1 AND is_active = true ORDER BY name', [id]);
+      
+      entityData.platforms = platforms.rows;
+      entityData.offices = offices.rows;
+      entityData.incubators = []; // Incubators don't have child incubators
+      
+    } else if (entityType === 'PLATFORM') {
+      const platform = await db.query(`
+        SELECT p.*, i.name as incubator_name, b.name as branch_name 
+        FROM platforms p
+        LEFT JOIN incubators i ON p.incubator_id = i.id
+        LEFT JOIN branches b ON i.branch_id = b.id
+        WHERE p.id = $1
+      `, [id]);
+      
+      if (platform.rows.length === 0) {
+        return res.status(404).json({ error: 'المنصة غير موجودة' });
+      }
+      
+      entityData.entity = platform.rows[0];
+      entityData.entity.type = 'PLATFORM';
+      
+      // Get offices linked to this platform
+      const offices = await db.query(`
+        SELECT o.* FROM offices o
+        INNER JOIN office_platforms op ON o.id = op.office_id
+        WHERE op.platform_id = $1 AND op.is_active = true
+        ORDER BY o.name
+      `, [id]);
+      
+      entityData.platforms = []; // Platforms don't have child platforms
+      entityData.offices = offices.rows;
+      entityData.incubators = [];
+      
+    } else if (entityType === 'OFFICE') {
+      const office = await db.query(`
+        SELECT o.*, i.name as incubator_name, b.name as branch_name 
+        FROM offices o
+        LEFT JOIN incubators i ON o.incubator_id = i.id
+        LEFT JOIN branches b ON i.branch_id = b.id
+        WHERE o.id = $1
+      `, [id]);
+      
+      if (office.rows.length === 0) {
+        return res.status(404).json({ error: 'المكتب غير موجود' });
+      }
+      
+      entityData.entity = office.rows[0];
+      entityData.entity.type = 'OFFICE';
+      
+      // Get linked platforms
+      const platforms = await db.query(`
+        SELECT p.* FROM platforms p
+        INNER JOIN office_platforms op ON p.id = op.platform_id
+        WHERE op.office_id = $1 AND op.is_active = true
+        ORDER BY p.name
+      `, [id]);
+      
+      entityData.platforms = platforms.rows;
+      entityData.offices = []; // Offices don't have child offices
+      entityData.incubators = [];
+      
+    } else {
+      return res.status(400).json({ error: 'نوع كيان غير صحيح' });
+    }
+
+    res.json(entityData);
+  } catch (error) {
+    console.error('Error fetching entity details:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });

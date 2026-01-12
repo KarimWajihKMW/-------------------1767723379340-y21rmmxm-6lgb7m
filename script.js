@@ -2631,7 +2631,7 @@ const app = (() => {
                         <!-- Branches -->
                         <div class="p-6 space-y-4">
                             ${branches.filter(b => b.hq_id === hq.id).map(branch => `
-                                <div class="border-r-4 border-blue-400 bg-blue-50 rounded-lg p-4">
+                                <div class="border-r-4 border-blue-400 bg-blue-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('BRANCH', ${branch.id})">
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-3">
                                             <i class="fas fa-map-marked-alt text-xl text-blue-600"></i>
@@ -2640,14 +2640,17 @@ const app = (() => {
                                                 <p class="text-xs text-slate-500">${branch.city}, ${branch.country} | ${branch.code}</p>
                                             </div>
                                         </div>
-                                        <span class="text-xs font-bold px-3 py-1 rounded-full ${branch.is_active ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}">
-                                            ${branch.is_active ? 'فعال' : 'معطل'}
-                                        </span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold px-3 py-1 rounded-full ${branch.is_active ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}">
+                                                ${branch.is_active ? 'فعال' : 'معطل'}
+                                            </span>
+                                            <i class="fas fa-chevron-left text-slate-400"></i>
+                                        </div>
                                     </div>
 
                                     <!-- Incubators -->
                                     ${incubators.filter(i => i.branch_id === branch.id).map(incubator => `
-                                        <div class="mr-6 mt-3 border-r-4 border-green-400 bg-white rounded-lg p-4">
+                                        <div class="mr-6 mt-3 border-r-4 border-green-400 bg-white rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="event.stopPropagation(); app.viewEntityDetails('INCUBATOR', ${incubator.id})">
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center gap-2">
                                                     <i class="fas fa-seedling text-green-600"></i>
@@ -2656,6 +2659,7 @@ const app = (() => {
                                                         <p class="text-xs text-slate-500">${incubator.program_type} | السعة: ${incubator.capacity}</p>
                                                     </div>
                                                 </div>
+                                                <i class="fas fa-chevron-left text-slate-400"></i>
                                             </div>
 
                                             <!-- Platforms & Offices in Grid -->
@@ -2666,9 +2670,14 @@ const app = (() => {
                                                         <i class="fas fa-server text-orange-500"></i> المنصات
                                                     </p>
                                                     ${platforms.filter(p => p.incubator_id === incubator.id).map(platform => `
-                                                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2">
-                                                            <p class="text-xs font-semibold text-slate-700">${platform.name}</p>
-                                                            <p class="text-xs text-slate-500">${platform.pricing_model} - ${platform.base_price} ${platform.currency}</p>
+                                                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2 hover:bg-orange-100 transition-colors cursor-pointer" onclick="event.stopPropagation(); app.viewEntityDetails('PLATFORM', ${platform.id})">
+                                                            <div class="flex items-center justify-between">
+                                                                <div>
+                                                                    <p class="text-xs font-semibold text-slate-700">${platform.name}</p>
+                                                                    <p class="text-xs text-slate-500">${platform.pricing_model} - ${platform.base_price} ${platform.currency}</p>
+                                                                </div>
+                                                                <i class="fas fa-eye text-xs text-orange-400"></i>
+                                                            </div>
                                                         </div>
                                                     `).join('') || '<p class="text-xs text-slate-400 italic">لا توجد منصات</p>'}
                                                 </div>
@@ -2679,9 +2688,14 @@ const app = (() => {
                                                         <i class="fas fa-briefcase text-teal-500"></i> المكاتب
                                                     </p>
                                                     ${offices.filter(o => o.incubator_id === incubator.id).map(office => `
-                                                        <div class="bg-teal-50 border border-teal-200 rounded-lg p-2">
-                                                            <p class="text-xs font-semibold text-slate-700">${office.name}</p>
-                                                            <p class="text-xs text-slate-500">${office.office_type} - السعة: ${office.capacity}</p>
+                                                        <div class="bg-teal-50 border border-teal-200 rounded-lg p-2 hover:bg-teal-100 transition-colors cursor-pointer" onclick="event.stopPropagation(); app.viewEntityDetails('OFFICE', ${office.id})">
+                                                            <div class="flex items-center justify-between">
+                                                                <div>
+                                                                    <p class="text-xs font-semibold text-slate-700">${office.name}</p>
+                                                                    <p class="text-xs text-slate-500">${office.office_type} - السعة: ${office.capacity}</p>
+                                                                </div>
+                                                                <i class="fas fa-eye text-xs text-teal-400"></i>
+                                                            </div>
                                                         </div>
                                                     `).join('') || '<p class="text-xs text-slate-400 italic">لا توجد مكاتب</p>'}
                                                 </div>
@@ -2900,13 +2914,267 @@ const app = (() => {
         }
     };
 
+    // --- VIEW ENTITY DETAILS (صفحة تفاصيل الكيان) ---
+    const viewEntityDetails = async (entityType, entityId) => {
+        try {
+            showToast(`جارٍ تحميل تفاصيل ${entityType}...`, 'info');
+            
+            // Fetch entity details from API
+            const data = await fetchAPI(`/hierarchy/entity/${entityType}/${entityId}`);
+            const entity = data.entity;
+            
+            // Get entity icon and color based on type
+            const entityConfig = {
+                'BRANCH': { icon: 'fa-map-marked-alt', color: 'blue', bgGradient: 'from-blue-600 to-blue-700' },
+                'INCUBATOR': { icon: 'fa-seedling', color: 'green', bgGradient: 'from-green-600 to-green-700' },
+                'PLATFORM': { icon: 'fa-server', color: 'orange', bgGradient: 'from-orange-600 to-orange-700' },
+                'OFFICE': { icon: 'fa-briefcase', color: 'teal', bgGradient: 'from-teal-600 to-teal-700' }
+            };
+            
+            const config = entityConfig[entityType];
+            
+            // Render entity details page
+            const view = document.getElementById('main-view');
+            view.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <!-- Back Button -->
+                    <div>
+                        <button onclick="app.loadRoute('hierarchy')" class="text-slate-600 hover:text-slate-800 font-semibold flex items-center gap-2 transition">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>العودة إلى الهيكل الهرمي</span>
+                        </button>
+                    </div>
+
+                    <!-- Entity Header Card -->
+                    <div class="bg-white rounded-2xl shadow-lg border-2 border-${config.color}-200 overflow-hidden">
+                        <div class="bg-gradient-to-r ${config.bgGradient} p-8 text-white">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-white/20 rounded-full p-4">
+                                        <i class="fas ${config.icon} text-4xl"></i>
+                                    </div>
+                                    <div>
+                                        <h1 class="text-3xl font-black mb-2">${entity.name}</h1>
+                                        <p class="text-sm opacity-90">
+                                            ${entityType === 'BRANCH' ? `${entity.city}, ${entity.country}` : ''}
+                                            ${entityType === 'INCUBATOR' ? `${entity.program_type} | تابع لـ ${entity.branch_name}` : ''}
+                                            ${entityType === 'PLATFORM' ? `${entity.pricing_model} | تابع لـ ${entity.incubator_name}` : ''}
+                                            ${entityType === 'OFFICE' ? `${entity.office_type} | تابع لـ ${entity.incubator_name}` : ''}
+                                        </p>
+                                        <p class="text-xs mt-1 opacity-80">
+                                            <i class="fas fa-code ml-1"></i> رمز: ${entity.code}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="px-4 py-2 rounded-full text-sm font-bold ${entity.is_active ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}">
+                                    ${entity.is_active ? '✅ نشط' : '❌ غير نشط'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Entity Details Grid -->
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                ${entityType === 'BRANCH' ? `
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">المقر الرئيسي</p>
+                                        <p class="font-bold text-slate-800">${entity.hq_name || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">المدينة</p>
+                                        <p class="font-bold text-slate-800">${entity.city || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الدولة</p>
+                                        <p class="font-bold text-slate-800">${entity.country || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">البريد الإلكتروني</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_email || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الهاتف</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_phone || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">المدير</p>
+                                        <p class="font-bold text-slate-800">${entity.manager_name || 'غير محدد'}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                ${entityType === 'INCUBATOR' ? `
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الفرع</p>
+                                        <p class="font-bold text-slate-800">${entity.branch_name || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">نوع البرنامج</p>
+                                        <p class="font-bold text-slate-800">${entity.program_type || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">السعة القصوى</p>
+                                        <p class="font-bold text-slate-800">${entity.capacity || 0} مشروع</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">البريد الإلكتروني</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_email || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الهاتف</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_phone || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">المدير</p>
+                                        <p class="font-bold text-slate-800">${entity.manager_name || 'غير محدد'}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                ${entityType === 'PLATFORM' ? `
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الحاضنة</p>
+                                        <p class="font-bold text-slate-800">${entity.incubator_name || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">نموذج التسعير</p>
+                                        <p class="font-bold text-slate-800">${entity.pricing_model || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">السعر الأساسي</p>
+                                        <p class="font-bold text-slate-800">${entity.base_price || 0} ${entity.currency || 'SAR'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">البريد الإلكتروني</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_email || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الهاتف</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_phone || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">المدير</p>
+                                        <p class="font-bold text-slate-800">${entity.manager_name || 'غير محدد'}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                ${entityType === 'OFFICE' ? `
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الحاضنة</p>
+                                        <p class="font-bold text-slate-800">${entity.incubator_name || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">نوع المكتب</p>
+                                        <p class="font-bold text-slate-800">${entity.office_type || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">السعة</p>
+                                        <p class="font-bold text-slate-800">${entity.capacity || 0} شخص</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">البريد الإلكتروني</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_email || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">الهاتف</p>
+                                        <p class="font-bold text-slate-800">${entity.contact_phone || 'غير محدد'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-lg p-4">
+                                        <p class="text-xs text-slate-500 mb-1">المسؤول</p>
+                                        <p class="font-bold text-slate-800">${entity.manager_name || 'غير محدد'}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            ${entity.description ? `
+                                <div class="mt-6 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
+                                    <h3 class="font-bold text-blue-900 mb-2">الوصف</h3>
+                                    <p class="text-sm text-blue-700">${entity.description}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Children Entities -->
+                    ${data.incubators && data.incubators.length > 0 ? `
+                        <div class="bg-white rounded-2xl shadow-lg border-2 border-green-200 overflow-hidden">
+                            <div class="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white">
+                                <h3 class="text-lg font-black flex items-center gap-2">
+                                    <i class="fas fa-seedling"></i>
+                                    الحاضنات التابعة (${data.incubators.length})
+                                </h3>
+                            </div>
+                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                ${data.incubators.map(inc => `
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('INCUBATOR', ${inc.id})">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="font-bold text-slate-800 text-sm">${inc.name}</h4>
+                                            <i class="fas fa-chevron-left text-green-500"></i>
+                                        </div>
+                                        <p class="text-xs text-slate-500">${inc.program_type} | السعة: ${inc.capacity}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${data.platforms && data.platforms.length > 0 ? `
+                        <div class="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden">
+                            <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-4 text-white">
+                                <h3 class="text-lg font-black flex items-center gap-2">
+                                    <i class="fas fa-server"></i>
+                                    المنصات التابعة (${data.platforms.length})
+                                </h3>
+                            </div>
+                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                ${data.platforms.map(plt => `
+                                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('PLATFORM', ${plt.id})">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="font-bold text-slate-800 text-sm">${plt.name}</h4>
+                                            <i class="fas fa-chevron-left text-orange-500"></i>
+                                        </div>
+                                        <p class="text-xs text-slate-500">${plt.pricing_model} - ${plt.base_price} ${plt.currency}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${data.offices && data.offices.length > 0 ? `
+                        <div class="bg-white rounded-2xl shadow-lg border-2 border-teal-200 overflow-hidden">
+                            <div class="bg-gradient-to-r from-teal-600 to-teal-700 p-4 text-white">
+                                <h3 class="text-lg font-black flex items-center gap-2">
+                                    <i class="fas fa-briefcase"></i>
+                                    المكاتب التابعة (${data.offices.length})
+                                </h3>
+                            </div>
+                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                ${data.offices.map(ofc => `
+                                    <div class="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('OFFICE', ${ofc.id})">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="font-bold text-slate-800 text-sm">${ofc.name}</h4>
+                                            <i class="fas fa-chevron-left text-teal-500"></i>
+                                        </div>
+                                        <p class="text-xs text-slate-500">${ofc.office_type} - السعة: ${ofc.capacity}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error viewing entity details:', error);
+            showToast('فشل تحميل تفاصيل الكيان', 'error');
+        }
+    };
+
     // Expose functions
     return { 
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
         handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
-        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant
+        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails
     };
 })();
 
