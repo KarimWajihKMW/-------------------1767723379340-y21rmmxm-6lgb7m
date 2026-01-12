@@ -4148,6 +4148,8 @@ window.editSession = async function(sessionId) {
 // Manage Enrollments (Training Session Participants)
 window.manageEnrollments = async function(sessionId, sessionName) {
   try {
+    console.log('📋 جاري تحميل بيانات المتدربين للدفعة:', sessionId);
+    
     // Load session details and beneficiaries
     const [sessions, beneficiaries] = await Promise.all([
       window.fetchAPI(`/training-sessions?entity_id=${window.currentUserData.entityId}`),
@@ -4164,8 +4166,9 @@ window.manageEnrollments = async function(sessionId, sessionName) {
     let enrollments = [];
     try {
       enrollments = await window.fetchAPI(`/enrollments?session_id=${sessionId}`);
+      console.log('✅ تم تحميل المتدربين:', enrollments.length, enrollments);
     } catch (error) {
-      console.error('Error loading enrollments:', error);
+      console.error('❌ خطأ في تحميل المتدربين:', error);
     }
     
     const enrolledIds = enrollments.map(e => e.beneficiary_id);
@@ -4263,9 +4266,10 @@ window.manageEnrollments = async function(sessionId, sessionName) {
               </table>
             </div>
           ` : `
-            <div class="text-center py-8 bg-gray-50 rounded-lg">
-              <i class="fas fa-users text-gray-400 text-4xl mb-3"></i>
-              <p class="text-gray-600">لا يوجد متدربون مسجلون في هذه الدفعة</p>
+            <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <i class="fas fa-users-slash text-gray-400 text-5xl mb-4"></i>
+              <p class="text-gray-700 font-bold text-lg mb-2">لا يوجد متدربون مسجلون بعد</p>
+              <p class="text-gray-500 text-sm">استخدم حقل "إضافة متدرب جديد" أعلاه لإضافة أول متدرب</p>
             </div>
           `}
           
