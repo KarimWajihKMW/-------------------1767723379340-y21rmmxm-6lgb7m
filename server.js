@@ -2800,10 +2800,9 @@ app.post('/api/training-sessions', async (req, res) => {
     const result = await db.query(
       `INSERT INTO training_sessions (
         entity_id, session_name, session_code, program_id, start_date, end_date, 
-        instructor_name, location, status, current_participants,
-        max_participants
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, 30) RETURNING *`,
-      [entity_id, session_name, session_code, program_id, start_date, end_date, instructor_name, location, status || 'PLANNED']
+        instructor_name, location, status, current_participants, max_participants
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [entity_id, session_name, session_code, program_id, start_date, end_date, instructor_name, location, status || 'PLANNED', 0, 30]
     );
     
     res.status(201).json(result.rows[0]);
