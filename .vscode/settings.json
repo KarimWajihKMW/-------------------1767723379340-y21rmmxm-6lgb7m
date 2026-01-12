@@ -88,6 +88,22 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c server\\.js && node -c script\\.js && echo \"✅ Build tests passed\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node platforms-status-report\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-platform-foreign-keys\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node delete-other-platforms\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-after-platform-deletion\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
