@@ -3732,6 +3732,13 @@ window.openAddSessionModal = async function() {
     console.error('Error loading programs:', error);
   }
   
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const nextMonth = new Date(today);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  const nextMonthStr = nextMonth.toISOString().split('T')[0];
+  
   const modal = document.createElement('div');
   modal.id = 'add-session-modal';
   modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
@@ -3759,13 +3766,13 @@ window.openAddSessionModal = async function() {
           
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ البدء *</label>
-            <input type="date" name="start_date" required 
+            <input type="date" name="start_date" required value="${todayStr}"
                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
           </div>
           
           <div>
             <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الانتهاء *</label>
-            <input type="date" name="end_date" required 
+            <input type="date" name="end_date" required value="${nextMonthStr}"
                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
           </div>
           
@@ -3821,12 +3828,39 @@ window.openAddSessionModal = async function() {
       return;
     }
     
+    // Get dates and validate format
+    const start_date = formData.get('start_date');
+    const end_date = formData.get('end_date');
+    
+    if (!start_date || !end_date) {
+      alert('⚠️ يجب إدخال تاريخ البدء والانتهاء');
+      return;
+    }
+    
+    // Ensure dates are in correct format (YYYY-MM-DD)
+    const startDateObj = new Date(start_date);
+    const endDateObj = new Date(end_date);
+    
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      alert('⚠️ صيغة التاريخ غير صحيحة');
+      return;
+    }
+    
+    if (endDateObj < startDateObj) {
+      alert('⚠️ تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء');
+      return;
+    }
+    
+    // Format dates as YYYY-MM-DD
+    const formattedStartDate = startDateObj.toISOString().split('T')[0];
+    const formattedEndDate = endDateObj.toISOString().split('T')[0];
+    
     const data = {
       entity_id: window.currentUserData.entityId,
       session_name: formData.get('session_name'),
       program_id: parseInt(program_id),
-      start_date: formData.get('start_date'),
-      end_date: formData.get('end_date'),
+      start_date: formattedStartDate,
+      end_date: formattedEndDate,
       instructor_name: formData.get('instructor_name') || null,
       location: formData.get('location') || null,
       status: formData.get('status')
