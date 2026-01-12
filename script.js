@@ -327,8 +327,9 @@ const app = (() => {
                         entityName: selectedEntity.name
                     };
                     
-                    // 🔑 حفظ currentUser في window حتى يكون متاح لـ window.fetchAPI
+                    // 🔑 حفظ currentUser في window وlocalStorage
                     window.currentUserData = currentUser;
+                    localStorage.setItem('nayosh_selected_entity', JSON.stringify(currentUser));
                     console.log('💾 تم حفظ بيانات المستخدم الحالي:', window.currentUserData);
                     
                     modal.remove();
@@ -571,13 +572,27 @@ const app = (() => {
         console.log('🔄 بدء التهيئة...');
         
         try {
-            // Show tenant selector first
-            const view = document.getElementById('main-view');
-            view.innerHTML = `<div class="flex h-full items-center justify-center"></div>`;
+            // Check if user already selected entity before
+            const savedEntity = localStorage.getItem('nayosh_selected_entity');
+            if (savedEntity) {
+                try {
+                    currentUser = JSON.parse(savedEntity);
+                    window.currentUserData = currentUser;
+                    console.log('✅ استرجاع الكيان المحفوظ:', currentUser);
+                } catch (e) {
+                    console.warn('⚠️ خطأ في استرجاع الكيان المحفوظ:', e);
+                    localStorage.removeItem('nayosh_selected_entity');
+                }
+            }
             
-            // Show tenant selector modal
-            await showTenantSelector();
-            console.log('✅ تم اختيار الكيان:', currentUser);
+            const view = document.getElementById('main-view');
+            
+            // Show tenant selector only if no saved entity
+            if (!currentUser) {
+                view.innerHTML = `<div class="flex h-full items-center justify-center"></div>`;
+                await showTenantSelector();
+                console.log('✅ تم اختيار الكيان:', currentUser);
+            }
             
             // 🔑 تأكد من حفظ currentUser في window
             window.currentUserData = currentUser;
@@ -707,6 +722,21 @@ const app = (() => {
             let menuHTML = '<div class="p-4">';
             menuHTML += '<h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">اختر مستخدم للتبديل</h3>';
             
+            // Add "Change Entity" button
+            menuHTML += `
+                <button onclick="app.changeTenant()" 
+                        class="w-full mb-4 p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition flex items-center gap-3 group shadow-lg">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-exchange-alt text-lg"></i>
+                    </div>
+                    <div class="flex-1 text-right">
+                        <div class="font-bold text-sm">تغيير الكيان</div>
+                        <div class="text-xs opacity-90">الانتقال إلى كيان آخر</div>
+                    </div>
+                </button>
+                <div class="border-t border-gray-200 my-3"></div>
+            `;
+            
             Object.entries(grouped).forEach(([type, users]) => {
                 const typeInfo = TENANT_TYPES[type] || TENANT_TYPES.BRANCH;
                 menuHTML += `<div class="mb-4">`;
@@ -753,6 +783,19 @@ const app = (() => {
         const btn = document.querySelector('button[onclick*="toggleRoleMenu"]');
         if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !btn.contains(e.target)) toggleRoleMenu();
     });
+
+    const changeTenant = () => {
+        // Clear saved entity
+        localStorage.removeItem('nayosh_selected_entity');
+        currentUser = null;
+        window.currentUserData = null;
+        
+        // Reload page to show tenant selector
+        showToast('جاري تحميل نافذة اختيار الكيان...', 'info');
+        setTimeout(() => {
+            location.reload();
+        }, 500);
+    };
 
     const updateHeader = () => {
         if (!currentUser) return;
@@ -2829,7 +2872,7 @@ const app = (() => {
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
         handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
-        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink
+        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant
     };
 })();
 
