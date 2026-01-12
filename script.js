@@ -3145,8 +3145,12 @@ async function renderPlatformSelection(currentUser) {
 
   try {
     // Get incubator ID from entity
-    const incubatorId = window.currentUserData?.entityId;
+    const incubatorId = currentUser?.entityId || window.currentUserData?.entityId;
     console.log('📋 جاري تحميل المنصات للحاضنة:', incubatorId);
+    
+    if (!incubatorId) {
+      throw new Error('معرّف الحاضنة غير موجود - Incubator ID not found');
+    }
 
     const platforms = await window.fetchAPI(`/incubators/${incubatorId}/platforms`);
     console.log('✅ تم تحميل المنصات:', platforms.length);
