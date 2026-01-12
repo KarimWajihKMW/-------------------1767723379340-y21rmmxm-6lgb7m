@@ -2794,13 +2794,16 @@ app.post('/api/training-sessions', async (req, res) => {
   try {
     const { entity_id, session_name, program_id, start_date, end_date, instructor_name, location, status } = req.body;
     
+    // Generate unique session code
+    const session_code = `SESSION-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
     const result = await db.query(
       `INSERT INTO training_sessions (
-        entity_id, session_name, program_id, start_date, end_date, 
+        entity_id, session_name, session_code, program_id, start_date, end_date, 
         instructor_name, location, status, current_participants,
-        incubator_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9) RETURNING *`,
-      [entity_id, session_name, program_id, start_date, end_date, instructor_name, location, status || 'PLANNED', entity_id]
+        max_participants
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, 30) RETURNING *`,
+      [entity_id, session_name, session_code, program_id, start_date, end_date, instructor_name, location, status || 'PLANNED']
     );
     
     res.status(201).json(result.rows[0]);
