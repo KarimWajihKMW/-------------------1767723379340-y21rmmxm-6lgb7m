@@ -2291,7 +2291,6 @@ app.get('/api/certificates', async (req, res) => {
 app.get('/api/enrollments', async (req, res) => {
   try {
     const { session_id, beneficiary_id } = req.query;
-    const entityFilter = getEntityFilter(req);
     
     let query = `
       SELECT 
@@ -2300,7 +2299,7 @@ app.get('/api/enrollments', async (req, res) => {
         b.national_id as beneficiary_national_id,
         ts.session_name,
         tp.duration_hours,
-        a.final_grade
+        ROUND((a.score / a.max_score * 100)::numeric, 2) as final_grade
       FROM enrollments e
       LEFT JOIN beneficiaries b ON e.beneficiary_id = b.id
       LEFT JOIN training_sessions ts ON e.session_id = ts.id
@@ -2309,11 +2308,6 @@ app.get('/api/enrollments', async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
-    
-    // Add entity filter
-    if (entityFilter) {
-      query += ` AND e.entity_id = ${entityFilter.entity_id} AND e.entity_type = '${entityFilter.entity_type}'`;
-    }
     
     if (session_id) {
       params.push(session_id);
@@ -2327,12 +2321,12 @@ app.get('/api/enrollments', async (req, res) => {
     
     query += ' ORDER BY e.enrollment_date DESC';
     
-    console.log('📋 Fetching enrollments:', { session_id, beneficiary_id, query });
+    console.log('📋 [API] Fetching enrollments:', { session_id, beneficiary_id });
     const result = await db.query(query, params);
-    console.log('✅ Found enrollments:', result.rows.length);
+    console.log('✅ [API] Found enrollments:', result.rows.length);
     res.json(result.rows);
   } catch (error) {
-    console.error('❌ Error fetching enrollments:', error);
+    console.error('❌ [API] Error fetching enrollments:', error);
     res.status(500).json({ error: error.message });
   }
 });
