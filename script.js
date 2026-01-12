@@ -2866,6 +2866,40 @@ const app = (() => {
         }
     };
 
+    // INCUBATOR SYSTEM - moved inside app to access db
+    const renderIncubator = async () => {
+        const view = document.getElementById('main-view');
+        view.innerHTML = `
+            <div class="flex items-center justify-center h-64">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        `;
+        
+        try {
+            // Use window.renderIncubatorSystem if it exists (defined outside)
+            if (typeof window.renderIncubatorSystem === 'function') {
+                await window.renderIncubatorSystem(currentUser);
+            } else {
+                view.innerHTML = `
+                    <div class="p-8 text-center">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 text-6xl mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">نظام الحاضنة قيد التطوير</h2>
+                        <p class="text-gray-600">سيتم تفعيل هذه الميزة قريباً</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading incubator:', error);
+            view.innerHTML = `
+                <div class="p-8 text-center text-red-600">
+                    <i class="fas fa-times-circle text-6xl mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">خطأ في تحميل نظام الحاضنة</h3>
+                    <p>${error.message}</p>
+                </div>
+            `;
+        }
+    };
+
     // Expose functions
     return { 
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
@@ -2876,46 +2910,12 @@ const app = (() => {
     };
 })();
 
-// Make fetchAPI available globally for employee functions
-// This version MUST include data isolation headers from currentUser
-window.fetchAPI = async function(endpoint, options = {}) {
-    try {
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
-        
-        // Get currentUser from the app closure
-        // Note: This is a bit of a workaround - ideally currentUser would be global or in sessionStorage
-        if (window.currentUserData) {
-            headers['x-entity-type'] = window.currentUserData.tenantType;
-            headers['x-entity-id'] = window.currentUserData.entityId;
-            console.log('📤 Sending isolation headers:', { entityType: window.currentUserData.tenantType, entityId: window.currentUserData.entityId });
-        }
-        
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
-            headers
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
-    }
-};
-
 // ========================================
-// INCUBATOR TRAINING SYSTEM
+// INCUBATOR TRAINING SYSTEM (Outside closure)
 // نظام حاضنة السلامة
 // ========================================
 
-async function renderIncubator() {
-  const currentUser = db.users[0]; // Use first user as default
-  const currentEntity = db.entities.find(e => e.id === currentUser?.entityId);
-  
+window.renderIncubatorSystem = async function(currentUser) {
   const container = document.querySelector('#main-view');
   
   container.innerHTML = `
@@ -2923,7 +2923,7 @@ async function renderIncubator() {
       <!-- Header -->
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg">
         <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
-        <p class="text-blue-100">نظام إدارة التدريب والتأهيل</p>
+        <p class="text-blue-100">نظام إدارة التدريب والتأهيل - ${currentUser.entityName}</p>
       </div>
 
       <!-- Statistics Cards -->
@@ -2977,59 +2977,39 @@ async function renderIncubator() {
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="border-b border-gray-200">
-          <nav class="flex -mb-px">
-            <button onclick="app.incubatorTab = 'programs'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'programs' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              📚 البرامج التدريبية
-            </button>
-            <button onclick="app.incubatorTab = 'beneficiaries'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'beneficiaries' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              👥 المستفيدون
-            </button>
-            <button onclick="app.incubatorTab = 'sessions'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'sessions' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              📅 الدفعات التدريبية
-            </button>
-            <button onclick="app.incubatorTab = 'assessments'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'assessments' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              📝 التقييم
-            </button>
-            <button onclick="app.incubatorTab = 'certificates'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'certificates' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              🏆 الشهادات
-            </button>
-            <button onclick="app.incubatorTab = 'renewals'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'renewals' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              🔄 المتابعة والتجديد
-            </button>
-            <button onclick="app.incubatorTab = 'records'; renderIncubator()" 
-                    class="incubator-tab px-6 py-3 font-medium text-sm ${app.incubatorTab === 'records' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
-              📋 السجل التدريبي
-            </button>
-          </nav>
-        </div>
-
-        <div id="incubator-content" class="p-6">
-          <!-- Content will be loaded here -->
+      <!-- Simple content for now -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold mb-4">نظام الحاضنة</h3>
+        <p class="text-gray-600 mb-4">مرحباً بك في نظام حاضنة السلامة لإدارة التدريب والتأهيل</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="border rounded-lg p-4 hover:shadow-md transition">
+            <i class="fas fa-book text-blue-600 text-2xl mb-2"></i>
+            <h4 class="font-bold mb-1">البرامج التدريبية</h4>
+            <p class="text-sm text-gray-600">إدارة البرامج والدورات التدريبية</p>
+          </div>
+          <div class="border rounded-lg p-4 hover:shadow-md transition">
+            <i class="fas fa-users text-green-600 text-2xl mb-2"></i>
+            <h4 class="font-bold mb-1">المستفيدون</h4>
+            <p class="text-sm text-gray-600">إدارة بيانات المستفيدين والمتدربين</p>
+          </div>
+          <div class="border rounded-lg p-4 hover:shadow-md transition">
+            <i class="fas fa-calendar text-orange-600 text-2xl mb-2"></i>
+            <h4 class="font-bold mb-1">الدفعات التدريبية</h4>
+            <p class="text-sm text-gray-600">جدولة وإدارة الدفعات التدريبية</p>
+          </div>
+          <div class="border rounded-lg p-4 hover:shadow-md transition">
+            <i class="fas fa-certificate text-purple-600 text-2xl mb-2"></i>
+            <h4 class="font-bold mb-1">الشهادات</h4>
+            <p class="text-sm text-gray-600">إصدار وإدارة الشهادات</p>
+          </div>
         </div>
       </div>
     </div>
   `;
 
   // Load statistics
-  loadIncubatorStats(currentEntity?.id || 'INC03');
-  
-  // Load tab content
-  if (!app.incubatorTab) app.incubatorTab = 'programs';
-  loadIncubatorTab(app.incubatorTab, currentEntity?.id || 'INC03');
-}
-
-async function loadIncubatorStats(entityId) {
   try {
-    const stats = await fetchAPI(`/incubator/stats?entity_id=${entityId}`);
+    const stats = await window.fetchAPI(`/incubator/stats?entity_id=${currentUser.entityId}`);
     document.getElementById('stat-programs').textContent = stats.total_programs || 0;
     document.getElementById('stat-beneficiaries').textContent = stats.total_beneficiaries || 0;
     document.getElementById('stat-sessions').textContent = stats.active_sessions || 0;
@@ -3037,555 +3017,43 @@ async function loadIncubatorStats(entityId) {
   } catch (error) {
     console.error('Error loading stats:', error);
   }
-}
+};
 
-async function loadIncubatorTab(tab, entityId) {
-  const content = document.getElementById('incubator-content');
-  
-  switch(tab) {
-    case 'programs':
-      await renderTrainingPrograms(content, entityId);
-      break;
-    case 'beneficiaries':
-      await renderBeneficiaries(content, entityId);
-      break;
-    case 'sessions':
-      await renderTrainingSessions(content, entityId);
-      break;
-    case 'assessments':
-      await renderAssessments(content, entityId);
-      break;
-    case 'certificates':
-      await renderCertificates(content, entityId);
-      break;
-    case 'renewals':
-      await renderRenewals(content, entityId);
-      break;
-    case 'records':
-      await renderTrainingRecords(content, entityId);
-      break;
-  }
-}
-
-async function renderTrainingPrograms(container, entityId) {
-  try {
-    const programs = await fetchAPI(`/training-programs?entity_id=${entityId}`);
-    
-    container.innerHTML = `
-      <div class="space-y-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">البرامج التدريبية</h3>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            <i class="fas fa-plus ml-2"></i> برنامج جديد
-          </button>
-        </div>
+// Make fetchAPI available globally for employee functions
+// This version MUST include data isolation headers from currentUser
+window.fetchAPI = async function(endpoint, options = {}) {
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          ${programs.map(program => `
-            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h4 class="font-bold text-lg text-blue-600">${program.name}</h4>
-                  <p class="text-sm text-gray-500">${program.code}</p>
-                </div>
-                <span class="px-3 py-1 rounded-full text-xs font-medium ${
-                  program.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }">
-                  ${program.is_active ? 'نشط' : 'غير نشط'}
-                </span>
-              </div>
-              
-              <p class="text-gray-600 text-sm mb-3">${program.description || 'لا يوجد وصف'}</p>
-              
-              <div class="grid grid-cols-2 gap-2 text-sm mb-3">
-                <div class="flex items-center text-gray-600">
-                  <i class="fas fa-clock ml-2"></i>
-                  ${program.duration_hours} ساعة
-                </div>
-                <div class="flex items-center text-gray-600">
-                  <i class="fas fa-users ml-2"></i>
-                  ${program.max_participants} متدرب
-                </div>
-                <div class="flex items-center text-gray-600">
-                  <i class="fas fa-money-bill ml-2"></i>
-                  ${program.price} ريال
-                </div>
-                <div class="flex items-center text-gray-600">
-                  <i class="fas fa-percentage ml-2"></i>
-                  ${program.passing_score}% للنجاح
-                </div>
-              </div>
-              
-              <div class="flex items-center justify-between pt-3 border-t">
-                <span class="text-xs text-gray-500">
-                  صلاحية الشهادة: ${program.certificate_validity_months} شهر
-                </span>
-                <div class="space-x-2">
-                  <button class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="text-gray-600 hover:text-gray-800">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل البرامج: ${error.message}</div>`;
-  }
-}
-
-async function renderBeneficiaries(container, entityId) {
-  try {
-    const beneficiaries = await fetchAPI(`/beneficiaries?entity_id=${entityId}`);
-    
-    container.innerHTML = `
-      <div class="space-y-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">المستفيدون</h3>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            <i class="fas fa-plus ml-2"></i> مستفيد جديد
-          </button>
-        </div>
+        // Get currentUser from the app closure
+        // Note: This is a bit of a workaround - ideally currentUser would be global or in sessionStorage
+        if (window.currentUserData) {
+            headers['x-entity-type'] = window.currentUserData.tenantType;
+            headers['x-entity-id'] = window.currentUserData.entityId;
+            console.log('📤 Sending isolation headers:', { entityType: window.currentUserData.tenantType, entityId: window.currentUserData.entityId });
+        }
         
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية الوطنية</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الجوال</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المستوى التعليمي</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              ${beneficiaries.map(b => `
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center ml-3">
-                        <i class="fas fa-user text-blue-600"></i>
-                      </div>
-                      <div>
-                        <div class="font-medium">${b.full_name}</div>
-                        <div class="text-sm text-gray-500">${b.email || 'لا يوجد بريد'}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">${b.national_id}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">${b.phone || '-'}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">${b.education_level || '-'}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${
-                      b.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                      b.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' : 
-                      'bg-gray-100 text-gray-800'
-                    }">
-                      ${b.status === 'ACTIVE' ? 'نشط' : b.status === 'GRADUATED' ? 'خريج' : 'متوقف'}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <button onclick="viewBeneficiary(${b.id})" class="text-blue-600 hover:text-blue-800 ml-3">
-                      <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="text-gray-600 hover:text-gray-800">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل المستفيدين: ${error.message}</div>`;
-  }
-}
-
-async function renderTrainingSessions(container, entityId) {
-  try {
-    const sessions = await fetchAPI(`/training-sessions?entity_id=${entityId}`);
-    
-    container.innerHTML = `
-      <div class="space-y-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">الدفعات التدريبية</h3>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            <i class="fas fa-plus ml-2"></i> دفعة جديدة
-          </button>
-        </div>
-        
-        <div class="space-y-4">
-          ${sessions.map(session => `
-            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
-              <div class="flex justify-between items-start mb-3">
-                <div class="flex-1">
-                  <h4 class="font-bold text-lg">${session.session_name}</h4>
-                  <p class="text-sm text-gray-600">${session.program_name} (${session.program_code})</p>
-                </div>
-                <span class="px-3 py-1 rounded-full text-xs font-medium ${
-                  session.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
-                  session.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                  session.status === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }">
-                  ${
-                    session.status === 'IN_PROGRESS' ? 'جارية' :
-                    session.status === 'COMPLETED' ? 'مكتملة' :
-                    session.status === 'PLANNED' ? 'مخططة' :
-                    'ملغية'
-                  }
-                </span>
-              </div>
-              
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                <div class="text-sm">
-                  <span class="text-gray-500">تاريخ البدء:</span>
-                  <p class="font-medium">${new Date(session.start_date).toLocaleDateString('ar-SA')}</p>
-                </div>
-                <div class="text-sm">
-                  <span class="text-gray-500">تاريخ الانتهاء:</span>
-                  <p class="font-medium">${new Date(session.end_date).toLocaleDateString('ar-SA')}</p>
-                </div>
-                <div class="text-sm">
-                  <span class="text-gray-500">المدرب:</span>
-                  <p class="font-medium">${session.instructor_name || '-'}</p>
-                </div>
-                <div class="text-sm">
-                  <span class="text-gray-500">المتدربون:</span>
-                  <p class="font-medium">${session.current_participants} / ${session.max_participants}</p>
-                </div>
-              </div>
-              
-              <div class="flex items-center justify-between pt-3 border-t">
-                <span class="text-sm text-gray-600">
-                  <i class="fas fa-map-marker-alt ml-2"></i>${session.location || 'لم يحدد'}
-                </span>
-                <div class="space-x-2">
-                  <button class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm">
-                    <i class="fas fa-users ml-1"></i> المتدربون
-                  </button>
-                  <button class="text-gray-600 hover:text-gray-800">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل الدفعات: ${error.message}</div>`;
-  }
-}
-
-async function renderCertificates(container, entityId) {
-  try {
-    const certificates = await fetchAPI(`/certificates`);
-    
-    container.innerHTML = `
-      <div class="space-y-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">الشهادات</h3>
-          <div class="flex gap-2">
-            <input type="text" placeholder="بحث برقم الشهادة..." 
-                   class="border rounded-lg px-4 py-2" 
-                   onkeyup="searchCertificate(this.value)">
-            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-              <i class="fas fa-search"></i> تحقق
-            </button>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          ${certificates.map(cert => `
-            <div class="border-2 rounded-lg p-6 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all">
-              <div class="text-center mb-4">
-                <div class="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <i class="fas fa-certificate text-2xl"></i>
-                </div>
-                <h4 class="font-bold text-lg">${cert.full_name}</h4>
-                <p class="text-sm text-gray-600">${cert.national_id}</p>
-              </div>
-              
-              <div class="space-y-2 text-sm mb-4">
-                <div class="flex justify-between">
-                  <span class="text-gray-600">البرنامج:</span>
-                  <span class="font-medium">${cert.program_name}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">رقم الشهادة:</span>
-                  <span class="font-mono text-xs">${cert.certificate_number}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">تاريخ الإصدار:</span>
-                  <span>${new Date(cert.issue_date).toLocaleDateString('ar-SA')}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">تنتهي في:</span>
-                  <span>${new Date(cert.expiry_date).toLocaleDateString('ar-SA')}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">الدرجة:</span>
-                  <span class="font-bold ${
-                    cert.grade === 'EXCELLENT' ? 'text-green-600' :
-                    cert.grade === 'VERY_GOOD' ? 'text-blue-600' :
-                    'text-gray-600'
-                  }">${cert.final_score}%</span>
-                </div>
-              </div>
-              
-              <div class="flex justify-between items-center pt-3 border-t">
-                <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                  cert.status === 'VALID' ? 'bg-green-100 text-green-800' :
-                  cert.status === 'EXPIRED' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }">
-                  ${cert.status === 'VALID' ? 'صالحة' : cert.status === 'EXPIRED' ? 'منتهية' : 'ملغاة'}
-                </span>
-                <button onclick="viewCertificate(${cert.id})" class="text-blue-600 hover:text-blue-800 text-sm">
-                  <i class="fas fa-eye ml-1"></i> عرض
-                </button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل الشهادات: ${error.message}</div>`;
-  }
-}
-
-async function renderTrainingRecords(container, entityId) {
-  try {
-    const beneficiaries = await fetchAPI(`/beneficiaries?entity_id=${entityId}`);
-    
-    container.innerHTML = `
-      <div class="space-y-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">السجل التدريبي للمستفيدين</h3>
-        </div>
-        
-        <div class="space-y-4">
-          ${await Promise.all(beneficiaries.map(async b => {
-            const records = await fetchAPI(`/training-records?beneficiary_id=${b.id}`);
-            return `
-              <div class="border rounded-lg p-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center">
-                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center ml-3">
-                      <i class="fas fa-user text-blue-600 text-xl"></i>
-                    </div>
-                    <div>
-                      <h4 class="font-bold">${b.full_name}</h4>
-                      <p class="text-sm text-gray-500">${b.national_id}</p>
-                    </div>
-                  </div>
-                  <span class="text-sm text-gray-600">
-                    ${records.length} برنامج تدريبي
-                  </span>
-                </div>
-                
-                ${records.length > 0 ? `
-                  <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
-                      <thead class="bg-gray-50">
-                        <tr>
-                          <th class="px-4 py-2 text-right">البرنامج</th>
-                          <th class="px-4 py-2 text-right">الدفعة</th>
-                          <th class="px-4 py-2 text-right">الساعات</th>
-                          <th class="px-4 py-2 text-right">الدرجة</th>
-                          <th class="px-4 py-2 text-right">الحالة</th>
-                          <th class="px-4 py-2 text-right">الشهادة</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${records.map(r => `
-                          <tr class="border-t">
-                            <td class="px-4 py-2">${r.program_name}</td>
-                            <td class="px-4 py-2">${r.session_name}</td>
-                            <td class="px-4 py-2">${r.total_hours || '-'}</td>
-                            <td class="px-4 py-2">
-                              <span class="font-bold ${r.final_score >= 90 ? 'text-green-600' : r.final_score >= 70 ? 'text-blue-600' : 'text-gray-600'}">
-                                ${r.final_score || '-'}
-                              </span>
-                            </td>
-                            <td class="px-4 py-2">
-                              <span class="px-2 py-1 rounded-full text-xs ${
-                                r.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                r.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
-                                'bg-gray-100 text-gray-800'
-                              }">
-                                ${r.status === 'COMPLETED' ? 'مكتمل' : r.status === 'IN_PROGRESS' ? 'جاري' : 'منسحب'}
-                              </span>
-                            </td>
-                            <td class="px-4 py-2">
-                              ${r.certificate_number ? `
-                                <a href="#" class="text-blue-600 hover:underline text-xs">${r.certificate_number}</a>
-                              ` : '-'}
-                            </td>
-                          </tr>
-                        `).join('')}
-                      </tbody>
-                    </table>
-                  </div>
-                ` : `
-                  <p class="text-gray-500 text-center py-4">لا توجد سجلات تدريبية</p>
-                `}
-              </div>
-            `;
-          })).then(html => html.join(''))}
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل السجلات: ${error.message}</div>`;
-  }
-}
-
-async function renderAssessments(container, entityId) {
-  try {
-    const sessions = await fetchAPI(`/training-sessions?entity_id=${entityId}&status=IN_PROGRESS`);
-    
-    let html = `
-      <div class="space-y-4">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">تقييم المتدربين (Evaluation)</h3>
-        </div>`;
-        
-    if (sessions.length === 0) {
-      html += `<div class="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">لا توجد دورات تدريبية جارية حالياً للتقييم</div>`;
-    } else {
-      html += `<div class="grid gap-6">`;
-      for (const session of sessions) {
-        const enrollments = await fetchAPI(`/enrollments?session_id=${session.id}&status=ATTENDING`);
-        
-        html += `
-          <div class="border rounded-lg p-6 bg-white shadow-sm">
-            <h4 class="font-bold text-lg mb-2 text-blue-600">${session.session_name}</h4>
-            <div class="flex gap-4 text-sm text-gray-600 mb-4">
-              <span><i class="fas fa-book ml-1"></i> ${session.program_name}</span>
-              <span><i class="fas fa-calendar ml-1"></i> ${new Date(session.end_date).toLocaleDateString('ar-SA')}</span>
-            </div>
-            
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 text-right">المتدرب</th>
-                    <th class="px-4 py-2 text-right">الهوية</th>
-                    <th class="px-4 py-2 text-right">الحضور</th>
-                    <th class="px-4 py-2 text-right">التقييم</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y">
-                  ${enrollments.map(e => `
-                    <tr>
-                      <td class="px-4 py-3 font-medium">${e.full_name}</td>
-                      <td class="px-4 py-3 text-gray-500">${e.national_id}</td>
-                      <td class="px-4 py-3">
-                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">95%</span>
-                      </td>
-                      <td class="px-4 py-3">
-                        <button onclick="app.openAssessmentModal(${e.id}, '${e.full_name}', ${session.program_id})" class="text-blue-600 hover:text-blue-800 font-medium">
-                          <i class="fas fa-edit ml-1"></i> رصد الدرجات
-                        </button>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-              ${enrollments.length === 0 ? '<p class="text-center py-4 text-gray-500">لا يوجد متدربين مسجلين</p>' : ''}
-            </div>
-          </div>
-        `;
-      }
-      html += `</div>`;
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
     }
-    
-    html += `</div>`;
-    container.innerHTML = html;
-    
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل التقييمات: ${error.message}</div>`;
-  }
-}
+};
 
-async function renderRenewals(container, entityId) {
-  try {
-    const beneficiaries = await fetchAPI(`/beneficiaries?entity_id=${entityId}`);
-    // Get stats
-    const stats = await fetchAPI(`/incubator/stats?entity_id=${entityId}`);
-    
-    container.innerHTML = `
-      <div class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-red-50 p-4 rounded-lg border border-red-100">
-            <h4 class="text-red-800 font-bold text-sm">شهادات منتهية</h4>
-            <p class="text-2xl font-bold text-red-600 mt-1">${stats.expired_certificates || 0}</p>
-          </div>
-          <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-            <h4 class="text-yellow-800 font-bold text-sm">تشارف على الانتهاء (30 يوم)</h4>
-            <p class="text-2xl font-bold text-yellow-600 mt-1">2</p> <!-- Mock data for demo -->
-          </div>
-          <div class="bg-green-50 p-4 rounded-lg border border-green-100">
-            <h4 class="text-green-800 font-bold text-sm">شهادات سارية</h4>
-            <p class="text-2xl font-bold text-green-600 mt-1">${stats.active_certificates || 0}</p>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg border p-6">
-          <h3 class="font-bold text-lg mb-4 text-gray-800">البحث عن شهادة للتجديد</h3>
-          <div class="flex gap-4 mb-6">
-            <input type="text" placeholder="رقم الهوية الوطنية أو رقم الشهادة..." class="flex-1 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-bold">
-              <i class="fas fa-search ml-2"></i> بحث
-            </button>
-          </div>
-          
-          <div class="border-t pt-4">
-            <h4 class="font-bold text-sm text-gray-500 mb-3 uppercase tracking-wider">سجل التجديدات والمتابعة</h4>
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 text-right">المستفيد</th>
-                    <th class="px-4 py-2 text-right">الشهادة القديمة</th>
-                    <th class="px-4 py-2 text-right">تاريخ التجديد</th>
-                    <th class="px-4 py-2 text-right">النوع</th>
-                    <th class="px-4 py-2 text-right">الشهادة الجديدة</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y">
-                   <!-- Placeholder data until API connected -->
-                   <tr>
-                    <td class="px-4 py-3 font-medium">محمد بن أحمد العتيبي</td>
-                    <td class="px-4 py-3 text-red-500 font-mono text-xs">INC03-SAF101-2023-001</td>
-                    <td class="px-4 py-3">2024-02-16</td>
-                    <td class="px-4 py-3">تجديد قياسي</td>
-                    <td class="px-4 py-3 text-green-600 font-mono text-xs font-bold">INC03-SAF101-2024-001</td>
-                   </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    container.innerHTML = `<div class="text-red-600">خطأ في تحميل التجديدات: ${error.message}</div>`;
-  }
-}
+// ========================================
+// INCUBATOR TRAINING SYSTEM
+// نظام حاضنة السلامة
+// ========================================
 
 // Helper to expose openAssessmentModal if needed
 app.openAssessmentModal = async (enrollmentId, name, programId) => {
