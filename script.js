@@ -30,16 +30,33 @@ const app = (() => {
                 console.warn('⚠️ [fetchAPI] No user data available for:', endpoint);
             }
             
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            const url = `${API_BASE_URL}${endpoint}`;
+            console.log(`🌐 [fetchAPI] Requesting: ${url}`);
+            
+            const response = await fetch(url, {
                 ...options,
-                headers
+                headers,
+                timeout: 30000 // 30 second timeout
             });
+            
+            console.log(`📥 [fetchAPI] Response status for ${endpoint}: ${response.status}`);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error(`❌ [fetchAPI] HTTP Error ${response.status} for ${endpoint}:`, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
-            return await response.json();
+            
+            const data = await response.json();
+            console.log(`✅ [fetchAPI] Success for ${endpoint}:`, Array.isArray(data) ? `${data.length} items` : 'object');
+            return data;
         } catch (error) {
-            console.error('API Error:', error);
+            console.error(`❌ [fetchAPI] Error for ${endpoint}:`, error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
             throw error;
         }
     }
@@ -312,8 +329,27 @@ const app = (() => {
 
     // --- DATA LOADING FROM API ---
     async function loadDataFromAPI() {
+        console.log('🔄 Starting loadDataFromAPI...');
+        console.log('👤 Current user:', currentUser);
+        
+        // Verify that currentUser is set
+        if (!currentUser || !currentUser.entityId) {
+            console.error('❌ لا يوجد مستخدم محدد! لا يمكن تحميل البيانات.');
+            throw new Error('User not selected. Cannot load data.');
+        }
+        
+        const loadedData = {
+            entities: 0,
+            users: 0,
+            invoices: 0,
+            transactions: 0,
+            ledger: 0,
+            ads: 0
+        };
+        
         try {
             // Load entities
+            console.log('📥 Loading entities...');
             const entities = await fetchAPI('/entities');
             db.entities = entities.map(e => ({
                 id: e.id,
@@ -327,8 +363,11 @@ const app = (() => {
                 expiry: e.expiry_date,
                 theme: e.theme
             }));
+            loadedData.entities = db.entities.length;
+            console.log(`✅ Loaded ${loadedData.entities} entities`);
 
             // Load users
+            console.log('📥 Loading users...');
             const users = await fetchAPI('/users');
             db.users = users.map(u => ({
                 id: u.id,
@@ -338,10 +377,12 @@ const app = (() => {
                 entityId: u.entity_id,
                 entityName: u.entity_name
             }));
+            loadedData.users = db.users.length;
+            console.log(`✅ Loaded ${loadedData.users} users`);
 
             // Load invoices
+            console.log('📥 Loading invoices...');
             const invoices = await fetchAPI('/invoices');
-            console.log('📄 [loadDataFromAPI] Loaded invoices:', invoices.length);
             db.invoices = invoices.map(inv => ({
                 id: inv.id,
                 entityId: inv.entity_id,
@@ -353,10 +394,12 @@ const app = (() => {
                 date: inv.issue_date,
                 dueDate: inv.due_date
             }));
+            loadedData.invoices = db.invoices.length;
+            console.log(`✅ Loaded ${loadedData.invoices} invoices`);
 
             // Load transactions
+            console.log('📥 Loading transactions...');
             const transactions = await fetchAPI('/transactions');
-            console.log('💳 [loadDataFromAPI] Loaded transactions:', transactions.length);
             db.transactions = transactions.map(t => ({
                 id: t.id,
                 invoiceId: t.invoice_id,
@@ -368,8 +411,11 @@ const app = (() => {
                 ref: t.reference_code,
                 user: t.user_name
             }));
+            loadedData.transactions = db.transactions.length;
+            console.log(`✅ Loaded ${loadedData.transactions} transactions`);
 
             // Load ledger
+            console.log('📥 Loading ledger...');
             const ledger = await fetchAPI('/ledger');
             db.ledger = ledger.map(l => ({
                 id: l.id,
@@ -382,11 +428,12 @@ const app = (() => {
                 balance: parseFloat(l.balance),
                 type: l.type
             }));
+            loadedData.ledger = db.ledger.length;
+            console.log(`✅ Loaded ${loadedData.ledger} ledger entries`);
 
             // Load ads
+            console.log('📥 Loading ads...');
             const ads = await fetchAPI('/ads');
-            console.log('📢 [loadDataFromAPI] Loaded ads:', ads.length);
-            console.log('📢 [DEBUG] First ad:', ads[0]);
             db.ads = ads.map(ad => {
                 const sourceId = ad.source_entity_id || ad.entity_id;
                 // Convert target_ids from string to array
@@ -417,8 +464,11 @@ const app = (() => {
                     endDate: ad.end_date
                 };
             });
+            loadedData.ads = db.ads.length;
+            console.log(`✅ Loaded ${loadedData.ads} ads`);
 
             // Load approvals
+            console.log('📥 Loading approvals...');
             const approvals = await fetchAPI('/approvals');
             db.approvals = approvals.map(a => ({
                 id: a.id,
@@ -434,9 +484,11 @@ const app = (() => {
                 createdAt: a.created_at,
                 steps: a.steps || []
             }));
+            console.log(`✅ Loaded ${db.approvals.length} approvals`);
 
             // Load notifications for current user
             if (currentUser?.id) {
+                console.log('📥 Loading notifications...');
                 const notifications = await fetchAPI(`/notifications?user_id=${currentUser.id}`);
                 db.notifications = notifications.map(n => ({
                     id: n.id,
@@ -451,18 +503,33 @@ const app = (() => {
                     priority: n.priority,
                     createdAt: n.created_at
                 }));
+                console.log(`✅ Loaded ${db.notifications.length} notifications`);
             }
 
-            console.log('✅ تم تحميل جميع البيانات من قاعدة البيانات');
+            console.log('✅ تم تحميل جميع البيانات من قاعدة البيانات', loadedData);
         } catch (error) {
             console.error('❌ خطأ في تحميل البيانات:', error);
+            console.error('❌ Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            
+            // Log which endpoint failed
             console.warn('⚠️ استخدام البيانات الاحتياطية...');
             
             // Use fallback data
-            db.entities = fallbackData.entities;
-            db.users = fallbackData.users;
+            if (!db.entities || db.entities.length === 0) {
+                db.entities = fallbackData.entities;
+                console.log('📦 Using fallback entities');
+            }
+            if (!db.users || db.users.length === 0) {
+                db.users = fallbackData.users;
+                console.log('📦 Using fallback users');
+            }
             
-            showToast('تم التحميل بالوضع المحلي (offline mode)', 'info');
+            // Throw error to be caught by init()
+            throw new Error(`Failed to load data: ${error.message}`);
         }
     }
 
