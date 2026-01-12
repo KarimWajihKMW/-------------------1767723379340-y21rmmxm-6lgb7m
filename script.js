@@ -2918,15 +2918,30 @@ const app = (() => {
 window.renderIncubatorSystem = async function(currentUser) {
   const container = document.querySelector('#main-view');
   
+  // Check if a platform is selected, otherwise show platforms list
+  const selectedPlatformId = localStorage.getItem('nayosh_selected_platform');
+  
+  if (!selectedPlatformId) {
+    // Show platforms selection screen
+    return renderPlatformSelection(currentUser);
+  }
+  
+  // Platform is selected, render the training system for this platform
   // Initialize active tab
   if (!window.incubatorActiveTab) window.incubatorActiveTab = 'overview';
   
   container.innerHTML = `
     <div class="space-y-6">
-      <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg">
-        <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
-        <p class="text-blue-100">نظام إدارة التدريب والتأهيل - ${currentUser.entityName}</p>
+      <!-- Header with Back Button -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
+          <p class="text-blue-100">نظام إدارة التدريب والتأهيل - ${currentUser.entityName}</p>
+          <p class="text-blue-200 text-sm mt-2" id="platform-name-header">جاري تحميل المنصة...</p>
+        </div>
+        <button onclick="window.changePlatform()" class="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg transition">
+          <i class="fas fa-arrow-right ml-2"></i> اختر منصة أخرى
+        </button>
       </div>
 
       <!-- Statistics Cards -->
@@ -3016,6 +3031,17 @@ window.renderIncubatorSystem = async function(currentUser) {
     </div>
   `;
 
+  // Load platform name in header
+  try {
+    const platforms = await window.fetchAPI(`/incubators/${currentUser.entityId}/platforms`);
+    const currentPlatform = platforms.find(p => p.id === parseInt(selectedPlatformId));
+    if (currentPlatform) {
+      document.getElementById('platform-name-header').textContent = `📍 المنصة: ${currentPlatform.name}`;
+    }
+  } catch (error) {
+    console.error('Error loading platform:', error);
+  }
+
   // Load statistics
   try {
     const stats = await window.fetchAPI(`/incubator/stats?entity_id=${currentUser.entityId}`);
@@ -3085,6 +3111,104 @@ window.switchIncubatorTab = async function(tab) {
       </div>
     `;
   }
+};
+
+// Render Platform Selection
+async function renderPlatformSelection(currentUser) {
+  const container = document.querySelector('#main-view');
+  
+  container.innerHTML = `
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
+        <p class="text-blue-100">اختر المنصة التدريبية - ${currentUser.entityName}</p>
+      </div>
+
+      <!-- Loading -->
+      <div class="bg-white p-8 rounded-lg shadow text-center" id="platforms-loading">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="text-gray-600 mt-4">جاري تحميل المنصات...</p>
+      </div>
+
+      <!-- Platforms Grid -->
+      <div id="platforms-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+      <!-- No Platforms Message -->
+      <div id="no-platforms" class="hidden bg-yellow-50 p-8 rounded-lg border border-yellow-200 text-center">
+        <i class="fas fa-inbox text-yellow-600 text-5xl mb-4"></i>
+        <p class="text-yellow-800 font-bold text-lg">لا توجد منصات تدريبية</p>
+        <p class="text-yellow-600 mt-2">يرجى التواصل مع إدارة الحاضنة</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    // Get incubator ID from entity
+    const incubatorId = window.currentUserData?.entityId;
+    console.log('📋 جاري تحميل المنصات للحاضنة:', incubatorId);
+
+    const platforms = await window.fetchAPI(`/incubators/${incubatorId}/platforms`);
+    console.log('✅ تم تحميل المنصات:', platforms.length);
+
+    const loadingEl = document.getElementById('platforms-loading');
+    const gridEl = document.getElementById('platforms-grid');
+    const noEl = document.getElementById('no-platforms');
+
+    if (platforms.length === 0) {
+      loadingEl.classList.add('hidden');
+      noEl.classList.remove('hidden');
+      return;
+    }
+
+    // Render platforms
+    gridEl.innerHTML = platforms.map(platform => `
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden cursor-pointer group"
+           onclick="window.selectPlatform(${platform.id}, '${platform.name}')">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white group-hover:from-blue-600 group-hover:to-blue-700 transition">
+          <i class="fas fa-graduation-cap text-4xl mb-3"></i>
+          <h3 class="text-xl font-bold">${platform.name}</h3>
+          ${platform.description ? `<p class="text-sm text-blue-100 mt-2">${platform.description}</p>` : ''}
+          ${platform.code ? `<p class="text-xs text-blue-200 mt-2">الرمز: ${platform.code}</p>` : ''}
+        </div>
+        <div class="p-6">
+          <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-bold">
+            اختر المنصة <i class="fas fa-arrow-left ml-2"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    loadingEl.classList.add('hidden');
+    gridEl.classList.remove('hidden');
+
+  } catch (error) {
+    console.error('❌ خطأ في تحميل المنصات:', error);
+    document.getElementById('platforms-loading').innerHTML = `
+      <div class="text-center">
+        <i class="fas fa-exclamation-circle text-red-600 text-5xl mb-4"></i>
+        <p class="text-red-600 font-bold">خطأ في تحميل المنصات</p>
+        <p class="text-red-500 mt-2">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// Select a platform
+window.selectPlatform = function(platformId, platformName) {
+  console.log('✅ تم اختيار المنصة:', platformName, platformId);
+  localStorage.setItem('nayosh_selected_platform', platformId);
+  localStorage.setItem('nayosh_selected_platform_name', platformName);
+  window.renderIncubatorSystem(window.currentUserData);
+};
+
+// Change platform
+window.changePlatform = function() {
+  console.log('🔄 تغيير المنصة');
+  localStorage.removeItem('nayosh_selected_platform');
+  localStorage.removeItem('nayosh_selected_platform_name');
+  window.incubatorActiveTab = 'overview'; // Reset tab
+  window.renderIncubatorSystem(window.currentUserData);
 };
 
 // Overview Tab

@@ -1288,6 +1288,25 @@ app.get('/api/offices/:id/platforms', async (req, res) => {
   }
 });
 
+// Get platforms for a specific incubator
+app.get('/api/incubators/:id/platforms', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('📋 Fetching platforms for incubator:', id);
+    const result = await db.query(`
+      SELECT id, name, incubator_id, description, code
+      FROM platforms
+      WHERE incubator_id = $1
+      ORDER BY name
+    `, [parseInt(id)]);
+    console.log('✅ Found platforms:', result.rows.length);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error fetching platforms:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Link office to platform
 app.post('/api/offices/:office_id/platforms/:platform_id', async (req, res) => {
   try {
