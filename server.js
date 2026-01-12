@@ -2284,6 +2284,122 @@ app.get('/api/certificates', async (req, res) => {
 });
 
 // ========================================
+// ENROLLMENTS (Training Session Participants)
+// ========================================
+
+// Get enrollments
+app.get('/api/enrollments', async (req, res) => {
+  try {
+    const { session_id, beneficiary_id } = req.query;
+    
+    let query = `
+      SELECT 
+        e.*,
+        b.full_name as beneficiary_name,
+        b.national_id as beneficiary_national_id,
+        ts.session_name
+      FROM enrollments e
+      LEFT JOIN beneficiaries b ON e.beneficiary_id = b.id
+      LEFT JOIN training_sessions ts ON e.session_id = ts.id
+      WHERE 1=1
+    `;
+    const params = [];
+    
+    if (session_id) {
+      params.push(session_id);
+      query += ` AND e.session_id = $${params.length}`;
+    }
+    
+    if (beneficiary_id) {
+      params.push(beneficiary_id);
+      query += ` AND e.beneficiary_id = $${params.length}`;
+    }
+    
+    query += ' ORDER BY e.enrollment_date DESC';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching enrollments:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create enrollment
+app.post('/api/enrollments', async (req, res) => {
+  try {
+    const { session_id, beneficiary_id, enrollment_date, status } = req.body;
+    
+    console.log('📝 Creating enrollment:', { session_id, beneficiary_id, enrollment_date, status });
+    
+    // Check if already enrolled
+    const existing = await db.query(
+      'SELECT id FROM enrollments WHERE session_id = $1 AND beneficiary_id = $2',
+      [session_id, beneficiary_id]
+    );
+    
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'المتدرب مسجل بالفعل في هذه الدفعة' });
+    }
+    
+    const result = await db.query(
+      `INSERT INTO enrollments (
+        session_id, beneficiary_id, enrollment_date, status,
+        attendance_hours, final_score
+      ) VALUES ($1, $2, $3, $4, 0, NULL) RETURNING *`,
+      [session_id, beneficiary_id, enrollment_date, status || 'ACTIVE']
+    );
+    
+    // Update session participant count
+    await db.query(
+      `UPDATE training_sessions 
+       SET current_participants = (SELECT COUNT(*) FROM enrollments WHERE session_id = $1)
+       WHERE id = $1`,
+      [session_id]
+    );
+    
+    console.log('✅ Enrollment created:', result.rows[0]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error creating enrollment:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete enrollment
+app.delete('/api/enrollments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get session_id before deleting
+    const enrollment = await db.query('SELECT session_id FROM enrollments WHERE id = $1', [id]);
+    
+    if (enrollment.rows.length === 0) {
+      return res.status(404).json({ error: 'Enrollment not found' });
+    }
+    
+    const session_id = enrollment.rows[0].session_id;
+    
+    // Delete enrollment
+    await db.query('DELETE FROM enrollments WHERE id = $1', [id]);
+    
+    // Update session participant count
+    await db.query(
+      `UPDATE training_sessions 
+       SET current_participants = (SELECT COUNT(*) FROM enrollments WHERE session_id = $1)
+       WHERE id = $1`,
+      [session_id]
+    );
+    
+    console.log('✅ Enrollment deleted:', id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error deleting enrollment:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // Error handling middleware
 // ========================================
 app.use((err, req, res, next) => {

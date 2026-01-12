@@ -3461,7 +3461,7 @@ async function renderCertificates(container, currentUser) {
                   }">
                     ${cert.status === 'VALID' ? 'صالحة' : cert.status === 'EXPIRED' ? 'منتهية' : 'ملغاة'}
                   </span>
-                  <button class="text-purple-600 hover:text-purple-800 text-sm">
+                  <button onclick="window.viewCertificateDetails(${cert.id})" class="text-purple-600 hover:text-purple-800 text-sm border border-purple-600 px-3 py-1 rounded">
                     <i class="fas fa-eye ml-1"></i> عرض
                   </button>
                 </div>
@@ -3899,7 +3899,8 @@ window.closeIncubatorModal = function() {
     'view-program-modal',
     'edit-program-modal',
     'view-beneficiary-modal',
-    'edit-beneficiary-modal'
+    'edit-beneficiary-modal',
+    'view-certificate-modal'
   ];
   
   modals.forEach(id => {
@@ -4144,8 +4145,325 @@ window.editSession = async function(sessionId) {
 };
 
 // Manage Enrollments
+// Manage Enrollments (Training Session Participants)
 window.manageEnrollments = async function(sessionId, sessionName) {
-  alert(`🚧 قريباً: إدارة المتدربين للدفعة "${sessionName}"\n\nسيتم إضافة هذه الميزة قريباً.`);
+  try {
+    // Load session details and beneficiaries
+    const [sessions, beneficiaries] = await Promise.all([
+      window.fetchAPI(`/training-sessions?entity_id=${window.currentUserData.entityId}`),
+      window.fetchAPI(`/beneficiaries?entity_id=${window.currentUserData.entityId}`)
+    ]);
+    
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) {
+      alert('❌ لم يتم العثور على الدفعة');
+      return;
+    }
+    
+    // Get current enrollments for this session
+    let enrollments = [];
+    try {
+      enrollments = await window.fetchAPI(`/enrollments?session_id=${sessionId}`);
+    } catch (error) {
+      console.error('Error loading enrollments:', error);
+    }
+    
+    const enrolledIds = enrollments.map(e => e.beneficiary_id);
+    const availableBeneficiaries = beneficiaries.filter(b => !enrolledIds.includes(b.id) && b.status === 'ACTIVE');
+    
+    const modal = document.createElement('div');
+    modal.id = 'enrollments-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-green-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">إدارة المتدربين - ${sessionName}</h2>
+          <p class="text-sm mt-1">عدد المتدربين: ${enrollments.length} / ${session.max_participants}</p>
+        </div>
+        
+        <div class="p-6">
+          <!-- Add New Enrollment -->
+          ${availableBeneficiaries.length > 0 ? `
+            <div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+              <h3 class="font-bold mb-3">إضافة متدرب جديد</h3>
+              <div class="flex gap-2">
+                <select id="beneficiary-select" class="flex-1 border rounded-lg px-4 py-2">
+                  <option value="">اختر المستفيد...</option>
+                  ${availableBeneficiaries.map(b => `
+                    <option value="${b.id}">${b.full_name} - ${b.national_id}</option>
+                  `).join('')}
+                </select>
+                <button onclick="window.addEnrollment(${sessionId}, '${sessionName}')" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                  <i class="fas fa-plus ml-2"></i> إضافة
+                </button>
+              </div>
+            </div>
+          ` : `
+            <div class="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p class="text-yellow-800">⚠️ جميع المستفيدين النشطين مسجلين بالفعل في هذه الدفعة</p>
+            </div>
+          `}
+          
+          <!-- Current Enrollments -->
+          <h3 class="font-bold mb-3">المتدربون المسجلون (${enrollments.length})</h3>
+          ${enrollments.length > 0 ? `
+            <div class="overflow-x-auto">
+              <table class="min-w-full bg-white border rounded-lg">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">تاريخ التسجيل</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحضور</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الدرجة</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  ${enrollments.map((enrollment, idx) => `
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">${idx + 1}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium">${enrollment.beneficiary_name || 'غير محدد'}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.beneficiary_national_id || '-'}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(enrollment.enrollment_date).toLocaleDateString('ar-SA')}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.attendance_hours || 0} ساعة</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${enrollment.final_score ? `<span class="font-bold">${enrollment.final_score}%</span>` : '-'}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                          enrollment.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                          enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }">
+                          ${enrollment.status === 'ACTIVE' ? 'نشط' : enrollment.status === 'COMPLETED' ? 'مكتمل' : 'متوقف'}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onclick="window.removeEnrollment(${enrollment.id}, ${sessionId}, '${sessionName}')" 
+                                class="text-red-600 hover:text-red-800">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          ` : `
+            <div class="text-center py-8 bg-gray-50 rounded-lg">
+              <i class="fas fa-users text-gray-400 text-4xl mb-3"></i>
+              <p class="text-gray-600">لا يوجد متدربون مسجلون في هذه الدفعة</p>
+            </div>
+          `}
+          
+          <!-- Actions -->
+          <div class="flex gap-3 pt-6 border-t mt-6">
+            <button onclick="window.closeIncubatorModal()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-bold">
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    console.error('Error managing enrollments:', error);
+    alert('❌ حدث خطأ في تحميل بيانات المتدربين: ' + error.message);
+  }
+};
+
+// Add Enrollment
+window.addEnrollment = async function(sessionId, sessionName) {
+  const select = document.getElementById('beneficiary-select');
+  const beneficiaryId = select.value;
+  
+  if (!beneficiaryId) {
+    alert('⚠️ يرجى اختيار المستفيد');
+    return;
+  }
+  
+  try {
+    await window.fetchAPI('/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: sessionId,
+        beneficiary_id: parseInt(beneficiaryId),
+        enrollment_date: new Date().toISOString().split('T')[0],
+        status: 'ACTIVE'
+      })
+    });
+    
+    alert('✅ تم تسجيل المتدرب بنجاح!');
+    window.closeIncubatorModal();
+    window.manageEnrollments(sessionId, sessionName);
+  } catch (error) {
+    console.error('Error adding enrollment:', error);
+    alert('❌ حدث خطأ: ' + error.message);
+  }
+};
+
+// Remove Enrollment
+window.removeEnrollment = async function(enrollmentId, sessionId, sessionName) {
+  if (!confirm('هل أنت متأكد من حذف هذا المتدرب من الدفعة؟')) {
+    return;
+  }
+  
+  try {
+    await window.fetchAPI(`/enrollments/${enrollmentId}`, {
+      method: 'DELETE'
+    });
+    
+    alert('✅ تم حذف المتدرب بنجاح!');
+    window.closeIncubatorModal();
+    window.manageEnrollments(sessionId, sessionName);
+  } catch (error) {
+    console.error('Error removing enrollment:', error);
+    alert('❌ حدث خطأ: ' + error.message);
+  }
+};
+
+// ========================================
+// CERTIFICATES - View
+// ========================================
+
+// View Certificate Details
+window.viewCertificateDetails = async function(certificateId) {
+  try {
+    const certificates = await window.fetchAPI(`/certificates?entity_id=${window.currentUserData.entityId}`);
+    const cert = certificates.find(c => c.id === certificateId);
+    
+    if (!cert) {
+      alert('❌ لم يتم العثور على الشهادة');
+      return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.id = 'view-certificate-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Certificate Header -->
+        <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-8 rounded-t-lg text-center">
+          <div class="mb-4">
+            <i class="fas fa-certificate text-6xl"></i>
+          </div>
+          <h2 class="text-3xl font-bold mb-2">شهادة إتمام</h2>
+          <p class="text-purple-200">نظام نايوش للتدريب والتطوير</p>
+        </div>
+        
+        <!-- Certificate Body -->
+        <div class="p-8">
+          <!-- Beneficiary Info -->
+          <div class="text-center mb-8 pb-8 border-b-2 border-purple-200">
+            <p class="text-gray-600 mb-2">تُمنح هذه الشهادة إلى</p>
+            <h3 class="text-4xl font-bold text-purple-800 mb-4">${cert.full_name}</h3>
+            <p class="text-gray-600">رقم الهوية: <span class="font-bold">${cert.national_id}</span></p>
+          </div>
+          
+          <!-- Program Info -->
+          <div class="text-center mb-8">
+            <p class="text-gray-600 mb-2">لإتمامه بنجاح برنامج</p>
+            <h4 class="text-2xl font-bold text-gray-800 mb-4">${cert.program_name}</h4>
+            <div class="inline-block bg-purple-100 px-6 py-3 rounded-lg">
+              <p class="text-lg font-bold text-purple-800">الدرجة النهائية: ${cert.final_score}%</p>
+              <p class="text-sm text-purple-600">${
+                cert.grade === 'EXCELLENT' ? 'ممتاز' :
+                cert.grade === 'VERY_GOOD' ? 'جيد جداً' :
+                cert.grade === 'GOOD' ? 'جيد' :
+                cert.grade === 'PASS' ? 'مقبول' : 'راسب'
+              }</p>
+            </div>
+          </div>
+          
+          <!-- Certificate Details Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="border rounded-lg p-4">
+              <label class="block text-sm font-bold text-gray-700 mb-1">رقم الشهادة</label>
+              <p class="font-mono text-sm bg-gray-50 p-2 rounded">${cert.certificate_number}</p>
+            </div>
+            
+            <div class="border rounded-lg p-4">
+              <label class="block text-sm font-bold text-gray-700 mb-1">تاريخ الإصدار</label>
+              <p class="text-gray-900">${new Date(cert.issue_date).toLocaleDateString('ar-SA', {
+                year: 'numeric', month: 'long', day: 'numeric'
+              })}</p>
+            </div>
+            
+            <div class="border rounded-lg p-4">
+              <label class="block text-sm font-bold text-gray-700 mb-1">تاريخ الانتهاء</label>
+              <p class="text-gray-900">${new Date(cert.expiry_date).toLocaleDateString('ar-SA', {
+                year: 'numeric', month: 'long', day: 'numeric'
+              })}</p>
+            </div>
+            
+            <div class="border rounded-lg p-4">
+              <label class="block text-sm font-bold text-gray-700 mb-1">الحالة</label>
+              <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                cert.status === 'VALID' ? 'bg-green-100 text-green-800' :
+                cert.status === 'EXPIRED' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'
+              }">
+                ${cert.status === 'VALID' ? 'صالحة' : cert.status === 'EXPIRED' ? 'منتهية' : 'ملغاة'}
+              </span>
+            </div>
+            
+            <div class="md:col-span-2 border rounded-lg p-4">
+              <label class="block text-sm font-bold text-gray-700 mb-1">رابط التحقق</label>
+              <div class="flex gap-2">
+                <input type="text" readonly value="${cert.verification_url || 'https://nayosh.sa/verify/' + cert.certificate_number}" 
+                       class="flex-1 bg-gray-50 border rounded px-3 py-2 text-sm" id="verify-url">
+                <button onclick="navigator.clipboard.writeText(document.getElementById('verify-url').value); alert('تم نسخ الرابط')" 
+                        class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- QR Code -->
+          <div class="text-center mb-6">
+            <p class="text-sm text-gray-600 mb-2">رمز QR للتحقق</p>
+            <div class="inline-block border-4 border-purple-200 p-4 rounded-lg">
+              <div class="bg-gray-200 w-48 h-48 flex items-center justify-center">
+                <i class="fas fa-qrcode text-6xl text-gray-400"></i>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Issued By -->
+          <div class="text-center text-sm text-gray-600 pt-6 border-t">
+            <p>أصدر بواسطة: <span class="font-bold">${cert.issued_by || 'نظام نايوش'}</span></p>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex gap-3 pt-6 border-t mt-6">
+            <button onclick="window.printCertificate(${certificateId})" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition font-bold">
+              <i class="fas fa-print ml-2"></i> طباعة الشهادة
+            </button>
+            <button onclick="window.closeIncubatorModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    console.error('Error viewing certificate:', error);
+    alert('❌ حدث خطأ في عرض الشهادة');
+  }
+};
+
+// Print Certificate
+window.printCertificate = function(certificateId) {
+  alert('🚧 قريباً: طباعة الشهادة\n\nسيتم تفعيل هذه الميزة قريباً.');
 };
 
 // ========================================
