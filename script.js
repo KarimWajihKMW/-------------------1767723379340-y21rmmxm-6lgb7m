@@ -3357,12 +3357,15 @@ async function renderTrainingSessions(container, currentUser) {
                   <span class="text-sm text-gray-600">
                     <i class="fas fa-map-marker-alt ml-2"></i>${session.location || 'لم يحدد'}
                   </span>
-                  <div class="space-x-2">
-                    <button class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm">
-                      <i class="fas fa-users ml-1"></i> المتدربون
+                  <div class="space-x-2 space-x-reverse flex gap-2">
+                    <button onclick="window.viewSessionDetails(${session.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm border border-blue-600 rounded">
+                      <i class="fas fa-eye ml-1"></i> عرض
                     </button>
-                    <button class="text-gray-600 hover:text-gray-800">
-                      <i class="fas fa-edit"></i>
+                    <button onclick="window.editSession(${session.id})" class="text-orange-600 hover:text-orange-800 px-3 py-1 text-sm border border-orange-600 rounded">
+                      <i class="fas fa-edit ml-1"></i> تعديل
+                    </button>
+                    <button onclick="window.manageEnrollments(${session.id}, '${session.session_name}')" class="text-green-600 hover:text-green-800 px-3 py-1 text-sm border border-green-600 rounded">
+                      <i class="fas fa-users ml-1"></i> المتدربون
                     </button>
                   </div>
                 </div>
@@ -3869,25 +3872,17 @@ window.openAddSessionModal = async function() {
     console.log('📤 Sending training session data:', data);
     
     try {
-      const result = await window.fetchAPI('/training-sessions', {
+      await window.fetchAPI('/training-sessions', {
         method: 'POST',
         body: JSON.stringify(data)
       });
       
-      console.log('✅ Session created successfully:', result);
       window.closeIncubatorModal();
       alert('✅ تم إضافة الدفعة بنجاح!');
       window.switchIncubatorTab('sessions');
     } catch (error) {
-      console.error('❌ Full error object:', error);
-      
-      // Try to extract detailed error message
-      let errorMessage = error.message;
-      if (error.details) {
-        errorMessage += '\n' + error.details;
-      }
-      
-      alert('❌ حدث خطأ: ' + errorMessage);
+      console.error('Error adding session:', error);
+      alert('❌ حدث خطأ: ' + error.message);
     }
   });
 };
@@ -3897,13 +3892,256 @@ window.closeIncubatorModal = function() {
   const modals = [
     'add-program-modal',
     'add-beneficiary-modal',
-    'add-session-modal'
+    'add-session-modal',
+    'view-session-modal',
+    'edit-session-modal',
+    'enrollments-modal'
   ];
   
   modals.forEach(id => {
     const modal = document.getElementById(id);
     if (modal) modal.remove();
   });
+};
+
+// View Session Details
+window.viewSessionDetails = async function(sessionId) {
+  try {
+    const sessions = await window.fetchAPI(`/training-sessions?entity_id=${window.currentUserData.entityId}`);
+    const session = sessions.find(s => s.id === sessionId);
+    
+    if (!session) {
+      alert('❌ لم يتم العثور على الدفعة');
+      return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.id = 'view-session-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-orange-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">تفاصيل الدفعة التدريبية</h2>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <!-- Session Info -->
+          <div class="border-b pb-4">
+            <h3 class="font-bold text-xl mb-2">${session.session_name}</h3>
+            <p class="text-gray-600">${session.program_name || 'برنامج غير محدد'}</p>
+          </div>
+          
+          <!-- Details Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">كود الدفعة</label>
+              <p class="text-gray-900">${session.session_code}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">الحالة</label>
+              <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                session.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
+                session.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                session.status === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
+                'bg-gray-100 text-gray-800'
+              }">
+                ${
+                  session.status === 'IN_PROGRESS' ? 'جارية' :
+                  session.status === 'COMPLETED' ? 'مكتملة' :
+                  session.status === 'PLANNED' ? 'مخططة' :
+                  'ملغاة'
+                }
+              </span>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">تاريخ البدء</label>
+              <p class="text-gray-900">${new Date(session.start_date).toLocaleDateString('ar-SA')}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">تاريخ الانتهاء</label>
+              <p class="text-gray-900">${new Date(session.end_date).toLocaleDateString('ar-SA')}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">المدرب</label>
+              <p class="text-gray-900">${session.instructor_name || '-'}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">الموقع</label>
+              <p class="text-gray-900">${session.location || '-'}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">الحد الأقصى للمتدربين</label>
+              <p class="text-gray-900">${session.max_participants}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">المتدربون المسجلون</label>
+              <p class="text-gray-900">${session.current_participants}</p>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex gap-3 pt-4 border-t">
+            <button onclick="window.editSession(${sessionId})" class="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-bold">
+              <i class="fas fa-edit ml-2"></i> تعديل
+            </button>
+            <button onclick="window.closeIncubatorModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    console.error('Error viewing session:', error);
+    alert('❌ حدث خطأ في عرض تفاصيل الدفعة');
+  }
+};
+
+// Edit Session
+window.editSession = async function(sessionId) {
+  try {
+    const sessions = await window.fetchAPI(`/training-sessions?entity_id=${window.currentUserData.entityId}`);
+    const session = sessions.find(s => s.id === sessionId);
+    
+    if (!session) {
+      alert('❌ لم يتم العثور على الدفعة');
+      return;
+    }
+    
+    // Load programs for dropdown
+    let programsOptions = '';
+    try {
+      const programs = await window.fetchAPI(`/training-programs?entity_id=${window.currentUserData.entityId}`);
+      programsOptions = programs.map(p => 
+        `<option value="${p.id}" ${p.id === session.program_id ? 'selected' : ''}>${p.name} (${p.code})</option>`
+      ).join('');
+    } catch (error) {
+      console.error('Error loading programs:', error);
+    }
+    
+    // Close any existing modals first
+    window.closeIncubatorModal();
+    
+    const modal = document.createElement('div');
+    modal.id = 'edit-session-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-orange-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">تعديل الدفعة التدريبية</h2>
+        </div>
+        
+        <form id="edit-session-form" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">اسم الدفعة *</label>
+              <input type="text" name="session_name" required value="${session.session_name}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+            
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">البرنامج التدريبي *</label>
+              <select name="program_id" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+                ${programsOptions}
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ البدء *</label>
+              <input type="date" name="start_date" required value="${session.start_date.split('T')[0]}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الانتهاء *</label>
+              <input type="date" name="end_date" required value="${session.end_date.split('T')[0]}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+            
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">اسم المدرب</label>
+              <input type="text" name="instructor_name" value="${session.instructor_name || ''}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+            
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">الموقع</label>
+              <input type="text" name="location" value="${session.location || ''}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+              <select name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+                <option value="PLANNED" ${session.status === 'PLANNED' ? 'selected' : ''}>مخططة</option>
+                <option value="IN_PROGRESS" ${session.status === 'IN_PROGRESS' ? 'selected' : ''}>جارية</option>
+                <option value="COMPLETED" ${session.status === 'COMPLETED' ? 'selected' : ''}>مكتملة</option>
+                <option value="CANCELLED" ${session.status === 'CANCELLED' ? 'selected' : ''}>ملغاة</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="flex gap-3 pt-4 border-t">
+            <button type="submit" class="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-bold">
+              <i class="fas fa-save ml-2"></i> حفظ التعديلات
+            </button>
+            <button type="button" onclick="window.closeIncubatorModal()" 
+                    class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('edit-session-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      
+      const data = {
+        session_name: formData.get('session_name'),
+        program_id: parseInt(formData.get('program_id')),
+        start_date: formData.get('start_date'),
+        end_date: formData.get('end_date'),
+        instructor_name: formData.get('instructor_name') || null,
+        location: formData.get('location') || null,
+        status: formData.get('status')
+      };
+      
+      try {
+        await window.fetchAPI(`/training-sessions/${sessionId}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+        
+        window.closeIncubatorModal();
+        alert('✅ تم تحديث الدفعة بنجاح!');
+        window.switchIncubatorTab('sessions');
+      } catch (error) {
+        console.error('Error updating session:', error);
+        alert('❌ حدث خطأ: ' + error.message);
+      }
+    });
+  } catch (error) {
+    console.error('Error editing session:', error);
+    alert('❌ حدث خطأ في تحميل بيانات الدفعة');
+  }
+};
+
+// Manage Enrollments
+window.manageEnrollments = async function(sessionId, sessionName) {
+  alert(`🚧 قريباً: إدارة المتدربين للدفعة "${sessionName}"\n\nسيتم إضافة هذه الميزة قريباً.`);
 };
 
 // Make fetchAPI available globally for employee functions
