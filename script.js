@@ -4250,15 +4250,11 @@ window.manageEnrollments = async function(sessionId, sessionName) {
                             'راسب'
                           }
                         </span>
-                          'bg-gray-100 text-gray-800'
-                        }">
-                          ${enrollment.status === 'ACTIVE' ? 'نشط' : enrollment.status === 'COMPLETED' ? 'مكتمل' : 'متوقف'}
-                        </span>
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                         <button onclick="window.removeEnrollment(${enrollment.id}, ${sessionId}, '${sessionName}')" 
-                                class="text-red-600 hover:text-red-800">
-                          <i class="fas fa-trash"></i>
+                                class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition text-sm font-bold">
+                          <i class="fas fa-trash ml-1"></i> حذف
                         </button>
                       </td>
                     </tr>
@@ -4307,7 +4303,7 @@ window.addEnrollment = async function(sessionId, sessionName) {
         session_id: sessionId,
         beneficiary_id: parseInt(beneficiaryId),
         enrollment_date: new Date().toISOString().split('T')[0],
-        status: 'ACTIVE'
+        status: 'REGISTERED'
       })
     });
     
