@@ -2918,6 +2918,9 @@ const app = (() => {
 window.renderIncubatorSystem = async function(currentUser) {
   const container = document.querySelector('#main-view');
   
+  // Initialize active tab
+  if (!window.incubatorActiveTab) window.incubatorActiveTab = 'overview';
+  
   container.innerHTML = `
     <div class="space-y-6">
       <!-- Header -->
@@ -2977,31 +2980,37 @@ window.renderIncubatorSystem = async function(currentUser) {
         </div>
       </div>
 
-      <!-- Simple content for now -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-bold mb-4">نظام الحاضنة</h3>
-        <p class="text-gray-600 mb-4">مرحباً بك في نظام حاضنة السلامة لإدارة التدريب والتأهيل</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="border rounded-lg p-4 hover:shadow-md transition">
-            <i class="fas fa-book text-blue-600 text-2xl mb-2"></i>
-            <h4 class="font-bold mb-1">البرامج التدريبية</h4>
-            <p class="text-sm text-gray-600">إدارة البرامج والدورات التدريبية</p>
-          </div>
-          <div class="border rounded-lg p-4 hover:shadow-md transition">
-            <i class="fas fa-users text-green-600 text-2xl mb-2"></i>
-            <h4 class="font-bold mb-1">المستفيدون</h4>
-            <p class="text-sm text-gray-600">إدارة بيانات المستفيدين والمتدربين</p>
-          </div>
-          <div class="border rounded-lg p-4 hover:shadow-md transition">
-            <i class="fas fa-calendar text-orange-600 text-2xl mb-2"></i>
-            <h4 class="font-bold mb-1">الدفعات التدريبية</h4>
-            <p class="text-sm text-gray-600">جدولة وإدارة الدفعات التدريبية</p>
-          </div>
-          <div class="border rounded-lg p-4 hover:shadow-md transition">
-            <i class="fas fa-certificate text-purple-600 text-2xl mb-2"></i>
-            <h4 class="font-bold mb-1">الشهادات</h4>
-            <p class="text-sm text-gray-600">إصدار وإدارة الشهادات</p>
-          </div>
+      <!-- Content Area with Tabs -->
+      <div class="bg-white rounded-lg shadow">
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200">
+          <nav class="flex -mb-px overflow-x-auto">
+            <button onclick="window.switchIncubatorTab('overview')" 
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'overview' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📊 نظرة عامة
+            </button>
+            <button onclick="window.switchIncubatorTab('programs')" 
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'programs' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📚 البرامج التدريبية
+            </button>
+            <button onclick="window.switchIncubatorTab('beneficiaries')" 
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'beneficiaries' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              👥 المستفيدون
+            </button>
+            <button onclick="window.switchIncubatorTab('sessions')" 
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'sessions' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              📅 الدفعات التدريبية
+            </button>
+            <button onclick="window.switchIncubatorTab('certificates')" 
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'certificates' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+              🏆 الشهادات
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="incubator-tab-content" class="p-6">
+          <!-- Content will be loaded here -->
         </div>
       </div>
     </div>
@@ -3017,7 +3026,464 @@ window.renderIncubatorSystem = async function(currentUser) {
   } catch (error) {
     console.error('Error loading stats:', error);
   }
+  
+  // Load initial tab content
+  window.switchIncubatorTab(window.incubatorActiveTab);
 };
+
+// Switch between incubator tabs
+window.switchIncubatorTab = async function(tab) {
+  window.incubatorActiveTab = tab;
+  const content = document.getElementById('incubator-tab-content');
+  
+  if (!content) return;
+  
+  // Show loading
+  content.innerHTML = `
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  `;
+  
+  try {
+    const currentUser = window.currentUserData;
+    
+    switch(tab) {
+      case 'overview':
+        await renderIncubatorOverview(content, currentUser);
+        break;
+      case 'programs':
+        await renderTrainingPrograms(content, currentUser);
+        break;
+      case 'beneficiaries':
+        await renderBeneficiaries(content, currentUser);
+        break;
+      case 'sessions':
+        await renderTrainingSessions(content, currentUser);
+        break;
+      case 'certificates':
+        await renderCertificates(content, currentUser);
+        break;
+      default:
+        content.innerHTML = `<p class="text-gray-500">المحتوى غير متوفر</p>`;
+    }
+    
+    // Update tab buttons
+    document.querySelectorAll('.incubator-tab-btn').forEach(btn => {
+      btn.className = btn.className.replace(/border-b-2 border-blue-500 text-blue-600/, 'text-gray-500 hover:text-gray-700');
+    });
+    const activeBtn = document.querySelector(`button[onclick*="${tab}"]`);
+    if (activeBtn) {
+      activeBtn.className = activeBtn.className.replace(/text-gray-500 hover:text-gray-700/, 'border-b-2 border-blue-500 text-blue-600');
+    }
+  } catch (error) {
+    console.error('Error loading tab:', error);
+    content.innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p>خطأ في تحميل المحتوى: ${error.message}</p>
+      </div>
+    `;
+  }
+};
+
+// Overview Tab
+async function renderIncubatorOverview(container, currentUser) {
+  container.innerHTML = `
+    <div class="space-y-4">
+      <h3 class="text-lg font-bold mb-4">نظام الحاضنة</h3>
+      <p class="text-gray-600 mb-4">مرحباً بك في نظام حاضنة السلامة لإدارة التدريب والتأهيل</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button onclick="window.switchIncubatorTab('programs')" class="border rounded-lg p-6 hover:shadow-lg transition text-right cursor-pointer bg-white hover:bg-blue-50">
+          <i class="fas fa-book text-blue-600 text-3xl mb-3"></i>
+          <h4 class="font-bold mb-2 text-lg">البرامج التدريبية</h4>
+          <p class="text-sm text-gray-600">إدارة البرامج والدورات التدريبية</p>
+        </button>
+        <button onclick="window.switchIncubatorTab('beneficiaries')" class="border rounded-lg p-6 hover:shadow-lg transition text-right cursor-pointer bg-white hover:bg-green-50">
+          <i class="fas fa-users text-green-600 text-3xl mb-3"></i>
+          <h4 class="font-bold mb-2 text-lg">المستفيدون</h4>
+          <p class="text-sm text-gray-600">إدارة بيانات المستفيدين والمتدربين</p>
+        </button>
+        <button onclick="window.switchIncubatorTab('sessions')" class="border rounded-lg p-6 hover:shadow-lg transition text-right cursor-pointer bg-white hover:bg-orange-50">
+          <i class="fas fa-calendar text-orange-600 text-3xl mb-3"></i>
+          <h4 class="font-bold mb-2 text-lg">الدفعات التدريبية</h4>
+          <p class="text-sm text-gray-600">جدولة وإدارة الدفعات التدريبية</p>
+        </button>
+        <button onclick="window.switchIncubatorTab('certificates')" class="border rounded-lg p-6 hover:shadow-lg transition text-right cursor-pointer bg-white hover:bg-purple-50">
+          <i class="fas fa-certificate text-purple-600 text-3xl mb-3"></i>
+          <h4 class="font-bold mb-2 text-lg">الشهادات</h4>
+          <p class="text-sm text-gray-600">إصدار وإدارة الشهادات</p>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Training Programs Tab
+async function renderTrainingPrograms(container, currentUser) {
+  try {
+    const programs = await window.fetchAPI(`/training-programs?entity_id=${currentUser.entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">البرامج التدريبية</h3>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus ml-2"></i> برنامج جديد
+          </button>
+        </div>
+        
+        ${programs && programs.length > 0 ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${programs.map(program => `
+              <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 class="font-bold text-lg text-blue-600">${program.name}</h4>
+                    <p class="text-sm text-gray-500">${program.code}</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                    program.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }">
+                    ${program.is_active ? 'نشط' : 'غير نشط'}
+                  </span>
+                </div>
+                
+                <p class="text-gray-600 text-sm mb-3">${program.description || 'لا يوجد وصف'}</p>
+                
+                <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div class="flex items-center text-gray-600">
+                    <i class="fas fa-clock ml-2"></i>
+                    ${program.duration_hours} ساعة
+                  </div>
+                  <div class="flex items-center text-gray-600">
+                    <i class="fas fa-users ml-2"></i>
+                    ${program.max_participants} متدرب
+                  </div>
+                  <div class="flex items-center text-gray-600">
+                    <i class="fas fa-money-bill ml-2"></i>
+                    ${program.price} ريال
+                  </div>
+                  <div class="flex items-center text-gray-600">
+                    <i class="fas fa-percentage ml-2"></i>
+                    ${program.passing_score}% للنجاح
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-3 border-t">
+                  <span class="text-xs text-gray-500">
+                    صلاحية الشهادة: ${program.certificate_validity_months} شهر
+                  </span>
+                  <div class="space-x-2">
+                    <button class="text-blue-600 hover:text-blue-800">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-gray-600 hover:text-gray-800">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i class="fas fa-book text-gray-400 text-5xl mb-4"></i>
+            <h4 class="text-lg font-bold text-gray-700 mb-2">لا توجد برامج تدريبية</h4>
+            <p class="text-gray-500 mb-4">ابدأ بإضافة أول برنامج تدريبي</p>
+            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+              <i class="fas fa-plus ml-2"></i> إضافة برنامج
+            </button>
+          </div>
+        `}
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error loading programs:', error);
+    container.innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p>خطأ في تحميل البرامج: ${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// Beneficiaries Tab
+async function renderBeneficiaries(container, currentUser) {
+  try {
+    const beneficiaries = await window.fetchAPI(`/beneficiaries?entity_id=${currentUser.entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">المستفيدون</h3>
+          <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+            <i class="fas fa-plus ml-2"></i> مستفيد جديد
+          </button>
+        </div>
+        
+        ${beneficiaries && beneficiaries.length > 0 ? `
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border rounded-lg">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الجوال</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                ${beneficiaries.map(b => `
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center ml-3">
+                          <i class="fas fa-user text-green-600"></i>
+                        </div>
+                        <div>
+                          <div class="font-medium">${b.full_name}</div>
+                          <div class="text-sm text-gray-500">${b.email || 'لا يوجد بريد'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${b.national_id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${b.phone || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 py-1 text-xs rounded-full ${
+                        b.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                        b.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-gray-100 text-gray-800'
+                      }">
+                        ${b.status === 'ACTIVE' ? 'نشط' : b.status === 'GRADUATED' ? 'خريج' : 'متوقف'}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <button class="text-blue-600 hover:text-blue-800 ml-3">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i class="fas fa-users text-gray-400 text-5xl mb-4"></i>
+            <h4 class="text-lg font-bold text-gray-700 mb-2">لا يوجد مستفيدون</h4>
+            <p class="text-gray-500 mb-4">ابدأ بإضافة أول مستفيد</p>
+            <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+              <i class="fas fa-plus ml-2"></i> إضافة مستفيد
+            </button>
+          </div>
+        `}
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error loading beneficiaries:', error);
+    container.innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p>خطأ في تحميل المستفيدين: ${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// Training Sessions Tab
+async function renderTrainingSessions(container, currentUser) {
+  try {
+    const sessions = await window.fetchAPI(`/training-sessions?entity_id=${currentUser.entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">الدفعات التدريبية</h3>
+          <button class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition">
+            <i class="fas fa-plus ml-2"></i> دفعة جديدة
+          </button>
+        </div>
+        
+        ${sessions && sessions.length > 0 ? `
+          <div class="space-y-4">
+            ${sessions.map(session => `
+              <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
+                <div class="flex justify-between items-start mb-3">
+                  <div class="flex-1">
+                    <h4 class="font-bold text-lg">${session.session_name}</h4>
+                    <p class="text-sm text-gray-600">${session.program_name} (${session.program_code})</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                    session.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
+                    session.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                    session.status === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }">
+                    ${
+                      session.status === 'IN_PROGRESS' ? 'جارية' :
+                      session.status === 'COMPLETED' ? 'مكتملة' :
+                      session.status === 'PLANNED' ? 'مخططة' :
+                      'ملغاة'
+                    }
+                  </span>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                  <div class="text-sm">
+                    <span class="text-gray-500">تاريخ البدء:</span>
+                    <p class="font-medium">${new Date(session.start_date).toLocaleDateString('ar-SA')}</p>
+                  </div>
+                  <div class="text-sm">
+                    <span class="text-gray-500">تاريخ الانتهاء:</span>
+                    <p class="font-medium">${new Date(session.end_date).toLocaleDateString('ar-SA')}</p>
+                  </div>
+                  <div class="text-sm">
+                    <span class="text-gray-500">المدرب:</span>
+                    <p class="font-medium">${session.instructor_name || '-'}</p>
+                  </div>
+                  <div class="text-sm">
+                    <span class="text-gray-500">المتدربون:</span>
+                    <p class="font-medium">${session.current_participants} / ${session.max_participants}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-3 border-t">
+                  <span class="text-sm text-gray-600">
+                    <i class="fas fa-map-marker-alt ml-2"></i>${session.location || 'لم يحدد'}
+                  </span>
+                  <div class="space-x-2">
+                    <button class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm">
+                      <i class="fas fa-users ml-1"></i> المتدربون
+                    </button>
+                    <button class="text-gray-600 hover:text-gray-800">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i class="fas fa-calendar text-gray-400 text-5xl mb-4"></i>
+            <h4 class="text-lg font-bold text-gray-700 mb-2">لا توجد دفعات تدريبية</h4>
+            <p class="text-gray-500 mb-4">ابدأ بإضافة أول دفعة تدريبية</p>
+            <button class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition">
+              <i class="fas fa-plus ml-2"></i> إضافة دفعة
+            </button>
+          </div>
+        `}
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error loading sessions:', error);
+    container.innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p>خطأ في تحميل الدفعات: ${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// Certificates Tab
+async function renderCertificates(container, currentUser) {
+  try {
+    const certificates = await window.fetchAPI(`/certificates?entity_id=${currentUser.entityId}`);
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">الشهادات</h3>
+          <div class="flex gap-2">
+            <input type="text" placeholder="بحث برقم الشهادة..." 
+                   class="border rounded-lg px-4 py-2" 
+                   id="cert-search">
+            <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+              <i class="fas fa-search"></i> تحقق
+            </button>
+          </div>
+        </div>
+        
+        ${certificates && certificates.length > 0 ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${certificates.map(cert => `
+              <div class="border-2 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-white hover:shadow-xl transition-all">
+                <div class="text-center mb-4">
+                  <div class="bg-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-certificate text-2xl"></i>
+                  </div>
+                  <h4 class="font-bold text-lg">${cert.full_name}</h4>
+                  <p class="text-sm text-gray-600">${cert.national_id}</p>
+                </div>
+                
+                <div class="space-y-2 text-sm mb-4">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">البرنامج:</span>
+                    <span class="font-medium">${cert.program_name}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">رقم الشهادة:</span>
+                    <span class="font-mono text-xs">${cert.certificate_number}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">تاريخ الإصدار:</span>
+                    <span>${new Date(cert.issue_date).toLocaleDateString('ar-SA')}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">تنتهي في:</span>
+                    <span>${new Date(cert.expiry_date).toLocaleDateString('ar-SA')}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">الدرجة:</span>
+                    <span class="font-bold ${
+                      cert.grade === 'EXCELLENT' ? 'text-green-600' :
+                      cert.grade === 'VERY_GOOD' ? 'text-blue-600' :
+                      'text-gray-600'
+                    }">${cert.final_score}%</span>
+                  </div>
+                </div>
+                
+                <div class="flex justify-between items-center pt-3 border-t">
+                  <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                    cert.status === 'VALID' ? 'bg-green-100 text-green-800' :
+                    cert.status === 'EXPIRED' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }">
+                    ${cert.status === 'VALID' ? 'صالحة' : cert.status === 'EXPIRED' ? 'منتهية' : 'ملغاة'}
+                  </span>
+                  <button class="text-purple-600 hover:text-purple-800 text-sm">
+                    <i class="fas fa-eye ml-1"></i> عرض
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i class="fas fa-certificate text-gray-400 text-5xl mb-4"></i>
+            <h4 class="text-lg font-bold text-gray-700 mb-2">لا توجد شهادات</h4>
+            <p class="text-gray-500 mb-4">سيتم عرض الشهادات هنا عند إصدارها</p>
+          </div>
+        `}
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error loading certificates:', error);
+    container.innerHTML = `
+      <div class="text-center py-8 text-red-600">
+        <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p>خطأ في تحميل الشهادات: ${error.message}</p>
+      </div>
+    `;
+  }
+}
 
 // Make fetchAPI available globally for employee functions
 // This version MUST include data isolation headers from currentUser
