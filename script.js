@@ -4215,8 +4215,8 @@ window.manageEnrollments = async function(sessionId, sessionName) {
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الهوية</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">تاريخ التسجيل</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحضور</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الدرجة</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">نسبة الحضور</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التقييم النهائي</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
                   </tr>
@@ -4230,14 +4230,26 @@ window.manageEnrollments = async function(sessionId, sessionName) {
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.beneficiary_national_id || '-'}</td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(enrollment.enrollment_date).toLocaleDateString('ar-SA')}</td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.attendance_hours || 0} ساعة</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">${enrollment.attendance_percentage || 0}%</td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${enrollment.final_score ? `<span class="font-bold">${enrollment.final_score}%</span>` : '-'}
+                        ${enrollment.final_grade ? `<span class="font-bold">${enrollment.final_grade}%</span>` : '-'}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 py-1 text-xs rounded-full ${
-                          enrollment.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                          enrollment.status === 'ATTENDING' ? 'bg-green-100 text-green-800' :
                           enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                          enrollment.status === 'REGISTERED' ? 'bg-yellow-100 text-yellow-800' :
+                          enrollment.status === 'WITHDRAWN' ? 'bg-gray-100 text-gray-800' :
+                          'bg-red-100 text-red-800'
+                        }">
+                          ${
+                            enrollment.status === 'ATTENDING' ? 'يحضر' :
+                            enrollment.status === 'COMPLETED' ? 'مكتمل' :
+                            enrollment.status === 'REGISTERED' ? 'مسجل' :
+                            enrollment.status === 'WITHDRAWN' ? 'منسحب' :
+                            'راسب'
+                          }
+                        </span>
                           'bg-gray-100 text-gray-800'
                         }">
                           ${enrollment.status === 'ACTIVE' ? 'نشط' : enrollment.status === 'COMPLETED' ? 'مكتمل' : 'متوقف'}

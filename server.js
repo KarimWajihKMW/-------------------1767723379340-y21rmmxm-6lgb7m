@@ -2297,10 +2297,14 @@ app.get('/api/enrollments', async (req, res) => {
         e.*,
         b.full_name as beneficiary_name,
         b.national_id as beneficiary_national_id,
-        ts.session_name
+        ts.session_name,
+        tp.duration_hours,
+        a.final_grade
       FROM enrollments e
       LEFT JOIN beneficiaries b ON e.beneficiary_id = b.id
       LEFT JOIN training_sessions ts ON e.session_id = ts.id
+      LEFT JOIN training_programs tp ON ts.program_id = tp.id
+      LEFT JOIN assessments a ON e.id = a.enrollment_id
       WHERE 1=1
     `;
     const params = [];
@@ -2345,9 +2349,9 @@ app.post('/api/enrollments', async (req, res) => {
     const result = await db.query(
       `INSERT INTO enrollments (
         session_id, beneficiary_id, enrollment_date, status,
-        attendance_hours, final_score
-      ) VALUES ($1, $2, $3, $4, 0, NULL) RETURNING *`,
-      [session_id, beneficiary_id, enrollment_date, status || 'ACTIVE']
+        attendance_percentage
+      ) VALUES ($1, $2, $3, $4, 0) RETURNING *`,
+      [session_id, beneficiary_id, enrollment_date, status || 'REGISTERED']
     );
     
     // Update session participant count
