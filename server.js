@@ -2080,6 +2080,36 @@ app.post('/api/training-programs', async (req, res) => {
   }
 });
 
+// Update training program
+app.put('/api/training-programs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, description, duration_hours, max_participants, price, passing_score, certificate_validity_months, is_active } = req.body;
+    
+    console.log('📝 Updating training program:', id, req.body);
+    
+    const result = await db.query(
+      `UPDATE training_programs 
+       SET name = $1, code = $2, description = $3, duration_hours = $4, max_participants = $5,
+           price = $6, passing_score = $7, certificate_validity_months = $8, is_active = $9,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $10
+       RETURNING *`,
+      [name, code, description, duration_hours, max_participants, price, passing_score, certificate_validity_months, is_active, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Training program not found' });
+    }
+    
+    console.log('✅ Training program updated:', result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error updating training program:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Beneficiaries
 app.get('/api/beneficiaries', async (req, res) => {
   try {
@@ -2109,6 +2139,35 @@ app.post('/api/beneficiaries', async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error creating beneficiary:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update beneficiary
+app.put('/api/beneficiaries/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { full_name, national_id, phone, email, education_level, status } = req.body;
+    
+    console.log('📝 Updating beneficiary:', id, req.body);
+    
+    const result = await db.query(
+      `UPDATE beneficiaries 
+       SET full_name = $1, national_id = $2, phone = $3, email = $4,
+           education_level = $5, status = $6, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7
+       RETURNING *`,
+      [full_name, national_id, phone, email, education_level, status, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Beneficiary not found' });
+    }
+    
+    console.log('✅ Beneficiary updated:', result.rows[0]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error updating beneficiary:', error);
     res.status(500).json({ error: error.message });
   }
 });

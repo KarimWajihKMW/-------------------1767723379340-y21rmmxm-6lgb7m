@@ -3174,12 +3174,12 @@ async function renderTrainingPrograms(container, currentUser) {
                   <span class="text-xs text-gray-500">
                     صلاحية الشهادة: ${program.certificate_validity_months} شهر
                   </span>
-                  <div class="space-x-2">
-                    <button class="text-blue-600 hover:text-blue-800">
-                      <i class="fas fa-edit"></i>
+                  <div class="space-x-2 space-x-reverse flex gap-2">
+                    <button onclick="window.viewProgramDetails(${program.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm border border-blue-600 rounded">
+                      <i class="fas fa-eye ml-1"></i> عرض
                     </button>
-                    <button class="text-gray-600 hover:text-gray-800">
-                      <i class="fas fa-eye"></i>
+                    <button onclick="window.editProgram(${program.id})" class="text-green-600 hover:text-green-800 px-3 py-1 text-sm border border-green-600 rounded">
+                      <i class="fas fa-edit ml-1"></i> تعديل
                     </button>
                   </div>
                 </div>
@@ -3261,11 +3261,11 @@ async function renderBeneficiaries(container, currentUser) {
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                      <button class="text-blue-600 hover:text-blue-800 ml-3">
-                        <i class="fas fa-eye"></i>
+                      <button onclick="window.viewBeneficiaryDetails(${b.id})" class="text-blue-600 hover:text-blue-800 ml-3 px-2 py-1 border border-blue-600 rounded">
+                        <i class="fas fa-eye ml-1"></i> عرض
                       </button>
-                      <button class="text-gray-600 hover:text-gray-800">
-                        <i class="fas fa-edit"></i>
+                      <button onclick="window.editBeneficiary(${b.id})" class="text-green-600 hover:text-green-800 px-2 py-1 border border-green-600 rounded">
+                        <i class="fas fa-edit ml-1"></i> تعديل
                       </button>
                     </td>
                   </tr>
@@ -3895,7 +3895,11 @@ window.closeIncubatorModal = function() {
     'add-session-modal',
     'view-session-modal',
     'edit-session-modal',
-    'enrollments-modal'
+    'enrollments-modal',
+    'view-program-modal',
+    'edit-program-modal',
+    'view-beneficiary-modal',
+    'edit-beneficiary-modal'
   ];
   
   modals.forEach(id => {
@@ -4142,6 +4146,432 @@ window.editSession = async function(sessionId) {
 // Manage Enrollments
 window.manageEnrollments = async function(sessionId, sessionName) {
   alert(`🚧 قريباً: إدارة المتدربين للدفعة "${sessionName}"\n\nسيتم إضافة هذه الميزة قريباً.`);
+};
+
+// ========================================
+// TRAINING PROGRAMS - View & Edit
+// ========================================
+
+// View Program Details
+window.viewProgramDetails = async function(programId) {
+  try {
+    const programs = await window.fetchAPI(`/training-programs?entity_id=${window.currentUserData.entityId}`);
+    const program = programs.find(p => p.id === programId);
+    
+    if (!program) {
+      alert('❌ لم يتم العثور على البرنامج');
+      return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.id = 'view-program-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-blue-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">تفاصيل البرنامج التدريبي</h2>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <!-- Program Info -->
+          <div class="border-b pb-4">
+            <h3 class="font-bold text-xl mb-2">${program.name}</h3>
+            <p class="text-gray-600">${program.code}</p>
+          </div>
+          
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">الوصف</label>
+            <p class="text-gray-900">${program.description || 'لا يوجد وصف'}</p>
+          </div>
+          
+          <!-- Details Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">عدد الساعات</label>
+              <p class="text-gray-900">${program.duration_hours} ساعة</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">الحد الأقصى للمتدربين</label>
+              <p class="text-gray-900">${program.max_participants} متدرب</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">السعر</label>
+              <p class="text-gray-900">${program.price} ريال</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">درجة النجاح</label>
+              <p class="text-gray-900">${program.passing_score}%</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">صلاحية الشهادة</label>
+              <p class="text-gray-900">${program.certificate_validity_months} شهر</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">الحالة</label>
+              <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                program.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              }">
+                ${program.is_active ? 'نشط' : 'غير نشط'}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex gap-3 pt-4 border-t">
+            <button onclick="window.editProgram(${programId})" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold">
+              <i class="fas fa-edit ml-2"></i> تعديل
+            </button>
+            <button onclick="window.closeIncubatorModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    console.error('Error viewing program:', error);
+    alert('❌ حدث خطأ في عرض تفاصيل البرنامج');
+  }
+};
+
+// Edit Program
+window.editProgram = async function(programId) {
+  try {
+    const programs = await window.fetchAPI(`/training-programs?entity_id=${window.currentUserData.entityId}`);
+    const program = programs.find(p => p.id === programId);
+    
+    if (!program) {
+      alert('❌ لم يتم العثور على البرنامج');
+      return;
+    }
+    
+    window.closeIncubatorModal();
+    
+    const modal = document.createElement('div');
+    modal.id = 'edit-program-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-blue-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">تعديل البرنامج التدريبي</h2>
+        </div>
+        
+        <form id="edit-program-form" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">اسم البرنامج *</label>
+              <input type="text" name="name" required value="${program.name}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">الكود *</label>
+              <input type="text" name="code" required value="${program.code}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">عدد الساعات *</label>
+              <input type="number" name="duration_hours" required value="${program.duration_hours}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+              <textarea name="description" rows="3"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">${program.description || ''}</textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">الحد الأقصى للمتدربين *</label>
+              <input type="number" name="max_participants" required value="${program.max_participants}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">السعر (ريال) *</label>
+              <input type="number" name="price" required step="0.01" value="${program.price}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">درجة النجاح (%) *</label>
+              <input type="number" name="passing_score" required min="0" max="100" value="${program.passing_score}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">صلاحية الشهادة (شهر) *</label>
+              <input type="number" name="certificate_validity_months" required value="${program.certificate_validity_months}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div class="md:col-span-2">
+              <label class="flex items-center">
+                <input type="checkbox" name="is_active" ${program.is_active ? 'checked' : ''}
+                       class="ml-2 h-4 w-4 text-blue-600 rounded">
+                <span class="text-sm font-bold text-gray-700">البرنامج نشط</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="flex gap-3 pt-4 border-t">
+            <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold">
+              <i class="fas fa-save ml-2"></i> حفظ التعديلات
+            </button>
+            <button type="button" onclick="window.closeIncubatorModal()" 
+                    class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('edit-program-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      
+      const data = {
+        name: formData.get('name'),
+        code: formData.get('code'),
+        description: formData.get('description') || null,
+        duration_hours: parseInt(formData.get('duration_hours')),
+        max_participants: parseInt(formData.get('max_participants')),
+        price: parseFloat(formData.get('price')),
+        passing_score: parseInt(formData.get('passing_score')),
+        certificate_validity_months: parseInt(formData.get('certificate_validity_months')),
+        is_active: formData.get('is_active') === 'on'
+      };
+      
+      try {
+        await window.fetchAPI(`/training-programs/${programId}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+        
+        window.closeIncubatorModal();
+        alert('✅ تم تحديث البرنامج بنجاح!');
+        window.switchIncubatorTab('programs');
+      } catch (error) {
+        console.error('Error updating program:', error);
+        alert('❌ حدث خطأ: ' + error.message);
+      }
+    });
+  } catch (error) {
+    console.error('Error editing program:', error);
+    alert('❌ حدث خطأ في تحميل بيانات البرنامج');
+  }
+};
+
+// ========================================
+// BENEFICIARIES - View & Edit
+// ========================================
+
+// View Beneficiary Details
+window.viewBeneficiaryDetails = async function(beneficiaryId) {
+  try {
+    const beneficiaries = await window.fetchAPI(`/beneficiaries?entity_id=${window.currentUserData.entityId}`);
+    const beneficiary = beneficiaries.find(b => b.id === beneficiaryId);
+    
+    if (!beneficiary) {
+      alert('❌ لم يتم العثور على المستفيد');
+      return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.id = 'view-beneficiary-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-green-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">تفاصيل المستفيد</h2>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <!-- Beneficiary Info -->
+          <div class="border-b pb-4">
+            <h3 class="font-bold text-xl mb-2">${beneficiary.full_name}</h3>
+            <p class="text-gray-600">${beneficiary.email || 'لا يوجد بريد إلكتروني'}</p>
+          </div>
+          
+          <!-- Details Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">رقم الهوية</label>
+              <p class="text-gray-900">${beneficiary.national_id}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">رقم الجوال</label>
+              <p class="text-gray-900">${beneficiary.phone || '-'}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">المستوى التعليمي</label>
+              <p class="text-gray-900">${beneficiary.education_level || '-'}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">الحالة</label>
+              <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                beneficiary.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                beneficiary.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' : 
+                'bg-gray-100 text-gray-800'
+              }">
+                ${beneficiary.status === 'ACTIVE' ? 'نشط' : beneficiary.status === 'GRADUATED' ? 'خريج' : 'متوقف'}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex gap-3 pt-4 border-t">
+            <button onclick="window.editBeneficiary(${beneficiaryId})" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-bold">
+              <i class="fas fa-edit ml-2"></i> تعديل
+            </button>
+            <button onclick="window.closeIncubatorModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  } catch (error) {
+    console.error('Error viewing beneficiary:', error);
+    alert('❌ حدث خطأ في عرض تفاصيل المستفيد');
+  }
+};
+
+// Edit Beneficiary
+window.editBeneficiary = async function(beneficiaryId) {
+  try {
+    const beneficiaries = await window.fetchAPI(`/beneficiaries?entity_id=${window.currentUserData.entityId}`);
+    const beneficiary = beneficiaries.find(b => b.id === beneficiaryId);
+    
+    if (!beneficiary) {
+      alert('❌ لم يتم العثور على المستفيد');
+      return;
+    }
+    
+    window.closeIncubatorModal();
+    
+    const modal = document.createElement('div');
+    modal.id = 'edit-beneficiary-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-green-600 text-white p-6 rounded-t-lg">
+          <h2 class="text-2xl font-bold">تعديل بيانات المستفيد</h2>
+        </div>
+        
+        <form id="edit-beneficiary-form" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">الاسم الكامل *</label>
+              <input type="text" name="full_name" required value="${beneficiary.full_name}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">رقم الهوية *</label>
+              <input type="text" name="national_id" required value="${beneficiary.national_id}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">رقم الجوال *</label>
+              <input type="tel" name="phone" required value="${beneficiary.phone || ''}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+            </div>
+            
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label>
+              <input type="email" name="email" value="${beneficiary.email || ''}"
+                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">المستوى التعليمي</label>
+              <select name="education_level" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+                <option value="">اختر المستوى...</option>
+                <option value="ELEMENTARY" ${beneficiary.education_level === 'ELEMENTARY' ? 'selected' : ''}>ابتدائي</option>
+                <option value="MIDDLE" ${beneficiary.education_level === 'MIDDLE' ? 'selected' : ''}>متوسط</option>
+                <option value="SECONDARY" ${beneficiary.education_level === 'SECONDARY' ? 'selected' : ''}>ثانوي</option>
+                <option value="DIPLOMA" ${beneficiary.education_level === 'DIPLOMA' ? 'selected' : ''}>دبلوم</option>
+                <option value="BACHELOR" ${beneficiary.education_level === 'BACHELOR' ? 'selected' : ''}>بكالوريوس</option>
+                <option value="MASTER" ${beneficiary.education_level === 'MASTER' ? 'selected' : ''}>ماجستير</option>
+                <option value="PHD" ${beneficiary.education_level === 'PHD' ? 'selected' : ''}>دكتوراه</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+              <select name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+                <option value="ACTIVE" ${beneficiary.status === 'ACTIVE' ? 'selected' : ''}>نشط</option>
+                <option value="GRADUATED" ${beneficiary.status === 'GRADUATED' ? 'selected' : ''}>خريج</option>
+                <option value="SUSPENDED" ${beneficiary.status === 'SUSPENDED' ? 'selected' : ''}>متوقف</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="flex gap-3 pt-4 border-t">
+            <button type="submit" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-bold">
+              <i class="fas fa-save ml-2"></i> حفظ التعديلات
+            </button>
+            <button type="button" onclick="window.closeIncubatorModal()" 
+                    class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('edit-beneficiary-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      
+      const data = {
+        full_name: formData.get('full_name'),
+        national_id: formData.get('national_id'),
+        phone: formData.get('phone'),
+        email: formData.get('email') || null,
+        education_level: formData.get('education_level') || null,
+        status: formData.get('status')
+      };
+      
+      try {
+        await window.fetchAPI(`/beneficiaries/${beneficiaryId}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+        
+        window.closeIncubatorModal();
+        alert('✅ تم تحديث بيانات المستفيد بنجاح!');
+        window.switchIncubatorTab('beneficiaries');
+      } catch (error) {
+        console.error('Error updating beneficiary:', error);
+        alert('❌ حدث خطأ: ' + error.message);
+      }
+    });
+  } catch (error) {
+    console.error('Error editing beneficiary:', error);
+    alert('❌ حدث خطأ في تحميل بيانات المستفيد');
+  }
 };
 
 // Make fetchAPI available globally for employee functions
