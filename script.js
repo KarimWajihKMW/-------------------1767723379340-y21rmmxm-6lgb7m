@@ -3128,7 +3128,7 @@ async function renderTrainingPrograms(container, currentUser) {
       <div class="space-y-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold">البرامج التدريبية</h3>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+          <button onclick="window.openAddProgramModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
             <i class="fas fa-plus ml-2"></i> برنامج جديد
           </button>
         </div>
@@ -3191,7 +3191,7 @@ async function renderTrainingPrograms(container, currentUser) {
             <i class="fas fa-book text-gray-400 text-5xl mb-4"></i>
             <h4 class="text-lg font-bold text-gray-700 mb-2">لا توجد برامج تدريبية</h4>
             <p class="text-gray-500 mb-4">ابدأ بإضافة أول برنامج تدريبي</p>
-            <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="window.openAddProgramModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
               <i class="fas fa-plus ml-2"></i> إضافة برنامج
             </button>
           </div>
@@ -3218,7 +3218,7 @@ async function renderBeneficiaries(container, currentUser) {
       <div class="space-y-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold">المستفيدون</h3>
-          <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+          <button onclick="window.openAddBeneficiaryModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
             <i class="fas fa-plus ml-2"></i> مستفيد جديد
           </button>
         </div>
@@ -3278,7 +3278,7 @@ async function renderBeneficiaries(container, currentUser) {
             <i class="fas fa-users text-gray-400 text-5xl mb-4"></i>
             <h4 class="text-lg font-bold text-gray-700 mb-2">لا يوجد مستفيدون</h4>
             <p class="text-gray-500 mb-4">ابدأ بإضافة أول مستفيد</p>
-            <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+            <button onclick="window.openAddBeneficiaryModal()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
               <i class="fas fa-plus ml-2"></i> إضافة مستفيد
             </button>
           </div>
@@ -3305,7 +3305,7 @@ async function renderTrainingSessions(container, currentUser) {
       <div class="space-y-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold">الدفعات التدريبية</h3>
-          <button class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition">
+          <button onclick="window.openAddSessionModal()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition">
             <i class="fas fa-plus ml-2"></i> دفعة جديدة
           </button>
         </div>
@@ -3374,7 +3374,7 @@ async function renderTrainingSessions(container, currentUser) {
             <i class="fas fa-calendar text-gray-400 text-5xl mb-4"></i>
             <h4 class="text-lg font-bold text-gray-700 mb-2">لا توجد دفعات تدريبية</h4>
             <p class="text-gray-500 mb-4">ابدأ بإضافة أول دفعة تدريبية</p>
-            <button class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition">
+            <button onclick="window.openAddSessionModal()" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition">
               <i class="fas fa-plus ml-2"></i> إضافة دفعة
             </button>
           </div>
@@ -3484,6 +3484,373 @@ async function renderCertificates(container, currentUser) {
     `;
   }
 }
+
+// ========================================
+// INCUBATOR MODAL FUNCTIONS
+// ========================================
+
+// Open Add Training Program Modal
+window.openAddProgramModal = function() {
+  const modal = document.createElement('div');
+  modal.id = 'add-program-modal';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="bg-blue-600 text-white p-6 rounded-t-lg">
+        <h2 class="text-2xl font-bold">إضافة برنامج تدريبي جديد</h2>
+      </div>
+      
+      <form id="add-program-form" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">اسم البرنامج *</label>
+            <input type="text" name="name" required 
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="مثال: السلامة المهنية">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">رمز البرنامج *</label>
+            <input type="text" name="code" required 
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="مثال: SAF101">
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+            <textarea name="description" rows="3"
+                      class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="وصف البرنامج التدريبي..."></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">عدد الساعات *</label>
+            <input type="number" name="duration_hours" required min="1"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="40">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">الحد الأقصى للمتدربين *</label>
+            <input type="number" name="max_participants" required min="1"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="20">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">السعر (ريال) *</label>
+            <input type="number" name="price" required min="0" step="0.01"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="5000">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">درجة النجاح (%) *</label>
+            <input type="number" name="passing_score" required min="0" max="100"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="70">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">صلاحية الشهادة (شهور) *</label>
+            <input type="number" name="certificate_validity_months" required min="1"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="12">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+            <select name="is_active" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="true">نشط</option>
+              <option value="false">غير نشط</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex gap-3 pt-4 border-t">
+          <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold">
+            <i class="fas fa-save ml-2"></i> حفظ البرنامج
+          </button>
+          <button type="button" onclick="window.closeIncubatorModal()" 
+                  class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('add-program-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      entity_id: window.currentUserData.entityId,
+      name: formData.get('name'),
+      code: formData.get('code'),
+      description: formData.get('description'),
+      duration_hours: parseInt(formData.get('duration_hours')),
+      max_participants: parseInt(formData.get('max_participants')),
+      price: parseFloat(formData.get('price')),
+      passing_score: parseInt(formData.get('passing_score')),
+      certificate_validity_months: parseInt(formData.get('certificate_validity_months')),
+      is_active: formData.get('is_active') === 'true'
+    };
+    
+    try {
+      await window.fetchAPI('/training-programs', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      
+      window.closeIncubatorModal();
+      alert('✅ تم إضافة البرنامج بنجاح!');
+      window.switchIncubatorTab('programs');
+    } catch (error) {
+      alert('❌ حدث خطأ: ' + error.message);
+    }
+  });
+};
+
+// Open Add Beneficiary Modal
+window.openAddBeneficiaryModal = function() {
+  const modal = document.createElement('div');
+  modal.id = 'add-beneficiary-modal';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="bg-green-600 text-white p-6 rounded-t-lg">
+        <h2 class="text-2xl font-bold">إضافة مستفيد جديد</h2>
+      </div>
+      
+      <form id="add-beneficiary-form" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">الاسم الكامل *</label>
+            <input type="text" name="full_name" required 
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                   placeholder="محمد أحمد العتيبي">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">رقم الهوية *</label>
+            <input type="text" name="national_id" required pattern="[0-9]{10}"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                   placeholder="1234567890">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">رقم الجوال</label>
+            <input type="tel" name="phone" pattern="05[0-9]{8}"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                   placeholder="0501234567">
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label>
+            <input type="email" name="email"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                   placeholder="name@example.com">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">المستوى التعليمي</label>
+            <select name="education_level" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+              <option value="">اختر...</option>
+              <option value="ابتدائي">ابتدائي</option>
+              <option value="متوسط">متوسط</option>
+              <option value="ثانوي">ثانوي</option>
+              <option value="دبلوم">دبلوم</option>
+              <option value="بكالوريوس">بكالوريوس</option>
+              <option value="ماجستير">ماجستير</option>
+              <option value="دكتوراه">دكتوراه</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+            <select name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+              <option value="ACTIVE">نشط</option>
+              <option value="SUSPENDED">متوقف</option>
+              <option value="GRADUATED">خريج</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex gap-3 pt-4 border-t">
+          <button type="submit" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-bold">
+            <i class="fas fa-save ml-2"></i> حفظ المستفيد
+          </button>
+          <button type="button" onclick="window.closeIncubatorModal()" 
+                  class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('add-beneficiary-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      entity_id: window.currentUserData.entityId,
+      full_name: formData.get('full_name'),
+      national_id: formData.get('national_id'),
+      phone: formData.get('phone') || null,
+      email: formData.get('email') || null,
+      education_level: formData.get('education_level') || null,
+      status: formData.get('status')
+    };
+    
+    try {
+      await window.fetchAPI('/beneficiaries', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      
+      window.closeIncubatorModal();
+      alert('✅ تم إضافة المستفيد بنجاح!');
+      window.switchIncubatorTab('beneficiaries');
+    } catch (error) {
+      alert('❌ حدث خطأ: ' + error.message);
+    }
+  });
+};
+
+// Open Add Training Session Modal
+window.openAddSessionModal = async function() {
+  // First load programs list
+  let programsOptions = '<option value="">اختر البرنامج...</option>';
+  try {
+    const programs = await window.fetchAPI(`/training-programs?entity_id=${window.currentUserData.entityId}`);
+    programsOptions += programs.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading programs:', error);
+  }
+  
+  const modal = document.createElement('div');
+  modal.id = 'add-session-modal';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="bg-orange-600 text-white p-6 rounded-t-lg">
+        <h2 class="text-2xl font-bold">إضافة دفعة تدريبية جديدة</h2>
+      </div>
+      
+      <form id="add-session-form" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">اسم الدفعة *</label>
+            <input type="text" name="session_name" required 
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                   placeholder="الدفعة الأولى - 2026">
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">البرنامج التدريبي *</label>
+            <select name="program_id" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+              ${programsOptions}
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ البدء *</label>
+            <input type="date" name="start_date" required 
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الانتهاء *</label>
+            <input type="date" name="end_date" required 
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">اسم المدرب</label>
+            <input type="text" name="instructor_name"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                   placeholder="د. أحمد محمد">
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-gray-700 mb-2">الموقع</label>
+            <input type="text" name="location"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                   placeholder="قاعة التدريب - الطابق الأول">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+            <select name="status" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+              <option value="PLANNED">مخططة</option>
+              <option value="IN_PROGRESS">جارية</option>
+              <option value="COMPLETED">مكتملة</option>
+              <option value="CANCELLED">ملغاة</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex gap-3 pt-4 border-t">
+          <button type="submit" class="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-bold">
+            <i class="fas fa-save ml-2"></i> حفظ الدفعة
+          </button>
+          <button type="button" onclick="window.closeIncubatorModal()" 
+                  class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('add-session-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      entity_id: window.currentUserData.entityId,
+      session_name: formData.get('session_name'),
+      program_id: parseInt(formData.get('program_id')),
+      start_date: formData.get('start_date'),
+      end_date: formData.get('end_date'),
+      instructor_name: formData.get('instructor_name') || null,
+      location: formData.get('location') || null,
+      status: formData.get('status')
+    };
+    
+    try {
+      await window.fetchAPI('/training-sessions', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      
+      window.closeIncubatorModal();
+      alert('✅ تم إضافة الدفعة بنجاح!');
+      window.switchIncubatorTab('sessions');
+    } catch (error) {
+      alert('❌ حدث خطأ: ' + error.message);
+    }
+  });
+};
+
+// Close Modal
+window.closeIncubatorModal = function() {
+  const modals = [
+    'add-program-modal',
+    'add-beneficiary-modal',
+    'add-session-modal'
+  ];
+  
+  modals.forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal) modal.remove();
+  });
+};
 
 // Make fetchAPI available globally for employee functions
 // This version MUST include data isolation headers from currentUser
