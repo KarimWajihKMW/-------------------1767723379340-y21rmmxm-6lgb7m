@@ -2807,8 +2807,24 @@ app.post('/api/training-sessions', async (req, res) => {
       });
     }
     
+    // Check if program exists
+    const programCheck = await db.query(
+      'SELECT id FROM training_programs WHERE id = $1 AND entity_id = $2',
+      [program_id, entity_id]
+    );
+    
+    if (programCheck.rows.length === 0) {
+      console.error('❌ Program not found:', { program_id, entity_id });
+      return res.status(404).json({ 
+        error: 'البرنامج التدريبي غير موجود أو لا ينتمي لهذه الجهة',
+        details: `Program ID: ${program_id} not found for entity: ${entity_id}`
+      });
+    }
+    
     // Generate unique session code
     const session_code = `SESSION-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    console.log('💾 Inserting with values:', [entity_id, session_name, session_code, program_id, start_date, end_date, instructor_name || null, location || null, status || 'PLANNED', 0, 30]);
     
     const result = await db.query(
       `INSERT INTO training_sessions (
@@ -2822,8 +2838,22 @@ app.post('/api/training-sessions', async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('❌ Error creating training session:', error.message);
-    console.error('Full error:', error);
-    res.status(500).json({ error: error.message, details: error.detail });
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Error detail:', error.detail);
+    console.error('❌ Full error:', error);
+    
+    let errorMessage = error.message;
+    if (error.code === '23503') {
+      errorMessage = 'خطأ في البيانات المرجعية - تأكد من صحة البرنامج التدريبي';
+    } else if (error.code === '23505') {
+      errorMessage = 'كود الدفعة مكرر - حاول مرة أخرى';
+    }
+    
+    res.status(500).json({ 
+      error: errorMessage, 
+      details: error.detail,
+      code: error.code
+    });
   }
 });
 

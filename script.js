@@ -3869,17 +3869,25 @@ window.openAddSessionModal = async function() {
     console.log('📤 Sending training session data:', data);
     
     try {
-      await window.fetchAPI('/training-sessions', {
+      const result = await window.fetchAPI('/training-sessions', {
         method: 'POST',
         body: JSON.stringify(data)
       });
       
+      console.log('✅ Session created successfully:', result);
       window.closeIncubatorModal();
       alert('✅ تم إضافة الدفعة بنجاح!');
       window.switchIncubatorTab('sessions');
     } catch (error) {
-      console.error('Error adding session:', error);
-      alert('❌ حدث خطأ: ' + error.message);
+      console.error('❌ Full error object:', error);
+      
+      // Try to extract detailed error message
+      let errorMessage = error.message;
+      if (error.details) {
+        errorMessage += '\n' + error.details;
+      }
+      
+      alert('❌ حدث خطأ: ' + errorMessage);
     }
   });
 };
