@@ -189,6 +189,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && echo \"✅ script\\.js - بناء صحيح\" && node -c server\\.js && echo \"✅ server\\.js - بناء صحيح\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node test-backend-before-deploy\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -c script\\.js && node -c server\\.js && echo \"✅ Build tests passed - All JavaScript syntax is valid\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

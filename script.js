@@ -836,6 +836,8 @@ const app = (() => {
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
         else if (route === 'billing') content = renderBilling();
+        else if (route === 'finance') content = renderFinance();
+        else if (route === 'collections') content = renderCollections();
         else if (route === 'approvals') content = renderApprovals();
         else if (route === 'incubator') {
             view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
@@ -875,6 +877,8 @@ const app = (() => {
             'hierarchy': 'الهيكل الهرمي - Multi-Tenant',
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
             'billing': 'الإدارة المالية والفواتير',
+            'finance': 'المالية',
+            'collections': 'التحصيل',
             'approvals': 'الموافقات المالية التدريجية',
             'incubator': 'حاضنة السلامة - منصة التدريب',
             'entities': perms.isHQ() ? 'إدارة المستأجرين' : 'بيانات الكيان',
@@ -911,6 +915,8 @@ const app = (() => {
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
             { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
+            { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: perms.isFinance() },
+            { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: perms.isFinance() },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
@@ -1992,6 +1998,306 @@ const app = (() => {
         document.getElementById('ad-wizard-modal').remove();
         showToast('تم إطلاق الحملة!', 'success');
         loadRoute('ads');
+    };
+
+    // --- FINANCE MODULE (المالية) ---
+    const renderFinance = () => {
+        const invoices = perms.getVisibleInvoices();
+        const ledger = perms.getVisibleLedger();
+        
+        const totalRevenue = ledger.reduce((sum, l) => sum + (l.credit || 0), 0);
+        const totalExpenses = ledger.reduce((sum, l) => sum + (l.debit || 0), 0);
+        const netBalance = totalRevenue - totalExpenses;
+        const monthlyRevenue = ledger.filter(l => {
+            const date = new Date(l.date);
+            const now = new Date();
+            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        }).reduce((sum, l) => sum + (l.credit || 0), 0);
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-dollar-sign text-green-600"></i>
+                        المالية
+                    </h2>
+                    <p class="text-slate-500 mt-1">إدارة الإيرادات والمصروفات والتقارير المالية</p>
+                </div>
+                <button onclick="app.openAddTransactionModal()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg flex items-center gap-2">
+                    <i class="fas fa-plus"></i>
+                    إضافة معاملة مالية
+                </button>
+            </div>
+
+            <!-- Financial Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-arrow-up text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">إجمالي الإيرادات</span>
+                    </div>
+                    <div class="text-3xl font-bold">${totalRevenue.toLocaleString()} ر.س</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-500 to-rose-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-arrow-down text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">إجمالي المصروفات</span>
+                    </div>
+                    <div class="text-3xl font-bold">${totalExpenses.toLocaleString()} ر.س</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-wallet text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">الرصيد الصافي</span>
+                    </div>
+                    <div class="text-3xl font-bold">${netBalance.toLocaleString()} ر.س</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-calendar-alt text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">إيرادات هذا الشهر</span>
+                    </div>
+                    <div class="text-3xl font-bold">${monthlyRevenue.toLocaleString()} ر.س</div>
+                </div>
+            </div>
+
+            <!-- Financial Ledger -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-book text-slate-600"></i>
+                        السجل المالي (Ledger)
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-1">جميع المعاملات المالية مسجلة هنا</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right">
+                        <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                            <tr>
+                                <th class="p-4">#</th>
+                                <th class="p-4">التاريخ</th>
+                                <th class="p-4">المرجع</th>
+                                <th class="p-4">الوصف</th>
+                                <th class="p-4">دائن (إيراد)</th>
+                                <th class="p-4">مدين (مصروف)</th>
+                                <th class="p-4">الرصيد</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50 text-sm">
+                            ${ledger.length ? ledger.map((l, idx) => `
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 text-slate-400">${idx + 1}</td>
+                                <td class="p-4 text-slate-600">${l.date || '-'}</td>
+                                <td class="p-4 text-blue-600 font-mono">${l.trxId || '-'}</td>
+                                <td class="p-4 text-slate-700">${l.desc || '-'}</td>
+                                <td class="p-4 text-green-600 font-bold">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
+                                <td class="p-4 text-red-600 font-bold">${l.debit > 0 ? l.debit.toLocaleString() : '-'}</td>
+                                <td class="p-4 font-bold text-slate-800">${(l.balance || 0).toLocaleString()}</td>
+                            </tr>`).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد معاملات مالية</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // --- COLLECTIONS MODULE (التحصيل) ---
+    const renderCollections = () => {
+        const invoices = perms.getVisibleInvoices();
+        
+        const unpaidInvoices = invoices.filter(i => i.status === 'UNPAID' || i.status === 'PARTIAL');
+        const overdueInvoices = invoices.filter(i => i.status === 'OVERDUE');
+        const totalDue = unpaidInvoices.reduce((sum, i) => sum + (i.amount - (i.paidAmount || 0)), 0);
+        const totalOverdue = overdueInvoices.reduce((sum, i) => sum + (i.amount - (i.paidAmount || 0)), 0);
+        const collectedThisMonth = invoices.filter(i => {
+            const date = new Date(i.date);
+            const now = new Date();
+            return i.status === 'PAID' && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        }).reduce((sum, i) => sum + i.amount, 0);
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-money-bill-wave text-blue-600"></i>
+                        التحصيل
+                    </h2>
+                    <p class="text-slate-500 mt-1">متابعة الفواتير المستحقة والمدفوعات</p>
+                </div>
+                <button onclick="app.openCreateInvoiceModal()" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center gap-2">
+                    <i class="fas fa-file-invoice"></i>
+                    إضافة فاتورة جديدة
+                </button>
+            </div>
+
+            <!-- Collections Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-clock text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">إجمالي المستحقات</span>
+                    </div>
+                    <div class="text-3xl font-bold">${totalDue.toLocaleString()} ر.س</div>
+                    <div class="text-xs mt-2 opacity-75">${unpaidInvoices.length} فاتورة</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-500 to-rose-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-exclamation-triangle text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">متأخر السداد</span>
+                    </div>
+                    <div class="text-3xl font-bold">${totalOverdue.toLocaleString()} ر.س</div>
+                    <div class="text-xs mt-2 opacity-75">${overdueInvoices.length} فاتورة</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-check-circle text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">تم تحصيله هذا الشهر</span>
+                    </div>
+                    <div class="text-3xl font-bold">${collectedThisMonth.toLocaleString()} ر.س</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <i class="fas fa-percentage text-3xl opacity-30"></i>
+                        <span class="text-xs opacity-75">معدل التحصيل</span>
+                    </div>
+                    <div class="text-3xl font-bold">${invoices.length > 0 ? Math.round((invoices.filter(i => i.status === 'PAID').length / invoices.length) * 100) : 0}%</div>
+                </div>
+            </div>
+
+            <!-- Invoices Table -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-file-invoice-dollar text-slate-600"></i>
+                        الفواتير المستحقة
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right">
+                        <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                            <tr>
+                                <th class="p-4">رقم الفاتورة</th>
+                                <th class="p-4">العميل/الكيان</th>
+                                <th class="p-4">العنوان</th>
+                                <th class="p-4">المبلغ</th>
+                                <th class="p-4">المدفوع</th>
+                                <th class="p-4">المتبقي</th>
+                                <th class="p-4">الحالة</th>
+                                <th class="p-4">تاريخ الاستحقاق</th>
+                                <th class="p-4">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50 text-sm">
+                            ${invoices.length ? invoices.map(i => {
+                                const remaining = i.amount - (i.paidAmount || 0);
+                                const statusColors = {
+                                    'PAID': 'bg-green-100 text-green-700',
+                                    'UNPAID': 'bg-amber-100 text-amber-700',
+                                    'PARTIAL': 'bg-blue-100 text-blue-700',
+                                    'OVERDUE': 'bg-red-100 text-red-700'
+                                };
+                                return `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 font-mono text-blue-600">${i.id}</td>
+                                    <td class="p-4 text-slate-700">${i.entityId}</td>
+                                    <td class="p-4 text-slate-700">${i.title || '-'}</td>
+                                    <td class="p-4 font-bold text-slate-800">${i.amount.toLocaleString()} ر.س</td>
+                                    <td class="p-4 text-green-600">${(i.paidAmount || 0).toLocaleString()} ر.س</td>
+                                    <td class="p-4 font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-600'}">${remaining.toLocaleString()} ر.س</td>
+                                    <td class="p-4">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[i.status] || 'bg-gray-100 text-gray-700'}">
+                                            ${i.status === 'PAID' ? 'مدفوع' : i.status === 'UNPAID' ? 'غير مدفوع' : i.status === 'PARTIAL' ? 'دفع جزئي' : 'متأخر'}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-slate-600">${i.dueDate || '-'}</td>
+                                    <td class="p-4">
+                                        <div class="flex gap-2">
+                                            ${i.status !== 'PAID' ? `<button onclick="app.openPaymentModal('${i.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"><i class="fas fa-money-bill"></i></button>` : ''}
+                                            <button class="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition"><i class="fas fa-eye"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            }).join('') : '<tr><td colspan="9" class="p-8 text-center text-slate-400">لا توجد فواتير</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // Modal for adding financial transaction
+    window.openAddTransactionModal = function() {
+        const modal = document.createElement('div');
+        modal.id = 'transaction-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                    <h3 class="font-bold text-xl text-slate-800">إضافة معاملة مالية</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-2">نوع المعاملة</label>
+                        <select id="trx-type" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                            <option value="credit">إيراد (Credit)</option>
+                            <option value="debit">مصروف (Debit)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-2">الوصف</label>
+                        <input type="text" id="trx-desc" placeholder="مثال: رسوم اشتراك شهري" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-2">المبلغ (ر.س)</label>
+                        <input type="number" id="trx-amount" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none font-bold text-lg">
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="document.getElementById('transaction-modal').remove()" class="px-4 py-2 rounded-lg text-slate-500 font-bold hover:bg-slate-200">إلغاء</button>
+                    <button onclick="app.submitTransaction()" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg">إضافة</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    };
+
+    window.submitTransaction = function() {
+        const type = document.getElementById('trx-type').value;
+        const desc = document.getElementById('trx-desc').value;
+        const amount = parseFloat(document.getElementById('trx-amount').value);
+
+        if (!desc || !amount) {
+            alert('يرجى تعبئة جميع الحقول');
+            return;
+        }
+
+        const lastLedger = db.ledger[db.ledger.length - 1];
+        const lastBalance = lastLedger ? lastLedger.balance : 0;
+
+        const newEntry = {
+            id: db.ledger.length + 1,
+            date: new Date().toISOString().slice(0, 10),
+            trxId: `TRX-${Date.now()}`,
+            desc: desc,
+            credit: type === 'credit' ? amount : 0,
+            debit: type === 'debit' ? amount : 0,
+            balance: type === 'credit' ? lastBalance + amount : lastBalance - amount
+        };
+
+        db.ledger.push(newEntry);
+        logAction('ADD_TRANSACTION', `Added ${type} transaction: ${desc} - ${amount} SAR`);
+        document.getElementById('transaction-modal').remove();
+        showToast('تم إضافة المعاملة بنجاح', 'success');
+        loadRoute('finance');
     };
 
     // --- APPROVALS MODULE ---
