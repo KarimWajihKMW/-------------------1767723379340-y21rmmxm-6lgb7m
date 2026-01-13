@@ -113,18 +113,22 @@ async function testHierarchyNavigation() {
     console.log('\n' + '='.repeat(60));
     console.log('📊 ملخص التحديث');
     console.log('='.repeat(60));
-    console.log('✅ تم تغيير التوجيه من / إلى /hierarchy');
+    console.log('✅ تم تغيير التوجيه من window.location إلى app.loadRoute()');
     console.log('✅ ينطبق على جميع العمليات:');
-    console.log('   • إنشاء فرع → /hierarchy');
-    console.log('   • إنشاء حاضنة → /hierarchy');
-    console.log('   • إنشاء منصة → /hierarchy');
-    console.log('   • إنشاء مكتب → /hierarchy');
-    console.log('   • حذف فرع → /hierarchy');
-    console.log('   • حذف حاضنة → /hierarchy');
-    console.log('   • حذف منصة → /hierarchy');
-    console.log('   • حذف مكتب → /hierarchy');
-    console.log('\n✅ المستخدم سيبقى في صفحة الهيكل الهرمي بعد العمليات');
-    console.log('✅ لن يتم توجيهه للصفحة الرئيسية تلقائياً');
+    console.log('   • إنشاء فرع → app.loadRoute(\'hierarchy\')');
+    console.log('   • إنشاء حاضنة → app.loadRoute(\'hierarchy\')');
+    console.log('   • إنشاء منصة → app.loadRoute(\'hierarchy\')');
+    console.log('   • إنشاء مكتب → app.loadRoute(\'hierarchy\')');
+    console.log('   • حذف فرع → app.loadRoute(\'hierarchy\')');
+    console.log('   • حذف حاضنة → app.loadRoute(\'hierarchy\')');
+    console.log('   • حذف منصة → app.loadRoute(\'hierarchy\')');
+    console.log('   • حذف مكتب → app.loadRoute(\'hierarchy\')');
+    console.log('   • إضافة موظف → app.loadRoute(\'employees\')');
+    console.log('   • تعديل موظف → app.loadRoute(\'employees\')');
+    console.log('   • حذف موظف → app.loadRoute(\'employees\')');
+    console.log('\n✅ المستخدم سيبقى في نفس الصفحة بعد العمليات');
+    console.log('✅ لن يتم إعادة تحميل الصفحة بالكامل');
+    console.log('✅ سرعة أفضل وتجربة مستخدم أكثر سلاسة');
     
   } catch (error) {
     console.error('\n❌ خطأ في الاختبار:', error.message);
