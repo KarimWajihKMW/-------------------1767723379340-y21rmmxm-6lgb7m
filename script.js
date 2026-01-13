@@ -2397,33 +2397,16 @@ const app = (() => {
                     
                     <div class="p-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- Create Branch Button -->
-                            <button onclick="openCreateBranchModal()" 
-                                    class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                            <!-- Create Office Button -->
+                            <button onclick="openCreateOfficeModal()" 
+                                    class="group bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
-                                        <i class="fas fa-store text-3xl"></i>
+                                        <i class="fas fa-briefcase text-3xl"></i>
                                     </div>
                                     <div class="text-center">
-                                        <h4 class="font-black text-lg mb-1">إنشاء فرع</h4>
-                                        <p class="text-xs opacity-90">Branch تابع للمقر الرئيسي</p>
-                                    </div>
-                                    <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
-                                        <i class="fas fa-plus ml-1"></i> جديد
-                                    </div>
-                                </div>
-                            </button>
-                            
-                            <!-- Create Incubator Button -->
-                            <button onclick="openCreateIncubatorModal()" 
-                                    class="group bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
-                                <div class="flex flex-col items-center gap-3">
-                                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
-                                        <i class="fas fa-seedling text-3xl"></i>
-                                    </div>
-                                    <div class="text-center">
-                                        <h4 class="font-black text-lg mb-1">إنشاء حاضنة</h4>
-                                        <p class="text-xs opacity-90">Incubator تابع لفرع</p>
+                                        <h4 class="font-black text-lg mb-1">إنشاء مكتب</h4>
+                                        <p class="text-xs opacity-90">Office تابع لحاضنة/منصة</p>
                                     </div>
                                     <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
                                         <i class="fas fa-plus ml-1"></i> جديد
@@ -2448,16 +2431,33 @@ const app = (() => {
                                 </div>
                             </button>
                             
-                            <!-- Create Office Button -->
-                            <button onclick="openCreateOfficeModal()" 
-                                    class="group bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                            <!-- Create Incubator Button -->
+                            <button onclick="openCreateIncubatorModal()" 
+                                    class="group bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
-                                        <i class="fas fa-briefcase text-3xl"></i>
+                                        <i class="fas fa-seedling text-3xl"></i>
                                     </div>
                                     <div class="text-center">
-                                        <h4 class="font-black text-lg mb-1">إنشاء مكتب</h4>
-                                        <p class="text-xs opacity-90">Office تابع لحاضنة/منصة</p>
+                                        <h4 class="font-black text-lg mb-1">إنشاء حاضنة</h4>
+                                        <p class="text-xs opacity-90">Incubator تابع لفرع</p>
+                                    </div>
+                                    <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                        <i class="fas fa-plus ml-1"></i> جديد
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <!-- Create Branch Button -->
+                            <button onclick="openCreateBranchModal()" 
+                                    class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
+                                        <i class="fas fa-store text-3xl"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h4 class="font-black text-lg mb-1">إنشاء فرع</h4>
+                                        <p class="text-xs opacity-90">Branch تابع للمقر الرئيسي</p>
                                     </div>
                                     <div class="mt-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
                                         <i class="fas fa-plus ml-1"></i> جديد
