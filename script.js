@@ -3234,7 +3234,8 @@ const app = (() => {
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
         handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
-        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails
+        openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails,
+        getDb: () => db  // Expose db for task management
     };
 })();
 
@@ -3278,11 +3279,32 @@ window.submitCreateTask = async function() {
   }
 
   try {
+    // Get database from app
+    const db = app.getDb();
+    
+    // Create new task ID
+    const newId = Math.max(...db.tasks.map(t => t.id || 0), 0) + 1;
+    
+    // Add task to db.tasks
+    const newTask = {
+      id: newId,
+      title: formData.title,
+      dueDate: formData.dueDate,
+      status: formData.status,
+      priority: formData.priority,
+      type: formData.type,
+      description: formData.description,
+      entityId: formData.entityId
+    };
+    
+    db.tasks.push(newTask);
+    console.log('✅ تم إضافة المهمة إلى قاعدة البيانات:', newTask);
+    
     // Close modal and show success
     window.closeCreateTaskModal();
     alert(`✅ تم إنشاء المهمة "${formData.title}" بنجاح!`);
     
-    // Refresh the tasks page
+    // Refresh the tasks page to show the new task
     app.loadRoute('tasks');
   } catch (error) {
     console.error('Error creating task:', error);
