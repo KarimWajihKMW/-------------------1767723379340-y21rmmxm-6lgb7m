@@ -2086,6 +2086,7 @@ const app = (() => {
                                 <th class="p-4">دائن (إيراد)</th>
                                 <th class="p-4">مدين (مصروف)</th>
                                 <th class="p-4">الرصيد</th>
+                                <th class="p-4">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50 text-sm">
@@ -2098,7 +2099,12 @@ const app = (() => {
                                 <td class="p-4 text-green-600 font-bold">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
                                 <td class="p-4 text-red-600 font-bold">${l.debit > 0 ? l.debit.toLocaleString() : '-'}</td>
                                 <td class="p-4 font-bold text-slate-800">${(l.balance || 0).toLocaleString()}</td>
-                            </tr>`).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد معاملات مالية</td></tr>'}
+                                <td class="p-4">
+                                    <button onclick="window.deleteTransaction('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>`).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد معاملات مالية</td></tr>'}
                         </tbody>
                     </table>
                 </div>
@@ -2222,8 +2228,9 @@ const app = (() => {
                                     <td class="p-4 text-slate-600">${i.dueDate || '-'}</td>
                                     <td class="p-4">
                                         <div class="flex gap-2">
-                                            ${i.status !== 'PAID' ? `<button onclick="app.openPaymentModal('${i.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"><i class="fas fa-money-bill"></i></button>` : ''}
-                                            <button class="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition"><i class="fas fa-eye"></i></button>
+                                            ${i.status !== 'PAID' ? `<button onclick="app.openPaymentModal('${i.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="دفع"><i class="fas fa-money-bill"></i></button>` : ''}
+                                            <button onclick="window.viewInvoiceDetails('${i.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="عرض"><i class="fas fa-eye"></i></button>
+                                            <button onclick="window.deleteInvoice('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف"><i class="fas fa-trash"></i></button>
                                         </div>
                                     </td>
                                 </tr>`;
@@ -2264,7 +2271,7 @@ const app = (() => {
                 </div>
                 <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
                     <button onclick="document.getElementById('transaction-modal').remove()" class="px-4 py-2 rounded-lg text-slate-500 font-bold hover:bg-slate-200">إلغاء</button>
-                    <button onclick="app.submitTransaction()" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg">إضافة</button>
+                    <button onclick="window.submitTransaction()" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg">إضافة</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
@@ -2298,6 +2305,120 @@ const app = (() => {
         document.getElementById('transaction-modal').remove();
         showToast('تم إضافة المعاملة بنجاح', 'success');
         loadRoute('finance');
+    };
+
+    // Delete transaction from ledger
+    window.deleteTransaction = function(trxId) {
+        if (!confirm('هل أنت متأكد من حذف هذه المعاملة المالية؟')) {
+            return;
+        }
+
+        const index = db.ledger.findIndex(l => l.trxId === trxId);
+        if (index !== -1) {
+            db.ledger.splice(index, 1);
+            logAction('DELETE_TRANSACTION', `Deleted transaction: ${trxId}`);
+            showToast('تم حذف المعاملة بنجاح', 'success');
+            loadRoute('finance');
+        } else {
+            showToast('لم يتم العثور على المعاملة', 'error');
+        }
+    };
+
+    // Delete invoice
+    window.deleteInvoice = function(invoiceId) {
+        if (!confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
+            return;
+        }
+
+        const index = db.invoices.findIndex(inv => inv.id === invoiceId);
+        if (index !== -1) {
+            db.invoices.splice(index, 1);
+            logAction('DELETE_INVOICE', `Deleted invoice: ${invoiceId}`);
+            showToast('تم حذف الفاتورة بنجاح', 'success');
+            loadRoute('collections');
+        } else {
+            showToast('لم يتم العثور على الفاتورة', 'error');
+        }
+    };
+
+    // View invoice details
+    window.viewInvoiceDetails = function(invoiceId) {
+        const invoice = db.invoices.find(inv => inv.id === invoiceId);
+        if (!invoice) {
+            alert('لم يتم العثور على الفاتورة');
+            return;
+        }
+
+        const entity = db.entities.find(e => e.id === invoice.entityId);
+        const remaining = invoice.amount - (invoice.paidAmount || 0);
+
+        const modal = document.createElement('div');
+        modal.id = 'invoice-details-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-cyan-50">
+                    <h3 class="font-bold text-2xl text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-file-invoice text-blue-600"></i>
+                        تفاصيل الفاتورة
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">رقم الفاتورة</label>
+                            <div class="text-lg font-bold text-blue-600 font-mono">${invoice.id}</div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">الحالة</label>
+                            <div class="text-lg font-bold ${invoice.status === 'PAID' ? 'text-green-600' : invoice.status === 'OVERDUE' ? 'text-red-600' : 'text-amber-600'}">
+                                ${invoice.status === 'PAID' ? 'مدفوع' : invoice.status === 'UNPAID' ? 'غير مدفوع' : invoice.status === 'PARTIAL' ? 'دفع جزئي' : 'متأخر'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <label class="text-xs font-bold text-slate-500">العميل/الكيان</label>
+                        <div class="text-lg font-bold text-slate-800">${entity ? entity.name : invoice.entityId}</div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <label class="text-xs font-bold text-slate-500">عنوان الفاتورة</label>
+                        <div class="text-lg text-slate-700">${invoice.title || '-'}</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 border-t pt-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">المبلغ الإجمالي</label>
+                            <div class="text-xl font-bold text-slate-800">${invoice.amount.toLocaleString()} ر.س</div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">المدفوع</label>
+                            <div class="text-xl font-bold text-green-600">${(invoice.paidAmount || 0).toLocaleString()} ر.س</div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">المتبقي</label>
+                            <div class="text-xl font-bold text-red-600">${remaining.toLocaleString()} ر.س</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 border-t pt-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">تاريخ الإصدار</label>
+                            <div class="text-lg text-slate-700">${invoice.date || '-'}</div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">تاريخ الاستحقاق</label>
+                            <div class="text-lg text-slate-700">${invoice.dueDate || '-'}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="document.getElementById('invoice-details-modal').remove()" class="px-6 py-2 rounded-lg bg-slate-600 text-white font-bold hover:bg-slate-700">إغلاق</button>
+                    ${invoice.status !== 'PAID' ? `<button onclick="document.getElementById('invoice-details-modal').remove(); app.openPaymentModal('${invoice.id}')" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg">تسجيل دفعة</button>` : ''}
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
     };
 
     // --- APPROVALS MODULE ---
