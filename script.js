@@ -914,7 +914,6 @@ const app = (() => {
             { id: 'hierarchy', icon: 'fa-sitemap', label: 'الهيكل الهرمي', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
-            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'المالية والفواتير', show: perms.isFinance() },
             { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: perms.isFinance() },
             { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: perms.isFinance() },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
