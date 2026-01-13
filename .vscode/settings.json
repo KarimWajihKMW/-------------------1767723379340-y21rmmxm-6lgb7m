@@ -177,6 +177,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c server\\.js && echo \"✅ server\\.js - بناء صحيح\" \\|\\| echo \"❌ server\\.js - خطأ في البناء\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-tasks-page\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
