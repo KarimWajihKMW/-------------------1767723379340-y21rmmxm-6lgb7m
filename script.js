@@ -6345,7 +6345,9 @@ window.openCreatePlatformModal = function() {
   const modal = document.getElementById('createPlatformModal');
   if (modal) {
     modal.classList.remove('hidden');
-    loadIncubatorsForPlatform();
+    loadBranchesForPlatform();
+    // Reset incubator dropdown
+    document.getElementById('platform_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
   }
 };
 
@@ -6358,7 +6360,40 @@ window.closeCreatePlatformModal = function() {
   }
 };
 
-// Load incubators for platform dropdown
+// Load branches for platform dropdown
+async function loadBranchesForPlatform() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`);
+    const branches = await response.json();
+    const select = document.getElementById('platform_branch_id');
+    select.innerHTML = '<option value="">-- اختر فرع --</option>' +
+      branches.map(b => `<option value="${b.id}">${b.name} (${b.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading branches:', error);
+  }
+}
+
+// Load incubators for platform dropdown based on selected branch
+async function loadIncubatorsForPlatformByBranch() {
+  const branchId = document.getElementById('platform_branch_id').value;
+  
+  if (!branchId) {
+    document.getElementById('platform_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    const incubators = await response.json();
+    const select = document.getElementById('platform_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Load incubators for platform dropdown (legacy function kept for compatibility)
 async function loadIncubatorsForPlatform() {
   try {
     const response = await fetch(`${API_BASE_URL}/incubators`);

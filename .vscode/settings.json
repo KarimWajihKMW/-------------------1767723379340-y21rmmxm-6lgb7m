@@ -153,6 +153,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node << 'EOF'\nconst db = require\\('\\./db'\\);\n\n\\(async \\(\\) => \\{\n  try \\{\n    const result = await db\\.query\\(`\n      SELECT column_name, data_type \n      FROM information_schema\\.columns \n      WHERE table_name = 'offices' \n      ORDER BY ordinal_position\n    `\\);\n    \n    console\\.log\\('=== أعمدة جدول offices ==='\\);\n    result\\.rows\\.forEach\\(col => \\{\n      console\\.log\\(`\\$\\{col\\.column_name\\}: \\$\\{col\\.data_type\\}`\\);\n    \\}\\);\n    \n    process\\.exit\\(0\\);\n  \\} catch\\(e\\) \\{\n    console\\.error\\('Error:', e\\.message\\);\n    process\\.exit\\(1\\);\n  \\}\n\\}\\)\\(\\);\nEOF$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-backend-before-deploy\\.js 2>&1 \\| head -100$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-backend-before-deploy\\.js 2>&1 \\| tail -20$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

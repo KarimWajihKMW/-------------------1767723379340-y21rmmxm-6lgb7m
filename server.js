@@ -937,6 +937,26 @@ app.delete('/api/branches/:id', async (req, res) => {
   }
 });
 
+// Get incubators for a specific branch
+app.get('/api/branches/:id/incubators', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(`
+      SELECT i.*, 
+             b.name as branch_name, b.code as branch_code,
+             hq.name as hq_name, hq.code as hq_code
+      FROM incubators i
+      LEFT JOIN branches b ON i.branch_id = b.id
+      LEFT JOIN headquarters hq ON b.hq_id = hq.id
+      WHERE i.branch_id = $1 AND i.is_active = true
+      ORDER BY i.name
+    `, [id]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ---- Incubators APIs (الحاضنات) ----
 
 // Get all incubators (with optional branch filter)
