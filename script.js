@@ -3745,12 +3745,17 @@ const app = (() => {
                             </div>
                             <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 ${data.incubators.map(inc => `
-                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('INCUBATOR', ${inc.id})">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <h4 class="font-bold text-slate-800 text-sm">${inc.name}</h4>
-                                            <i class="fas fa-chevron-left text-green-500"></i>
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                                        <div onclick="app.viewEntityDetails('INCUBATOR', ${inc.id})" class="cursor-pointer">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-bold text-slate-800 text-sm">${inc.name}</h4>
+                                                <i class="fas fa-chevron-left text-green-500"></i>
+                                            </div>
+                                            <p class="text-xs text-slate-500">${inc.program_type} | السعة: ${inc.capacity}</p>
                                         </div>
-                                        <p class="text-xs text-slate-500">${inc.program_type} | السعة: ${inc.capacity}</p>
+                                        <button onclick="event.stopPropagation(); deleteIncubator(${inc.id}, '${inc.name}')" class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -3767,12 +3772,17 @@ const app = (() => {
                             </div>
                             <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 ${data.platforms.map(plt => `
-                                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('PLATFORM', ${plt.id})">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <h4 class="font-bold text-slate-800 text-sm">${plt.name}</h4>
-                                            <i class="fas fa-chevron-left text-orange-500"></i>
+                                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                                        <div onclick="app.viewEntityDetails('PLATFORM', ${plt.id})" class="cursor-pointer">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-bold text-slate-800 text-sm">${plt.name}</h4>
+                                                <i class="fas fa-chevron-left text-orange-500"></i>
+                                            </div>
+                                            <p class="text-xs text-slate-500">${plt.pricing_model} - ${plt.base_price} ${plt.currency}</p>
                                         </div>
-                                        <p class="text-xs text-slate-500">${plt.pricing_model} - ${plt.base_price} ${plt.currency}</p>
+                                        <button onclick="event.stopPropagation(); deletePlatform(${plt.id}, '${plt.name}')" class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -3789,12 +3799,17 @@ const app = (() => {
                             </div>
                             <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 ${data.offices.map(ofc => `
-                                    <div class="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('OFFICE', ${ofc.id})">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <h4 class="font-bold text-slate-800 text-sm">${ofc.name}</h4>
-                                            <i class="fas fa-chevron-left text-teal-500"></i>
+                                    <div class="bg-teal-50 border border-teal-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                                        <div onclick="app.viewEntityDetails('OFFICE', ${ofc.id})" class="cursor-pointer">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h4 class="font-bold text-slate-800 text-sm">${ofc.name}</h4>
+                                                <i class="fas fa-chevron-left text-teal-500"></i>
+                                            </div>
+                                            <p class="text-xs text-slate-500">${ofc.office_type} - السعة: ${ofc.capacity}</p>
                                         </div>
-                                        <p class="text-xs text-slate-500">${ofc.office_type} - السعة: ${ofc.capacity}</p>
+                                        <button onclick="event.stopPropagation(); deleteOffice(${ofc.id}, '${ofc.name}')" class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -7262,7 +7277,7 @@ window.submitCreateBranch = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء الفرع "${result.name}" بنجاح!`);
     closeCreateBranchModal();
-    location.reload(); // Refresh the hierarchy
+    window.location.href = '/'  // العودة للصفحة الرئيسية
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7327,7 +7342,7 @@ window.submitCreateIncubator = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء الحاضنة "${result.name}" بنجاح!`);
     closeCreateIncubatorModal();
-    location.reload();
+    window.location.href = '/'; // العودة للصفحة الرئيسية
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7424,7 +7439,7 @@ window.submitCreatePlatform = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء المنصة "${result.name}" بنجاح!`);
     closeCreatePlatformModal();
-    location.reload();
+    window.location.href = '/'; // العودة للصفحة الرئيسية
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7565,7 +7580,7 @@ window.submitCreateOffice = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء المكتب "${result.name}" بنجاح!`);
     closeCreateOfficeModal();
-    location.reload();
+    window.location.href = '/'; // العودة للصفحة الرئيسية
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7592,6 +7607,90 @@ async function loadBranchesWatermark() {
     console.log('Could not load branches watermark:', error.message);
   }
 }
+
+// ========================================
+// DELETE FUNCTIONS
+// ========================================
+
+// Delete Branch
+window.deleteBranch = async function(branchId, branchName) {
+  if (!confirm(`هل أنت متأكد من حذف الفرع "${branchName}"؟\nسيتم حذف جميع الحاضنات والمنصات والمكاتب التابعة له.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches/${branchId}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('فشل في حذف الفرع');
+    
+    alert(`✅ تم حذف الفرع "${branchName}" بنجاح`);
+    window.location.href = '/';
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Delete Incubator
+window.deleteIncubator = async function(incubatorId, incubatorName) {
+  if (!confirm(`هل أنت متأكد من حذف الحاضنة "${incubatorName}"؟\nسيتم حذف جميع المنصات التابعة لها.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/incubators/${incubatorId}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('فشل في حذف الحاضنة');
+    
+    alert(`✅ تم حذف الحاضنة "${incubatorName}" بنجاح`);
+    window.location.href = '/';
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Delete Platform
+window.deletePlatform = async function(platformId, platformName) {
+  if (!confirm(`هل أنت متأكد من حذف المنصة "${platformName}"؟`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/platforms/${platformId}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('فشل في حذف المنصة');
+    
+    alert(`✅ تم حذف المنصة "${platformName}" بنجاح`);
+    window.location.href = '/';
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Delete Office
+window.deleteOffice = async function(officeId, officeName) {
+  if (!confirm(`هل أنت متأكد من حذف المكتب "${officeName}"؟`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/offices/${officeId}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('فشل في حذف المكتب');
+    
+    alert(`✅ تم حذف المكتب "${officeName}" بنجاح`);
+    window.location.href = '/';
+  } catch (error) {
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
 
 // Load watermark when DOM is ready
 if (document.readyState === 'loading') {
