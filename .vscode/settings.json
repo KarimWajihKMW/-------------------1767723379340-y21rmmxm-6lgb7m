@@ -197,6 +197,26 @@
         "/^node -c script\\.js && node -c server\\.js && echo \"✅ Build tests passed - All JavaScript syntax is valid\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node test-branches-schema\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node update-branches\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-entities-schema\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"const\\{Pool\\}=require\\('pg'\\);const p=new Pool\\(\\{connectionString:'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',ssl:\\{rejectUnauthorized:false\\}\\}\\);p\\.query\\(\\\\\"SELECT constraint_name, check_clause FROM information_schema\\.check_constraints WHERE table_name='entities'\\\\\"\\)\\.then\\(r=>\\{console\\.log\\(r\\.rows\\);p\\.end\\(\\);\\}\\)\\.catch\\(e=>\\{console\\.error\\(e\\);p\\.end\\(\\);\\}\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^bash pre-deployment-tests\\.sh$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
