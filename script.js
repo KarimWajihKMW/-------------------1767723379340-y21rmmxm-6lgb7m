@@ -625,7 +625,18 @@ const app = (() => {
             const tenant = db.entities.find(e => e.id === currentUser?.entityId);
             if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
             
-            loadRoute('dashboard');
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', (event) => {
+                const path = window.location.pathname;
+                const route = pathToRoute[path] || 'dashboard';
+                loadRoute(route, true); // skipHistory = true to avoid pushing same state again
+            });
+            
+            // Load route based on current URL path
+            const currentPath = window.location.pathname;
+            const initialRoute = pathToRoute[currentPath] || 'dashboard';
+            loadRoute(initialRoute, true);
+            
             showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
             console.log('✅ اكتملت التهيئة');
         } catch (error) {
@@ -817,9 +828,15 @@ const app = (() => {
         }
     };
 
-    const loadRoute = async (route) => {
+    const loadRoute = async (route, skipHistory = false) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
+
+        // Update browser URL
+        if (!skipHistory) {
+            const path = routeToPath[route] || '/';
+            window.history.pushState({ route }, '', path);
+        }
 
         const view = document.getElementById('main-view');
         document.getElementById('page-title').innerText = getTitle(route);
@@ -891,6 +908,45 @@ const app = (() => {
         return map[r] || 'نظام نايوش';
     };
 
+    // Route to Path mapping
+    const routeToPath = {
+        'dashboard': '/home',
+        'hierarchy': '/hierarchy',
+        'saas': '/saas',
+        'billing': '/billing',
+        'finance': '/finance',
+        'collections': '/collections',
+        'approvals': '/approvals',
+        'incubator': '/incubator',
+        'entities': '/tenants',
+        'register-tenant': '/register-tenant',
+        'ads': '/ads',
+        'tasks': '/tasks',
+        'audit-logs': '/audit-logs',
+        'settings': '/settings',
+        'employees': '/hr'
+    };
+
+    // Path to Route mapping (reverse)
+    const pathToRoute = {
+        '/home': 'dashboard',
+        '/': 'dashboard',
+        '/hierarchy': 'hierarchy',
+        '/saas': 'saas',
+        '/billing': 'billing',
+        '/finance': 'finance',
+        '/collections': 'collections',
+        '/approvals': 'approvals',
+        '/incubator': 'incubator',
+        '/tenants': 'entities',
+        '/register-tenant': 'register-tenant',
+        '/ads': 'ads',
+        '/tasks': 'tasks',
+        '/audit-logs': 'audit-logs',
+        '/settings': 'settings',
+        '/hr': 'employees'
+    };
+
     const renderSidebar = () => {
         console.log('🔄 رسم القائمة الجانبية...', { currentUser });
         const menu = document.getElementById('nav-menu');
@@ -925,16 +981,17 @@ const app = (() => {
             { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() }
         ];
 
-        menu.innerHTML = items.filter(i => i.show).map(item => 
-            `<li>
-                <a href="#" id="link-${item.id}" onclick="app.loadRoute('${item.id}')" 
+        menu.innerHTML = items.filter(i => i.show).map(item => {
+            const path = routeToPath[item.id] || '/';
+            return `<li>
+                <a href="${path}" id="link-${item.id}" onclick="event.preventDefault(); app.loadRoute('${item.id}')" 
                    class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all group relative overflow-hidden">
                    <i class="fas ${item.icon} w-6 text-center group-hover:text-brand-400 transition-colors z-10"></i> 
                    <span class="z-10 relative font-medium">${item.label}</span>
                    ${item.badge ? `<span class="mr-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">${item.badge}</span>` : ''}
                 </a>
-            </li>`
-        ).join('');
+            </li>`;
+        }).join('');
     };
 
     // --- FINANCIAL MODULE ---
