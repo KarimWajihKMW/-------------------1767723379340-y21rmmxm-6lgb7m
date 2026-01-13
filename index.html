@@ -34,9 +34,14 @@
 </head>
 <body class="bg-slate-50 text-gray-800 font-sans antialiased overflow-hidden relative">
 
-    <!-- Watermark Background -->
-    <div class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-5">
-        <h1 class="text-[25vw] font-black text-slate-300 transform -rotate-12 select-none whitespace-nowrap blur-sm">Nayosh</h1>
+    <!-- Watermark Background with Branches -->
+    <div class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-auto opacity-5 p-8">
+        <div class="text-center">
+            <h1 class="text-8xl md:text-9xl font-black text-slate-300 select-none mb-8 blur-sm">Nayosh</h1>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[70vh] overflow-y-auto custom-scrollbar" id="branches-watermark">
+                <!-- Branches will be loaded here dynamically -->
+            </div>
+        </div>
     </div>
 
     <!-- Notification Toast Container -->

@@ -217,6 +217,10 @@
         "/^bash pre-deployment-tests\\.sh$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node verify-final-branches\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

@@ -7571,4 +7571,35 @@ window.submitCreateOffice = async function() {
   }
 };
 
-document.addEventListener('DOMContentLoaded', app.init);
+// Load branches watermark on page load
+async function loadBranchesWatermark() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`);
+    if (!response.ok) return;
+    
+    const branches = await response.json();
+    const container = document.getElementById('branches-watermark');
+    
+    if (container && branches && branches.length > 0) {
+      container.innerHTML = branches.map(branch => `
+        <div class="text-center p-2 border border-slate-200 rounded-lg bg-white/30">
+          <p class="text-xs font-bold text-slate-600">${branch.name}</p>
+          <p class="text-[10px] text-slate-400">${branch.country || ''}</p>
+        </div>
+      `).join('');
+    }
+  } catch (error) {
+    console.log('Could not load branches watermark:', error.message);
+  }
+}
+
+// Load watermark when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+    loadBranchesWatermark();
+  });
+} else {
+  app.init();
+  loadBranchesWatermark();
+}
