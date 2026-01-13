@@ -7597,6 +7597,54 @@ async function loadBranchesForOffice() {
 }
 
 // Load platforms for office dropdown based on selected branch
+async function loadIncubatorsForOfficeByBranch() {
+  const branchId = document.getElementById('office_branch_id').value;
+  
+  if (!branchId) {
+    document.getElementById('office_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
+    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
+    return;
+  }
+  
+  try {
+    // Get incubators for this branch
+    const incResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    const incubators = await incResponse.json();
+    
+    const select = document.getElementById('office_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+    
+    // Reset platform dropdown
+    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Load platforms for office dropdown based on selected incubator
+async function loadPlatformsForOfficeByIncubator() {
+  const incubatorId = document.getElementById('office_incubator_id').value;
+  
+  if (!incubatorId) {
+    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
+    return;
+  }
+  
+  try {
+    // Get the incubator details to find its platforms
+    const response = await fetch(`${API_BASE_URL}/incubators/${incubatorId}/platforms`);
+    const platforms = await response.json();
+    
+    const select = document.getElementById('office_platform_id');
+    select.innerHTML = '<option value="">-- اختر منصة --</option>' +
+      platforms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading platforms:', error);
+  }
+}
+
+// Legacy functions kept for backward compatibility
 async function loadPlatformsForOfficeByBranch() {
   const branchId = document.getElementById('office_branch_id').value;
   
