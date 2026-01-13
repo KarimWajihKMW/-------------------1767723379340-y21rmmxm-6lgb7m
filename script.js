@@ -101,6 +101,12 @@ const app = (() => {
         L5_CROSS_INC: { id: 5, key: 'L5_CROSS_INC', label: 'شبكة SaaS العالمية', desc: 'إعلان عابر لجميع المستأجرين', cost: 1500, approval: true, badgeClass: 'bg-purple-100 text-purple-600 border-purple-200', gradient: 'from-violet-50 to-fuchsia-50', chartColor: '#8b5cf6' }
     };
 
+    const getAdLevelsMeta = (ad) => {
+      const levelKeys = Array.isArray(ad?.levels) ? ad.levels : (ad?.level ? [ad.level] : []);
+      const normalized = levelKeys.length ? levelKeys : ['L1_LOCAL'];
+      return normalized.map(k => AD_LEVELS[k] || { key: k, label: k, badgeClass: 'bg-gray-100 text-gray-600 border-gray-200', gradient: 'from-gray-50 to-gray-100' });
+    };
+
     const INVOICE_STATUS = {
         PAID: { label: 'مدفوعة', color: 'text-green-600', bg: 'bg-green-100' },
         PARTIAL: { label: 'دفع جزئي', color: 'text-orange-600', bg: 'bg-orange-100' },
@@ -160,12 +166,12 @@ const app = (() => {
         getVisibleTickets: () => (perms.isHQ() && perms.isSupport()) ? db.tickets : db.tickets.filter(t => t.entityId === currentUser.entityId),
         
         getVisibleAds: () => {
-            console.log(`🔍 [getVisibleAds] Called for user: ${currentUser.entityId} (${currentUser.tenantType})`);
-            console.log(`📊 [getVisibleAds] Total ads in db.ads: ${db.ads.length}`);
-            console.log(`📋 [getVisibleAds] Ads:`, db.ads.map(a => `${a.title} (${a.sourceType})`));
-            
-            const filtered = db.ads.filter(ad => {
+          console.log(`🔍 [getVisibleAds] Called for user: ${currentUser.entityId} (${currentUser.tenantType})`);
+          console.log(`📊 [getVisibleAds] Total ads in db.ads: ${db.ads.length}`);
+          console.log(`📋 [getVisibleAds] Ads:`, db.ads.map(a => `${a.title} (${a.sourceType})`));
+          const filtered = db.ads.filter(ad => {
                 const sourceId = ad.sourceEntityId || ad.entityId;
+            const adLevels = Array.isArray(ad.levels) ? ad.levels : (ad.level ? [ad.level] : []);
                 
                 // Check 0: HQ sees everything!
                 if (currentUser.tenantType === 'HQ') {
@@ -189,7 +195,7 @@ const app = (() => {
                     return true;
                 }
                 // Check 4: Platform internal ads
-                if (ad.level === 'L4_PLT_INT') {
+                if (adLevels.includes('L4_PLT_INT')) {
                     console.log(`✅ Ad "${ad.title}" visible: Platform internal`);
                     return true;
                 }
@@ -506,6 +512,13 @@ const app = (() => {
             const ads = await fetchAPI('/ads');
             db.ads = ads.map(ad => {
                 const sourceId = ad.source_entity_id || ad.entity_id;
+              const levelKeys = Array.isArray(ad.levels)
+                ? ad.levels
+                : ad.level && typeof ad.level === 'string' && ad.level.includes(',')
+                  ? ad.level.split(',').map(x => x.trim()).filter(Boolean)
+                  : ad.level
+                    ? [ad.level]
+                    : [];
                 // Convert target_ids from string to array
                 let targetIds = [];
                 if (ad.target_ids) {
@@ -517,7 +530,8 @@ const app = (() => {
                     id: ad.id,
                     title: ad.title,
                     content: ad.content,
-                    level: ad.level,
+                    level: levelKeys[0] || ad.level,
+                    levels: levelKeys,
                     scope: ad.scope,
                     status: ad.status,
                     sourceEntityId: sourceId,
@@ -1919,21 +1933,21 @@ const app = (() => {
     };
 
     const renderAdCard = (ad) => {
-        const level = Object.values(AD_LEVELS).find(l => l.key === ad.level) || AD_LEVELS.L1_LOCAL;
-        return `
-        <div class="group relative bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-1 overflow-hidden">
-            <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${level.gradient}"></div>
-            <div class="flex justify-between items-start mb-2 pl-2 pr-4">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${level.badgeClass}">${level.label}</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-brand-600 transition">${ad.title}</h4>
-                </div>
-                <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full whitespace-nowrap">${ad.date}</span>
-            </div>
-            <p class="text-sm text-gray-500 pr-4 pl-2 line-clamp-2 leading-relaxed">${ad.content}</p>
-        </div>`;
+      const levelsMeta = getAdLevelsMeta(ad);
+      const primary = levelsMeta[0];
+      const badges = levelsMeta.map(l => `<span class="text-[10px] font-bold px-2 py-0.5 rounded border ${l.badgeClass}">${l.label}</span>`).join(' ');
+      return `
+      <div class="group relative bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-1 overflow-hidden">
+        <div class="absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${primary.gradient}"></div>
+        <div class="flex justify-between items-start mb-2 pl-2 pr-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1 flex-wrap">${badges}</div>
+            <h4 class="font-bold text-gray-800 text-lg group-hover:text-brand-600 transition">${ad.title}</h4>
+          </div>
+          <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full whitespace-nowrap">${ad.date}</span>
+        </div>
+        <p class="text-sm text-gray-500 pr-4 pl-2 line-clamp-2 leading-relaxed">${ad.content}</p>
+      </div>`;
     };
 
     const renderAdsManager = () => {
@@ -1972,16 +1986,17 @@ const app = (() => {
                         </thead>
                         <tbody class="divide-y divide-slate-50 text-sm">
                             ${myAds.length > 0 ? myAds.map(ad => {
-                                const level = Object.values(AD_LEVELS).find(l => l.key === ad.level);
-                                return `
-                                <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-5 font-bold text-slate-700">${ad.title}</td>
-                                    <td class="p-5"><span class="text-[10px] font-bold px-2 py-1 rounded border bg-white ${level.badgeClass}">${level.label}</span></td>
-                                    <td class="p-5 text-xs text-slate-600">${ad.startDate} - ${ad.endDate}</td>
-                                    <td class="p-5 min-w-[150px]"><span class="font-bold">${ad.spent}/${ad.budget}</span> ر.س</td>
-                                    <td class="p-5 text-xs"><span class="font-bold">${ad.impressions}</span> مشاهدة</td>
-                                    <td class="p-5"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${ad.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">${ad.status}</span></td>
-                                </tr>`;
+                              const levelsMeta = getAdLevelsMeta(ad);
+                              const badges = levelsMeta.map(l => `<span class="text-[10px] font-bold px-2 py-1 rounded border bg-white ${l.badgeClass}">${l.label}</span>`).join(' ');
+                              return `
+                              <tr class="hover:bg-slate-50 transition">
+                                <td class="p-5 font-bold text-slate-700">${ad.title}</td>
+                                <td class="p-5 space-x-1 space-y-1 flex flex-wrap-reverse justify-end">${badges}</td>
+                                <td class="p-5 text-xs text-slate-600">${ad.startDate} - ${ad.endDate}</td>
+                                <td class="p-5 min-w-[150px]"><span class="font-bold">${ad.spent}/${ad.budget}</span> ر.س</td>
+                                <td class="p-5 text-xs"><span class="font-bold">${ad.impressions}</span> مشاهدة</td>
+                                <td class="p-5"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${ad.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}">${ad.status}</span></td>
+                              </tr>`;
                             }).join('') : `<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد حملات إعلانية مسجلة.</td></tr>`}
                         </tbody>
                     </table>
@@ -2006,7 +2021,7 @@ const app = (() => {
     };
 
     const openAdWizard = () => {
-        adWizardData = { step: 1, title: '', content: '', level: 'L1_LOCAL', budget: 100, startDate: '', endDate: '' };
+        adWizardData = { step: 1, title: '', content: '', levels: ['L1_LOCAL'], budget: 100, startDate: '', endDate: '' };
         const modal = document.createElement('div');
         modal.id = 'ad-wizard-modal';
         modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
@@ -2063,22 +2078,43 @@ const app = (() => {
             body.innerHTML = `
                 <div class="space-y-4 animate-fade-in">
                     <h4 class="text-xl font-bold text-slate-800 mb-4">الاستهداف</h4>
-                    <div class="grid grid-cols-1 gap-3">
-                        ${Object.values(AD_LEVELS).map(l => `<label class="flex items-center gap-4 p-4 border rounded-xl hover:bg-slate-50 cursor-pointer ${adWizardData.level === l.key ? 'border-brand-500 bg-brand-50' : ''}"><input type="radio" name="wiz-level" value="${l.key}" ${adWizardData.level === l.key ? 'checked' : ''} class="peer w-5 h-5 text-brand-600"><div class="flex-1"><span class="font-bold text-sm block">${l.label}</span><span class="text-xs text-slate-500">${l.desc}</span></div></label>`).join('')}
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-xs text-slate-500">يمكنك اختيار أكثر من مستوى أو كل المستويات</span>
+                      <button id="wiz-levels-all" class="text-xs font-bold text-brand-600 hover:text-brand-700">تحديد الكل</button>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3" id="wiz-levels-grid">
+                      ${Object.values(AD_LEVELS).map(l => {
+                        const checked = adWizardData.levels?.includes(l.key);
+                        return `<label class="flex items-center gap-4 p-4 border rounded-xl hover:bg-slate-50 cursor-pointer ${checked ? 'border-brand-500 bg-brand-50' : ''}">
+                          <input type="checkbox" name="wiz-level" value="${l.key}" ${checked ? 'checked' : ''} class="peer w-5 h-5 text-brand-600">
+                          <div class="flex-1">
+                            <span class="font-bold text-sm block">${l.label}</span>
+                            <span class="text-xs text-slate-500">${l.desc}</span>
+                          </div>
+                        </label>`;
+                      }).join('')}
                     </div>
                 </div>`;
         } else if (step === 4) {
             prevBtn.classList.remove('hidden');
             nextBtn.innerHTML = 'تأكيد ونشر <i class="fas fa-rocket mr-2"></i>';
             nextBtn.onclick = app.submitAdWizard;
-            body.innerHTML = `<div class="space-y-6 animate-fade-in"><h4 class="text-xl font-bold text-slate-800 mb-4">مراجعة نهائية</h4><div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3"><div class="flex justify-between"><span class="text-sm text-slate-500">العنوان</span><span class="font-bold">${adWizardData.title}</span></div><div class="flex justify-between pt-3 border-t"><span class="text-sm font-bold">الميزانية</span><span class="font-black text-xl text-brand-600">${adWizardData.budget} ر.س</span></div></div><div class="flex gap-3 p-4 bg-yellow-50 rounded-xl"><input type="checkbox" id="wiz-confirm" class="mt-1"><label for="wiz-confirm" class="text-xs text-yellow-800 font-semibold">أوافق على الشروط.</label></div></div>`;
+            const levelsLabels = (adWizardData.levels || []).map(l => AD_LEVELS[l]?.label || l).join('، ');
+            body.innerHTML = `<div class="space-y-6 animate-fade-in"><h4 class="text-xl font-bold text-slate-800 mb-4">مراجعة نهائية</h4><div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3"><div class="flex justify-between"><span class="text-sm text-slate-500">العنوان</span><span class="font-bold">${adWizardData.title}</span></div><div class="flex justify-between pt-3 border-t"><span class="text-sm font-bold">الميزانية</span><span class="font-black text-xl text-brand-600">${adWizardData.budget} ر.س</span></div><div class="flex justify-between pt-3 border-t"><span class="text-sm text-slate-500">مستويات الاستهداف</span><span class="text-xs font-bold text-slate-700">${levelsLabels || 'غير محدد'}</span></div></div><div class="flex gap-3 p-4 bg-yellow-50 rounded-xl"><input type="checkbox" id="wiz-confirm" class="mt-1"><label for="wiz-confirm" class="text-xs text-yellow-800 font-semibold">أوافق على الشروط.</label></div></div>`;
         }
     };
 
     const wizardNext = () => {
         if (adWizardData.step === 1) { adWizardData.title = document.getElementById('wiz-title').value; adWizardData.content = document.getElementById('wiz-content').value; }
         else if (adWizardData.step === 2) { adWizardData.startDate = document.getElementById('wiz-start').value; adWizardData.endDate = document.getElementById('wiz-end').value; adWizardData.budget = document.getElementById('wiz-budget').value; }
-        else if (adWizardData.step === 3) { adWizardData.level = document.querySelector('input[name="wiz-level"]:checked')?.value; }
+        else if (adWizardData.step === 3) {
+          const selectedLevels = Array.from(document.querySelectorAll('input[name="wiz-level"]:checked')).map(i => i.value);
+          if (selectedLevels.length === 0) {
+            showToast('اختر مستوى استهداف واحد على الأقل', 'error');
+            return;
+          }
+          adWizardData.levels = selectedLevels;
+        }
         renderWizardStep(adWizardData.step + 1);
     };
 
@@ -2086,7 +2122,8 @@ const app = (() => {
 
     const submitAdWizard = () => {
         if (!document.getElementById('wiz-confirm').checked) return showToast('يجب الموافقة على الشروط', 'error');
-        db.ads.unshift({ id: db.ads.length + 1, title: adWizardData.title, content: adWizardData.content, level: adWizardData.level, status: 'ACTIVE', sourceEntityId: currentUser.entityId, date: new Date().toISOString().slice(0, 10), sourceType: currentUser.tenantType, budget: parseInt(adWizardData.budget), spent: 0, impressions: 0, clicks: 0, startDate: adWizardData.startDate, endDate: adWizardData.endDate, targetIds: [] });
+        const levels = adWizardData.levels && adWizardData.levels.length ? adWizardData.levels : ['L1_LOCAL'];
+        db.ads.unshift({ id: db.ads.length + 1, title: adWizardData.title, content: adWizardData.content, level: levels[0], levels, status: 'ACTIVE', sourceEntityId: currentUser.entityId, date: new Date().toISOString().slice(0, 10), sourceType: currentUser.tenantType, budget: parseInt(adWizardData.budget), spent: 0, impressions: 0, clicks: 0, startDate: adWizardData.startDate, endDate: adWizardData.endDate, targetIds: [] });
         document.getElementById('ad-wizard-modal').remove();
         showToast('تم إطلاق الحملة!', 'success');
         loadRoute('ads');
