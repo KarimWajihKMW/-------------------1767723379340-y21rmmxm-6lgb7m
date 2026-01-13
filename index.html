@@ -434,6 +434,20 @@
             <form id="createOfficeForm" class="p-6 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الفرع التابع له *</label>
+                        <select id="office_branch_id" required onchange="loadPlatformsForOfficeByBranch()" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                            <option value="">-- اختر فرع --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">المنصة التابعة لها *</label>
+                        <select id="office_platform_id" required onchange="loadIncubatorsForOfficeByPlatform()" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
+                            <option value="">-- اختر منصة --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-gray-700 mb-2">الحاضنة التابع لها *</label>
                         <select id="office_incubator_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gray-500 outline-none">
                             <option value="">-- اختر حاضنة --</option>

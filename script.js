@@ -6442,7 +6442,10 @@ window.openCreateOfficeModal = function() {
   const modal = document.getElementById('createOfficeModal');
   if (modal) {
     modal.classList.remove('hidden');
-    loadIncubatorsForOffice();
+    loadBranchesForOffice();
+    // Reset the dropdowns
+    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
+    document.getElementById('office_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
   }
 };
 
@@ -6455,7 +6458,80 @@ window.closeCreateOfficeModal = function() {
   }
 };
 
-// Load incubators for office dropdown
+// Load branches for office dropdown
+async function loadBranchesForOffice() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/branches`);
+    const branches = await response.json();
+    const select = document.getElementById('office_branch_id');
+    select.innerHTML = '<option value="">-- اختر فرع --</option>' +
+      branches.map(b => `<option value="${b.id}">${b.name} (${b.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading branches:', error);
+  }
+}
+
+// Load platforms for office dropdown based on selected branch
+async function loadPlatformsForOfficeByBranch() {
+  const branchId = document.getElementById('office_branch_id').value;
+  
+  if (!branchId) {
+    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
+    document.getElementById('office_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
+    return;
+  }
+  
+  try {
+    // Get incubators for this branch
+    const incResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    const incubators = await incResponse.json();
+    
+    // Get all platforms and filter by the incubators in this branch
+    const platResponse = await fetch(`${API_BASE_URL}/platforms`);
+    const allPlatforms = await platResponse.json();
+    
+    const incubatorIds = new Set(incubators.map(i => i.id));
+    const filteredPlatforms = allPlatforms.filter(p => incubatorIds.has(p.incubator_id));
+    
+    const select = document.getElementById('office_platform_id');
+    select.innerHTML = '<option value="">-- اختر منصة --</option>' +
+      filteredPlatforms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
+    
+    // Reset incubator dropdown
+    document.getElementById('office_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
+  } catch (error) {
+    console.error('Error loading platforms:', error);
+  }
+}
+
+// Load incubators for office dropdown based on selected platform
+async function loadIncubatorsForOfficeByPlatform() {
+  const platformId = document.getElementById('office_platform_id').value;
+  
+  if (!platformId) {
+    document.getElementById('office_incubator_id').innerHTML = '<option value="">-- اختر حاضنة --</option>';
+    return;
+  }
+  
+  try {
+    // Get the platform details to find its incubator
+    const response = await fetch(`${API_BASE_URL}/platforms/${platformId}`);
+    const platform = await response.json();
+    
+    // Get incubators for this branch that contain this platform
+    const branchId = document.getElementById('office_branch_id').value;
+    const incResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    const incubators = await incResponse.json();
+    
+    const select = document.getElementById('office_incubator_id');
+    select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
+      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+  } catch (error) {
+    console.error('Error loading incubators:', error);
+  }
+}
+
+// Load incubators for office dropdown (legacy function kept for compatibility)
 async function loadIncubatorsForOffice() {
   try {
     const response = await fetch(`${API_BASE_URL}/incubators`);
