@@ -928,13 +928,13 @@ const app = (() => {
 
     const updateActiveLink = (route) => {
         document.querySelectorAll('#nav-menu a').forEach(l => {
-            l.classList.remove('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
-            l.classList.add('text-slate-400');
+            l.classList.remove('bg-gradient-to-r', 'from-red-600/20', 'to-red-600/5', 'text-white', 'border-r-4', 'border-red-500');
+            l.classList.add('text-red-200');
         });
         const active = document.getElementById(`link-${route}`);
         if(active) {
-            active.classList.remove('text-slate-400');
-            active.classList.add('bg-gradient-to-r', 'from-brand-600/20', 'to-brand-600/5', 'text-white', 'border-r-4', 'border-brand-500');
+            active.classList.remove('text-red-200');
+            active.classList.add('bg-gradient-to-r', 'from-red-600/20', 'to-red-600/5', 'text-white', 'border-r-4', 'border-red-500');
         }
     };
 
@@ -1035,8 +1035,8 @@ const app = (() => {
             const path = routeToPath[item.id] || '/';
             return `<li>
                 <a href="${path}" id="link-${item.id}" onclick="event.preventDefault(); app.loadRoute('${item.id}')" 
-                   class="flex items-center gap-3 px-4 py-3.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all group relative overflow-hidden">
-                   <i class="fas ${item.icon} w-6 text-center group-hover:text-brand-400 transition-colors z-10"></i> 
+                   class="flex items-center gap-3 px-4 py-3.5 text-red-200 hover:text-white hover:bg-red-800/50 rounded-lg transition-all group relative overflow-hidden">
+                   <i class="fas ${item.icon} w-6 text-center group-hover:text-red-400 transition-colors z-10"></i> 
                    <span class="z-10 relative font-medium">${item.label}</span>
                    ${item.badge ? `<span class="mr-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">${item.badge}</span>` : ''}
                 </a>
