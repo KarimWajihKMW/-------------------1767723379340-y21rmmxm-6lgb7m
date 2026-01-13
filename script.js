@@ -7229,44 +7229,40 @@ app.submitCreateEmployee = async function() {
         emergency_phone: document.getElementById('emergency_phone').value || null
     };
 
-    // Handle entity assignment - check which one is selected
+    // Handle entity assignment - can select multiple entities
     const branchId = document.getElementById('assigned_branch').value;
     const incubatorId = document.getElementById('assigned_incubator').value;
     const platformId = document.getElementById('assigned_platform').value;
     const officeId = document.getElementById('assigned_office').value;
 
-    // Count selected entities
-    const selectedCount = [branchId, incubatorId, platformId, officeId].filter(id => id).length;
-    
-    if (selectedCount === 0) {
-        alert('يجب اختيار كيان واحد على الأقل (مكتب أو منصة أو حاضنة أو فرع)');
-        return;
+    // Add selected entity IDs to employeeData
+    if (branchId) {
+        employeeData.branch_id = parseInt(branchId);
     }
-    
-    if (selectedCount > 1) {
-        alert('يمكنك اختيار كيان واحد فقط');
-        return;
+    if (incubatorId) {
+        employeeData.incubator_id = parseInt(incubatorId);
+    }
+    if (platformId) {
+        employeeData.platform_id = parseInt(platformId);
+    }
+    if (officeId) {
+        employeeData.office_id = parseInt(officeId);
     }
 
-    // Set entity type and ID based on selection
+    // Determine primary entity type based on first selected entity
     if (branchId) {
         employeeData.assigned_entity_type = 'BRANCH';
-        employeeData.branch_id = parseInt(branchId);
     } else if (incubatorId) {
         employeeData.assigned_entity_type = 'INCUBATOR';
-        employeeData.incubator_id = parseInt(incubatorId);
     } else if (platformId) {
         employeeData.assigned_entity_type = 'PLATFORM';
-        employeeData.platform_id = parseInt(platformId);
     } else if (officeId) {
         employeeData.assigned_entity_type = 'OFFICE';
-        employeeData.office_id = parseInt(officeId);
     }
 
     // Validate required fields
     if (!employeeData.employee_number || !employeeData.full_name || !employeeData.position || 
-        !employeeData.department || !employeeData.employment_type || !entityType || 
-        (entityType !== 'HQ' && !entityId)) {
+        !employeeData.department || !employeeData.employment_type) {
         alert('يرجى ملء جميع الحقول المطلوبة');
         return;
     }
