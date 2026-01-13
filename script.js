@@ -2311,15 +2311,24 @@ const app = (() => {
                         'Low': 'text-green-600'
                     };
                     return `
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div onclick="window.viewTaskDetails(${t.id})" class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group">
                         <div class="flex justify-between items-start mb-3">
-                            <h4 class="font-bold text-lg text-slate-800">${t.title}</h4>
+                            <h4 class="font-bold text-lg text-slate-800 group-hover:text-blue-600 transition-colors">${t.title}</h4>
                             <div class="flex gap-2">
                                 <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[t.status] || 'bg-slate-100 text-slate-700'}">${t.status}</span>
                                 <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 ${priorityColors[t.priority] || ''}">${t.priority}</span>
                             </div>
                         </div>
-                        <p class="text-sm text-slate-600 mb-3">${t.type} • موعد النهاية: ${t.dueDate}</p>
+                        <p class="text-sm text-slate-600 mb-2">${t.type} • موعد النهاية: ${t.dueDate}</p>
+                        ${t.description ? `<p class="text-sm text-slate-500 italic truncate">${t.description}</p>` : ''}
+                        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-xs text-slate-400">
+                                <i class="fas fa-hashtag"></i> ${t.id}
+                            </span>
+                            <span class="text-xs text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-arrow-left ml-1"></i> اضغط للعرض
+                            </span>
+                        </div>
                     </div>`;
                 }).join('')}
             </div>
@@ -3318,6 +3327,284 @@ window.submitCreateTask = async function() {
   } catch (error) {
     console.error('Error creating task:', error);
     alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// ========================================
+// TASK VIEWING, EDITING, AND DELETING
+// ========================================
+
+// Global variable to track currently viewed task
+let currentViewedTaskId = null;
+
+// View task details
+window.viewTaskDetails = function(taskId) {
+  try {
+    const db = app.getDb();
+    const task = db.tasks.find(t => t.id === taskId);
+    
+    if (!task) {
+      alert('❌ لم يتم العثور على المهمة');
+      return;
+    }
+    
+    // Store the task ID for edit/delete operations
+    currentViewedTaskId = taskId;
+    
+    // Status colors
+    const statusColors = {
+      'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-300',
+      'In Progress': 'bg-blue-100 text-blue-700 border-blue-300',
+      'Done': 'bg-green-100 text-green-700 border-green-300',
+      'Cancelled': 'bg-red-100 text-red-700 border-red-300'
+    };
+    
+    const priorityColors = {
+      'High': 'bg-red-100 text-red-700 border-red-300',
+      'Medium': 'bg-orange-100 text-orange-700 border-orange-300',
+      'Low': 'bg-green-100 text-green-700 border-green-300'
+    };
+    
+    const typeIcons = {
+      'Billing': 'fa-file-invoice-dollar',
+      'Ops': 'fa-cogs',
+      'Support': 'fa-headset',
+      'Development': 'fa-code',
+      'Marketing': 'fa-bullhorn',
+      'HR': 'fa-users'
+    };
+    
+    // Populate modal content
+    const content = `
+      <div class="space-y-6">
+        <!-- Title -->
+        <div>
+          <h3 class="text-2xl font-bold text-slate-800 mb-2">${task.title}</h3>
+          <div class="flex gap-2">
+            <span class="px-3 py-1 rounded-full text-sm font-bold border-2 ${statusColors[task.status] || 'bg-slate-100 text-slate-700 border-slate-300'}">
+              <i class="fas fa-circle text-xs mr-1"></i>${task.status}
+            </span>
+            <span class="px-3 py-1 rounded-full text-sm font-bold border-2 ${priorityColors[task.priority] || 'bg-slate-100 text-slate-700 border-slate-300'}">
+              <i class="fas fa-flag text-xs mr-1"></i>${task.priority}
+            </span>
+            <span class="px-3 py-1 rounded-full text-sm font-bold bg-slate-100 text-slate-700 border-2 border-slate-300">
+              <i class="fas ${typeIcons[task.type] || 'fa-folder'} text-xs mr-1"></i>${task.type}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+            <label class="text-sm font-bold text-slate-600 mb-1 block">
+              <i class="fas fa-calendar-alt ml-1"></i>تاريخ الاستحقاق
+            </label>
+            <p class="text-lg font-semibold text-slate-800">${task.dueDate}</p>
+          </div>
+          
+          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+            <label class="text-sm font-bold text-slate-600 mb-1 block">
+              <i class="fas fa-hashtag ml-1"></i>رقم المهمة
+            </label>
+            <p class="text-lg font-semibold text-slate-800">#${task.id}</p>
+          </div>
+          
+          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 md:col-span-2">
+            <label class="text-sm font-bold text-slate-600 mb-1 block">
+              <i class="fas fa-building ml-1"></i>الكيان
+            </label>
+            <p class="text-lg font-semibold text-slate-800">${task.entityId}</p>
+          </div>
+        </div>
+        
+        <!-- Description -->
+        ${task.description ? `
+        <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+          <label class="text-sm font-bold text-slate-600 mb-2 block">
+            <i class="fas fa-align-right ml-1"></i>الوصف
+          </label>
+          <p class="text-slate-700 leading-relaxed whitespace-pre-wrap">${task.description}</p>
+        </div>
+        ` : `
+        <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
+          <p class="text-slate-500 italic">لا يوجد وصف لهذه المهمة</p>
+        </div>
+        `}
+      </div>
+    `;
+    
+    document.getElementById('taskDetailsContent').innerHTML = content;
+    
+    // Show modal
+    const modal = document.getElementById('viewTaskModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  } catch (error) {
+    console.error('Error viewing task:', error);
+    alert('❌ خطأ في عرض تفاصيل المهمة');
+  }
+};
+
+// Close view task modal
+window.closeViewTaskModal = function() {
+  const modal = document.getElementById('viewTaskModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    currentViewedTaskId = null;
+  }
+};
+
+// Edit task from view modal
+window.editTaskFromView = function() {
+  if (!currentViewedTaskId) {
+    alert('❌ لم يتم تحديد مهمة للتعديل');
+    return;
+  }
+  
+  try {
+    const db = app.getDb();
+    const task = db.tasks.find(t => t.id === currentViewedTaskId);
+    
+    if (!task) {
+      alert('❌ لم يتم العثور على المهمة');
+      return;
+    }
+    
+    // Close view modal
+    window.closeViewTaskModal();
+    
+    // Populate edit form with task data
+    document.getElementById('task_title').value = task.title;
+    document.getElementById('task_priority').value = task.priority;
+    document.getElementById('task_status').value = task.status;
+    document.getElementById('task_type').value = task.type;
+    document.getElementById('task_due_date').value = task.dueDate;
+    document.getElementById('task_description').value = task.description || '';
+    
+    // Change modal title
+    const modalTitle = document.querySelector('#createTaskModal h2');
+    if (modalTitle) {
+      modalTitle.innerHTML = '<i class="fas fa-edit"></i> تعديل المهمة';
+    }
+    
+    // Change button text and action
+    const submitBtn = document.querySelector('#createTaskModal button[onclick*="submitCreateTask"]');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fas fa-save ml-2"></i> حفظ التعديلات';
+      submitBtn.setAttribute('onclick', `window.submitEditTask(${currentViewedTaskId})`);
+    }
+    
+    // Open create/edit modal
+    window.openCreateTaskModal();
+  } catch (error) {
+    console.error('Error editing task:', error);
+    alert('❌ خطأ في تحرير المهمة');
+  }
+};
+
+// Submit edited task
+window.submitEditTask = async function(taskId) {
+  const formData = {
+    title: document.getElementById('task_title').value,
+    priority: document.getElementById('task_priority').value,
+    status: document.getElementById('task_status').value,
+    type: document.getElementById('task_type').value,
+    dueDate: document.getElementById('task_due_date').value,
+    description: document.getElementById('task_description').value
+  };
+
+  // Validation
+  if (!formData.title || !formData.priority || !formData.status || !formData.type || !formData.dueDate) {
+    alert('❌ يرجى ملء جميع الحقول المطلوبة');
+    return;
+  }
+
+  try {
+    const db = app.getDb();
+    const taskIndex = db.tasks.findIndex(t => t.id === taskId);
+    
+    if (taskIndex === -1) {
+      alert('❌ لم يتم العثور على المهمة');
+      return;
+    }
+    
+    // Update task
+    db.tasks[taskIndex] = {
+      ...db.tasks[taskIndex],
+      title: formData.title,
+      priority: formData.priority,
+      status: formData.status,
+      type: formData.type,
+      dueDate: formData.dueDate,
+      description: formData.description
+    };
+    
+    console.log('✅ تم تحديث المهمة:', db.tasks[taskIndex]);
+    
+    // Reset form and modal
+    window.closeCreateTaskModal();
+    
+    // Reset button to create mode
+    const modalTitle = document.querySelector('#createTaskModal h2');
+    if (modalTitle) {
+      modalTitle.innerHTML = '<i class="fas fa-tasks"></i> إضافة مهمة جديدة';
+    }
+    
+    const submitBtn = document.querySelector('#createTaskModal button[onclick*="submitEditTask"]');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fas fa-plus ml-2"></i> إضافة المهمة';
+      submitBtn.setAttribute('onclick', 'window.submitCreateTask()');
+    }
+    
+    alert(`✅ تم تحديث المهمة "${formData.title}" بنجاح!`);
+    
+    // Refresh tasks page
+    app.loadRoute('tasks');
+  } catch (error) {
+    console.error('Error updating task:', error);
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
+
+// Delete task from view modal
+window.deleteTaskFromView = function() {
+  if (!currentViewedTaskId) {
+    alert('❌ لم يتم تحديد مهمة للحذف');
+    return;
+  }
+  
+  try {
+    const db = app.getDb();
+    const task = db.tasks.find(t => t.id === currentViewedTaskId);
+    
+    if (!task) {
+      alert('❌ لم يتم العثور على المهمة');
+      return;
+    }
+    
+    // Confirm deletion
+    if (!confirm(`هل أنت متأكد من حذف المهمة "${task.title}"؟\n\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+      return;
+    }
+    
+    // Delete task
+    const taskIndex = db.tasks.findIndex(t => t.id === currentViewedTaskId);
+    if (taskIndex !== -1) {
+      db.tasks.splice(taskIndex, 1);
+      console.log('✅ تم حذف المهمة بنجاح');
+    }
+    
+    // Close modal
+    window.closeViewTaskModal();
+    
+    alert('✅ تم حذف المهمة بنجاح!');
+    
+    // Refresh tasks page
+    app.loadRoute('tasks');
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    alert('❌ خطأ في حذف المهمة');
   }
 };
 

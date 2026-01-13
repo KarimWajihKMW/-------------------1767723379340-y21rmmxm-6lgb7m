@@ -146,6 +146,40 @@
         </div>
     </div>
 
+    <!-- View Task Details Modal -->
+    <div id="viewTaskModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-tasks"></i>
+                    تفاصيل المهمة
+                </h2>
+                <button onclick="window.closeViewTaskModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div id="taskDetailsContent" class="p-6 space-y-6">
+                <!-- Task details will be populated here -->
+            </div>
+            
+            <div class="bg-gray-50 p-6 rounded-b-2xl flex gap-3 justify-end">
+                <button onclick="window.closeViewTaskModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                    <i class="fas fa-times ml-2"></i>
+                    إغلاق
+                </button>
+                <button onclick="window.editTaskFromView()" class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-bold transition">
+                    <i class="fas fa-edit ml-2"></i>
+                    تعديل
+                </button>
+                <button onclick="window.deleteTaskFromView()" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold transition">
+                    <i class="fas fa-trash ml-2"></i>
+                    حذف
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ========================================
          ENTITY CREATION MODALS
          ======================================== -->
