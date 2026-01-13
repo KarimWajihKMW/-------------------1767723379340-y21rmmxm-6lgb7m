@@ -2025,7 +2025,7 @@ const app = (() => {
                     </h2>
                     <p class="text-slate-500 mt-1">إدارة الإيرادات والمصروفات والتقارير المالية</p>
                 </div>
-                <button onclick="app.openAddTransactionModal()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg flex items-center gap-2">
+                <button onclick="window.openAddTransactionModal()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg flex items-center gap-2">
                     <i class="fas fa-plus"></i>
                     إضافة معاملة مالية
                 </button>
