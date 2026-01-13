@@ -221,6 +221,14 @@
         "/^node verify-final-branches\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node update-incubators\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-incubators-schema\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
