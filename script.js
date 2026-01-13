@@ -7250,6 +7250,7 @@ app.submitCreateEmployee = async function() {
     }
 
     // Determine primary entity type based on first selected entity
+    // assigned_entity_type is required in database, so we must set it
     if (branchId) {
         employeeData.assigned_entity_type = 'BRANCH';
     } else if (incubatorId) {
@@ -7258,6 +7259,10 @@ app.submitCreateEmployee = async function() {
         employeeData.assigned_entity_type = 'PLATFORM';
     } else if (officeId) {
         employeeData.assigned_entity_type = 'OFFICE';
+    } else {
+        // If no entity selected, default to HQ
+        employeeData.assigned_entity_type = 'HQ';
+        employeeData.hq_id = 1; // Default HQ ID
     }
 
     // Validate required fields
