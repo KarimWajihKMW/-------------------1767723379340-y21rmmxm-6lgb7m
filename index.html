@@ -525,6 +525,80 @@
         </div>
     </div>
 
+    <!-- Create Task Modal -->
+    <div id="createTaskModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-blue-600 text-white p-6 rounded-t-2xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-tasks"></i>
+                    إضافة مهمة جديدة
+                </h2>
+                <button onclick="window.closeCreateTaskModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="createTaskForm" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">عنوان المهمة *</label>
+                        <input type="text" id="task_title" required placeholder="مثال: إنشاء تقرير الربع السنوي" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الأولوية *</label>
+                        <select id="task_priority" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Low">منخفضة 🟢</option>
+                            <option value="Medium">متوسطة 🟡</option>
+                            <option value="High">عالية 🔴</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الحالة *</label>
+                        <select id="task_status" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Pending">قيد الانتظار</option>
+                            <option value="In Progress">جاري العمل</option>
+                            <option value="Done">مكتملة</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع المهمة *</label>
+                        <select id="task_type" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Billing">مالية</option>
+                            <option value="Ops">عمليات</option>
+                            <option value="HR">موارد بشرية</option>
+                            <option value="IT">تقنية</option>
+                            <option value="Other">أخرى</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">موعد النهاية *</label>
+                        <input type="date" id="task_due_date" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                        <textarea id="task_description" rows="3" placeholder="وصف تفصيلي للمهمة..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t">
+                    <button type="button" onclick="window.closeCreateTaskModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="button" onclick="window.submitCreateTask()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition shadow-lg">
+                        <i class="fas fa-plus ml-2"></i>
+                        إضافة المهمة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Create Employee Modal -->
     <div id="createEmployeeModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">

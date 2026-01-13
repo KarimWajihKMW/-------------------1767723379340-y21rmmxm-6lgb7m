@@ -2251,10 +2251,70 @@ const app = (() => {
 
     const renderTasksManager = () => {
         const tasks = perms.getVisibleTasks();
-        if (tasks.length === 0) return renderPlaceholder('لا توجد مهام نشطة');
+        
+        if (tasks.length === 0) {
+            return `
+            <div class="space-y-8 animate-fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">المهام الداخلية</h2>
+                        <p class="text-slate-500">لا توجد مهام نشطة حالياً</p>
+                    </div>
+                    <button onclick="window.openCreateTaskModal()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i> إضافة مهمة جديدة
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-lg border-2 border-dashed border-slate-300 p-12 text-center">
+                    <div class="text-6xl mb-4">📋</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">لم تتم إضافة أي مهام بعد</h3>
+                    <p class="text-slate-600 mb-6">ابدأ بإضافة مهمة جديدة لتتبع عملك وإنجازك</p>
+                    <button onclick="window.openCreateTaskModal()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition inline-flex items-center gap-2">
+                        <i class="fas fa-plus-circle"></i> إنشاء أول مهمة
+                    </button>
+                </div>
+            </div>`;
+        }
+        
         return `
-        <h2 class="text-2xl font-bold text-slate-800 mb-6">المهام الداخلية (${tasks.length})</h2>
-        <div class="grid gap-4">${tasks.map(t => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center"><div><h4 class="font-bold">${t.title}</h4><p class="text-xs text-slate-500">${t.type}</p></div><span class="px-2 py-1 rounded text-xs bg-slate-100">${t.status}</span></div>`).join('')}</div>`;
+        <div class="space-y-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">المهام الداخلية (${tasks.length})</h2>
+                    <p class="text-slate-500">إدارة المهام والمشاريع</p>
+                </div>
+                <button onclick="window.openCreateTaskModal()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2">
+                    <i class="fas fa-plus"></i> إضافة مهمة
+                </button>
+            </div>
+            
+            <div class="grid gap-4">
+                ${tasks.map(t => {
+                    const statusColors = {
+                        'Pending': 'bg-yellow-100 text-yellow-700',
+                        'In Progress': 'bg-blue-100 text-blue-700',
+                        'Done': 'bg-green-100 text-green-700',
+                        'Cancelled': 'bg-red-100 text-red-700'
+                    };
+                    const priorityColors = {
+                        'High': 'text-red-600',
+                        'Medium': 'text-orange-600',
+                        'Low': 'text-green-600'
+                    };
+                    return `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-lg text-slate-800">${t.title}</h4>
+                            <div class="flex gap-2">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[t.status] || 'bg-slate-100 text-slate-700'}">${t.status}</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 ${priorityColors[t.priority] || ''}">${t.priority}</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-3">${t.type} • موعد النهاية: ${t.dueDate}</p>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
     };
 
     const renderSettings = () => {
@@ -3177,6 +3237,58 @@ const app = (() => {
         openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails
     };
 })();
+
+// ========================================
+// TASK MANAGEMENT (Outside closure)
+// ========================================
+
+window.openCreateTaskModal = function() {
+  const modal = document.getElementById('createTaskModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('task_due_date').value = today;
+  }
+};
+
+window.closeCreateTaskModal = function() {
+  const modal = document.getElementById('createTaskModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('createTaskForm').reset();
+  }
+};
+
+window.submitCreateTask = async function() {
+  const formData = {
+    title: document.getElementById('task_title').value,
+    priority: document.getElementById('task_priority').value,
+    status: document.getElementById('task_status').value,
+    type: document.getElementById('task_type').value,
+    dueDate: document.getElementById('task_due_date').value,
+    description: document.getElementById('task_description').value,
+    entityId: window.currentUserData?.entityId || 'HQ001'
+  };
+
+  // Validation
+  if (!formData.title || !formData.priority || !formData.status || !formData.type || !formData.dueDate) {
+    alert('❌ يرجى ملء جميع الحقول المطلوبة');
+    return;
+  }
+
+  try {
+    // Close modal and show success
+    window.closeCreateTaskModal();
+    alert(`✅ تم إنشاء المهمة "${formData.title}" بنجاح!`);
+    
+    // Refresh the tasks page
+    app.loadRoute('tasks');
+  } catch (error) {
+    console.error('Error creating task:', error);
+    alert(`❌ خطأ: ${error.message}`);
+  }
+};
 
 // ========================================
 // INCUBATOR TRAINING SYSTEM (Outside closure)
