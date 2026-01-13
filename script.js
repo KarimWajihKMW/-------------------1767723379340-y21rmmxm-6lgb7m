@@ -2100,9 +2100,14 @@ const app = (() => {
                                 <td class="p-4 text-red-600 font-bold">${l.debit > 0 ? l.debit.toLocaleString() : '-'}</td>
                                 <td class="p-4 font-bold text-slate-800">${(l.balance || 0).toLocaleString()}</td>
                                 <td class="p-4">
-                                    <button onclick="window.deleteTransaction('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <div class="flex gap-2">
+                                        <button onclick="window.viewTransactionDetails('${l.trxId}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="عرض">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button onclick="window.deleteTransaction('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>`).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد معاملات مالية</td></tr>'}
                         </tbody>
@@ -2287,11 +2292,14 @@ const app = (() => {
             return;
         }
 
-        const lastLedger = db.ledger[db.ledger.length - 1];
+        // Get current user's ledger to calculate last balance
+        const currentUserLedger = db.ledger.filter(l => l.entityId === currentUser.entityId);
+        const lastLedger = currentUserLedger[currentUserLedger.length - 1];
         const lastBalance = lastLedger ? lastLedger.balance : 0;
 
         const newEntry = {
             id: db.ledger.length + 1,
+            entityId: currentUser.entityId,  // إضافة entityId
             date: new Date().toISOString().slice(0, 10),
             trxId: `TRX-${Date.now()}`,
             desc: desc,
@@ -2305,6 +2313,78 @@ const app = (() => {
         document.getElementById('transaction-modal').remove();
         showToast('تم إضافة المعاملة بنجاح', 'success');
         loadRoute('finance');
+    };
+
+    // View transaction details
+    window.viewTransactionDetails = function(trxId) {
+        const transaction = db.ledger.find(t => t.trxId === trxId);
+        if (!transaction) {
+            alert('لم يتم العثور على المعاملة');
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'transaction-details-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-${transaction.credit > 0 ? 'green' : 'red'}-50 to-${transaction.credit > 0 ? 'emerald' : 'rose'}-50">
+                    <h3 class="font-bold text-2xl text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-${transaction.credit > 0 ? 'arrow-up' : 'arrow-down'} text-${transaction.credit > 0 ? 'green' : 'red'}-600"></i>
+                        تفاصيل المعاملة المالية
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">رقم المعاملة</label>
+                            <div class="text-lg font-bold text-blue-600 font-mono">${transaction.trxId}</div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500">نوع المعاملة</label>
+                            <div class="text-lg font-bold ${transaction.credit > 0 ? 'text-green-600' : 'text-red-600'}">
+                                ${transaction.credit > 0 ? 'إيراد (Credit)' : 'مصروف (Debit)'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <label class="text-xs font-bold text-slate-500">التاريخ</label>
+                        <div class="text-lg text-slate-700">${transaction.date || '-'}</div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <label class="text-xs font-bold text-slate-500">الوصف</label>
+                        <div class="text-lg text-slate-800 font-medium">${transaction.desc || '-'}</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 border-t pt-4">
+                        ${transaction.credit > 0 ? `
+                        <div class="col-span-2">
+                            <label class="text-xs font-bold text-slate-500">المبلغ (إيراد)</label>
+                            <div class="text-3xl font-bold text-green-600">${transaction.credit.toLocaleString()} ر.س</div>
+                        </div>
+                        ` : `
+                        <div class="col-span-2">
+                            <label class="text-xs font-bold text-slate-500">المبلغ (مصروف)</label>
+                            <div class="text-3xl font-bold text-red-600">${transaction.debit.toLocaleString()} ر.س</div>
+                        </div>
+                        `}
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <label class="text-xs font-bold text-slate-500">الرصيد بعد المعاملة</label>
+                        <div class="text-2xl font-bold text-slate-800">${(transaction.balance || 0).toLocaleString()} ر.س</div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="document.getElementById('transaction-details-modal').remove()" class="px-6 py-2 rounded-lg bg-slate-600 text-white font-bold hover:bg-slate-700">إغلاق</button>
+                    <button onclick="document.getElementById('transaction-details-modal').remove(); window.deleteTransaction('${transaction.trxId}')" class="px-6 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg">
+                        <i class="fas fa-trash mr-1"></i> حذف المعاملة
+                    </button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
     };
 
     // Delete transaction from ledger
