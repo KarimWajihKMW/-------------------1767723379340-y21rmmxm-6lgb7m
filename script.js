@@ -283,38 +283,74 @@ const app = (() => {
                     modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm';
                     modal.innerHTML = `
                     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden max-h-[90vh] flex flex-col">
-                        <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-8 text-white">
-                            <h1 class="text-3xl font-bold mb-2">🏢 نظام نايوش ERP</h1>
-                            <p class="text-purple-100">اختر الكيان الذي تريد تسجيل الدخول منه</p>
+                      <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-8 text-white">
+                        <h1 class="text-3xl font-bold mb-2">🏢 نظام نايوش ERP</h1>
+                        <p class="text-purple-100">اختر الكيان الذي تريد تسجيل الدخول منه</p>
+                      </div>
+                      <div class="p-8 overflow-y-auto flex-1 custom-scrollbar space-y-4">
+                        <div class="sticky top-0 z-10 bg-white/95 backdrop-blur border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+                          <label class="block text-sm font-semibold text-gray-700 mb-2">بحث عن الكيان</label>
+                          <div class="relative">
+                            <input id="tenant-search" type="text" placeholder="اكتب اسم الكيان أو النوع أو الكود" class="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition" />
+                            <i class="fas fa-search text-gray-400 absolute right-3 top-3.5"></i>
+                          </div>
+                          <div id="tenant-results-count" class="text-xs text-gray-500 mt-2">${entities.length} كيان متاح</div>
                         </div>
-                        <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                ${entities.map(e => `
-                                    <div class="tenant-card cursor-pointer p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all transform hover:scale-105"
-                                         onclick="selectTenant('${e.id}', '${e.type}')">
-                                        <div class="flex items-start justify-between">
-                                            <div class="flex-1">
-                                                <h3 class="font-bold text-lg mb-2 text-gray-900">${e.name}</h3>
-                                                <p class="text-sm text-gray-600 mb-4">النوع: <span class="font-semibold">${e.type === 'HQ' ? 'المكتب الرئيسي' : 'فرع'}</span></p>
-                                                <div class="flex gap-4">
-                                                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-full">الحالة: ${e.status === 'active' ? '✅ نشط' : '⏸️ معطل'}</span>
-                                                </div>
-                                            </div>
-                                            <div class="text-3xl">
-                                                ${e.type === 'HQ' ? '🏛️' : e.type === 'BRANCH' ? '🏪' : e.type === 'INCUBATOR' ? '🌱' : e.type === 'PLATFORM' ? '💻' : '📋'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <p class="text-center text-sm text-gray-500 mt-8 pt-8 border-t">
-                                💡 اختيار الكيان سيحدد البيانات التي تراها في النظام
-                            </p>
-                        </div>
+
+                        <div id="tenant-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"></div>
+                        <p class="text-center text-sm text-gray-500 mt-4 pt-4 border-t">
+                          💡 اختيار الكيان سيحدد البيانات التي تراها في النظام
+                        </p>
+                      </div>
                     </div>
-                `;
+                  `;
                 
-                document.body.appendChild(modal);
+                  document.body.appendChild(modal);
+
+                  const searchInput = modal.querySelector('#tenant-search');
+                  const grid = modal.querySelector('#tenant-grid');
+                  const resultCount = modal.querySelector('#tenant-results-count');
+
+                  const renderCards = (list) => {
+                    if (!list || list.length === 0) {
+                      return `<div class="col-span-1 md:col-span-2 text-center border border-dashed border-gray-300 rounded-xl py-10 text-gray-500">لا توجد كيانات مطابقة للبحث الحالي</div>`;
+                    }
+                    return list.map(e => `
+                      <div class="tenant-card cursor-pointer p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all transform hover:scale-105"
+                         onclick="selectTenant('${e.id}', '${e.type}')">
+                        <div class="flex items-start justify-between gap-3">
+                          <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-lg mb-2 text-gray-900 truncate" title="${e.name}">${e.name}</h3>
+                            <p class="text-sm text-gray-600 mb-3">النوع: <span class="font-semibold">${e.type === 'HQ' ? 'المكتب الرئيسي' : e.type === 'BRANCH' ? 'فرع' : e.type === 'INCUBATOR' ? 'حاضنة' : e.type === 'PLATFORM' ? 'منصة' : e.type === 'OFFICE' ? 'مكتب' : 'كيان'}</span></p>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                              <span class="bg-gray-100 px-3 py-1 rounded-full">الحالة: ${e.status === 'active' ? '✅ نشط' : '⏸️ معطل'}</span>
+                              ${e.id ? `<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full">الكود: ${e.id}</span>` : ''}
+                              ${e.location ? `<span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full">الموقع: ${e.location}</span>` : ''}
+                            </div>
+                          </div>
+                          <div class="text-3xl shrink-0">
+                            ${e.type === 'HQ' ? '🏛️' : e.type === 'BRANCH' ? '🏪' : e.type === 'INCUBATOR' ? '🌱' : e.type === 'PLATFORM' ? '💻' : e.type === 'OFFICE' ? '🏢' : '📋'}
+                          </div>
+                        </div>
+                      </div>
+                    `).join('');
+                  };
+
+                  const applyFilter = () => {
+                    const term = (searchInput.value || '').trim().toLowerCase();
+                    const filtered = term
+                      ? entities.filter(e => [e.name, e.type, e.id, e.location, e.status]
+                        .filter(Boolean)
+                        .some(v => v.toString().toLowerCase().includes(term)))
+                      : entities;
+                    grid.innerHTML = renderCards(filtered);
+                    resultCount.textContent = term
+                      ? `${filtered.length} كيان مطابق`
+                      : `${entities.length} كيان متاح`;
+                  };
+
+                  searchInput.addEventListener('input', applyFilter);
+                  applyFilter();
                 
                 window.selectTenant = (tenantId, tenantType) => {
                     const selectedEntity = entities.find(e => e.id === tenantId);
