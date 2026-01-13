@@ -7615,8 +7615,13 @@ async function loadIncubatorsForOfficeByBranch() {
     select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
       incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
     
-    // Reset platform dropdown
-    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
+    // Load ALL platforms immediately when branch is selected
+    const platResponse = await fetch(`${API_BASE_URL}/platforms`);
+    const allPlatforms = await platResponse.json();
+    
+    const platformSelect = document.getElementById('office_platform_id');
+    platformSelect.innerHTML = '<option value="">-- اختر منصة --</option>' +
+      allPlatforms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
   } catch (error) {
     console.error('Error loading incubators:', error);
   }
