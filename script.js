@@ -64,7 +64,7 @@ const app = (() => {
     // --- CONFIGURATION ---
     const TENANT_TYPES = {
         HQ: { id: 'HQ', label: 'المكتب الرئيسي (Provider)', icon: 'fa-building', color: 'text-purple-600', bg: 'bg-purple-50', theme: 'purple' },
-        BRANCH: { id: 'BRANCH', label: 'فرع تجزئة (Tenant)', icon: 'fa-store', color: 'text-blue-600', bg: 'bg-blue-50', theme: 'blue' },
+        BRANCH: { id: 'BRANCH', label: 'فرع تجزئة (Tenant)', icon: 'fa-store', color: 'text-red-600', bg: 'bg-red-50', theme: 'blue' },
         INCUBATOR: { id: 'INCUBATOR', label: 'حاضنة أعمال (Tenant)', icon: 'fa-seedling', color: 'text-orange-600', bg: 'bg-orange-50', theme: 'orange' },
         PLATFORM: { id: 'PLATFORM', label: 'منصة رقمية (Tenant)', icon: 'fa-server', color: 'text-green-600', bg: 'bg-green-50', theme: 'green' },
         OFFICE: { id: 'OFFICE', label: 'مكتب إداري (Tenant)', icon: 'fa-briefcase', color: 'text-gray-600', bg: 'bg-gray-50', theme: 'gray' }
@@ -95,7 +95,7 @@ const app = (() => {
 
     const AD_LEVELS = {
         L1_LOCAL: { id: 1, key: 'L1_LOCAL', label: 'محلي (Tenant Only)', desc: 'داخل نطاق المستأجر فقط', cost: 0, approval: false, badgeClass: 'bg-gray-100 text-gray-600 border-gray-200', gradient: 'from-gray-50 to-gray-100', chartColor: '#94a3b8' },
-        L2_MULTI: { id: 2, key: 'L2_MULTI', label: 'متعدد الفروع (Paid)', desc: 'نشر لعدة فروع مختارة', cost: 500, approval: true, badgeClass: 'bg-blue-100 text-blue-600 border-blue-200', gradient: 'from-blue-50 to-cyan-50', chartColor: '#3b82f6' },
+        L2_MULTI: { id: 2, key: 'L2_MULTI', label: 'متعدد الفروع (Paid)', desc: 'نشر لعدة فروع مختارة', cost: 500, approval: true, badgeClass: 'bg-red-100 text-red-600 border-red-200', gradient: 'from-red-50 to-cyan-50', chartColor: '#ef4444' },
         L3_INC_INT: { id: 3, key: 'L3_INC_INT', label: 'داخل الحاضنة', desc: 'لجميع منسوبي الحاضنة', cost: 100, approval: false, badgeClass: 'bg-orange-100 text-orange-600 border-orange-200', gradient: 'from-orange-50 to-amber-50', chartColor: '#f97316' },
         L4_PLT_INT: { id: 4, key: 'L4_PLT_INT', label: 'داخل المنصة', desc: 'لجميع مستخدمي النظام الرقمي', cost: 1000, approval: true, badgeClass: 'bg-green-100 text-green-600 border-green-200', gradient: 'from-emerald-50 to-teal-50', chartColor: '#10b981' },
         L5_CROSS_INC: { id: 5, key: 'L5_CROSS_INC', label: 'شبكة SaaS العالمية', desc: 'إعلان عابر لجميع المستأجرين', cost: 1500, approval: true, badgeClass: 'bg-purple-100 text-purple-600 border-purple-200', gradient: 'from-violet-50 to-fuchsia-50', chartColor: '#8b5cf6' }
@@ -330,7 +330,7 @@ const app = (() => {
                             <p class="text-sm text-gray-600 mb-3">النوع: <span class="font-semibold">${e.type === 'HQ' ? 'المكتب الرئيسي' : e.type === 'BRANCH' ? 'فرع' : e.type === 'INCUBATOR' ? 'حاضنة' : e.type === 'PLATFORM' ? 'منصة' : e.type === 'OFFICE' ? 'مكتب' : 'كيان'}</span></p>
                             <div class="flex flex-wrap gap-2 text-xs">
                               <span class="bg-gray-100 px-3 py-1 rounded-full">الحالة: ${e.status === 'active' ? '✅ نشط' : '⏸️ معطل'}</span>
-                              ${e.id ? `<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full">الكود: ${e.id}</span>` : ''}
+                              ${e.id ? `<span class="bg-red-50 text-red-700 px-3 py-1 rounded-full">الكود: ${e.id}</span>` : ''}
                               ${e.location ? `<span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full">الموقع: ${e.location}</span>` : ''}
                             </div>
                           </div>
@@ -389,7 +389,7 @@ const app = (() => {
                             <h2 class="text-2xl font-bold text-gray-800 mb-2">خطأ في الاتصال بالسيرفر</h2>
                             <p class="text-gray-600 mb-4">لا يمكن تحميل قائمة الكيانات</p>
                             <p class="text-sm text-gray-500 mb-4">${error.message}</p>
-                            <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                            <button onclick="location.reload()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700">
                                 <i class="fas fa-sync-alt mr-2"></i>
                                 إعادة المحاولة
                             </button>
@@ -698,7 +698,7 @@ const app = (() => {
                         <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
                         <h2 class="text-2xl font-bold text-slate-800 mb-2">عذراً، حدث خطأ في تحميل النظام</h2>
                         <p class="text-slate-600 mb-4">يرجى تحديث الصفحة أو المحاولة لاحقاً</p>
-                        <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <button onclick="location.reload()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
                             <i class="fas fa-sync-alt mr-2"></i>
                             تحديث الصفحة
                         </button>
@@ -786,7 +786,7 @@ const app = (() => {
             // Add "Change Entity" button
             menuHTML += `
                 <button onclick="app.changeTenant()" 
-                        class="w-full mb-4 p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition flex items-center gap-3 group shadow-lg">
+                        class="w-full mb-4 p-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-red-700 transition flex items-center gap-3 group shadow-lg">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                         <i class="fas fa-exchange-alt text-lg"></i>
                     </div>
@@ -895,7 +895,7 @@ const app = (() => {
         
         let content = '';
         if (route === 'dashboard') {
-            view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+            view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             content = await renderDashboard();
         }
         else if (route === 'hierarchy') content = await renderHierarchy();
@@ -907,7 +907,7 @@ const app = (() => {
         else if (route === 'collections') content = renderCollections();
         else if (route === 'approvals') content = renderApprovals();
         else if (route === 'incubator') {
-            view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+            view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             await renderIncubator();
         }
         else if (route === 'entities') content = renderEntitiesManager();
@@ -1457,7 +1457,7 @@ const app = (() => {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                  ${renderKpiCard('المحفظة الرقمية', (perms.isFinance()) ? entity.balance.toLocaleString() : '****', 'fa-wallet', 'text-teal-600', 'bg-teal-50')}
-                 ${renderKpiCard('المهام النشطة', perms.getVisibleTasks().length, 'fa-tasks', 'text-blue-600', 'bg-blue-50')}
+                 ${renderKpiCard('المهام النشطة', perms.getVisibleTasks().length, 'fa-tasks', 'text-red-600', 'bg-red-50')}
                  ${renderKpiCard('تذاكر الدعم', perms.getVisibleTickets().length, 'fa-headset', 'text-red-600', 'bg-red-50')}
                  ${renderKpiCard('عدد المستخدمين', entity.users, 'fa-users', 'text-purple-600', 'bg-purple-50')}
             </div>
@@ -1483,7 +1483,7 @@ const app = (() => {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            ${renderKpiCard('إجمالي المستفيدين', stats.total_beneficiaries || 0, 'fa-users', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('إجمالي المستفيدين', stats.total_beneficiaries || 0, 'fa-users', 'text-red-600', 'bg-red-50')}
             ${renderKpiCard('البرامج النشطة', stats.total_programs || 0, 'fa-graduation-cap', 'text-green-600', 'bg-green-50')}
             ${renderKpiCard('الجلسات المنعقدة', stats.total_sessions || 0, 'fa-calendar-check', 'text-purple-600', 'bg-purple-50')}
             ${renderKpiCard('نسبة الإنجاز', Math.round(stats.overall_completion_rate || 0) + '%', 'fa-chart-line', 'text-orange-600', 'bg-orange-50')}
@@ -1509,7 +1509,7 @@ const app = (() => {
                                 </span>
                             </div>
                             <div class="flex gap-4 text-xs text-slate-600 mt-2">
-                                <span><i class="fas fa-book-open text-blue-500"></i> ${b.enrollment_count} تسجيل</span>
+                                <span><i class="fas fa-book-open text-red-500"></i> ${b.enrollment_count} تسجيل</span>
                                 <span><i class="fas fa-calendar text-green-500"></i> ${b.sessions_attended} جلسة</span>
                             </div>
                         </div>
@@ -1529,7 +1529,7 @@ const app = (() => {
                             <h4 class="font-bold text-slate-800 mb-2">${p.name}</h4>
                             <p class="text-sm text-slate-600 mb-3">${p.description || ''}</p>
                             <div class="flex gap-4 text-xs text-slate-600">
-                                <span><i class="fas fa-users text-blue-500"></i> ${p.total_beneficiaries} مستفيد</span>
+                                <span><i class="fas fa-users text-red-500"></i> ${p.total_beneficiaries} مستفيد</span>
                                 <span><i class="fas fa-calendar text-purple-500"></i> ${p.total_sessions} جلسة</span>
                                 <span><i class="fas fa-percent text-green-500"></i> ${Math.round(p.avg_completion_rate || 0)}%</span>
                             </div>
@@ -1589,7 +1589,7 @@ const app = (() => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             ${renderKpiCard('الخدمات المتاحة', stats.total_services || 0, 'fa-box', 'text-green-600', 'bg-green-50')}
-            ${renderKpiCard('الاشتراكات النشطة', stats.active_subscriptions || 0, 'fa-users-cog', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('الاشتراكات النشطة', stats.active_subscriptions || 0, 'fa-users-cog', 'text-red-600', 'bg-red-50')}
             ${renderKpiCard('إجمالي العملاء', stats.total_customers || 0, 'fa-user-tie', 'text-purple-600', 'bg-purple-50')}
             ${renderKpiCard('الإيرادات', (revenue.total_revenue || 0).toLocaleString() + ' ر.س', 'fa-dollar-sign', 'text-orange-600', 'bg-orange-50')}
         </div>
@@ -1619,7 +1619,7 @@ const app = (() => {
             <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                     <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-users-cog text-blue-500"></i> الاشتراكات
+                        <i class="fas fa-users-cog text-red-500"></i> الاشتراكات
                     </h3>
                 </div>
                 <div class="p-6 max-h-96 overflow-y-auto">
@@ -1630,7 +1630,7 @@ const app = (() => {
                                     <h4 class="font-bold text-slate-800">${sub.customer_name}</h4>
                                     <p class="text-sm text-slate-500">${sub.customer_email}</p>
                                 </div>
-                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-bold">
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">
                                     ${sub.status}
                                 </span>
                             </div>
@@ -1715,7 +1715,7 @@ const app = (() => {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            ${renderKpiCard('المواعيد القادمة', stats.upcoming_appointments || 0, 'fa-calendar-alt', 'text-blue-600', 'bg-blue-50')}
+            ${renderKpiCard('المواعيد القادمة', stats.upcoming_appointments || 0, 'fa-calendar-alt', 'text-red-600', 'bg-red-50')}
             ${renderKpiCard('مواعيد اليوم', stats.today_appointments || 0, 'fa-calendar-day', 'text-green-600', 'bg-green-50')}
             ${renderKpiCard('العملاء', stats.total_customers || 0, 'fa-users', 'text-purple-600', 'bg-purple-50')}
             ${renderKpiCard('الخدمات النشطة', stats.active_services || 0, 'fa-cogs', 'text-orange-600', 'bg-orange-50')}
@@ -1725,18 +1725,18 @@ const app = (() => {
             <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                     <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-calendar-check text-blue-500"></i> جدول اليوم
+                        <i class="fas fa-calendar-check text-red-500"></i> جدول اليوم
                     </h3>
                 </div>
                 <div class="p-6 max-h-96 overflow-y-auto">
                     ${data.today_schedule && data.today_schedule.length > 0 ? data.today_schedule.map(apt => `
-                        <div class="mb-4 p-4 border-r-4 border-blue-500 bg-blue-50/30 rounded-lg hover:shadow-md transition">
+                        <div class="mb-4 p-4 border-r-4 border-red-500 bg-red-50/30 rounded-lg hover:shadow-md transition">
                             <div class="flex justify-between items-start mb-2">
                                 <div>
                                     <h4 class="font-bold text-slate-800">${apt.service_name}</h4>
                                     <p class="text-sm text-slate-500">${new Date(apt.session_date).toLocaleTimeString('ar-SA', {hour: '2-digit', minute: '2-digit'})}</p>
                                 </div>
-                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-bold">
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">
                                     ${apt.duration || 60} دقيقة
                                 </span>
                             </div>
@@ -1765,7 +1765,7 @@ const app = (() => {
                             </div>
                             <p class="text-sm text-slate-600 mb-2">${apt.location || 'موقع غير محدد'}</p>
                             <div class="flex gap-4 text-xs text-slate-600">
-                                <span><i class="fas fa-users text-blue-500"></i> ${apt.booked_slots}/${apt.total_slots || '∞'}</span>
+                                <span><i class="fas fa-users text-red-500"></i> ${apt.booked_slots}/${apt.total_slots || '∞'}</span>
                                 <span class="text-${apt.booked_slots >= (apt.total_slots || 999) ? 'red' : 'green'}-600">
                                     ${apt.booked_slots >= (apt.total_slots || 999) ? 'مكتمل' : 'متاح'}
                                 </span>
@@ -1793,7 +1793,7 @@ const app = (() => {
                                 </div>
                             </div>
                             <div class="flex gap-4 text-xs text-slate-600 mt-2">
-                                <span><i class="fas fa-calendar text-blue-500"></i> ${c.total_bookings} حجز</span>
+                                <span><i class="fas fa-calendar text-red-500"></i> ${c.total_bookings} حجز</span>
                                 <span><i class="fas fa-check-circle text-green-500"></i> ${c.active_bookings} نشط</span>
                                 ${c.last_visit ? `<span><i class="fas fa-clock text-orange-500"></i> ${new Date(c.last_visit).toLocaleDateString('ar-SA')}</span>` : ''}
                             </div>
@@ -1816,7 +1816,7 @@ const app = (() => {
                                     <span class="font-bold text-slate-700">${stat.status}</span>
                                     <div class="flex gap-4 text-sm">
                                         <span class="text-slate-600">إجمالي: ${stat.count}</span>
-                                        <span class="text-blue-600">قادم: ${stat.upcoming || 0}</span>
+                                        <span class="text-red-600">قادم: ${stat.upcoming || 0}</span>
                                         <span class="text-green-600">منتهي: ${stat.completed || 0}</span>
                                     </div>
                                 </div>
@@ -1855,7 +1855,7 @@ const app = (() => {
                         ${db.entities.filter(e => e.type !== 'HQ').map(e => `
                             <tr class="hover:bg-slate-50">
                                 <td class="p-5 font-bold">${e.name} <span class="block text-xs text-gray-400 font-normal">${e.id}</span></td>
-                                <td class="p-5"><span class="px-2 py-1 rounded bg-blue-50 text-blue-600 font-bold text-xs">${e.plan}</span></td>
+                                <td class="p-5"><span class="px-2 py-1 rounded bg-red-50 text-red-600 font-bold text-xs">${e.plan}</span></td>
                                 <td class="p-5 font-mono text-gray-600">${e.expiry}</td>
                                 <td class="p-5"><span class="text-green-600 font-bold">نشط</span></td>
                             </tr>
@@ -1970,7 +1970,7 @@ const app = (() => {
                 </button>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                ${renderKpiCard('إجمالي المشاهدات', totalImpressions.toLocaleString(), 'fa-eye', 'text-blue-600', 'bg-blue-50')}
+                ${renderKpiCard('إجمالي المشاهدات', totalImpressions.toLocaleString(), 'fa-eye', 'text-red-600', 'bg-red-50')}
                 ${renderKpiCard('النقرات (Clicks)', totalClicks.toLocaleString(), 'fa-mouse-pointer', 'text-purple-600', 'bg-purple-50')}
                 ${renderKpiCard('معدل النقر (CTR)', ctr + '%', 'fa-percent', 'text-green-600', 'bg-green-50')}
                 ${renderKpiCard('الإنفاق الكلي', totalSpent.toLocaleString() + ' ر.س', 'fa-coins', 'text-orange-600', 'bg-orange-50')}
@@ -2178,7 +2178,7 @@ const app = (() => {
                     <div class="text-3xl font-bold">${totalExpenses.toLocaleString()} ر.س</div>
                 </div>
 
-                <div class="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-2xl text-white shadow-xl">
+                <div class="bg-gradient-to-br from-red-500 to-cyan-600 p-6 rounded-2xl text-white shadow-xl">
                     <div class="flex items-center justify-between mb-2">
                         <i class="fas fa-wallet text-3xl opacity-30"></i>
                         <span class="text-xs opacity-75">الرصيد الصافي</span>
@@ -2223,14 +2223,14 @@ const app = (() => {
                             <tr class="hover:bg-slate-50">
                                 <td class="p-4 text-slate-400">${idx + 1}</td>
                                 <td class="p-4 text-slate-600">${l.date || '-'}</td>
-                                <td class="p-4 text-blue-600 font-mono">${l.trxId || '-'}</td>
+                                <td class="p-4 text-red-600 font-mono">${l.trxId || '-'}</td>
                                 <td class="p-4 text-slate-700">${l.desc || '-'}</td>
                                 <td class="p-4 text-green-600 font-bold">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
                                 <td class="p-4 text-red-600 font-bold">${l.debit > 0 ? l.debit.toLocaleString() : '-'}</td>
                                 <td class="p-4 font-bold text-slate-800">${(l.balance || 0).toLocaleString()}</td>
                                 <td class="p-4">
                                     <div class="flex gap-2">
-                                        <button onclick="window.viewTransactionDetails('${l.trxId}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="عرض">
+                                        <button onclick="window.viewTransactionDetails('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="عرض">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <button onclick="window.deleteTransaction('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
@@ -2266,12 +2266,12 @@ const app = (() => {
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                        <i class="fas fa-money-bill-wave text-blue-600"></i>
+                        <i class="fas fa-money-bill-wave text-red-600"></i>
                         التحصيل
                     </h2>
                     <p class="text-slate-500 mt-1">متابعة الفواتير المستحقة والمدفوعات</p>
                 </div>
-                <button onclick="app.openCreateInvoiceModal()" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center gap-2">
+                <button onclick="app.openCreateInvoiceModal()" class="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-lg flex items-center gap-2">
                     <i class="fas fa-file-invoice"></i>
                     إضافة فاتورة جديدة
                 </button>
@@ -2343,12 +2343,12 @@ const app = (() => {
                                 const statusColors = {
                                     'PAID': 'bg-green-100 text-green-700',
                                     'UNPAID': 'bg-amber-100 text-amber-700',
-                                    'PARTIAL': 'bg-blue-100 text-blue-700',
+                                    'PARTIAL': 'bg-red-100 text-red-700',
                                     'OVERDUE': 'bg-red-100 text-red-700'
                                 };
                                 return `
                                 <tr class="hover:bg-slate-50">
-                                    <td class="p-4 font-mono text-blue-600">${i.id}</td>
+                                    <td class="p-4 font-mono text-red-600">${i.id}</td>
                                     <td class="p-4 text-slate-700">${i.entityId}</td>
                                     <td class="p-4 text-slate-700">${i.title || '-'}</td>
                                     <td class="p-4 font-bold text-slate-800">${i.amount.toLocaleString()} ر.س</td>
@@ -2363,7 +2363,7 @@ const app = (() => {
                                     <td class="p-4">
                                         <div class="flex gap-2">
                                             ${i.status !== 'PAID' ? `<button onclick="app.openPaymentModal('${i.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="دفع"><i class="fas fa-money-bill"></i></button>` : ''}
-                                            <button onclick="window.viewInvoiceDetails('${i.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="عرض"><i class="fas fa-eye"></i></button>
+                                            <button onclick="window.viewInvoiceDetails('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="عرض"><i class="fas fa-eye"></i></button>
                                             <button onclick="window.deleteInvoice('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف"><i class="fas fa-trash"></i></button>
                                         </div>
                                     </td>
@@ -2467,7 +2467,7 @@ const app = (() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-xs font-bold text-slate-500">رقم المعاملة</label>
-                            <div class="text-lg font-bold text-blue-600 font-mono">${transaction.trxId}</div>
+                            <div class="text-lg font-bold text-red-600 font-mono">${transaction.trxId}</div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500">نوع المعاملة</label>
@@ -2566,9 +2566,9 @@ const app = (() => {
         modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
         modal.innerHTML = `
             <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
-                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-cyan-50">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-red-50 to-cyan-50">
                     <h3 class="font-bold text-2xl text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-file-invoice text-blue-600"></i>
+                        <i class="fas fa-file-invoice text-red-600"></i>
                         تفاصيل الفاتورة
                     </h3>
                 </div>
@@ -2576,7 +2576,7 @@ const app = (() => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-xs font-bold text-slate-500">رقم الفاتورة</label>
-                            <div class="text-lg font-bold text-blue-600 font-mono">${invoice.id}</div>
+                            <div class="text-lg font-bold text-red-600 font-mono">${invoice.id}</div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500">الحالة</label>
@@ -2645,7 +2645,7 @@ const app = (() => {
         const statusBadge = (status) => {
             const badges = {
                 'PENDING': '<span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">قيد الانتظار</span>',
-                'IN_REVIEW': '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">قيد المراجعة</span>',
+                'IN_REVIEW': '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">قيد المراجعة</span>',
                 'APPROVED': '<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">معتمد</span>',
                 'REJECTED': '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">مرفوض</span>'
             };
@@ -2674,7 +2674,7 @@ const app = (() => {
             <!-- Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 ${renderKpiCard('المعلقة عليك', pendingForMe.length, 'fa-hourglass-half', 'text-yellow-600', 'bg-yellow-50')}
-                ${renderKpiCard('طلباتي', myRequests.length, 'fa-paper-plane', 'text-blue-600', 'bg-blue-50')}
+                ${renderKpiCard('طلباتي', myRequests.length, 'fa-paper-plane', 'text-red-600', 'bg-red-50')}
                 ${renderKpiCard('إجمالي الموافقات', myApprovals.length, 'fa-check-circle', 'text-green-600', 'bg-green-50')}
             </div>
 
@@ -2899,7 +2899,7 @@ const app = (() => {
                         <h2 class="text-2xl font-bold text-slate-800">المهام الداخلية</h2>
                         <p class="text-slate-500">لا توجد مهام نشطة حالياً</p>
                     </div>
-                    <button onclick="window.openCreateTaskModal()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2">
+                    <button onclick="window.openCreateTaskModal()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
                         <i class="fas fa-plus"></i> إضافة مهمة جديدة
                     </button>
                 </div>
@@ -2908,7 +2908,7 @@ const app = (() => {
                     <div class="text-6xl mb-4">📋</div>
                     <h3 class="text-xl font-bold text-slate-800 mb-2">لم تتم إضافة أي مهام بعد</h3>
                     <p class="text-slate-600 mb-6">ابدأ بإضافة مهمة جديدة لتتبع عملك وإنجازك</p>
-                    <button onclick="window.openCreateTaskModal()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition inline-flex items-center gap-2">
+                    <button onclick="window.openCreateTaskModal()" class="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition inline-flex items-center gap-2">
                         <i class="fas fa-plus-circle"></i> إنشاء أول مهمة
                     </button>
                 </div>
@@ -2928,7 +2928,7 @@ const app = (() => {
                     <h2 class="text-2xl font-bold text-slate-800">المهام الداخلية (${tasks.length})</h2>
                     <p class="text-slate-500">إدارة المهام والمشاريع</p>
                 </div>
-                <button onclick="window.openCreateTaskModal()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2">
+                <button onclick="window.openCreateTaskModal()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
                     <i class="fas fa-plus"></i> إضافة مهمة
                 </button>
             </div>
@@ -2937,7 +2937,7 @@ const app = (() => {
                 ${tasks.map(t => {
                     const statusColors = {
                         'Pending': 'bg-yellow-100 text-yellow-700',
-                        'In Progress': 'bg-blue-100 text-blue-700',
+                        'In Progress': 'bg-red-100 text-red-700',
                         'Done': 'bg-green-100 text-green-700',
                         'Cancelled': 'bg-red-100 text-red-700'
                     };
@@ -2949,7 +2949,7 @@ const app = (() => {
                     return `
                     <div onclick="window.viewTaskDetails(${t.id})" class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group">
                         <div class="flex justify-between items-start mb-3">
-                            <h4 class="font-bold text-lg text-slate-800 group-hover:text-blue-600 transition-colors">${t.title}</h4>
+                            <h4 class="font-bold text-lg text-slate-800 group-hover:text-red-600 transition-colors">${t.title}</h4>
                             <div class="flex gap-2">
                                 <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[t.status] || 'bg-slate-100 text-slate-700'}">${t.status}</span>
                                 <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 ${priorityColors[t.priority] || ''}">${t.priority}</span>
@@ -2961,7 +2961,7 @@ const app = (() => {
                             <span class="text-xs text-slate-400">
                                 <i class="fas fa-hashtag"></i> ${t.id}
                             </span>
-                            <span class="text-xs text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span class="text-xs text-red-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                                 <i class="fas fa-arrow-left ml-1"></i> اضغط للعرض
                             </span>
                         </div>
@@ -3058,7 +3058,7 @@ const app = (() => {
                         </div>
                         <p class="text-xs font-semibold opacity-90">مقرات رئيسية</p>
                     </div>
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+                    <div class="bg-gradient-to-br from-red-500 to-blue-600 rounded-xl p-4 text-white">
                         <div class="flex items-center justify-between mb-2">
                             <i class="fas fa-map-marked-alt text-2xl opacity-80"></i>
                             <span class="text-3xl font-black">${stats.active_branches || 0}</span>
@@ -3164,7 +3164,7 @@ const app = (() => {
                             
                             <!-- Create Branch Button -->
                             <button onclick="openCreateBranchModal()" 
-                                    class="group bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                    class="group bg-gradient-to-br from-red-500 to-blue-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition">
                                         <i class="fas fa-store text-3xl"></i>
@@ -3181,12 +3181,12 @@ const app = (() => {
                         </div>
                         
                         <!-- Info Box -->
-                        <div class="mt-6 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
+                        <div class="mt-6 bg-red-50 border-r-4 border-red-500 p-4 rounded-lg">
                             <div class="flex items-start gap-3">
-                                <i class="fas fa-info-circle text-blue-600 text-xl mt-0.5"></i>
+                                <i class="fas fa-info-circle text-red-600 text-xl mt-0.5"></i>
                                 <div class="flex-1">
                                     <h5 class="font-bold text-blue-900 mb-1">ملاحظة هامة</h5>
-                                    <p class="text-sm text-blue-700">يجب إنشاء الكيانات بالترتيب الهرمي: فرع ← حاضنة ← منصة ← مكتب. كل كيان يجب أن يكون تابعاً للمستوى الأعلى منه.</p>
+                                    <p class="text-sm text-red-700">يجب إنشاء الكيانات بالترتيب الهرمي: فرع ← حاضنة ← منصة ← مكتب. كل كيان يجب أن يكون تابعاً للمستوى الأعلى منه.</p>
                                 </div>
                             </div>
                         </div>
@@ -3345,10 +3345,10 @@ const app = (() => {
                         <!-- Branches -->
                         <div class="p-6 space-y-4">
                             ${branches.filter(b => b.hq_id === hq.id).map(branch => `
-                                <div class="border-r-4 border-blue-400 bg-blue-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('BRANCH', ${branch.id})">
+                                <div class="border-r-4 border-blue-400 bg-red-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('BRANCH', ${branch.id})">
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-3">
-                                            <i class="fas fa-map-marked-alt text-xl text-blue-600"></i>
+                                            <i class="fas fa-map-marked-alt text-xl text-red-600"></i>
                                             <div>
                                                 <h4 class="font-bold text-slate-800">${branch.name}</h4>
                                                 <p class="text-xs text-slate-500">${branch.city}, ${branch.country} | ${branch.code}</p>
@@ -3599,7 +3599,7 @@ const app = (() => {
         const view = document.getElementById('main-view');
         view.innerHTML = `
             <div class="flex items-center justify-center h-64">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
             </div>
         `;
         
@@ -3639,7 +3639,7 @@ const app = (() => {
             
             // Get entity icon and color based on type
             const entityConfig = {
-                'BRANCH': { icon: 'fa-map-marked-alt', color: 'blue', bgGradient: 'from-blue-600 to-blue-700' },
+                'BRANCH': { icon: 'fa-map-marked-alt', color: 'blue', bgGradient: 'from-red-600 to-red-700' },
                 'INCUBATOR': { icon: 'fa-seedling', color: 'green', bgGradient: 'from-green-600 to-green-700' },
                 'PLATFORM': { icon: 'fa-server', color: 'orange', bgGradient: 'from-orange-600 to-orange-700' },
                 'OFFICE': { icon: 'fa-briefcase', color: 'teal', bgGradient: 'from-teal-600 to-teal-700' }
@@ -3809,9 +3809,9 @@ const app = (() => {
                             </div>
                             
                             ${entity.description ? `
-                                <div class="mt-6 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
+                                <div class="mt-6 bg-red-50 border-r-4 border-red-500 p-4 rounded-lg">
                                     <h3 class="font-bold text-blue-900 mb-2">الوصف</h3>
-                                    <p class="text-sm text-blue-700">${entity.description}</p>
+                                    <p class="text-sm text-red-700">${entity.description}</p>
                                 </div>
                             ` : ''}
                         </div>
@@ -4015,7 +4015,7 @@ window.viewTaskDetails = function(taskId) {
     // Status colors
     const statusColors = {
       'Pending': 'bg-yellow-100 text-yellow-700 border-yellow-300',
-      'In Progress': 'bg-blue-100 text-blue-700 border-blue-300',
+      'In Progress': 'bg-red-100 text-red-700 border-blue-300',
       'Done': 'bg-green-100 text-green-700 border-green-300',
       'Cancelled': 'bg-red-100 text-red-700 border-red-300'
     };
@@ -4292,13 +4292,13 @@ window.renderIncubatorSystem = async function(currentUser) {
   container.innerHTML = `
     <div class="space-y-6">
       <!-- Header with Back Button -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg flex justify-between items-center">
+      <div class="bg-gradient-to-r from-red-600 to-blue-800 text-white p-6 rounded-lg shadow-lg flex justify-between items-center">
         <div>
           <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
           <p class="text-blue-100">نظام إدارة التدريب والتأهيل - ${currentUser.entityName}</p>
           <p class="text-blue-200 text-sm mt-2" id="platform-name-header">جاري تحميل المنصة...</p>
         </div>
-        <button onclick="window.changePlatform()" class="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg transition">
+        <button onclick="window.changePlatform()" class="bg-red-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg transition">
           <i class="fas fa-arrow-right ml-2"></i> اختر منصة أخرى
         </button>
       </div>
@@ -4309,10 +4309,10 @@ window.renderIncubatorSystem = async function(currentUser) {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">البرامج التدريبية</p>
-              <p class="text-3xl font-bold text-blue-600" id="stat-programs">-</p>
+              <p class="text-3xl font-bold text-red-600" id="stat-programs">-</p>
             </div>
-            <div class="bg-blue-100 p-3 rounded-full">
-              <i class="fas fa-book text-blue-600 text-2xl"></i>
+            <div class="bg-red-100 p-3 rounded-full">
+              <i class="fas fa-book text-red-600 text-2xl"></i>
             </div>
           </div>
         </div>
@@ -4360,23 +4360,23 @@ window.renderIncubatorSystem = async function(currentUser) {
         <div class="border-b border-gray-200">
           <nav class="flex -mb-px overflow-x-auto">
             <button onclick="window.switchIncubatorTab('overview')" 
-                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'overview' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'overview' ? 'border-b-2 border-red-500 text-red-600' : 'text-gray-500 hover:text-gray-700'}">
               📊 نظرة عامة
             </button>
             <button onclick="window.switchIncubatorTab('programs')" 
-                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'programs' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'programs' ? 'border-b-2 border-red-500 text-red-600' : 'text-gray-500 hover:text-gray-700'}">
               📚 البرامج التدريبية
             </button>
             <button onclick="window.switchIncubatorTab('beneficiaries')" 
-                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'beneficiaries' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'beneficiaries' ? 'border-b-2 border-red-500 text-red-600' : 'text-gray-500 hover:text-gray-700'}">
               👥 المستفيدون
             </button>
             <button onclick="window.switchIncubatorTab('sessions')" 
-                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'sessions' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'sessions' ? 'border-b-2 border-red-500 text-red-600' : 'text-gray-500 hover:text-gray-700'}">
               📅 الدفعات التدريبية
             </button>
             <button onclick="window.switchIncubatorTab('certificates')" 
-                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'certificates' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}">
+                    class="incubator-tab-btn px-6 py-3 font-medium text-sm whitespace-nowrap ${window.incubatorActiveTab === 'certificates' ? 'border-b-2 border-red-500 text-red-600' : 'text-gray-500 hover:text-gray-700'}">
               🏆 الشهادات
             </button>
           </nav>
@@ -4426,7 +4426,7 @@ window.switchIncubatorTab = async function(tab) {
   // Show loading
   content.innerHTML = `
     <div class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
     </div>
   `;
   
@@ -4455,11 +4455,11 @@ window.switchIncubatorTab = async function(tab) {
     
     // Update tab buttons
     document.querySelectorAll('.incubator-tab-btn').forEach(btn => {
-      btn.className = btn.className.replace(/border-b-2 border-blue-500 text-blue-600/, 'text-gray-500 hover:text-gray-700');
+      btn.className = btn.className.replace(/border-b-2 border-red-500 text-red-600/, 'text-gray-500 hover:text-gray-700');
     });
     const activeBtn = document.querySelector(`button[onclick*="${tab}"]`);
     if (activeBtn) {
-      activeBtn.className = activeBtn.className.replace(/text-gray-500 hover:text-gray-700/, 'border-b-2 border-blue-500 text-blue-600');
+      activeBtn.className = activeBtn.className.replace(/text-gray-500 hover:text-gray-700/, 'border-b-2 border-red-500 text-red-600');
     }
   } catch (error) {
     console.error('Error loading tab:', error);
@@ -4479,14 +4479,14 @@ async function renderPlatformSelection(currentUser) {
   container.innerHTML = `
     <div class="space-y-6">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg">
+      <div class="bg-gradient-to-r from-red-600 to-blue-800 text-white p-6 rounded-lg shadow-lg">
         <h1 class="text-3xl font-bold mb-2">🎓 حاضنة السلامة</h1>
         <p class="text-blue-100">اختر المنصة التدريبية - ${currentUser.entityName}</p>
       </div>
 
       <!-- Loading -->
       <div class="bg-white p-8 rounded-lg shadow text-center" id="platforms-loading">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         <p class="text-gray-600 mt-4">جاري تحميل المنصات...</p>
       </div>
 
@@ -4528,14 +4528,14 @@ async function renderPlatformSelection(currentUser) {
     gridEl.innerHTML = platforms.map(platform => `
       <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden group relative">
         <div onclick="window.selectPlatform(${platform.id}, '${platform.name}')" class="cursor-pointer">
-          <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white group-hover:from-blue-600 group-hover:to-blue-700 transition">
+          <div class="bg-gradient-to-r from-red-500 to-blue-600 p-6 text-white group-hover:from-red-600 group-hover:to-red-700 transition">
             <i class="fas fa-graduation-cap text-4xl mb-3"></i>
             <h3 class="text-xl font-bold">${platform.name}</h3>
             ${platform.description ? `<p class="text-sm text-blue-100 mt-2">${platform.description}</p>` : ''}
             ${platform.code ? `<p class="text-xs text-blue-200 mt-2">الرمز: ${platform.code}</p>` : ''}
           </div>
           <div class="p-6">
-            <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-bold">
+            <button class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition font-bold">
               اختر المنصة <i class="fas fa-arrow-left ml-2"></i>
             </button>
           </div>
@@ -4586,8 +4586,8 @@ async function renderIncubatorOverview(container, currentUser) {
       <h3 class="text-lg font-bold mb-4">نظام الحاضنة</h3>
       <p class="text-gray-600 mb-4">مرحباً بك في نظام حاضنة السلامة لإدارة التدريب والتأهيل</p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button onclick="window.switchIncubatorTab('programs')" class="border rounded-lg p-6 hover:shadow-lg transition text-right cursor-pointer bg-white hover:bg-blue-50">
-          <i class="fas fa-book text-blue-600 text-3xl mb-3"></i>
+        <button onclick="window.switchIncubatorTab('programs')" class="border rounded-lg p-6 hover:shadow-lg transition text-right cursor-pointer bg-white hover:bg-red-50">
+          <i class="fas fa-book text-red-600 text-3xl mb-3"></i>
           <h4 class="font-bold mb-2 text-lg">البرامج التدريبية</h4>
           <p class="text-sm text-gray-600">إدارة البرامج والدورات التدريبية</p>
         </button>
@@ -4620,7 +4620,7 @@ async function renderTrainingPrograms(container, currentUser) {
       <div class="space-y-4">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold">البرامج التدريبية</h3>
-          <button onclick="window.openAddProgramModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+          <button onclick="window.openAddProgramModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
             <i class="fas fa-plus ml-2"></i> برنامج جديد
           </button>
         </div>
@@ -4631,7 +4631,7 @@ async function renderTrainingPrograms(container, currentUser) {
               <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white">
                 <div class="flex justify-between items-start mb-3">
                   <div>
-                    <h4 class="font-bold text-lg text-blue-600">${program.name}</h4>
+                    <h4 class="font-bold text-lg text-red-600">${program.name}</h4>
                     <p class="text-sm text-gray-500">${program.code}</p>
                   </div>
                   <span class="px-3 py-1 rounded-full text-xs font-medium ${
@@ -4667,7 +4667,7 @@ async function renderTrainingPrograms(container, currentUser) {
                     صلاحية الشهادة: ${program.certificate_validity_months} شهر
                   </span>
                   <div class="space-x-2 space-x-reverse flex gap-2">
-                    <button onclick="window.viewProgramDetails(${program.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm border border-blue-600 rounded">
+                    <button onclick="window.viewProgramDetails(${program.id})" class="text-red-600 hover:text-blue-800 px-3 py-1 text-sm border border-red-600 rounded">
                       <i class="fas fa-eye ml-1"></i> عرض
                     </button>
                     <button onclick="window.editProgram(${program.id})" class="text-green-600 hover:text-green-800 px-3 py-1 text-sm border border-green-600 rounded">
@@ -4683,7 +4683,7 @@ async function renderTrainingPrograms(container, currentUser) {
             <i class="fas fa-book text-gray-400 text-5xl mb-4"></i>
             <h4 class="text-lg font-bold text-gray-700 mb-2">لا توجد برامج تدريبية</h4>
             <p class="text-gray-500 mb-4">ابدأ بإضافة أول برنامج تدريبي</p>
-            <button onclick="window.openAddProgramModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="window.openAddProgramModal()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
               <i class="fas fa-plus ml-2"></i> إضافة برنامج
             </button>
           </div>
@@ -4746,14 +4746,14 @@ async function renderBeneficiaries(container, currentUser) {
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 py-1 text-xs rounded-full ${
                         b.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                        b.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' : 
+                        b.status === 'GRADUATED' ? 'bg-red-100 text-blue-800' : 
                         'bg-gray-100 text-gray-800'
                       }">
                         ${b.status === 'ACTIVE' ? 'نشط' : b.status === 'GRADUATED' ? 'خريج' : 'متوقف'}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                      <button onclick="window.viewBeneficiaryDetails(${b.id})" class="text-blue-600 hover:text-blue-800 ml-3 px-2 py-1 border border-blue-600 rounded">
+                      <button onclick="window.viewBeneficiaryDetails(${b.id})" class="text-red-600 hover:text-blue-800 ml-3 px-2 py-1 border border-red-600 rounded">
                         <i class="fas fa-eye ml-1"></i> عرض
                       </button>
                       <button onclick="window.editBeneficiary(${b.id})" class="text-green-600 hover:text-green-800 px-2 py-1 border border-green-600 rounded">
@@ -4814,7 +4814,7 @@ async function renderTrainingSessions(container, currentUser) {
                   <span class="px-3 py-1 rounded-full text-xs font-medium ${
                     session.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
                     session.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                    session.status === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
+                    session.status === 'PLANNED' ? 'bg-red-100 text-blue-800' :
                     'bg-gray-100 text-gray-800'
                   }">
                     ${
@@ -4850,7 +4850,7 @@ async function renderTrainingSessions(container, currentUser) {
                     <i class="fas fa-map-marker-alt ml-2"></i>${session.location || 'لم يحدد'}
                   </span>
                   <div class="space-x-2 space-x-reverse flex gap-2">
-                    <button onclick="window.viewSessionDetails(${session.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm border border-blue-600 rounded">
+                    <button onclick="window.viewSessionDetails(${session.id})" class="text-red-600 hover:text-blue-800 px-3 py-1 text-sm border border-red-600 rounded">
                       <i class="fas fa-eye ml-1"></i> عرض
                     </button>
                     <button onclick="window.editSession(${session.id})" class="text-orange-600 hover:text-orange-800 px-3 py-1 text-sm border border-orange-600 rounded">
@@ -4939,7 +4939,7 @@ async function renderCertificates(container, currentUser) {
                     <span class="text-gray-600">الدرجة:</span>
                     <span class="font-bold ${
                       cert.grade === 'EXCELLENT' ? 'text-green-600' :
-                      cert.grade === 'VERY_GOOD' ? 'text-blue-600' :
+                      cert.grade === 'VERY_GOOD' ? 'text-red-600' :
                       'text-gray-600'
                     }">${cert.final_score}%</span>
                   </div>
@@ -4991,7 +4991,7 @@ window.openAddProgramModal = function() {
   modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
   modal.innerHTML = `
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="bg-blue-600 text-white p-6 rounded-t-lg">
+      <div class="bg-red-600 text-white p-6 rounded-t-lg">
         <h2 class="text-2xl font-bold">إضافة برنامج تدريبي جديد</h2>
       </div>
       
@@ -5063,7 +5063,7 @@ window.openAddProgramModal = function() {
         </div>
         
         <div class="flex gap-3 pt-4 border-t">
-          <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold">
+          <button type="submit" class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-bold">
             <i class="fas fa-save ml-2"></i> حفظ البرنامج
           </button>
           <button type="button" onclick="window.closeIncubatorModal()" 
@@ -5440,7 +5440,7 @@ window.viewSessionDetails = async function(sessionId) {
               <span class="px-3 py-1 rounded-full text-xs font-medium ${
                 session.status === 'IN_PROGRESS' ? 'bg-orange-100 text-orange-800' :
                 session.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                session.status === 'PLANNED' ? 'bg-blue-100 text-blue-800' :
+                session.status === 'PLANNED' ? 'bg-red-100 text-blue-800' :
                 'bg-gray-100 text-gray-800'
               }">
                 ${
@@ -5731,7 +5731,7 @@ window.manageEnrollments = async function(sessionId, sessionName) {
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 py-1 text-xs rounded-full ${
                         enrollment.status === 'ATTENDING' ? 'bg-green-100 text-green-800' :
-                        enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                        enrollment.status === 'COMPLETED' ? 'bg-red-100 text-blue-800' :
                         enrollment.status === 'REGISTERED' ? 'bg-yellow-100 text-yellow-800' :
                         enrollment.status === 'WITHDRAWN' ? 'bg-gray-100 text-gray-800' :
                         'bg-red-100 text-red-800'
@@ -6306,7 +6306,7 @@ window.viewProgramDetails = async function(programId) {
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
       <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="bg-blue-600 text-white p-6 rounded-t-lg">
+        <div class="bg-red-600 text-white p-6 rounded-t-lg">
           <h2 class="text-2xl font-bold">تفاصيل البرنامج التدريبي</h2>
         </div>
         
@@ -6362,7 +6362,7 @@ window.viewProgramDetails = async function(programId) {
           
           <!-- Actions -->
           <div class="flex gap-3 pt-4 border-t">
-            <button onclick="window.editProgram(${programId})" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold">
+            <button onclick="window.editProgram(${programId})" class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-bold">
               <i class="fas fa-edit ml-2"></i> تعديل
             </button>
             <button onclick="window.closeIncubatorModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold">
@@ -6398,7 +6398,7 @@ window.editProgram = async function(programId) {
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
       <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="bg-blue-600 text-white p-6 rounded-t-lg">
+        <div class="bg-red-600 text-white p-6 rounded-t-lg">
           <h2 class="text-2xl font-bold">تعديل البرنامج التدريبي</h2>
         </div>
         
@@ -6455,14 +6455,14 @@ window.editProgram = async function(programId) {
             <div class="md:col-span-2">
               <label class="flex items-center">
                 <input type="checkbox" name="is_active" ${program.is_active ? 'checked' : ''}
-                       class="ml-2 h-4 w-4 text-blue-600 rounded">
+                       class="ml-2 h-4 w-4 text-red-600 rounded">
                 <span class="text-sm font-bold text-gray-700">البرنامج نشط</span>
               </label>
             </div>
           </div>
           
           <div class="flex gap-3 pt-4 border-t">
-            <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold">
+            <button type="submit" class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-bold">
               <i class="fas fa-save ml-2"></i> حفظ التعديلات
             </button>
             <button type="button" onclick="window.closeIncubatorModal()" 
@@ -6564,7 +6564,7 @@ window.viewBeneficiaryDetails = async function(beneficiaryId) {
               <label class="block text-sm font-bold text-gray-700 mb-1">الحالة</label>
               <span class="px-3 py-1 rounded-full text-xs font-medium ${
                 beneficiary.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                beneficiary.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' : 
+                beneficiary.status === 'GRADUATED' ? 'bg-red-100 text-blue-800' : 
                 'bg-gray-100 text-gray-800'
               }">
                 ${beneficiary.status === 'ACTIVE' ? 'نشط' : beneficiary.status === 'GRADUATED' ? 'خريج' : 'متوقف'}
@@ -6807,14 +6807,14 @@ const renderEmployees = async () => {
                     <h2 class="text-2xl font-bold text-slate-800">إدارة الموظفين</h2>
                     <p class="text-slate-500">عرض وإدارة جميع الموظفين في النظام</p>
                 </div>
-                <button onclick="app.openCreateEmployeeModal()" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg">
+                <button onclick="app.openCreateEmployeeModal()" class="bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-lg">
                     <i class="fas fa-user-plus"></i> إضافة موظف جديد
                 </button>
             </div>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+                <div class="bg-gradient-to-br from-red-500 to-blue-600 rounded-xl p-4 text-white">
                     <div class="flex items-center justify-between mb-2">
                         <i class="fas fa-users text-2xl opacity-80"></i>
                         <span class="text-3xl font-black">${employees.length}</span>
@@ -6910,8 +6910,8 @@ const renderEmployees = async () => {
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                                <span class="font-bold text-blue-600">${emp.full_name.charAt(0)}</span>
+                                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <span class="font-bold text-red-600">${emp.full_name.charAt(0)}</span>
                                             </div>
                                             <div>
                                                 <p class="font-semibold text-slate-800">${emp.full_name}</p>
@@ -6945,7 +6945,7 @@ const renderEmployees = async () => {
                                     </td>
                                     <td class="px-4 py-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button onclick="app.viewEmployee(${emp.id})" class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50" title="عرض">
+                                            <button onclick="app.viewEmployee(${emp.id})" class="text-red-600 hover:text-blue-800 p-2 rounded-lg hover:bg-red-50" title="عرض">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <button onclick="app.editEmployee(${emp.id})" class="text-orange-600 hover:text-orange-800 p-2 rounded-lg hover:bg-orange-50" title="تعديل">
@@ -6966,7 +6966,7 @@ const renderEmployees = async () => {
                             <i class="fas fa-users text-6xl text-slate-300 mb-4"></i>
                             <h4 class="text-xl font-bold text-slate-600 mb-2">لا يوجد موظفين</h4>
                             <p class="text-slate-500 mb-4">ابدأ بإضافة موظف جديد للنظام</p>
-                            <button onclick="app.openCreateEmployeeModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-bold">
+                            <button onclick="app.openCreateEmployeeModal()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 font-bold">
                                 <i class="fas fa-plus ml-2"></i> إضافة موظف
                             </button>
                         </div>
@@ -7016,7 +7016,7 @@ app.viewEmployee = async function(id) {
         modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4';
         modal.innerHTML = `
             <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
+                <div class="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-t-2xl">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold flex items-center gap-3">
                             <i class="fas fa-user-circle"></i>
@@ -7048,7 +7048,7 @@ app.viewEmployee = async function(id) {
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-bold text-gray-500">الكيان</label>
-                            <p class="text-lg font-semibold text-blue-600">${employee.entity_name || 'غير محدد'}</p>
+                            <p class="text-lg font-semibold text-red-600">${employee.entity_name || 'غير محدد'}</p>
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-bold text-gray-500">نوع التوظيف</label>
@@ -7082,7 +7082,7 @@ app.viewEmployee = async function(id) {
                         <i class="fas fa-times ml-2"></i>
                         إغلاق
                     </button>
-                    <button onclick="app.editEmployee(${id}); this.closest('.fixed').remove();" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition">
+                    <button onclick="app.editEmployee(${id}); this.closest('.fixed').remove();" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold transition">
                         <i class="fas fa-edit ml-2"></i>
                         تعديل البيانات
                     </button>
