@@ -3607,9 +3607,19 @@ const app = (() => {
                                         </p>
                                     </div>
                                 </div>
-                                <span class="px-4 py-2 rounded-full text-sm font-bold ${entity.is_active ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}">
-                                    ${entity.is_active ? '✅ نشط' : '❌ غير نشط'}
-                                </span>
+                                <div class="flex gap-2">
+                                    <span class="px-4 py-2 rounded-full text-sm font-bold ${entity.is_active ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}">
+                                        ${entity.is_active ? '✅ نشط' : '❌ غير نشط'}
+                                    </span>
+                                    <button onclick="${entityType === 'BRANCH' ? `deleteBranch(${entityId}, '${entity.name.replace(/'/g, "\\'")}')` : 
+                                                        entityType === 'INCUBATOR' ? `deleteIncubator(${entityId}, '${entity.name.replace(/'/g, "\\'")}')` :
+                                                        entityType === 'PLATFORM' ? `deletePlatform(${entityId}, '${entity.name.replace(/'/g, "\\'")}')` :
+                                                        `deleteOffice(${entityId}, '${entity.name.replace(/'/g, "\\'")}')`}" 
+                                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold transition flex items-center gap-2">
+                                        <i class="fas fa-trash"></i>
+                                        <span>حذف</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -4443,19 +4453,24 @@ async function renderPlatformSelection(currentUser) {
 
     // Render platforms
     gridEl.innerHTML = platforms.map(platform => `
-      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden cursor-pointer group"
-           onclick="window.selectPlatform(${platform.id}, '${platform.name}')">
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white group-hover:from-blue-600 group-hover:to-blue-700 transition">
-          <i class="fas fa-graduation-cap text-4xl mb-3"></i>
-          <h3 class="text-xl font-bold">${platform.name}</h3>
-          ${platform.description ? `<p class="text-sm text-blue-100 mt-2">${platform.description}</p>` : ''}
-          ${platform.code ? `<p class="text-xs text-blue-200 mt-2">الرمز: ${platform.code}</p>` : ''}
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden group relative">
+        <div onclick="window.selectPlatform(${platform.id}, '${platform.name}')" class="cursor-pointer">
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white group-hover:from-blue-600 group-hover:to-blue-700 transition">
+            <i class="fas fa-graduation-cap text-4xl mb-3"></i>
+            <h3 class="text-xl font-bold">${platform.name}</h3>
+            ${platform.description ? `<p class="text-sm text-blue-100 mt-2">${platform.description}</p>` : ''}
+            ${platform.code ? `<p class="text-xs text-blue-200 mt-2">الرمز: ${platform.code}</p>` : ''}
+          </div>
+          <div class="p-6">
+            <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-bold">
+              اختر المنصة <i class="fas fa-arrow-left ml-2"></i>
+            </button>
+          </div>
         </div>
-        <div class="p-6">
-          <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-bold">
-            اختر المنصة <i class="fas fa-arrow-left ml-2"></i>
-          </button>
-        </div>
+        <button onclick="event.stopPropagation(); deletePlatform(${platform.id}, '${platform.name.replace(/'/g, "\\'")}'); return false;" 
+                class="absolute top-2 left-2 bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600 transition z-10">
+          <i class="fas fa-trash"></i>
+        </button>
       </div>
     `).join('');
 
