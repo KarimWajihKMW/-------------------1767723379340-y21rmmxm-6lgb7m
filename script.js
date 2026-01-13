@@ -7272,8 +7272,16 @@ app.submitCreateEmployee = async function() {
         return;
     }
 
+    // Ensure hire_date is null if empty (not empty string)
+    if (!employeeData.hire_date) {
+        employeeData.hire_date = null;
+    }
+
+    // Log data for debugging
+    console.log('Employee data being sent:', employeeData);
+
     try {
-        await window.fetchAPI('/employees', {
+        const response = await window.fetchAPI('/employees', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(employeeData)
@@ -7283,6 +7291,7 @@ app.submitCreateEmployee = async function() {
         app.closeCreateEmployeeModal();
         app.loadRoute('employees'); // Refresh employees page
     } catch (error) {
+        console.error('Employee creation error:', error);
         alert('خطأ في إضافة الموظف: ' + error.message);
     }
 };

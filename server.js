@@ -1561,6 +1561,11 @@ app.post('/api/employees', async (req, res) => {
       emergency_contact, emergency_phone 
     } = req.body;
 
+    console.log('Creating employee with data:', {
+      employee_number, full_name, position, department, assigned_entity_type,
+      hire_date, employment_type
+    });
+
     const result = await db.query(
       `INSERT INTO employees (
         employee_number, full_name, email, phone, national_id,
@@ -1580,7 +1585,8 @@ app.post('/api/employees', async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Employee creation error:', error.message, error.stack);
+    res.status(500).json({ error: error.message, details: error.detail });
   }
 });
 
