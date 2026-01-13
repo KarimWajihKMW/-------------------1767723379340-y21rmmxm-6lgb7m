@@ -7623,17 +7623,13 @@ async function loadIncubatorsForOfficeByBranch() {
 }
 
 // Load platforms for office dropdown based on selected incubator
+// Shows ALL platforms regardless of the incubator
 async function loadPlatformsForOfficeByIncubator() {
   const incubatorId = document.getElementById('office_incubator_id').value;
   
-  if (!incubatorId) {
-    document.getElementById('office_platform_id').innerHTML = '<option value="">-- اختر منصة --</option>';
-    return;
-  }
-  
   try {
-    // Get the incubator details to find its platforms
-    const response = await fetch(`${API_BASE_URL}/incubators/${incubatorId}/platforms`);
+    // Get ALL platforms
+    const response = await fetch(`${API_BASE_URL}/platforms`);
     const platforms = await response.json();
     
     const select = document.getElementById('office_platform_id');
