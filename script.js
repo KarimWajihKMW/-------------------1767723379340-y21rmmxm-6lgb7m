@@ -2251,6 +2251,9 @@ const app = (() => {
 
     const renderTasksManager = () => {
         const tasks = perms.getVisibleTasks();
+        console.log('📋 Tasks Manager: currentUser.entityId =', currentUser?.entityId, 'tasks count =', tasks.length);
+        console.log('📊 All db.tasks:', db.tasks);
+        console.log('🔍 Filtered tasks:', tasks);
         
         if (tasks.length === 0) {
             return `
@@ -2273,6 +2276,12 @@ const app = (() => {
                         <i class="fas fa-plus-circle"></i> إنشاء أول مهمة
                     </button>
                 </div>
+                
+                ${db.tasks.length > 0 ? `
+                <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mt-6">
+                    <p class="text-yellow-700"><i class="fas fa-info-circle ml-2"></i>ملاحظة: يوجد ${db.tasks.length} مهام في النظام لكن لا تتعلق بكيانك الحالي (${currentUser?.entityId})</p>
+                </div>
+                ` : ''}
             </div>`;
         }
         
