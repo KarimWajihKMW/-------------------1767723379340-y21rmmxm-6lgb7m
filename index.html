@@ -742,24 +742,34 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">نوع الكيان *</label>
-                            <select id="assigned_entity_type" required onchange="loadEntityOptions()" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">-- اختر نوع الكيان --</option>
-                                <option value="HQ">المقر الرئيسي</option>
-                                <option value="BRANCH">فرع</option>
-                                <option value="INCUBATOR">حاضنة</option>
-                                <option value="PLATFORM">منصة</option>
-                                <option value="OFFICE">مكتب</option>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">المكتب</label>
+                            <select id="assigned_office" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">-- اختر المكتب --</option>
                             </select>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">الكيان المحدد *</label>
-                            <select id="entity_select" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">-- اختر الكيان --</option>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">المنصة</label>
+                            <select id="assigned_platform" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">-- اختر المنصة --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">الحاضنة</label>
+                            <select id="assigned_incubator" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">-- اختر الحاضنة --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">الفرع</label>
+                            <select id="assigned_branch" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">-- اختر الفرع --</option>
                             </select>
                         </div>
                     </div>
+                    <p class="text-xs text-gray-500 mt-2">* يمكنك اختيار واحد فقط من هذه الخيارات</p>
                 </div>
 
                 <!-- Additional Info -->

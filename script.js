@@ -6893,8 +6893,10 @@ const renderEmployees = async () => {
                                 <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">رقم الموظف</th>
                                 <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">الاسم</th>
                                 <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">المسمى الوظيفي</th>
-                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">القسم</th>
-                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">الكيان</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">المكتب</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">المنصة</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">الحاضنة</th>
+                                <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">الفرع</th>
                                 <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">الراتب</th>
                                 <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">الحالة</th>
                                 <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">الإجراءات</th>
@@ -6921,13 +6923,16 @@ const renderEmployees = async () => {
                                         <span class="text-sm font-medium text-slate-700">${emp.position || '-'}</span>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <span class="text-sm text-slate-600">${emp.department || '-'}</span>
+                                        <span class="text-sm text-slate-600">${emp.assigned_entity_type === 'OFFICE' ? (emp.entity_name || '-') : '-'}</span>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <div>
-                                            <p class="text-sm font-semibold text-slate-800">${emp.entity_name || 'غير محدد'}</p>
-                                            <p class="text-xs text-slate-500">${emp.assigned_entity_type}</p>
-                                        </div>
+                                        <span class="text-sm text-slate-600">${emp.assigned_entity_type === 'PLATFORM' ? (emp.entity_name || '-') : '-'}</span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span class="text-sm text-slate-600">${emp.assigned_entity_type === 'INCUBATOR' ? (emp.entity_name || '-') : '-'}</span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <span class="text-sm text-slate-600">${emp.assigned_entity_type === 'BRANCH' ? (emp.entity_name || '-') : '-'}</span>
                                     </td>
                                     <td class="px-4 py-4 text-center">
                                         <span class="font-bold text-green-600">${emp.salary ? parseFloat(emp.salary).toLocaleString() + ' SAR' : '-'}</span>
@@ -7132,11 +7137,11 @@ app.deleteEmployee = async function(id, name) {
 };
 
 // Open create employee modal
-app.openCreateEmployeeModal = function() {
+app.openCreateEmployeeModal = async function() {
     const modal = document.getElementById('createEmployeeModal');
     if (modal) {
         modal.classList.remove('hidden');
-        loadEntitiesForEmployee();
+        await loadAllEntitiesForEmployee();
     }
 };
 
@@ -7146,59 +7151,66 @@ app.closeCreateEmployeeModal = function() {
     if (modal) {
         modal.classList.add('hidden');
         document.getElementById('createEmployeeForm').reset();
-        document.getElementById('entity_select').innerHTML = '<option value="">-- اختر الكيان --</option>';
     }
 };
 
-// Load entities for employee assignment
-app.loadEntitiesForEmployee = async function() {
-    const entityType = document.getElementById('assigned_entity_type').value;
-    const entitySelect = document.getElementById('entity_select');
-    
-    if (!entityType) {
-        entitySelect.innerHTML = '<option value="">-- اختر الكيان --</option>';
-        return;
-    }
-
+// Load all entities for employee assignment
+async function loadAllEntitiesForEmployee() {
     try {
-        let endpoint = '';
-        switch (entityType) {
-            case 'HQ':
-                entitySelect.innerHTML = '<option value="HQ-1">المقر الرئيسي</option>';
-                return;
-            case 'BRANCH':
-                endpoint = '/branches';
-                break;
-            case 'INCUBATOR':
-                endpoint = '/incubators';
-                break;
-            case 'PLATFORM':
-                endpoint = '/platforms';
-                break;
-            case 'OFFICE':
-                endpoint = '/offices';
-                break;
-        }
+        const [branches, incubators, platforms, offices] = await Promise.all([
+            window.fetchAPI('/branches'),
+            window.fetchAPI('/incubators'),
+            window.fetchAPI('/platforms'),
+            window.fetchAPI('/offices')
+        ]);
 
-        const entities = await window.fetchAPI(endpoint);
-        
-        entitySelect.innerHTML = '<option value="">-- اختر الكيان --</option>';
-        entities.forEach(entity => {
+        // Populate branches
+        const branchSelect = document.getElementById('assigned_branch');
+        branchSelect.innerHTML = '<option value="">-- اختر الفرع --</option>';
+        branches.forEach(entity => {
             const option = document.createElement('option');
             option.value = entity.id;
             option.textContent = entity.name;
-            entitySelect.appendChild(option);
+            branchSelect.appendChild(option);
+        });
+
+        // Populate incubators
+        const incubatorSelect = document.getElementById('assigned_incubator');
+        incubatorSelect.innerHTML = '<option value="">-- اختر الحاضنة --</option>';
+        incubators.forEach(entity => {
+            const option = document.createElement('option');
+            option.value = entity.id;
+            option.textContent = entity.name;
+            incubatorSelect.appendChild(option);
+        });
+
+        // Populate platforms
+        const platformSelect = document.getElementById('assigned_platform');
+        platformSelect.innerHTML = '<option value="">-- اختر المنصة --</option>';
+        platforms.forEach(entity => {
+            const option = document.createElement('option');
+            option.value = entity.id;
+            option.textContent = entity.name;
+            platformSelect.appendChild(option);
+        });
+
+        // Populate offices
+        const officeSelect = document.getElementById('assigned_office');
+        officeSelect.innerHTML = '<option value="">-- اختر المكتب --</option>';
+        offices.forEach(entity => {
+            const option = document.createElement('option');
+            option.value = entity.id;
+            option.textContent = entity.name;
+            officeSelect.appendChild(option);
         });
     } catch (error) {
         console.error('Error loading entities:', error);
-        entitySelect.innerHTML = '<option value="">خطأ في تحميل الكيانات</option>';
     }
-};
+}
 
 // Submit create employee form
 app.submitCreateEmployee = async function() {
     const form = document.getElementById('createEmployeeForm');
-    const formData = new FormData(form);
     
     // Get form values
     const employeeData = {
@@ -7217,31 +7229,38 @@ app.submitCreateEmployee = async function() {
         emergency_phone: document.getElementById('emergency_phone').value || null
     };
 
-    // Handle entity assignment
-    const entityType = document.getElementById('assigned_entity_type').value;
-    const entityId = document.getElementById('entity_select').value;
+    // Handle entity assignment - check which one is selected
+    const branchId = document.getElementById('assigned_branch').value;
+    const incubatorId = document.getElementById('assigned_incubator').value;
+    const platformId = document.getElementById('assigned_platform').value;
+    const officeId = document.getElementById('assigned_office').value;
+
+    // Count selected entities
+    const selectedCount = [branchId, incubatorId, platformId, officeId].filter(id => id).length;
     
-    // Add entity type to data
-    employeeData.assigned_entity_type = entityType;
+    if (selectedCount === 0) {
+        alert('يجب اختيار كيان واحد على الأقل (مكتب أو منصة أو حاضنة أو فرع)');
+        return;
+    }
     
-    // Set entity IDs based on type (matching server.js schema)
-    if (entityType === 'HQ') {
-        employeeData.hq_id = 1; // HQ ID
-    } else if (entityType && entityId) {
-        switch (entityType) {
-            case 'BRANCH':
-                employeeData.branch_id = parseInt(entityId);
-                break;
-            case 'INCUBATOR':
-                employeeData.incubator_id = parseInt(entityId);
-                break;
-            case 'PLATFORM':
-                employeeData.platform_id = parseInt(entityId);
-                break;
-            case 'OFFICE':
-                employeeData.office_id = parseInt(entityId);
-                break;
-        }
+    if (selectedCount > 1) {
+        alert('يمكنك اختيار كيان واحد فقط');
+        return;
+    }
+
+    // Set entity type and ID based on selection
+    if (branchId) {
+        employeeData.assigned_entity_type = 'BRANCH';
+        employeeData.branch_id = parseInt(branchId);
+    } else if (incubatorId) {
+        employeeData.assigned_entity_type = 'INCUBATOR';
+        employeeData.incubator_id = parseInt(incubatorId);
+    } else if (platformId) {
+        employeeData.assigned_entity_type = 'PLATFORM';
+        employeeData.platform_id = parseInt(platformId);
+    } else if (officeId) {
+        employeeData.assigned_entity_type = 'OFFICE';
+        employeeData.office_id = parseInt(officeId);
     }
 
     // Validate required fields
