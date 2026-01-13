@@ -7292,7 +7292,7 @@ window.submitCreateBranch = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء الفرع "${result.name}" بنجاح!`);
     closeCreateBranchModal();
-    window.location.href = '/'  // العودة للصفحة الرئيسية
+    window.location.href = '/hierarchy'; // البقاء في الهيكل الهرمي
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7357,7 +7357,7 @@ window.submitCreateIncubator = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء الحاضنة "${result.name}" بنجاح!`);
     closeCreateIncubatorModal();
-    window.location.href = '/'; // العودة للصفحة الرئيسية
+    window.location.href = '/hierarchy'; // البقاء في الهيكل الهرمي
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7454,7 +7454,7 @@ window.submitCreatePlatform = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء المنصة "${result.name}" بنجاح!`);
     closeCreatePlatformModal();
-    window.location.href = '/'; // العودة للصفحة الرئيسية
+    window.location.href = '/hierarchy'; // البقاء في الهيكل الهرمي
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7595,7 +7595,7 @@ window.submitCreateOffice = async function() {
     const result = await response.json();
     alert(`✅ تم إنشاء المكتب "${result.name}" بنجاح!`);
     closeCreateOfficeModal();
-    window.location.href = '/'; // العودة للصفحة الرئيسية
+    window.location.href = '/hierarchy'; // البقاء في الهيكل الهرمي
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7641,7 +7641,7 @@ window.deleteBranch = async function(branchId, branchName) {
     if (!response.ok) throw new Error('فشل في حذف الفرع');
     
     alert(`✅ تم حذف الفرع "${branchName}" بنجاح`);
-    window.location.href = '/';
+    window.location.href = '/hierarchy';
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7661,7 +7661,7 @@ window.deleteIncubator = async function(incubatorId, incubatorName) {
     if (!response.ok) throw new Error('فشل في حذف الحاضنة');
     
     alert(`✅ تم حذف الحاضنة "${incubatorName}" بنجاح`);
-    window.location.href = '/';
+    window.location.href = '/hierarchy';
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7681,7 +7681,7 @@ window.deletePlatform = async function(platformId, platformName) {
     if (!response.ok) throw new Error('فشل في حذف المنصة');
     
     alert(`✅ تم حذف المنصة "${platformName}" بنجاح`);
-    window.location.href = '/';
+    window.location.href = '/hierarchy';
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
@@ -7701,7 +7701,7 @@ window.deleteOffice = async function(officeId, officeName) {
     if (!response.ok) throw new Error('فشل في حذف المكتب');
     
     alert(`✅ تم حذف المكتب "${officeName}" بنجاح`);
-    window.location.href = '/';
+    window.location.href = '/hierarchy';
   } catch (error) {
     alert(`❌ خطأ: ${error.message}`);
   }
