@@ -282,12 +282,12 @@ const app = (() => {
                     modal.id = 'tenant-selector';
                     modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm';
                     modal.innerHTML = `
-                    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden max-h-[90vh] flex flex-col">
                         <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-8 text-white">
                             <h1 class="text-3xl font-bold mb-2">🏢 نظام نايوش ERP</h1>
                             <p class="text-purple-100">اختر الكيان الذي تريد تسجيل الدخول منه</p>
                         </div>
-                        <div class="p-8">
+                        <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 ${entities.map(e => `
                                     <div class="tenant-card cursor-pointer p-6 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all transform hover:scale-105"
