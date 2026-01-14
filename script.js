@@ -3222,6 +3222,7 @@ const app = (() => {
                                 <th class="p-4 text-xs font-bold text-slate-600 uppercase">المنصة</th>
                                 <th class="p-4 text-xs font-bold text-slate-600 uppercase">المكتب</th>
                                 <th class="p-4 text-xs font-bold text-slate-600 uppercase">الخيارات</th>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الحالة</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -3298,8 +3299,14 @@ const app = (() => {
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="p-4 text-center">
+                                        ${isActive ? 
+                                            '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200"><i class="fas fa-check-circle ml-1"></i> مفعّل</span>' : 
+                                            '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fas fa-pause-circle ml-1"></i> موقوف</span>'
+                                        }
+                                    </td>
                                 </tr>`;
-                            }).join('') : '<tr><td colspan="6" class="p-8 text-center text-slate-400">لا توجد كيانات</td></tr>'}
+                            }).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد كيانات</td></tr>'}
                         </tbody>
                     </table>
                 </div>
