@@ -975,7 +975,15 @@ const app = (() => {
             view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             content = await renderDashboard();
         }
-        else if (route === 'hierarchy') content = await renderHierarchy();
+        else if (route === 'hierarchy') {
+            content = await renderHierarchy();
+            // Load branch relationships after rendering
+            setTimeout(() => {
+                if (typeof app !== 'undefined' && app.loadBranchRelationships) {
+                    app.loadBranchRelationships();
+                }
+            }, 500);
+        }
         else if (route === 'employees') content = await renderEmployees();
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
@@ -4660,6 +4668,33 @@ const app = (() => {
                     </div>
                 </div>
 
+                <!-- Branch Relationships Section -->
+                <div class="bg-white rounded-2xl shadow-lg border-2 border-indigo-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/20 rounded-full p-3">
+                                    <i class="fas fa-project-diagram text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-black">علاقات الفروع بالحاضنات والمنصات</h3>
+                                    <p class="text-sm opacity-90">عرض جميع العلاقات المدمجة بين الفروع والحاضنات والمنصات</p>
+                                </div>
+                            </div>
+                            <button onclick="app.loadBranchRelationships()" class="bg-white text-indigo-600 px-4 py-2 rounded-xl font-bold hover:bg-indigo-50 transition flex items-center gap-2 shadow-lg">
+                                <i class="fas fa-sync-alt"></i> تحديث
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="branch-relationships-container" class="p-6">
+                        <div class="text-center py-12">
+                            <i class="fas fa-spinner fa-spin text-6xl text-indigo-300 mb-4"></i>
+                            <p class="text-slate-500">جاري تحميل العلاقات...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Hierarchical Tree View -->
                 ${headquarters.map(hq => `
                     <div class="bg-white rounded-2xl shadow-lg border-2 border-purple-200 overflow-hidden">
@@ -5246,6 +5281,242 @@ const app = (() => {
         }
     };
 
+    // Load Branch Relationships
+    const loadBranchRelationships = async () => {
+        const container = document.getElementById('branch-relationships-container');
+        if (!container) return;
+
+        try {
+            // Show loading state
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-6xl text-indigo-300 mb-4"></i>
+                    <p class="text-slate-500">جاري تحميل العلاقات...</p>
+                </div>
+            `;
+
+            // Fetch merge stats
+            const statsResponse = await fetch('/api/merge-stats');
+            const stats = await statsResponse.json();
+
+            // Fetch branches stats
+            const branchesResponse = await fetch('/api/branches/stats');
+            const branchesStats = await branchesResponse.json();
+
+            // Display stats cards
+            container.innerHTML = `
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-green-600 mb-2">دمج الفروع-الحاضنات</p>
+                                <p class="text-3xl font-black text-green-700">${stats.merges.branchIncubators.toLocaleString()}</p>
+                                <p class="text-xs text-green-600 mt-1">علاقة نشطة</p>
+                            </div>
+                            <i class="fas fa-seedling text-5xl text-green-300"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-orange-600 mb-2">دمج الفروع-المنصات</p>
+                                <p class="text-3xl font-black text-orange-700">${stats.merges.branchPlatforms.toLocaleString()}</p>
+                                <p class="text-xs text-orange-600 mt-1">علاقة نشطة</p>
+                            </div>
+                            <i class="fas fa-server text-5xl text-orange-300"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-indigo-600 mb-2">إجمالي العلاقات</p>
+                                <p class="text-3xl font-black text-indigo-700">${stats.merges.total.toLocaleString()}</p>
+                                <p class="text-xs text-indigo-600 mt-1">علاقة نشطة</p>
+                            </div>
+                            <i class="fas fa-project-diagram text-5xl text-indigo-300"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Details Table -->
+                <div class="bg-slate-50 rounded-xl p-4 mb-6">
+                    <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-table text-indigo-600"></i>
+                        تفاصيل العلاقات لكل فرع
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-white">
+                                <tr>
+                                    <th class="text-right px-4 py-3 text-sm font-bold text-slate-700">اسم الفرع</th>
+                                    <th class="text-center px-4 py-3 text-sm font-bold text-green-700">
+                                        <i class="fas fa-seedling ml-1"></i>الحاضنات
+                                    </th>
+                                    <th class="text-center px-4 py-3 text-sm font-bold text-orange-700">
+                                        <i class="fas fa-server ml-1"></i>المنصات
+                                    </th>
+                                    <th class="text-center px-4 py-3 text-sm font-bold text-indigo-700">
+                                        <i class="fas fa-link ml-1"></i>الإجمالي
+                                    </th>
+                                    <th class="text-center px-4 py-3 text-sm font-bold text-slate-700">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                                ${branchesStats.map((branch, index) => `
+                                    <tr class="hover:bg-white transition-colors ${index % 2 === 0 ? 'bg-slate-50' : 'bg-white'}">
+                                        <td class="px-4 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                                                    <i class="fas fa-store text-red-600"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-slate-800">${branch.name}</p>
+                                                    <p class="text-xs text-slate-500">معرف: ${branch.id}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 text-center">
+                                            <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-700">
+                                                <i class="fas fa-seedling"></i>
+                                                ${parseInt(branch.incubator_count).toLocaleString()}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-4 text-center">
+                                            <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold bg-orange-100 text-orange-700">
+                                                <i class="fas fa-server"></i>
+                                                ${parseInt(branch.platform_count).toLocaleString()}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-4 text-center">
+                                            <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold bg-indigo-100 text-indigo-700">
+                                                <i class="fas fa-link"></i>
+                                                ${(parseInt(branch.incubator_count) + parseInt(branch.platform_count)).toLocaleString()}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-4 text-center">
+                                            <button onclick="app.viewBranchDetails('${branch.id}')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto">
+                                                <i class="fas fa-eye"></i> عرض
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="bg-indigo-50 border-r-4 border-indigo-500 p-4 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-info-circle text-indigo-600 text-xl mt-0.5"></i>
+                        <div class="flex-1">
+                            <h5 class="font-bold text-indigo-900 mb-1">معلومات</h5>
+                            <p class="text-sm text-indigo-700">
+                                تم دمج جميع الفروع (${stats.entities.branches}) مع جميع الحاضنات (${stats.entities.incubators}) والمنصات (${stats.entities.platforms}). 
+                                كل فرع الآن مربوط بـ ${stats.entities.incubators} حاضنة و ${stats.entities.platforms} منصة بشكل تلقائي.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        } catch (error) {
+            console.error('Error loading branch relationships:', error);
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-exclamation-triangle text-6xl text-red-300 mb-4"></i>
+                    <h4 class="text-xl font-bold text-slate-600 mb-2">فشل تحميل العلاقات</h4>
+                    <p class="text-slate-500 mb-4">${error.message}</p>
+                    <button onclick="app.loadBranchRelationships()" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition">
+                        <i class="fas fa-redo ml-2"></i>إعادة المحاولة
+                    </button>
+                </div>
+            `;
+        }
+    };
+
+    // View Branch Details
+    const viewBranchDetails = async (branchId) => {
+        try {
+            // Fetch incubators and platforms for this branch
+            const [incubatorsRes, platformsRes] = await Promise.all([
+                fetch(`/api/branches/${branchId}/incubators`),
+                fetch(`/api/branches/${branchId}/platforms`)
+            ]);
+
+            const incubators = await incubatorsRes.json();
+            const platforms = await platformsRes.json();
+
+            // Create modal content
+            const modalContent = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="this.remove()">
+                    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+                        <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-2xl font-black">تفاصيل علاقات الفرع</h3>
+                                <button onclick="this.closest('.fixed').remove()" class="text-white hover:bg-white/20 rounded-full p-2 transition">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+                            <!-- Incubators Section -->
+                            <div class="mb-6">
+                                <h4 class="text-lg font-bold text-green-700 mb-4 flex items-center gap-2">
+                                    <i class="fas fa-seedling"></i>
+                                    الحاضنات المربوطة (${incubators.length})
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    ${incubators.slice(0, 10).map(inc => `
+                                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-green-200 flex items-center justify-center">
+                                                <i class="fas fa-seedling text-green-700"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-semibold text-green-900 text-sm">${inc.name}</p>
+                                                <p class="text-xs text-green-600">${inc.relationship_status}</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ${incubators.length > 10 ? `<p class="text-sm text-slate-500 mt-3 text-center">وعدد ${incubators.length - 10} حاضنة أخرى...</p>` : ''}
+                            </div>
+
+                            <!-- Platforms Section -->
+                            <div>
+                                <h4 class="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2">
+                                    <i class="fas fa-server"></i>
+                                    المنصات المربوطة (${platforms.length})
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    ${platforms.slice(0, 10).map(plat => `
+                                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-orange-200 flex items-center justify-center">
+                                                <i class="fas fa-server text-orange-700"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-semibold text-orange-900 text-sm">${plat.name}</p>
+                                                <p class="text-xs text-orange-600">${plat.relationship_status} | Score: ${parseFloat(plat.performance_score || 0).toFixed(1)}%</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ${platforms.length > 10 ? `<p class="text-sm text-slate-500 mt-3 text-center">وعدد ${platforms.length - 10} منصة أخرى...</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+
+        } catch (error) {
+            console.error('Error viewing branch details:', error);
+            showToast('فشل تحميل تفاصيل الفرع', 'error');
+        }
+    };
+
     // Expose functions
     return { 
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
@@ -5254,6 +5525,7 @@ const app = (() => {
         handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
         openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails,
         openRequestModal, submitRequest, filterRequests, viewRequestDetails, deleteRequest,
+        loadBranchRelationships, viewBranchDetails,
         getDb: () => db  // Expose db for task management
     };
 })();
