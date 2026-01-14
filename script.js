@@ -1168,12 +1168,71 @@ const app = (() => {
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1.5">طريقة الدفع</label>
-                                <select id="inv-payment-method" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
-                                    <option value="">اختر طريقة الدفع</option>
-                                    <option value="نقدي">💵 نقدي</option>
-                                    <option value="تحويل بنكي">🏦 تحويل بنكي</option>
-                                    <option value="شيك">📝 شيك</option>
-                                </select>
+                                
+                                <!-- Payment Method Cards -->
+                                <div class="grid grid-cols-3 gap-3 mb-4">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment-type" value="نقدي" class="peer sr-only" onchange="document.getElementById('bank-options').classList.add('hidden')">
+                                        <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition text-center hover:border-blue-300">
+                                            <i class="fas fa-money-bill-wave text-3xl text-blue-600 mb-2"></i>
+                                            <div class="text-sm font-bold text-slate-700">نقدي</div>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment-type" value="تحويل بنكي" class="peer sr-only" onchange="document.getElementById('bank-options').classList.remove('hidden')">
+                                        <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition text-center hover:border-blue-300">
+                                            <i class="fas fa-university text-3xl text-blue-600 mb-2"></i>
+                                            <div class="text-sm font-bold text-slate-700">تحويل بنكي</div>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="payment-type" value="شيك" class="peer sr-only" onchange="document.getElementById('bank-options').classList.add('hidden')">
+                                        <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition text-center hover:border-blue-300">
+                                            <i class="fas fa-file-invoice text-3xl text-blue-600 mb-2"></i>
+                                            <div class="text-sm font-bold text-slate-700">شيك</div>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <!-- Bank Selection (Shows when "تحويل بنكي" is selected) -->
+                                <div id="bank-options" class="hidden animate-fade-in">
+                                    <select id="inv-bank-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 mb-3">
+                                        <option value="">اختر البنك</option>
+                                        <optgroup label="البنوك السعودية الرئيسية">
+                                            <option value="الراجحي">🏦 مصرف الراجحي</option>
+                                            <option value="الأهلي">🏦 البنك الأهلي السعودي</option>
+                                            <option value="الرياض">🏦 بنك الرياض</option>
+                                            <option value="سامبا">🏦 سامبا (SNB)</option>
+                                            <option value="الفرنسي">🏦 البنك السعودي الفرنسي</option>
+                                            <option value="الإنماء">🏦 بنك الإنماء</option>
+                                            <option value="العربي الوطني">🏦 البنك العربي الوطني</option>
+                                            <option value="ساب">🏦 البنك السعودي البريطاني (ساب)</option>
+                                            <option value="الجزيرة">🏦 بنك الجزيرة</option>
+                                            <option value="البلاد">🏦 بنك البلاد</option>
+                                        </optgroup>
+                                        <optgroup label="بوابات الدفع الإلكتروني">
+                                            <option value="PayPal">💳 PayPal</option>
+                                            <option value="Mastercard">💳 Mastercard</option>
+                                            <option value="Visa">💳 Visa</option>
+                                            <option value="Square">💳 Square</option>
+                                            <option value="Stripe">💳 Stripe</option>
+                                            <option value="STC Pay">💳 STC Pay</option>
+                                            <option value="Apple Pay">💳 Apple Pay</option>
+                                        </optgroup>
+                                    </select>
+                                    
+                                    <!-- Payment Gateway Logos -->
+                                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-center gap-4 flex-wrap">
+                                        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" alt="PayPal" class="h-6 opacity-60 hover:opacity-100 transition" title="PayPal">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-6 opacity-60 hover:opacity-100 transition" title="Mastercard">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-6 opacity-60 hover:opacity-100 transition" title="Visa">
+                                        <div class="text-xs font-bold text-slate-500">Square</div>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" id="inv-payment-method">
                             </div>
                         </div>
                     </div>
@@ -1195,9 +1254,17 @@ const app = (() => {
         const customerNumber = document.getElementById('inv-customer-number').value;
         const customerPhone = document.getElementById('inv-customer-phone').value;
         const customerEmail = document.getElementById('inv-customer-email').value;
-        const paymentMethod = document.getElementById('inv-payment-method').value;
+        
+        // Get payment method
+        const paymentType = document.querySelector('input[name="payment-type"]:checked')?.value || '';
+        const bankName = document.getElementById('inv-bank-name')?.value || '';
+        let paymentMethod = paymentType;
+        if (paymentType === 'تحويل بنكي' && bankName) {
+            paymentMethod = `تحويل بنكي - ${bankName}`;
+        }
 
         if(!title || !amount || !due) return showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
+        if(!paymentType) return showToast('يرجى اختيار طريقة الدفع', 'error');
 
         const newInv = {
             id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
