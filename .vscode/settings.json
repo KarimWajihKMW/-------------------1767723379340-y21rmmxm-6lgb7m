@@ -349,6 +349,34 @@
         "/^node generate-merge-report\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node test-merge-visibility\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node server\\.js &$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sleep 3 && node test-merge-apis\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sleep 2 && node test-merge-apis\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-merge-apis\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-entity-type\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -c server\\.js && node -c script\\.js && echo \"✅ Build validation PASSED\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
