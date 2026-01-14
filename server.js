@@ -81,9 +81,42 @@ app.get('/api/health', async (req, res) => {
 // Get all entities
 app.get('/api/entities', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM entities ORDER BY created_at DESC');
+    // PERFORMANCE OPTIMIZATION: Support query parameters for filtering and limiting
+    const { types, limit, offset } = req.query;
+    
+    let query = 'SELECT * FROM entities WHERE 1=1';
+    const values = [];
+    let paramIndex = 1;
+    
+    // Filter by entity types (comma-separated)
+    if (types) {
+      const typeArray = types.split(',').map(t => t.trim());
+      query += ` AND type = ANY($${paramIndex})`;
+      values.push(typeArray);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    // Apply limit
+    if (limit) {
+      query += ` LIMIT $${paramIndex}`;
+      values.push(parseInt(limit));
+      paramIndex++;
+    }
+    
+    // Apply offset for pagination
+    if (offset) {
+      query += ` OFFSET $${paramIndex}`;
+      values.push(parseInt(offset));
+      paramIndex++;
+    }
+    
+    const result = await db.query(query, values);
+    console.log(`📊 [/api/entities] Returned ${result.rows.length} entities (filters: ${types || 'none'}, limit: ${limit || 'none'})`);
     res.json(result.rows);
   } catch (error) {
+    console.error('❌ [/api/entities] Error:', error);
     res.status(500).json({ error: error.message });
   }
 });

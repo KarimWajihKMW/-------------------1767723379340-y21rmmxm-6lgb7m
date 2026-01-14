@@ -506,9 +506,11 @@ const app = (() => {
             const needsAds = loadAll || ['ads'].includes(routeName);
             
             // Load entities (needed for most routes)
+            // OPTIMIZATION: Load only essential entities (HQ, BRANCH, and limited others)
             if (needsEntities && (!db.entities || db.entities.length === 0)) {
-                console.log('📥 Loading entities...');
-                const entities = await fetchAPI('/entities');
+                console.log('📥 Loading essential entities only...');
+                // Only load HQ, BRANCH, and limited INCUBATOR/PLATFORM/OFFICE
+                const entities = await fetchAPI('/entities?types=HQ,BRANCH&limit=50');
                 db.entities = entities.map(e => ({
                     id: e.id,
                     name: e.name,
@@ -522,7 +524,7 @@ const app = (() => {
                     theme: e.theme
                 }));
                 loadedData.entities = db.entities.length;
-                console.log(`✅ Loaded ${loadedData.entities} entities`);
+                console.log(`✅ Loaded ${loadedData.entities} essential entities (optimized)`);
             } else if (db.entities) {
                 loadedData.entities = db.entities.length;
                 console.log(`✅ Using cached ${loadedData.entities} entities`);
