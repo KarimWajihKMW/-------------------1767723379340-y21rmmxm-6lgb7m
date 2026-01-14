@@ -2206,6 +2206,10 @@ const app = (() => {
                                 <tr>
                                     <th class="p-4">رقم الفاتورة</th>
                                     ${perms.isHQ() ? '<th class="p-4">المستأجر</th>' : ''}
+                                    ${perms.isHQ() ? '<th class="p-4">فرع</th>' : ''}
+                                    ${perms.isHQ() ? '<th class="p-4">حاضنة</th>' : ''}
+                                    ${perms.isHQ() ? '<th class="p-4">منصة</th>' : ''}
+                                    ${perms.isHQ() ? '<th class="p-4">مكتب</th>' : ''}
                                     <th class="p-4">البيان</th>
                                     <th class="p-4">المبلغ</th>
                                     <th class="p-4">المدفوع</th>
@@ -2217,11 +2221,21 @@ const app = (() => {
                             <tbody class="divide-y divide-slate-50 text-sm">
                                 ${invoices.length ? invoices.map(inv => {
                                     const status = INVOICE_STATUS[inv.status] || INVOICE_STATUS.UNPAID;
-                                    const entityName = db.entities.find(e => e.id === inv.entityId)?.name || inv.entityId;
+                                    const entity = db.entities.find(e => e.id === inv.entityId);
+                                    const entityName = entity?.name || inv.entityId;
+                                    const isBranch = entity?.type === 'BRANCH';
+                                    const isIncubator = entity?.type === 'INCUBATOR';
+                                    const isPlatform = entity?.type === 'PLATFORM';
+                                    const isOffice = entity?.type === 'OFFICE';
+                                    
                                     return `
                                     <tr class="hover:bg-slate-50 transition group">
                                         <td class="p-4 font-mono font-bold text-brand-600">${inv.id}</td>
                                         ${perms.isHQ() ? `<td class="p-4 font-bold text-slate-700">${entityName}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isBranch ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isIncubator ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isPlatform ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isOffice ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
                                         <td class="p-4 text-slate-600">${inv.title}</td>
                                         <td class="p-4 font-bold">${inv.amount.toLocaleString()}</td>
                                         <td class="p-4 text-green-600">${inv.paidAmount.toLocaleString()}</td>
