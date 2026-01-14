@@ -1205,7 +1205,6 @@ const app = (() => {
         showToast('تم إصدار الفاتورة بنجاح', 'success');
         loadRoute('collections');
     };
-    };
 
     const openPaymentModal = (invId) => {
         const inv = db.invoices.find(i => i.id === invId);
