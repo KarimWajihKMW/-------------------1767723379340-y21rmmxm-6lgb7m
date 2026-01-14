@@ -2955,19 +2955,25 @@ const app = (() => {
             return response.json();
         })
         .then(data => {
-            // Remove from local cache
-            const index = db.invoices.findIndex(inv => inv.id === invoiceId);
-            if (index !== -1) {
-                db.invoices.splice(index, 1);
-            }
-            
             logAction('DELETE_INVOICE', `Deleted Invoice ${invoiceId}`);
             showToast('تم حذف الفاتورة بنجاح', 'success');
             
-            // إعادة تنشيط الصفحة الحالية
+            // إعادة تحميل البيانات من API ثم إعادة عرض الصفحة
             const currentRoute = window.location.hash.slice(1) || 'dashboard';
             
-            setTimeout(() => {
+            // Reload invoices from API
+            return fetch('/api/invoices', {
+                headers: {
+                    'x-entity-type': window.currentUser?.entityType || 'HQ',
+                    'x-entity-id': window.currentUser?.entityId || 'HQ001'
+                }
+            })
+            .then(response => response.json())
+            .then(invoices => {
+                // Update local cache
+                db.invoices = invoices;
+                
+                // Re-render the current page
                 if (currentRoute === 'finance' || currentRoute === 'collections') {
                     const view = document.getElementById('view');
                     if (view) {
@@ -2978,7 +2984,7 @@ const app = (() => {
                         }
                     }
                 }
-            }, 200);
+            });
         })
         .catch(error => {
             console.error('Error deleting invoice:', error);
