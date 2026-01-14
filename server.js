@@ -941,6 +941,7 @@ app.delete('/api/branches/:id', async (req, res) => {
 app.get('/api/branches/:id/incubators', async (req, res) => {
   try {
     const { id } = req.params;
+    // جميع الحاضنات متاحة لجميع الفروع
     const result = await db.query(`
       SELECT i.*, 
              b.name as branch_name, b.code as branch_code,
@@ -948,9 +949,9 @@ app.get('/api/branches/:id/incubators', async (req, res) => {
       FROM incubators i
       LEFT JOIN branches b ON i.branch_id = b.id
       LEFT JOIN headquarters hq ON b.hq_id = hq.id
-      WHERE i.branch_id = $1 AND i.is_active = true
+      WHERE i.is_active = true
       ORDER BY i.name
-    `, [id]);
+    `);
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
