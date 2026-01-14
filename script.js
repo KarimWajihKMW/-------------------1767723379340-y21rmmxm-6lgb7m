@@ -3,6 +3,17 @@
  * Features: Strict Isolation, Tenant Scopes, Subscription Mgmt, Advertiser Panel, Financial System
  */
 
+// Global Loading Indicator Functions
+function showGlobalLoading() {
+    const loader = document.getElementById('global-loading');
+    if (loader) loader.style.display = 'flex';
+}
+
+function hideGlobalLoading() {
+    const loader = document.getElementById('global-loading');
+    if (loader) loader.style.display = 'none';
+}
+
 // Global API Configuration (accessible from all functions)
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000/api'
@@ -13,6 +24,15 @@ const app = (() => {
     
     // Helper function to fetch data from API with data isolation headers
     async function fetchAPI(endpoint, options = {}) {
+        // Use cached fetch if available and not a POST/PUT/DELETE request
+        const method = options.method || 'GET';
+        const useCache = method === 'GET' && typeof cachedFetchAPI !== 'undefined';
+        
+        if (useCache) {
+            console.log(`🔄 [fetchAPI] Using cached fetch for: ${endpoint}`);
+            return cachedFetchAPI(endpoint, options);
+        }
+        
         try {
             const headers = {
                 'Content-Type': 'application/json',
@@ -33,6 +53,9 @@ const app = (() => {
             const url = `${API_BASE_URL}${endpoint}`;
             console.log(`🌐 [fetchAPI] Requesting: ${url}`);
             
+            // Show global loading indicator for write operations
+            if (method !== 'GET') showGlobalLoading();
+            
             const response = await fetch(url, {
                 ...options,
                 headers,
@@ -49,6 +72,10 @@ const app = (() => {
             
             const data = await response.json();
             console.log(`✅ [fetchAPI] Success for ${endpoint}:`, Array.isArray(data) ? `${data.length} items` : 'object');
+            
+            // Hide loading indicator
+            if (method !== 'GET') hideGlobalLoading();
+            
             return data;
         } catch (error) {
             console.error(`❌ [fetchAPI] Error for ${endpoint}:`, error);
@@ -57,6 +84,10 @@ const app = (() => {
                 stack: error.stack,
                 name: error.name
             });
+            
+            // Hide loading indicator on error
+            if (method !== 'GET') hideGlobalLoading();
+            
             throw error;
         }
     }
@@ -445,8 +476,8 @@ const app = (() => {
     }
 
     // --- DATA LOADING FROM API ---
-    async function loadDataFromAPI() {
-        console.log('🔄 Starting loadDataFromAPI...');
+    async function loadDataFromAPI(routeName = null) {
+        console.log('🔄 Starting loadDataFromAPI for route:', routeName || 'ALL');
         console.log('👤 Current user:', currentUser);
         
         // Verify that currentUser is set
@@ -465,137 +496,176 @@ const app = (() => {
         };
         
         try {
-            // Load entities
-            console.log('📥 Loading entities...');
-            const entities = await fetchAPI('/entities');
-            db.entities = entities.map(e => ({
-                id: e.id,
-                name: e.name,
-                type: e.type,
-                status: e.status,
-                balance: parseFloat(e.balance) || 0,
-                location: e.location,
-                users: e.users_count || 0,
-                plan: e.plan,
-                expiry: e.expiry_date,
-                theme: e.theme
-            }));
-            loadedData.entities = db.entities.length;
-            console.log(`✅ Loaded ${loadedData.entities} entities`);
+            // OPTIMIZATION: Load only data needed for current route
+            const loadAll = !routeName; // Load all only on initial login
+            const needsEntities = loadAll || ['dashboard', 'hierarchy', 'entities'].includes(routeName);
+            const needsUsers = loadAll || ['users'].includes(routeName);
+            const needsInvoices = loadAll || ['invoices'].includes(routeName);
+            const needsTransactions = loadAll || ['invoices', 'ledger'].includes(routeName);
+            const needsLedger = loadAll || ['ledger'].includes(routeName);
+            const needsAds = loadAll || ['ads'].includes(routeName);
+            
+            // Load entities (needed for most routes)
+            if (needsEntities && (!db.entities || db.entities.length === 0)) {
+                console.log('📥 Loading entities...');
+                const entities = await fetchAPI('/entities');
+                db.entities = entities.map(e => ({
+                    id: e.id,
+                    name: e.name,
+                    type: e.type,
+                    status: e.status,
+                    balance: parseFloat(e.balance) || 0,
+                    location: e.location,
+                    users: e.users_count || 0,
+                    plan: e.plan,
+                    expiry: e.expiry_date,
+                    theme: e.theme
+                }));
+                loadedData.entities = db.entities.length;
+                console.log(`✅ Loaded ${loadedData.entities} entities`);
+            } else if (db.entities) {
+                loadedData.entities = db.entities.length;
+                console.log(`✅ Using cached ${loadedData.entities} entities`);
+            }
 
-            // Load users
-            console.log('📥 Loading users...');
-            const users = await fetchAPI('/users');
-            db.users = users.map(u => ({
-                id: u.id,
-                name: u.name,
-                role: u.role,
-                tenantType: u.tenant_type,
-                entityId: u.entity_id,
-                entityName: u.entity_name
-            }));
-            loadedData.users = db.users.length;
-            console.log(`✅ Loaded ${loadedData.users} users`);
+            // Load users (only when needed)
+            if (needsUsers && (!db.users || db.users.length === 0)) {
+                console.log('📥 Loading users...');
+                const users = await fetchAPI('/users');
+                db.users = users.map(u => ({
+                    id: u.id,
+                    name: u.name,
+                    role: u.role,
+                    tenantType: u.tenant_type,
+                    entityId: u.entity_id,
+                    entityName: u.entity_name
+                }));
+                loadedData.users = db.users.length;
+                console.log(`✅ Loaded ${loadedData.users} users`);
+            } else if (db.users) {
+                loadedData.users = db.users.length;
+                console.log(`✅ Using cached ${loadedData.users} users`);
+            }
 
-            // Load invoices
-            console.log('📥 Loading invoices...');
-            const invoices = await fetchAPI('/invoices');
-            db.invoices = invoices.map(inv => ({
-                id: inv.id,
-                entityId: inv.entity_id,
-                type: inv.type,
-                title: inv.title,
-                amount: parseFloat(inv.amount),
-                paidAmount: parseFloat(inv.paid_amount),
-                status: inv.status,
-                date: inv.issue_date,
-                dueDate: inv.due_date,
-                customerName: inv.customer_name || '',
-                customerNumber: inv.customer_number || '',
-                customerPhone: inv.customer_phone || '',
-                customerEmail: inv.customer_email || '',
-                paymentMethod: inv.payment_method || ''
-            }));
-            loadedData.invoices = db.invoices.length;
-            console.log(`✅ Loaded ${loadedData.invoices} invoices`);
+            // Load invoices (only when needed)
+            if (needsInvoices && (!db.invoices || db.invoices.length === 0)) {
+                console.log('📥 Loading invoices...');
+                const invoices = await fetchAPI('/invoices');
+                db.invoices = invoices.map(inv => ({
+                    id: inv.id,
+                    entityId: inv.entity_id,
+                    type: inv.type,
+                    title: inv.title,
+                    amount: parseFloat(inv.amount),
+                    paidAmount: parseFloat(inv.paid_amount),
+                    status: inv.status,
+                    date: inv.issue_date,
+                    dueDate: inv.due_date,
+                    customerName: inv.customer_name || '',
+                    customerNumber: inv.customer_number || '',
+                    customerPhone: inv.customer_phone || '',
+                    customerEmail: inv.customer_email || '',
+                    paymentMethod: inv.payment_method || ''
+                }));
+                loadedData.invoices = db.invoices.length;
+                console.log(`✅ Loaded ${loadedData.invoices} invoices`);
+            } else if (db.invoices) {
+                loadedData.invoices = db.invoices.length;
+                console.log(`✅ Using cached ${loadedData.invoices} invoices`);
+            }
 
-            // Load transactions
-            console.log('📥 Loading transactions...');
-            const transactions = await fetchAPI('/transactions');
-            db.transactions = transactions.map(t => ({
-                id: t.id,
-                invoiceId: t.invoice_id,
-                entityId: t.entity_id,
-                type: t.type,
-                amount: parseFloat(t.amount),
-                method: t.payment_method,
-                date: t.transaction_date,
-                ref: t.reference_code,
-                user: t.user_name
-            }));
-            loadedData.transactions = db.transactions.length;
-            console.log(`✅ Loaded ${loadedData.transactions} transactions`);
+            // Load transactions (only when needed)
+            if (needsTransactions && (!db.transactions || db.transactions.length === 0)) {
+                console.log('📥 Loading transactions...');
+                const transactions = await fetchAPI('/transactions');
+                db.transactions = transactions.map(t => ({
+                    id: t.id,
+                    invoiceId: t.invoice_id,
+                    entityId: t.entity_id,
+                    type: t.type,
+                    amount: parseFloat(t.amount),
+                    method: t.payment_method,
+                    date: t.transaction_date,
+                    ref: t.reference_code,
+                    user: t.user_name
+                }));
+                loadedData.transactions = db.transactions.length;
+                console.log(`✅ Loaded ${loadedData.transactions} transactions`);
+            } else if (db.transactions) {
+                loadedData.transactions = db.transactions.length;
+                console.log(`✅ Using cached ${loadedData.transactions} transactions`);
+            }
 
-            // Load ledger
-            console.log('📥 Loading ledger...');
-            const ledger = await fetchAPI('/ledger');
-            db.ledger = ledger.map(l => ({
-                id: l.id,
-                entityId: l.entity_id,
-                trxId: l.transaction_id,
-                date: l.transaction_date,
-                desc: l.description,
-                debit: parseFloat(l.debit),
-                credit: parseFloat(l.credit),
-                balance: parseFloat(l.balance),
-                type: l.type
-            }));
-            loadedData.ledger = db.ledger.length;
-            console.log(`✅ Loaded ${loadedData.ledger} ledger entries`);
+            // Load ledger (only when needed)
+            if (needsLedger && (!db.ledger || db.ledger.length === 0)) {
+                console.log('📥 Loading ledger...');
+                const ledger = await fetchAPI('/ledger');
+                db.ledger = ledger.map(l => ({
+                    id: l.id,
+                    entityId: l.entity_id,
+                    trxId: l.transaction_id,
+                    date: l.transaction_date,
+                    desc: l.description,
+                    debit: parseFloat(l.debit),
+                    credit: parseFloat(l.credit),
+                    balance: parseFloat(l.balance),
+                    type: l.type
+                }));
+                loadedData.ledger = db.ledger.length;
+                console.log(`✅ Loaded ${loadedData.ledger} ledger entries`);
+            } else if (db.ledger) {
+                loadedData.ledger = db.ledger.length;
+                console.log(`✅ Using cached ${loadedData.ledger} ledger entries`);
+            }
 
-            // Load ads
-            console.log('📥 Loading ads...');
-            const ads = await fetchAPI('/ads');
-            db.ads = ads.map(ad => {
-                const sourceId = ad.source_entity_id || ad.entity_id;
-              const levelKeys = Array.isArray(ad.levels)
-                ? ad.levels
-                : ad.level && typeof ad.level === 'string' && ad.level.includes(',')
-                  ? ad.level.split(',').map(x => x.trim()).filter(Boolean)
-                  : ad.level
-                    ? [ad.level]
-                    : [];
-                // Convert target_ids from string to array
-                let targetIds = [];
-                if (ad.target_ids) {
-                    targetIds = typeof ad.target_ids === 'string' 
-                        ? ad.target_ids.split(',').filter(id => id.trim()) 
-                        : ad.target_ids;
-                }
-                return {
-                    id: ad.id,
-                    title: ad.title,
-                    content: ad.content,
-                    level: levelKeys[0] || ad.level,
-                    levels: levelKeys,
-                    scope: ad.scope,
-                    status: ad.status,
-                    sourceEntityId: sourceId,
-                    entityId: ad.entity_id,
-                    targetIds: targetIds,
-                    date: ad.created_at,
-                    cost: parseFloat(ad.cost) || 0,
-                    sourceType: ad.source_type,
-                    budget: parseFloat(ad.budget) || 0,
-                    spent: parseFloat(ad.spent) || 0,
-                    impressions: ad.impressions || 0,
-                    clicks: ad.clicks || 0,
-                    startDate: ad.start_date,
-                    endDate: ad.end_date
-                };
-            });
-            loadedData.ads = db.ads.length;
-            console.log(`✅ Loaded ${loadedData.ads} ads`);
+            // Load ads (only when needed)
+            if (needsAds && (!db.ads || db.ads.length === 0)) {
+                console.log('📥 Loading ads...');
+                const ads = await fetchAPI('/ads');
+                db.ads = ads.map(ad => {
+                    const sourceId = ad.source_entity_id || ad.entity_id;
+                    const levelKeys = Array.isArray(ad.levels)
+                        ? ad.levels
+                        : ad.level && typeof ad.level === 'string' && ad.level.includes(',')
+                        ? ad.level.split(',').map(x => x.trim()).filter(Boolean)
+                        : ad.level
+                            ? [ad.level]
+                            : [];
+                    // Convert target_ids from string to array
+                    let targetIds = [];
+                    if (ad.target_ids) {
+                        targetIds = typeof ad.target_ids === 'string' 
+                            ? ad.target_ids.split(',').filter(id => id.trim()) 
+                            : ad.target_ids;
+                    }
+                    return {
+                        id: ad.id,
+                        title: ad.title,
+                        content: ad.content,
+                        level: levelKeys[0] || ad.level,
+                        levels: levelKeys,
+                        scope: ad.scope,
+                        status: ad.status,
+                        sourceEntityId: sourceId,
+                        entityId: ad.entity_id,
+                        targetIds: targetIds,
+                        date: ad.created_at,
+                        cost: parseFloat(ad.cost) || 0,
+                        sourceType: ad.source_type,
+                        budget: parseFloat(ad.budget) || 0,
+                        spent: parseFloat(ad.spent) || 0,
+                        impressions: ad.impressions || 0,
+                        clicks: ad.clicks || 0,
+                        startDate: ad.start_date,
+                        endDate: ad.end_date
+                    };
+                });
+                loadedData.ads = db.ads.length;
+                console.log(`✅ Loaded ${loadedData.ads} ads`);
+            } else if (db.ads) {
+                loadedData.ads = db.ads.length;
+                console.log(`✅ Using cached ${loadedData.ads} ads`);
+            }
 
             // Load approvals
             console.log('📥 Loading approvals...');
