@@ -3150,28 +3150,43 @@ const app = (() => {
                                         ${isOffice ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700"><i class="fas fa-check ml-1"></i> مكتب</span>' : '<span class="text-slate-400">-</span>'}
                                     </td>
                                     <td class="p-4">
-                                        <div class="flex flex-wrap gap-2">
-                                            <button onclick="window.manageEntity('${e.id}')" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1" title="إدارة الفرع">
-                                                <i class="fas fa-cog"></i> إدارة الفرع
+                                        <div class="relative inline-block" id="dropdown-${e.id}">
+                                            <button onclick="window.toggleDropdown('${e.id}')" class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition flex items-center gap-2">
+                                                <i class="fas fa-ellipsis-v"></i> الخيارات
+                                                <i class="fas fa-chevron-down text-xs"></i>
                                             </button>
-                                            ${isActive ? `
-                                                <button onclick="window.suspendEntity('${e.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs font-bold hover:bg-orange-100 transition flex items-center gap-1" title="إيقاف مؤقت">
-                                                    <i class="fas fa-pause"></i> إيقاف مؤقت
-                                                </button>
-                                            ` : `
-                                                <button onclick="window.reactivateEntity('${e.id}')" class="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition flex items-center gap-1" title="إعادة تفعيل">
-                                                    <i class="fas fa-play"></i> إعادة تفعيل
-                                                </button>
-                                            `}
-                                            <button onclick="window.editEntity('${e.id}')" class="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-bold hover:bg-purple-100 transition flex items-center gap-1" title="تعديل الفرع">
-                                                <i class="fas fa-edit"></i> تعديل الفرع
-                                            </button>
-                                            <button onclick="window.moveEntityUp('${e.id}')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-100 transition flex items-center gap-1" title="نقل للأعلى">
-                                                <i class="fas fa-arrow-up"></i> نقل للأعلى
-                                            </button>
-                                            <button onclick="window.deleteEntityPermanent('${e.id}')" class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-bold hover:bg-red-100 transition flex items-center gap-1" title="حذف نهائي">
-                                                <i class="fas fa-trash"></i> حذف نهائي
-                                            </button>
+                                            <div id="dropdown-menu-${e.id}" class="hidden absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                                                <div class="py-2">
+                                                    <button onclick="window.manageEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-blue-50 transition flex items-center gap-3 text-blue-700 font-bold">
+                                                        <i class="fas fa-cog w-5"></i>
+                                                        <span>إدارة الفرع</span>
+                                                    </button>
+                                                    ${isActive ? `
+                                                        <button onclick="window.suspendEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-orange-50 transition flex items-center gap-3 text-orange-700 font-bold">
+                                                            <i class="fas fa-pause w-5"></i>
+                                                            <span>إيقاف مؤقت</span>
+                                                        </button>
+                                                    ` : `
+                                                        <button onclick="window.reactivateEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-green-50 transition flex items-center gap-3 text-green-700 font-bold">
+                                                            <i class="fas fa-play w-5"></i>
+                                                            <span>إعادة تفعيل</span>
+                                                        </button>
+                                                    `}
+                                                    <button onclick="window.editEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-purple-50 transition flex items-center gap-3 text-purple-700 font-bold">
+                                                        <i class="fas fa-edit w-5"></i>
+                                                        <span>تعديل الفرع</span>
+                                                    </button>
+                                                    <button onclick="window.moveEntityUp('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-indigo-50 transition flex items-center gap-3 text-indigo-700 font-bold">
+                                                        <i class="fas fa-arrow-up w-5"></i>
+                                                        <span>نقل للأعلى</span>
+                                                    </button>
+                                                    <div class="border-t border-slate-200 my-1"></div>
+                                                    <button onclick="window.deleteEntityPermanent('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-red-50 transition flex items-center gap-3 text-red-700 font-bold">
+                                                        <i class="fas fa-trash w-5"></i>
+                                                        <span>حذف نهائي</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>`;
@@ -3280,6 +3295,37 @@ const app = (() => {
             loadRoute('entities');
         }
     };
+
+    // Dropdown Menu Controls
+    window.toggleDropdown = function(entityId) {
+        const menu = document.getElementById(`dropdown-menu-${entityId}`);
+        const allMenus = document.querySelectorAll('[id^="dropdown-menu-"]');
+        
+        // Close all other dropdowns
+        allMenus.forEach(m => {
+            if (m.id !== `dropdown-menu-${entityId}`) {
+                m.classList.add('hidden');
+            }
+        });
+        
+        // Toggle current dropdown
+        menu.classList.toggle('hidden');
+    };
+
+    window.closeAllDropdowns = function() {
+        const allMenus = document.querySelectorAll('[id^="dropdown-menu-"]');
+        allMenus.forEach(m => m.classList.add('hidden'));
+    };
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+        const isDropdownButton = event.target.closest('[onclick*="toggleDropdown"]');
+        const isDropdownMenu = event.target.closest('[id^="dropdown-menu-"]');
+        
+        if (!isDropdownButton && !isDropdownMenu) {
+            window.closeAllDropdowns();
+        }
+    });
 
     window.moveEntityUp = function(entityId) {
         const index = db.entities.findIndex(e => e.id === entityId);

@@ -293,6 +293,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js 2>&1 && echo \"✅ الكود صحيح - لا توجد أخطاء في الصياغة\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node -c script\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
