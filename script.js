@@ -1059,8 +1059,8 @@ const app = (() => {
             { id: 'hierarchy', icon: 'fa-sitemap', label: 'الهيكل الهرمي', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
-            { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: perms.isFinance() },
-            { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: perms.isFinance() },
+            { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: true },
+            { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: true },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
@@ -1107,34 +1107,65 @@ const app = (() => {
         modal.id = 'invoice-modal';
         modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
         modal.innerHTML = `
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
-                <div class="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center sticky top-0 z-10">
                     <h3 class="font-bold text-lg text-slate-800">إنشاء فاتورة جديدة</h3>
                     <button onclick="document.getElementById('invoice-modal').remove()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">المستأجر (العميل)</label>
-                        <select id="inv-entity" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
-                            ${db.entities.filter(e => e.type !== 'HQ').map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`).join('')}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">عنوان الفاتورة</label>
-                        <input type="text" id="inv-title" placeholder="مثال: رسوم تجديد اشتراك" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                             <label class="block text-xs font-bold text-slate-600 mb-1.5">المبلغ (ر.س)</label>
-                             <input type="number" id="inv-amount" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 font-bold">
+                    <!-- معلومات العميل -->
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-user-circle"></i>
+                            معلومات العميل
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">اسم العميل</label>
+                                <input type="text" id="inv-customer-name" placeholder="أدخل اسم العميل" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">رقم العميل</label>
+                                <input type="text" id="inv-customer-number" placeholder="مثال: CUST-001" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">رقم الهاتف</label>
+                                <input type="tel" id="inv-customer-phone" placeholder="05xxxxxxxx" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">الكيان</label>
+                                <select id="inv-entity" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                                    ${db.entities.filter(e => e.type !== 'HQ').map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                             <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الاستحقاق</label>
-                             <input type="date" id="inv-due" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                    </div>
+                    
+                    <!-- معلومات الفاتورة -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-file-invoice"></i>
+                            تفاصيل الفاتورة
+                        </h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">عنوان الفاتورة</label>
+                                <input type="text" id="inv-title" placeholder="مثال: رسوم تجديد اشتراك" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                     <label class="block text-xs font-bold text-slate-600 mb-1.5">المبلغ (ر.س)</label>
+                                     <input type="number" id="inv-amount" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 font-bold">
+                                </div>
+                                <div>
+                                     <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الاستحقاق</label>
+                                     <input type="date" id="inv-due" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 sticky bottom-0">
                     <button onclick="document.getElementById('invoice-modal').remove()" class="px-4 py-2 rounded-lg text-slate-500 font-bold hover:bg-slate-200">إلغاء</button>
                     <button onclick="app.submitInvoice()" class="px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 shadow-lg">إصدار الفاتورة</button>
                 </div>
@@ -1147,8 +1178,11 @@ const app = (() => {
         const title = document.getElementById('inv-title').value;
         const amount = parseFloat(document.getElementById('inv-amount').value);
         const due = document.getElementById('inv-due').value;
+        const customerName = document.getElementById('inv-customer-name').value;
+        const customerNumber = document.getElementById('inv-customer-number').value;
+        const customerPhone = document.getElementById('inv-customer-phone').value;
 
-        if(!title || !amount || !due) return showToast('يرجى تعبئة جميع الحقول', 'error');
+        if(!title || !amount || !due) return showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
 
         const newInv = {
             id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -1159,14 +1193,18 @@ const app = (() => {
             paidAmount: 0,
             status: 'UNPAID',
             date: new Date().toISOString().slice(0, 10),
-            dueDate: due
+            dueDate: due,
+            customerName: customerName || '',
+            customerNumber: customerNumber || '',
+            customerPhone: customerPhone || ''
         };
 
         db.invoices.unshift(newInv);
-        logAction('CREATE_INVOICE', `Generated Invoice ${newInv.id} for ${entityId}`);
+        logAction('CREATE_INVOICE', `Generated Invoice ${newInv.id} for ${entityId} - Customer: ${customerName}`);
         document.getElementById('invoice-modal').remove();
         showToast('تم إصدار الفاتورة بنجاح', 'success');
-        loadRoute('billing');
+        loadRoute('collections');
+    };
     };
 
     const openPaymentModal = (invId) => {
