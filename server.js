@@ -387,6 +387,169 @@ app.delete('/api/invoices/:id', async (req, res) => {
   }
 });
 
+// ========================================
+// EMPLOYEE REQUESTS APIs
+// ========================================
+
+// Get all employee requests with data isolation
+app.get('/api/employee-requests', async (req, res) => {
+  try {
+    const { status, request_type, employee_id } = req.query;
+    let query = 'SELECT * FROM employee_requests WHERE 1=1';
+    let params = [];
+    let paramIndex = 1;
+    
+    // Apply user's entity filter
+    if (req.userEntity.type !== 'HQ') {
+      query += ` AND entity_id = $${paramIndex}`;
+      params.push(req.userEntity.id);
+      paramIndex++;
+    }
+    
+    // Additional filters
+    if (status) {
+      query += ` AND status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+    
+    if (request_type) {
+      query += ` AND request_type = $${paramIndex}`;
+      params.push(request_type);
+      paramIndex++;
+    }
+    
+    if (employee_id) {
+      query += ` AND employee_id = $${paramIndex}`;
+      params.push(employee_id);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching employee requests:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new employee request
+app.post('/api/employee-requests', async (req, res) => {
+  try {
+    const {
+      id,
+      entityId,
+      employeeId,
+      employeeName,
+      requestType,
+      requestTitle,
+      description,
+      status,
+      priority,
+      requestData,
+      requiresApproval,
+      requestedDate,
+      startDate,
+      endDate,
+      notes,
+      createdBy
+    } = req.body;
+
+    // Validate required fields
+    if (!id || !entityId || !employeeName || !requestType || !requestTitle || !requestedDate) {
+      return res.status(400).json({ error: 'الرجاء تعبئة جميع الحقول المطلوبة' });
+    }
+
+    // Insert request
+    const query = `
+      INSERT INTO employee_requests (
+        id, entity_id, employee_id, employee_name, request_type, request_title,
+        description, status, priority, request_data, requires_approval,
+        requested_date, start_date, end_date, notes, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING *
+    `;
+    
+    const values = [
+      id,
+      entityId,
+      employeeId || null,
+      employeeName,
+      requestType,
+      requestTitle,
+      description || null,
+      status || 'PENDING',
+      priority || 'NORMAL',
+      requestData ? JSON.stringify(requestData) : null,
+      requiresApproval !== undefined ? requiresApproval : true,
+      requestedDate,
+      startDate || null,
+      endDate || null,
+      notes || null,
+      createdBy || null
+    ];
+
+    const result = await db.query(query, values);
+    res.json({ success: true, request: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating employee request:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update employee request status
+app.put('/api/employee-requests/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, approverName, approvalNotes, completionDate } = req.body;
+    
+    const query = `
+      UPDATE employee_requests 
+      SET status = $1,
+          approver_name = COALESCE($2, approver_name),
+          approval_date = CASE WHEN $1 IN ('APPROVED', 'REJECTED') THEN CURRENT_TIMESTAMP ELSE approval_date END,
+          approval_notes = COALESCE($3, approval_notes),
+          completion_date = COALESCE($4, completion_date),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [status, approverName, approvalNotes, completionDate, id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الطلب غير موجود' });
+    }
+    
+    res.json({ success: true, request: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating employee request:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete employee request
+app.delete('/api/employee-requests/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'DELETE FROM employee_requests WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'الطلب غير موجود' });
+    }
+    
+    res.json({ success: true, message: 'تم حذف الطلب بنجاح' });
+  } catch (error) {
+    console.error('Error deleting employee request:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all transactions
 app.get('/api/transactions', async (req, res) => {
   try {

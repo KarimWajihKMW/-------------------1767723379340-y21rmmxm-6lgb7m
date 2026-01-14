@@ -329,6 +329,10 @@
         "/^node test-invoice-creation\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node create-requests-table\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

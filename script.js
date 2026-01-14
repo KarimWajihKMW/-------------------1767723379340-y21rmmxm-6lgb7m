@@ -616,6 +616,37 @@ const app = (() => {
             }));
             console.log(`✅ Loaded ${db.approvals.length} approvals`);
 
+            // Load employee requests
+            console.log('📥 Loading employee requests...');
+            const employeeRequests = await fetchAPI('/employee-requests');
+            db.employeeRequests = employeeRequests.map(req => ({
+                id: req.id,
+                entityId: req.entity_id,
+                employeeId: req.employee_id,
+                employeeName: req.employee_name,
+                requestType: req.request_type,
+                requestTitle: req.request_title,
+                description: req.description,
+                status: req.status,
+                priority: req.priority,
+                requestData: req.request_data,
+                requiresApproval: req.requires_approval,
+                approverId: req.approver_id,
+                approverName: req.approver_name,
+                approvalDate: req.approval_date,
+                approvalNotes: req.approval_notes,
+                requestedDate: req.requested_date,
+                startDate: req.start_date,
+                endDate: req.end_date,
+                completionDate: req.completion_date,
+                attachments: req.attachments,
+                notes: req.notes,
+                createdBy: req.created_by,
+                createdAt: req.created_at,
+                updatedAt: req.updated_at
+            }));
+            console.log(`✅ Loaded ${db.employeeRequests.length} employee requests`);
+
             // Load notifications for current user
             if (currentUser?.id) {
                 console.log('📥 Loading notifications...');
@@ -951,6 +982,7 @@ const app = (() => {
         else if (route === 'finance') content = renderFinance();
         else if (route === 'collections') content = renderCollections();
         else if (route === 'approvals') content = renderApprovals();
+        else if (route === 'requests') content = renderRequests();
         else if (route === 'incubator') {
             view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             await renderIncubator();
@@ -1011,6 +1043,7 @@ const app = (() => {
         'finance': '/finance',
         'collections': '/collections',
         'approvals': '/approvals',
+        'requests': '/requests',
         'incubator': '/incubator',
         'entities': '/tenants',
         'register-tenant': '/register-tenant',
@@ -1031,6 +1064,7 @@ const app = (() => {
         '/finance': 'finance',
         '/collections': 'collections',
         '/approvals': 'approvals',
+        '/requests': 'requests',
         '/incubator': 'incubator',
         '/tenants': 'entities',
         '/register-tenant': 'register-tenant',
@@ -1067,6 +1101,7 @@ const app = (() => {
             { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: true },
             { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: true },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
+            { id: 'requests', icon: 'fa-clipboard-list', label: 'الطلبات', show: true },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
@@ -3252,6 +3287,357 @@ const app = (() => {
         });
     };
 
+    // --- EMPLOYEE REQUESTS MODULE ---
+    
+    const renderRequests = () => {
+        // Define all 22 request types from the image
+        const requestTypes = [
+            { id: 'salary-certificate', icon: 'fa-file-alt', label: 'طلب تعريف بالراتب', color: 'blue' },
+            { id: 'leave', icon: 'fa-plane-departure', label: 'طلب إجازة', color: 'green' },
+            { id: 'leave-allowance', icon: 'fa-file-invoice', label: 'طلب بدلات الإجازة', color: 'purple' },
+            { id: 'custody', icon: 'fa-file-contract', label: 'طلب عهدة', color: 'orange' },
+            { id: 'work-start', icon: 'fa-briefcase', label: 'مباشرة عمل', color: 'teal' },
+            { id: 'flight-tickets', icon: 'fa-plane', label: 'طلب تذاكر سفر', color: 'indigo' },
+            { id: 'additional-rewards', icon: 'fa-users', label: 'طلب جوائز إضافي', color: 'pink' },
+            { id: 'shift-modification', icon: 'fa-user-clock', label: 'طلب تعديل فترة العمل', color: 'cyan' },
+            { id: 'fingerprint-loss', icon: 'fa-fingerprint', label: 'طلب فقدان بصمة', color: 'red' },
+            { id: 'permission', icon: 'fa-door-open', label: 'طلب استئذان', color: 'yellow' },
+            { id: 'allowance-disbursement', icon: 'fa-money-check', label: 'طلب صرف مخصص', color: 'green' },
+            { id: 'advance', icon: 'fa-hand-holding-usd', label: 'طلب سلفة', color: 'blue' },
+            { id: 'purchases', icon: 'fa-shopping-cart', label: 'طلب مشتريات', color: 'purple' },
+            { id: 'employee-data-modification', icon: 'fa-user-edit', label: 'طلب تعديل بيانات الموظف', color: 'orange' },
+            { id: 'training', icon: 'fa-graduation-cap', label: 'طلب التدابي', color: 'teal' },
+            { id: 'recruitment', icon: 'fa-user-plus', label: 'طلب توظيف', color: 'indigo' },
+            { id: 'complaint', icon: 'fa-exclamation-triangle', label: 'طلب شكوى', color: 'pink' },
+            { id: 'resignation', icon: 'fa-door-closed', label: 'طلب استقالة', color: 'red' },
+            { id: 'outside-office-rewards', icon: 'fa-gift', label: 'طلب جوائز خارج المكتب', color: 'cyan' },
+            { id: 'training-course', icon: 'fa-chalkboard-teacher', label: 'طلب دورة تدريبية', color: 'yellow' },
+            { id: 'rest-day-swap', icon: 'fa-exchange-alt', label: 'طلب تبديل يوم راحة', color: 'green' },
+            { id: 'salary-fixation', icon: 'fa-money-bill-wave', label: 'طلب تثبيت الراتب', color: 'blue' }
+        ];
+
+        const colorClasses = {
+            'blue': 'bg-blue-50 hover:bg-blue-100 border-blue-200',
+            'green': 'bg-green-50 hover:bg-green-100 border-green-200',
+            'purple': 'bg-purple-50 hover:bg-purple-100 border-purple-200',
+            'orange': 'bg-orange-50 hover:bg-orange-100 border-orange-200',
+            'teal': 'bg-teal-50 hover:bg-teal-100 border-teal-200',
+            'indigo': 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200',
+            'pink': 'bg-pink-50 hover:bg-pink-100 border-pink-200',
+            'cyan': 'bg-cyan-50 hover:bg-cyan-100 border-cyan-200',
+            'red': 'bg-red-50 hover:bg-red-100 border-red-200',
+            'yellow': 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
+        };
+
+        const iconColorClasses = {
+            'blue': 'text-blue-500',
+            'green': 'text-green-500',
+            'purple': 'text-purple-500',
+            'orange': 'text-orange-500',
+            'teal': 'text-teal-500',
+            'indigo': 'text-indigo-500',
+            'pink': 'text-pink-500',
+            'cyan': 'text-cyan-500',
+            'red': 'text-red-500',
+            'yellow': 'text-yellow-500'
+        };
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-clipboard-list text-red-600"></i>
+                        الطلبات
+                    </h2>
+                    <p class="text-slate-500 mt-1">هذه المكونات الرئيسية لطلبات الموظفين والعاملين على نظام ERP</p>
+                </div>
+            </div>
+
+            <!-- Request Types Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                ${requestTypes.map(req => `
+                    <button 
+                        onclick="app.openRequestModal('${req.id}', '${req.label}')"
+                        class="flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all transform hover:scale-105 hover:shadow-lg ${colorClasses[req.color]}">
+                        <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm">
+                            <i class="fas ${req.icon} text-3xl ${iconColorClasses[req.color]}"></i>
+                        </div>
+                        <span class="text-center text-sm font-bold text-slate-700">${req.label}</span>
+                    </button>
+                `).join('')}
+            </div>
+
+            <!-- My Requests Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-slate-800">
+                        <i class="fas fa-list-ul text-red-600 mr-2"></i>
+                        طلباتي
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="app.filterRequests('all')" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 transition">
+                            الكل
+                        </button>
+                        <button onclick="app.filterRequests('PENDING')" class="px-4 py-2 rounded-lg bg-yellow-100 text-yellow-700 text-sm font-bold hover:bg-yellow-200 transition">
+                            قيد الانتظار
+                        </button>
+                        <button onclick="app.filterRequests('APPROVED')" class="px-4 py-2 rounded-lg bg-green-100 text-green-700 text-sm font-bold hover:bg-green-200 transition">
+                            معتمد
+                        </button>
+                        <button onclick="app.filterRequests('REJECTED')" class="px-4 py-2 rounded-lg bg-red-100 text-red-700 text-sm font-bold hover:bg-red-200 transition">
+                            مرفوض
+                        </button>
+                    </div>
+                </div>
+
+                <div id="requests-table-container">
+                    ${renderRequestsTable()}
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderRequestsTable = () => {
+        const requests = db.employeeRequests || [];
+        
+        if (requests.length === 0) {
+            return `
+                <div class="text-center py-12">
+                    <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-500 text-lg">لا توجد طلبات حتى الآن</p>
+                    <p class="text-slate-400 text-sm mt-2">اضغط على أي نوع طلب أعلاه لإنشاء طلب جديد</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b-2 border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">رقم الطلب</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">نوع الطلب</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">التاريخ</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">الحالة</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">الأولوية</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">خيارات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${requests.map(req => {
+                            const statusBadges = {
+                                'PENDING': '<span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">قيد الانتظار</span>',
+                                'APPROVED': '<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">معتمد</span>',
+                                'REJECTED': '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">مرفوض</span>',
+                                'IN_PROGRESS': '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">قيد التنفيذ</span>',
+                                'COMPLETED': '<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">مكتمل</span>',
+                                'CANCELLED': '<span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-bold">ملغي</span>'
+                            };
+
+                            const priorityBadges = {
+                                'LOW': '<span class="text-slate-500">⚪ عادي</span>',
+                                'NORMAL': '<span class="text-blue-500">🔵 متوسط</span>',
+                                'HIGH': '<span class="text-orange-500">🟠 عالي</span>',
+                                'URGENT': '<span class="text-red-500">🔴 عاجل</span>'
+                            };
+
+                            return `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                                    <td class="px-4 py-3 text-sm font-mono text-slate-600">${req.id}</td>
+                                    <td class="px-4 py-3 text-sm font-bold text-slate-800">${req.request_title}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-600">${req.requested_date}</td>
+                                    <td class="px-4 py-3">${statusBadges[req.status] || req.status}</td>
+                                    <td class="px-4 py-3 text-sm">${priorityBadges[req.priority] || req.priority}</td>
+                                    <td class="px-4 py-3">
+                                        <button onclick="app.viewRequestDetails('${req.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="عرض">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        ${req.status === 'PENDING' ? `
+                                            <button onclick="app.deleteRequest('${req.id}')" class="text-red-600 hover:text-red-800" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        ` : ''}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    };
+
+    window.openRequestModal = function(requestType, requestLabel) {
+        const modal = document.createElement('div');
+        modal.id = 'request-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-red-50 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-red-800">
+                        <i class="fas fa-clipboard-list mr-2"></i>
+                        ${requestLabel}
+                    </h3>
+                    <button onclick="document.getElementById('request-modal').remove()" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">اسم الموظف <span class="text-red-500">*</span></label>
+                        <input type="text" id="req-employee-name" value="${currentUser?.name || ''}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">رقم الموظف</label>
+                        <input type="text" id="req-employee-id" placeholder="اختياري" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">الوصف / التفاصيل</label>
+                        <textarea id="req-description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200" placeholder="اكتب تفاصيل الطلب هنا..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ البدء</label>
+                            <input type="date" id="req-start-date" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">تاريخ الانتهاء</label>
+                            <input type="date" id="req-end-date" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">الأولوية</label>
+                        <select id="req-priority" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                            <option value="NORMAL">متوسط</option>
+                            <option value="LOW">عادي</option>
+                            <option value="HIGH">عالي</option>
+                            <option value="URGENT">عاجل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">ملاحظات إضافية</label>
+                        <textarea id="req-notes" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200" placeholder="أي ملاحظات إضافية..."></textarea>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="document.getElementById('request-modal').remove()" class="px-6 py-3 rounded-xl bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition">
+                        إلغاء
+                    </button>
+                    <button onclick="app.submitRequest('${requestType}', '${requestLabel}')" class="px-6 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        إرسال الطلب
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    };
+
+    window.submitRequest = async function(requestType, requestLabel) {
+        const employeeName = document.getElementById('req-employee-name').value;
+        const employeeId = document.getElementById('req-employee-id').value;
+        const description = document.getElementById('req-description').value;
+        const startDate = document.getElementById('req-start-date').value;
+        const endDate = document.getElementById('req-end-date').value;
+        const priority = document.getElementById('req-priority').value;
+        const notes = document.getElementById('req-notes').value;
+
+        if (!employeeName) {
+            return showToast('الرجاء إدخال اسم الموظف', 'error');
+        }
+
+        const newRequest = {
+            id: `REQ-${Date.now()}`,
+            entityId: currentUser.entityId,
+            employeeId: employeeId || null,
+            employeeName: employeeName,
+            requestType: requestType,
+            requestTitle: requestLabel,
+            description: description,
+            status: 'PENDING',
+            priority: priority,
+            requestData: {},
+            requiresApproval: true,
+            requestedDate: new Date().toISOString().slice(0, 10),
+            startDate: startDate || null,
+            endDate: endDate || null,
+            notes: notes,
+            createdBy: currentUser.id
+        };
+
+        try {
+            const response = await fetch('/api/employee-requests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRequest)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'فشل في حفظ الطلب');
+            }
+
+            // Update local db
+            if (!db.employeeRequests) db.employeeRequests = [];
+            db.employeeRequests.unshift(newRequest);
+
+            document.getElementById('request-modal').remove();
+            showToast('تم إرسال الطلب بنجاح', 'success');
+            
+            // Refresh the requests table
+            const container = document.getElementById('requests-table-container');
+            if (container) {
+                container.innerHTML = renderRequestsTable();
+            }
+        } catch (error) {
+            console.error('Error submitting request:', error);
+            showToast('حدث خطأ في إرسال الطلب: ' + error.message, 'error');
+        }
+    };
+
+    window.filterRequests = function(status) {
+        showToast(`تصفية حسب: ${status}`, 'info');
+    };
+
+    window.viewRequestDetails = function(requestId) {
+        const request = db.employeeRequests?.find(r => r.id === requestId);
+        if (!request) return showToast('الطلب غير موجود', 'error');
+        
+        showToast('عرض تفاصيل الطلب: ' + requestId, 'info');
+    };
+
+    window.deleteRequest = async function(requestId) {
+        if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
+
+        try {
+            const response = await fetch(`/api/employee-requests/${requestId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'فشل في حذف الطلب');
+            }
+
+            // Remove from local db
+            db.employeeRequests = db.employeeRequests.filter(r => r.id !== requestId);
+            
+            showToast('تم حذف الطلب بنجاح', 'success');
+            
+            // Refresh the requests table
+            const container = document.getElementById('requests-table-container');
+            if (container) {
+                container.innerHTML = renderRequestsTable();
+            }
+        } catch (error) {
+            console.error('Error deleting request:', error);
+            showToast('حدث خطأ في حذف الطلب: ' + error.message, 'error');
+        }
+    };
+
     // --- APPROVALS MODULE ---
     const renderApprovals = () => {
         const myApprovals = db.approvals.filter(a => 
@@ -4867,6 +5253,7 @@ const app = (() => {
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
         handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
         openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails,
+        openRequestModal, submitRequest, filterRequests, viewRequestDetails, deleteRequest,
         getDb: () => db  // Expose db for task management
     };
 })();
