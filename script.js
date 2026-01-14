@@ -2948,17 +2948,21 @@ const app = (() => {
             
             // إعادة تصيير الجدول فقط دون الانتقال من الصفحة
             const currentRoute = window.location.hash.slice(1) || 'dashboard';
-            if (currentRoute === 'finance' || currentRoute === 'collections') {
-                // إعادة تصيير الجدول بدون تغيير الصفحة
-                const view = document.getElementById('view');
-                if (view) {
-                    if (currentRoute === 'finance') {
-                        view.innerHTML = renderFinance();
-                    } else if (currentRoute === 'collections') {
-                        view.innerHTML = renderCollections();
+            
+            // تأخير صغير للتأكد من تحديث البيانات
+            setTimeout(() => {
+                if (currentRoute === 'finance' || currentRoute === 'collections') {
+                    // إعادة تصيير الجدول بدون تغيير الصفحة
+                    const view = document.getElementById('view');
+                    if (view) {
+                        if (currentRoute === 'finance') {
+                            view.innerHTML = renderFinance();
+                        } else if (currentRoute === 'collections') {
+                            view.innerHTML = renderCollections();
+                        }
                     }
                 }
-            }
+            }, 100);
         } else {
             showToast('حدث خطأ أثناء حذف الفاتورة', 'error');
         }

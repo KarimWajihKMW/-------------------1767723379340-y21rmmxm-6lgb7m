@@ -2660,6 +2660,11 @@ app.get('/api/hierarchy/entity/:type/:id', async (req, res) => {
   }
 });
 
+// Catch-all route for SPA - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
