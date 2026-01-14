@@ -590,19 +590,10 @@ app.get('/api/branches/:branchId/platforms', async (req, res) => {
     
     const query = `
       SELECT 
-        p.id,
-        p.name,
-        p.type,
-        p.status,
-        p.location,
-        bp.relationship_status,
-        bp.assigned_date,
-        bp.performance_score,
-        bp.monthly_revenue,
-        bp.notes
-      FROM branch_platforms bp
-      JOIN entities p ON bp.platform_id = p.id
-      WHERE bp.branch_id = $1
+        p.*
+      FROM platforms p
+      JOIN incubators i ON p.incubator_id = i.id
+      WHERE i.branch_id = $1 AND p.is_active = true
       ORDER BY p.name
     `;
     
@@ -1423,17 +1414,15 @@ app.delete('/api/branches/:id', async (req, res) => {
 app.get('/api/branches/:id/incubators', async (req, res) => {
   try {
     const { id } = req.params;
-    // جميع الحاضنات متاحة لجميع الفروع
+    // Get incubators for the specific branch
     const result = await db.query(`
       SELECT i.*, 
-             b.name as branch_name, b.code as branch_code,
-             hq.name as hq_name, hq.code as hq_code
+             b.name as branch_name, b.code as branch_code
       FROM incubators i
       LEFT JOIN branches b ON i.branch_id = b.id
-      LEFT JOIN headquarters hq ON b.hq_id = hq.id
-      WHERE i.is_active = true
+      WHERE i.branch_id = $1 AND i.is_active = true
       ORDER BY i.name
-    `);
+    `, [id]);
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
