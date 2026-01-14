@@ -377,6 +377,10 @@
         "/^node -c server\\.js && node -c script\\.js && echo \"✅ Build validation PASSED\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node test-branch-filters\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

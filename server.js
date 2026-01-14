@@ -1442,27 +1442,34 @@ app.get('/api/branches/:id/incubators', async (req, res) => {
 
 // ---- Incubators APIs (الحاضنات) ----
 
-// Get all incubators (with optional branch filter)
+// Get all incubators (with optional branch filter using junction table)
 app.get('/api/incubators', async (req, res) => {
   try {
     const { branch_id } = req.query;
-    let query = `
-      SELECT i.*, 
-             b.name as branch_name, b.code as branch_code,
-             hq.name as hq_name, hq.code as hq_code
-      FROM incubators i
-      LEFT JOIN branches b ON i.branch_id = b.id
-      LEFT JOIN headquarters hq ON b.hq_id = hq.id
-    `;
-    const params = [];
+    
     if (branch_id) {
-      query += ' WHERE i.branch_id = $1';
-      params.push(branch_id);
+      // Use branch_incubators junction table for merged relationships
+      const query = `
+        SELECT DISTINCT i.*, 
+               bi.relationship_status,
+               bi.assigned_date
+        FROM entities i
+        INNER JOIN branch_incubators bi ON i.id = bi.incubator_id
+        WHERE bi.branch_id = $1 
+          AND i.type = 'INCUBATOR'
+          AND bi.relationship_status = 'ACTIVE'
+        ORDER BY i.name
+      `;
+      const result = await db.query(query, [branch_id]);
+      res.json(result.rows);
+    } else {
+      // Get all incubators
+      const query = `SELECT * FROM entities WHERE type = 'INCUBATOR' ORDER BY created_at DESC`;
+      const result = await db.query(query);
+      res.json(result.rows);
     }
-    query += ' ORDER BY i.created_at DESC';
-    const result = await db.query(query, params);
-    res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching incubators:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1554,26 +1561,37 @@ app.delete('/api/incubators/:id', async (req, res) => {
 // Get all platforms (with optional incubator filter)
 app.get('/api/platforms', async (req, res) => {
   try {
-    const { incubator_id } = req.query;
-    let query = `
-      SELECT p.*, 
-             i.name as incubator_name, i.code as incubator_code,
-             b.name as branch_name,
-             hq.name as hq_name
-      FROM platforms p
-      LEFT JOIN incubators i ON p.incubator_id = i.id
-      LEFT JOIN branches b ON i.branch_id = b.id
-      LEFT JOIN headquarters hq ON b.hq_id = hq.id
-    `;
-    const params = [];
-    if (incubator_id) {
-      query += ' WHERE p.incubator_id = $1';
-      params.push(incubator_id);
+    const { incubator_id, branch_id } = req.query;
+    
+    if (branch_id) {
+      // Use branch_platforms junction table for merged relationships
+      const query = `
+        SELECT DISTINCT p.*, 
+               bp.relationship_status,
+               bp.performance_score,
+               bp.assigned_date
+        FROM entities p
+        INNER JOIN branch_platforms bp ON p.id = bp.platform_id
+        WHERE bp.branch_id = $1 
+          AND p.type = 'PLATFORM'
+          AND bp.relationship_status = 'ACTIVE'
+        ORDER BY p.name
+      `;
+      const result = await db.query(query, [branch_id]);
+      res.json(result.rows);
+    } else if (incubator_id) {
+      // Filter by incubator (if needed for old system)
+      const query = `SELECT * FROM entities WHERE incubator_id = $1 AND type = 'PLATFORM' ORDER BY created_at DESC`;
+      const result = await db.query(query, [incubator_id]);
+      res.json(result.rows);
+    } else {
+      // Get all platforms
+      const query = `SELECT * FROM entities WHERE type = 'PLATFORM' ORDER BY created_at DESC`;
+      const result = await db.query(query);
+      res.json(result.rows);
     }
-    query += ' ORDER BY p.created_at DESC';
-    const result = await db.query(query, params);
-    res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching platforms:', error);
     res.status(500).json({ error: error.message });
   }
 });
