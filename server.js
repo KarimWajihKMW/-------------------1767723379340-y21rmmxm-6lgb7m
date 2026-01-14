@@ -187,6 +187,40 @@ app.get('/api/invoices', async (req, res) => {
   }
 });
 
+// Delete invoice
+app.delete('/api/invoices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First check if invoice exists and user has permission
+    const checkQuery = 'SELECT * FROM invoices WHERE id = $1';
+    const checkResult = await db.query(checkQuery, [id]);
+    
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'الفاتورة غير موجودة' });
+    }
+    
+    const invoice = checkResult.rows[0];
+    
+    // Check permissions - only HQ or the entity that created it can delete
+    if (req.userEntity.type !== 'HQ' && invoice.entity_id !== req.userEntity.id) {
+      return res.status(403).json({ error: 'ليس لديك صلاحيات لحذف هذه الفاتورة' });
+    }
+    
+    // Delete the invoice
+    const deleteQuery = 'DELETE FROM invoices WHERE id = $1 RETURNING *';
+    const result = await db.query(deleteQuery, [id]);
+    
+    res.json({ 
+      message: 'تم حذف الفاتورة بنجاح',
+      invoice: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error deleting invoice:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all transactions
 app.get('/api/transactions', async (req, res) => {
   try {

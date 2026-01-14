@@ -2939,20 +2939,36 @@ const app = (() => {
             return;
         }
 
-        // Find index and remove
-        const index = db.invoices.findIndex(inv => inv.id === invoiceId);
-        if (index !== -1) {
-            db.invoices.splice(index, 1);
+        // Send delete request to API
+        fetch(`/api/invoices/${invoiceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-entity-type': window.currentUser?.entityType || 'HQ',
+                'x-entity-id': window.currentUser?.entityId || 'HQ001'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('فشل حذف الفاتورة من قاعدة البيانات');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Remove from local cache
+            const index = db.invoices.findIndex(inv => inv.id === invoiceId);
+            if (index !== -1) {
+                db.invoices.splice(index, 1);
+            }
+            
             logAction('DELETE_INVOICE', `Deleted Invoice ${invoiceId}`);
             showToast('تم حذف الفاتورة بنجاح', 'success');
             
-            // إعادة تصيير الجدول فقط دون الانتقال من الصفحة
+            // إعادة تنشيط الصفحة الحالية
             const currentRoute = window.location.hash.slice(1) || 'dashboard';
             
-            // تأخير صغير للتأكد من تحديث البيانات
             setTimeout(() => {
                 if (currentRoute === 'finance' || currentRoute === 'collections') {
-                    // إعادة تصيير الجدول بدون تغيير الصفحة
                     const view = document.getElementById('view');
                     if (view) {
                         if (currentRoute === 'finance') {
@@ -2962,10 +2978,12 @@ const app = (() => {
                         }
                     }
                 }
-            }, 100);
-        } else {
-            showToast('حدث خطأ أثناء حذف الفاتورة', 'error');
-        }
+            }, 200);
+        })
+        .catch(error => {
+            console.error('Error deleting invoice:', error);
+            showToast('حدث خطأ: ' + error.message, 'error');
+        });
     };
 
     // --- APPROVALS MODULE ---

@@ -297,6 +297,14 @@
         "/^node -c script\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node -c script\\.js && echo \"✅ script\\.js OK\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -c server\\.js && echo \"✅ server\\.js OK\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
