@@ -505,6 +505,18 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-api-queries\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-hierarchy-performance\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-office-creation-flow\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node add-performance-indexes\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

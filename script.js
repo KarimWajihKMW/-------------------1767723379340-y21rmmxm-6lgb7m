@@ -9220,16 +9220,16 @@ async function loadIncubatorsForOfficeByBranch() {
   }
   
   try {
-    // Get incubators for this branch using junction table
-    const incResponse = await fetch(`${API_BASE_URL}/incubators?branch_id=${branchId}`);
+    // Get incubators for this branch - using the correct endpoint
+    const incResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
     const incubators = await incResponse.json();
     
     const select = document.getElementById('office_incubator_id');
     select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
       incubators.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
     
-    // Load platforms for this branch using junction table
-    const platResponse = await fetch(`${API_BASE_URL}/platforms?branch_id=${branchId}`);
+    // Load platforms for this branch - using the correct endpoint
+    const platResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/platforms`);
     const platforms = await platResponse.json();
     
     const platformSelect = document.getElementById('office_platform_id');
@@ -9237,6 +9237,7 @@ async function loadIncubatorsForOfficeByBranch() {
       platforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   } catch (error) {
     console.error('Error loading incubators:', error);
+    alert('فشل تحميل الحاضنات والمنصات: ' + error.message);
   }
 }
 
