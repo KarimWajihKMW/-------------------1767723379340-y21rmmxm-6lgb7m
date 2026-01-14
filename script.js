@@ -4426,32 +4426,13 @@ const app = (() => {
     // --- HIERARCHY VIEWER (Multi-Tenant Structure) ---
     const renderHierarchy = async () => {
         try {
-            // جلب البيانات من API
+            // OPTIMIZATION: تحميل الإحصائيات والفروع فقط في البداية
+            // البيانات الأخرى (حاضنات، منصات، مكاتب) تُحمل عند الطلب
             const stats = await fetchAPI('/hierarchy/stats');
             const headquarters = await fetchAPI('/headquarters');
             const branches = await fetchAPI('/branches');
-            const incubators = await fetchAPI('/incubators');
-            const platforms = await fetchAPI('/platforms');
-            const offices = await fetchAPI('/offices');
             
-            // جلب روابط المكاتب بالمنصات
-            const officeLinks = [];
-            for (const office of offices) {
-                try {
-                    const linkedPlatforms = await fetchAPI(`/offices/${office.id}/platforms`);
-                    linkedPlatforms.forEach(platform => {
-                        officeLinks.push({
-                            office_id: office.id,
-                            office_name: office.name,
-                            platform_id: platform.id,
-                            platform_name: platform.name,
-                            is_active: platform.is_linked
-                        });
-                    });
-                } catch (err) {
-                    console.warn(`Could not load platforms for office ${office.id}`);
-                }
-            }
+            console.log(`📊 تحميل الهيكل الهرمي: ${headquarters.length} مقر، ${branches.length} فرع`);
 
             return `
             <div class="space-y-8 animate-fade-in">
@@ -4612,162 +4593,7 @@ const app = (() => {
                     </div>
                 </div>
 
-                <!-- Office-Platform Links Section -->
-                <div class="bg-white rounded-2xl shadow-lg border-2 border-pink-200 overflow-hidden">
-                    <div class="bg-gradient-to-r from-pink-600 to-pink-700 p-6 text-white">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="bg-white/20 rounded-full p-3">
-                                    <i class="fas fa-link text-2xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black">روابط المكاتب بالمنصات</h3>
-                                    <p class="text-sm opacity-90">عرض العلاقات بين المكاتب والمنصات المرتبطة بها</p>
-                                </div>
-                            </div>
-                            <button onclick="app.openCreateLinkModal()" class="bg-white text-pink-600 px-4 py-2 rounded-xl font-bold hover:bg-pink-50 transition flex items-center gap-2 shadow-lg">
-                                <i class="fas fa-plus"></i> ربط جديد
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="p-6">
-                        ${officeLinks.length > 0 ? `
-                            <div class="overflow-x-auto">
-                                <table class="w-full">
-                                    <thead class="bg-slate-50">
-                                        <tr>
-                                            <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">
-                                                <i class="fas fa-briefcase text-teal-500 ml-2"></i>المكتب
-                                            </th>
-                                            <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
-                                                <i class="fas fa-arrows-alt-h text-pink-500 ml-2"></i>الربط
-                                            </th>
-                                            <th class="text-right px-4 py-3 text-sm font-bold text-slate-600">
-                                                <i class="fas fa-server text-orange-500 ml-2"></i>المنصة
-                                            </th>
-                                            <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
-                                                الحالة
-                                            </th>
-                                            <th class="text-center px-4 py-3 text-sm font-bold text-slate-600">
-                                                <i class="fas fa-cog ml-2"></i>الإجراءات
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100">
-                                        ${officeLinks.map(link => `
-                                            <tr class="hover:bg-slate-50 transition-colors">
-                                                <td class="px-4 py-4">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                                                            <i class="fas fa-briefcase text-teal-600"></i>
-                                                        </div>
-                                                        <div>
-                                                            <p class="font-semibold text-slate-800 text-sm">${link.office_name}</p>
-                                                            <p class="text-xs text-slate-500">معرف: ${link.office_id}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-4 text-center">
-                                                    <i class="fas fa-exchange-alt text-pink-500 text-xl"></i>
-                                                </td>
-                                                <td class="px-4 py-4">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                                                            <i class="fas fa-server text-orange-600"></i>
-                                                        </div>
-                                                        <div>
-                                                            <p class="font-semibold text-slate-800 text-sm">${link.platform_name}</p>
-                                                            <p class="text-xs text-slate-500">معرف: ${link.platform_id}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-4 text-center">
-                                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${link.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
-                                                        <i class="fas ${link.is_active ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                                                        ${link.is_active ? 'نشط' : 'معطل'}
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 py-4 text-center">
-                                                    <button onclick="app.deleteLink(${link.office_id}, ${link.platform_id}, '${link.office_name}', '${link.platform_name}')" 
-                                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto">
-                                                        <i class="fas fa-unlink"></i> حذف
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Summary Cards -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
-                                <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4 border border-teal-200">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-xs font-semibold text-teal-600 mb-1">إجمالي المكاتب المرتبطة</p>
-                                            <p class="text-2xl font-black text-teal-700">${new Set(officeLinks.map(l => l.office_id)).size}</p>
-                                        </div>
-                                        <i class="fas fa-briefcase text-3xl text-teal-400"></i>
-                                    </div>
-                                </div>
-                                <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-xs font-semibold text-orange-600 mb-1">إجمالي المنصات المرتبطة</p>
-                                            <p class="text-2xl font-black text-orange-700">${new Set(officeLinks.map(l => l.platform_id)).size}</p>
-                                        </div>
-                                        <i class="fas fa-server text-3xl text-orange-400"></i>
-                                    </div>
-                                </div>
-                                <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border border-pink-200">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-xs font-semibold text-pink-600 mb-1">إجمالي الروابط النشطة</p>
-                                            <p class="text-2xl font-black text-pink-700">${officeLinks.filter(l => l.is_active).length}</p>
-                                        </div>
-                                        <i class="fas fa-link text-3xl text-pink-400"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        ` : `
-                            <div class="text-center py-12">
-                                <i class="fas fa-unlink text-6xl text-slate-300 mb-4"></i>
-                                <h4 class="text-xl font-bold text-slate-600 mb-2">لا توجد روابط</h4>
-                                <p class="text-slate-500">لم يتم ربط أي مكتب بأي منصة بعد</p>
-                            </div>
-                        `}
-                    </div>
-                </div>
-
-                <!-- Branch Relationships Section -->
-                <div class="bg-white rounded-2xl shadow-lg border-2 border-indigo-200 overflow-hidden">
-                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-white">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="bg-white/20 rounded-full p-3">
-                                    <i class="fas fa-project-diagram text-2xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black">علاقات الفروع بالحاضنات والمنصات</h3>
-                                    <p class="text-sm opacity-90">عرض جميع العلاقات المدمجة بين الفروع والحاضنات والمنصات</p>
-                                </div>
-                            </div>
-                            <button onclick="app.loadBranchRelationships()" class="bg-white text-indigo-600 px-4 py-2 rounded-xl font-bold hover:bg-indigo-50 transition flex items-center gap-2 shadow-lg">
-                                <i class="fas fa-sync-alt"></i> تحديث
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="branch-relationships-container" class="p-6">
-                        <div class="text-center py-12">
-                            <i class="fas fa-spinner fa-spin text-6xl text-indigo-300 mb-4"></i>
-                            <p class="text-slate-500">جاري تحميل العلاقات...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hierarchical Tree View -->
+                <!-- Accordion Hierarchy View with Lazy Loading -->
                 ${headquarters.map(hq => `
                     <div class="bg-white rounded-2xl shadow-lg border-2 border-purple-200 overflow-hidden">
                         <!-- HQ Header -->
@@ -4788,80 +4614,38 @@ const app = (() => {
                             </div>
                         </div>
 
-                        <!-- Branches -->
-                        <div class="p-6 space-y-4">
+                        <!-- Branches Accordion -->
+                        <div class="p-6 space-y-3">
                             ${branches.filter(b => b.hq_id === hq.id).map(branch => `
-                                <div class="border-r-4 border-blue-400 bg-red-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="app.viewEntityDetails('BRANCH', ${branch.id})">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-3">
-                                            <i class="fas fa-map-marked-alt text-xl text-red-600"></i>
-                                            <div>
-                                                <h4 class="font-bold text-slate-800">${branch.name}</h4>
-                                                <p class="text-xs text-slate-500">${branch.city}, ${branch.country} | ${branch.code}</p>
+                                <div class="border-2 border-blue-300 rounded-xl overflow-hidden">
+                                    <!-- Branch Header (Clickable) -->
+                                    <button onclick="toggleBranchAccordion(${branch.id})" 
+                                            class="w-full bg-gradient-to-r from-blue-50 to-red-50 p-4 hover:from-blue-100 hover:to-red-100 transition-all duration-200">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-map-marked-alt text-white"></i>
+                                                </div>
+                                                <div class="text-right">
+                                                    <h4 class="font-bold text-slate-800">${branch.name}</h4>
+                                                    <p class="text-xs text-slate-500">${branch.city}, ${branch.country} | ${branch.code}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-xs font-bold px-3 py-1 rounded-full ${branch.is_active ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}">
+                                                    ${branch.is_active ? 'فعال' : 'معطل'}
+                                                </span>
+                                                <i id="branch-icon-${branch.id}" class="fas fa-chevron-down text-blue-600 text-xl transition-transform duration-200"></i>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold px-3 py-1 rounded-full ${branch.is_active ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}">
-                                                ${branch.is_active ? 'فعال' : 'معطل'}
-                                            </span>
-                                            <i class="fas fa-chevron-left text-slate-400"></i>
+                                    </button>
+                                    
+                                    <!-- Branch Content (Lazy Loaded) -->
+                                    <div id="branch-content-${branch.id}" class="hidden bg-white border-t-2 border-blue-200">
+                                        <div class="flex justify-center items-center py-8">
+                                            <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
                                         </div>
                                     </div>
-
-                                    <!-- Incubators -->
-                                    ${incubators.filter(i => i.branch_id === branch.id).map(incubator => `
-                                        <div class="mr-6 mt-3 border-r-4 border-green-400 bg-white rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="event.stopPropagation(); app.viewEntityDetails('INCUBATOR', ${incubator.id})">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <div class="flex items-center gap-2">
-                                                    <i class="fas fa-seedling text-green-600"></i>
-                                                    <div>
-                                                        <h5 class="font-bold text-sm text-slate-800">${incubator.name}</h5>
-                                                        <p class="text-xs text-slate-500">${incubator.program_type} | السعة: ${incubator.capacity}</p>
-                                                    </div>
-                                                </div>
-                                                <i class="fas fa-chevron-left text-slate-400"></i>
-                                            </div>
-
-                                            <!-- Platforms & Offices in Grid -->
-                                            <div class="mr-4 mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <!-- Platforms -->
-                                                <div class="space-y-2">
-                                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-1">
-                                                        <i class="fas fa-server text-orange-500"></i> المنصات
-                                                    </p>
-                                                    ${platforms.filter(p => p.incubator_id === incubator.id).map(platform => `
-                                                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2 hover:bg-orange-100 transition-colors cursor-pointer" onclick="event.stopPropagation(); app.viewEntityDetails('PLATFORM', ${platform.id})">
-                                                            <div class="flex items-center justify-between">
-                                                                <div>
-                                                                    <p class="text-xs font-semibold text-slate-700">${platform.name}</p>
-                                                                    <p class="text-xs text-slate-500">${platform.pricing_model} - ${platform.base_price} ${platform.currency}</p>
-                                                                </div>
-                                                                <i class="fas fa-eye text-xs text-orange-400"></i>
-                                                            </div>
-                                                        </div>
-                                                    `).join('') || '<p class="text-xs text-slate-400 italic">لا توجد منصات</p>'}
-                                                </div>
-
-                                                <!-- Offices -->
-                                                <div class="space-y-2">
-                                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-1">
-                                                        <i class="fas fa-briefcase text-teal-500"></i> المكاتب
-                                                    </p>
-                                                    ${offices.filter(o => o.incubator_id === incubator.id).map(office => `
-                                                        <div class="bg-teal-50 border border-teal-200 rounded-lg p-2 hover:bg-teal-100 transition-colors cursor-pointer" onclick="event.stopPropagation(); app.viewEntityDetails('OFFICE', ${office.id})">
-                                                            <div class="flex items-center justify-between">
-                                                                <div>
-                                                                    <p class="text-xs font-semibold text-slate-700">${office.name}</p>
-                                                                    <p class="text-xs text-slate-500">${office.office_type} - السعة: ${office.capacity}</p>
-                                                                </div>
-                                                                <i class="fas fa-eye text-xs text-teal-400"></i>
-                                                            </div>
-                                                        </div>
-                                                    `).join('') || '<p class="text-xs text-slate-400 italic">لا توجد مكاتب</p>'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `).join('') || '<p class="text-xs text-slate-400 italic mr-6 mt-2">لا توجد حاضنات في هذا الفرع</p>'}
                                 </div>
                             `).join('') || '<p class="text-slate-500 text-center py-8">لا توجد فروع لهذا المقر</p>'}
                         </div>
@@ -4875,45 +4659,6 @@ const app = (() => {
                         <p class="text-slate-500">لم يتم إنشاء أي هيكل تنظيمي بعد</p>
                     </div>
                 ` : ''}
-
-                <!-- Create Link Modal -->
-                <div id="createLinkModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-fade-in">
-                        <div class="bg-gradient-to-r from-pink-600 to-pink-700 p-6 text-white rounded-t-2xl">
-                            <h3 class="text-xl font-black flex items-center gap-2">
-                                <i class="fas fa-link"></i> إنشاء ربط جديد
-                            </h3>
-                        </div>
-                        <div class="p-6 space-y-4">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">
-                                    <i class="fas fa-briefcase text-teal-500 ml-1"></i> اختر المكتب
-                                </label>
-                                <select id="linkOfficeSelect" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition">
-                                    <option value="">-- اختر المكتب --</option>
-                                    ${offices.map(o => `<option value="${o.id}">${o.name} (${o.code})</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">
-                                    <i class="fas fa-server text-orange-500 ml-1"></i> اختر المنصة
-                                </label>
-                                <select id="linkPlatformSelect" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition">
-                                    <option value="">-- اختر المنصة --</option>
-                                    ${platforms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('')}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="flex gap-3 p-6 bg-slate-50 rounded-b-2xl">
-                            <button onclick="app.closeCreateLinkModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-3 rounded-xl font-bold transition">
-                                إلغاء
-                            </button>
-                            <button onclick="app.submitCreateLink()" class="flex-1 bg-pink-600 hover:bg-pink-700 text-white px-4 py-3 rounded-xl font-bold transition">
-                                <i class="fas fa-link ml-1"></i> إنشاء الربط
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>`;
         } catch (error) {
             console.error('Error loading hierarchy:', error);
