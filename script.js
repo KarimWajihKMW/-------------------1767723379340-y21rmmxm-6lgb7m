@@ -2599,22 +2599,6 @@ const app = (() => {
     };
 
     // Delete invoice
-    window.deleteInvoice = function(invoiceId) {
-        if (!confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
-            return;
-        }
-
-        const index = db.invoices.findIndex(inv => inv.id === invoiceId);
-        if (index !== -1) {
-            db.invoices.splice(index, 1);
-            logAction('DELETE_INVOICE', `Deleted invoice: ${invoiceId}`);
-            showToast('تم حذف الفاتورة بنجاح', 'success');
-            loadRoute('collections');
-        } else {
-            showToast('لم يتم العثور على الفاتورة', 'error');
-        }
-    };
-
     // View invoice details
     window.viewInvoiceDetails = function(invoiceId) {
         const invoice = db.invoices.find(inv => inv.id === invoiceId);
@@ -2844,7 +2828,7 @@ const app = (() => {
         printWindow.document.close();
     };
 
-    // Delete Invoice Function
+    // Delete Invoice Function - يحذف الفاتورة ويعيد تصيير الجدول فقط دون الانتقال من الصفحة
     window.deleteInvoice = function(invoiceId) {
         const invoice = db.invoices.find(inv => inv.id === invoiceId);
         if (!invoice) {
@@ -2864,9 +2848,19 @@ const app = (() => {
             logAction('DELETE_INVOICE', `Deleted Invoice ${invoiceId}`);
             showToast('تم حذف الفاتورة بنجاح', 'success');
             
-            // Reload current page
+            // إعادة تصيير الجدول فقط دون الانتقال من الصفحة
             const currentRoute = window.location.hash.slice(1) || 'dashboard';
-            loadRoute(currentRoute);
+            if (currentRoute === 'finance' || currentRoute === 'collections') {
+                // إعادة تصيير الجدول بدون تغيير الصفحة
+                const view = document.getElementById('view');
+                if (view) {
+                    if (currentRoute === 'finance') {
+                        view.innerHTML = renderFinance();
+                    } else if (currentRoute === 'collections') {
+                        view.innerHTML = renderCollections();
+                    }
+                }
+            }
         } else {
             showToast('حدث خطأ أثناء حذف الفاتورة', 'error');
         }
