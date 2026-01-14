@@ -2806,119 +2806,353 @@ const app = (() => {
         }
 
         const entity = db.entities.find(e => e.id === invoice.entityId);
-        const remaining = invoice.amount - (invoice.paidAmount || 0);
+        const currentDate = new Date().toLocaleDateString('en-US');
+        const subtotal = invoice.amount;
+        const vat = subtotal * 0.15; // 15% VAT
+        const total = subtotal + vat;
 
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <!DOCTYPE html>
-            <html dir="rtl">
+            <html>
             <head>
                 <meta charset="UTF-8">
-                <title>فاتورة ${invoice.id}</title>
+                <title>Invoice ${invoice.id}</title>
                 <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-                    body { padding: 40px; background: #f5f5f5; }
-                    .invoice { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-                    .header { text-align: center; border-bottom: 3px solid #b11226; padding-bottom: 20px; margin-bottom: 30px; }
-                    .header h1 { color: #b11226; font-size: 32px; margin-bottom: 10px; }
-                    .header .invoice-num { color: #666; font-size: 18px; }
-                    .customer-info { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-                    .customer-info h2 { color: #333; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-                    .info-item { }
-                    .info-label { color: #666; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-                    .info-value { color: #333; font-size: 16px; font-weight: 600; }
-                    .amounts { background: #fff5f5; padding: 20px; border-radius: 8px; border: 2px solid #b11226; }
-                    .amount-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
-                    .amount-row:last-child { border-bottom: none; font-size: 20px; font-weight: bold; }
-                    .amount-label { color: #666; }
-                    .amount-value { color: #333; font-weight: bold; }
-                    .total-due { color: #b11226 !important; }
-                    .footer { margin-top: 40px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #ddd; padding-top: 20px; }
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Arial', sans-serif; 
+                        padding: 40px; 
+                        background: #fff;
+                        color: #333;
+                    }
+                    .invoice-container { 
+                        max-width: 1000px; 
+                        margin: 0 auto; 
+                        border: 2px solid #000;
+                        padding: 30px;
+                    }
+                    
+                    /* Header Section */
+                    .header-section {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        margin-bottom: 30px;
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid #000;
+                    }
+                    .company-info {
+                        flex: 1;
+                    }
+                    .logo {
+                        width: 80px;
+                        height: 80px;
+                        background: #b11226;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 36px;
+                        font-weight: bold;
+                        border-radius: 8px;
+                        margin-bottom: 10px;
+                    }
+                    .company-name {
+                        font-size: 16px;
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                        line-height: 1.4;
+                    }
+                    .company-details {
+                        font-size: 12px;
+                        color: #555;
+                        line-height: 1.6;
+                    }
+                    
+                    /* Quote Info Table */
+                    .quote-info {
+                        margin-bottom: 20px;
+                    }
+                    .info-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    .info-table td {
+                        border: 1px solid #000;
+                        padding: 8px 12px;
+                        font-size: 12px;
+                    }
+                    .info-table td:first-child {
+                        background: #f0f0f0;
+                        font-weight: bold;
+                        width: 150px;
+                    }
+                    
+                    /* Details Section */
+                    .details-section {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                        margin-bottom: 30px;
+                    }
+                    .detail-box {
+                        border: 1px solid #000;
+                    }
+                    .detail-header {
+                        background: #000;
+                        color: white;
+                        padding: 10px;
+                        text-align: center;
+                        font-weight: bold;
+                        font-size: 14px;
+                    }
+                    .detail-content {
+                        padding: 15px;
+                    }
+                    .detail-row {
+                        display: grid;
+                        grid-template-columns: 120px 1fr;
+                        margin-bottom: 8px;
+                        font-size: 11px;
+                    }
+                    .detail-label {
+                        font-weight: bold;
+                        color: #555;
+                    }
+                    .detail-value {
+                        color: #000;
+                    }
+                    
+                    /* Products Table */
+                    .products-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    .products-table th,
+                    .products-table td {
+                        border: 1px solid #000;
+                        padding: 10px;
+                        text-align: center;
+                    }
+                    .products-table th {
+                        background: #f0f0f0;
+                        font-weight: bold;
+                        font-size: 12px;
+                    }
+                    .products-table td {
+                        font-size: 11px;
+                    }
+                    .products-table .text-right {
+                        text-align: right;
+                    }
+                    
+                    /* Totals Section */
+                    .totals-section {
+                        float: right;
+                        width: 350px;
+                        margin-top: 20px;
+                    }
+                    .totals-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .totals-table td {
+                        border: 1px solid #000;
+                        padding: 10px;
+                        font-size: 13px;
+                    }
+                    .totals-table td:first-child {
+                        background: #f0f0f0;
+                        font-weight: bold;
+                        text-align: center;
+                    }
+                    .totals-table td:last-child {
+                        text-align: right;
+                        font-weight: bold;
+                    }
+                    .total-row td {
+                        background: #e0e0e0 !important;
+                        font-size: 14px;
+                    }
+                    
                     @media print {
-                        body { padding: 0; background: white; }
-                        .invoice { box-shadow: none; }
+                        body { padding: 0; }
+                        .invoice-container { border: none; }
                     }
                 </style>
             </head>
             <body>
-                <div class="invoice">
-                    <div class="header">
-                        <h1>🧾 فاتورة</h1>
-                        <div class="invoice-num">رقم الفاتورة: ${invoice.id}</div>
-                    </div>
-                    
-                    <div class="customer-info">
-                        <h2>📋 معلومات العميل</h2>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <div class="info-label">اسم العميل</div>
-                                <div class="info-value">${invoice.customerName || 'غير محدد'}</div>
+                <div class="invoice-container">
+                    <!-- Header Section -->
+                    <div class="header-section">
+                        <div class="company-info">
+                            <div class="logo">N</div>
+                            <div class="company-name">
+                                نايوش لأنظمة الأعمال<br>
+                                Nayosh Business Systems
                             </div>
-                            <div class="info-item">
-                                <div class="info-label">رقم العميل</div>
-                                <div class="info-value">${invoice.customerNumber || 'غير محدد'}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">رقم الهاتف</div>
-                                <div class="info-value">${invoice.customerPhone || 'غير محدد'}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">اسم الكيان</div>
-                                <div class="info-value">${entity ? entity.name : invoice.entityId}</div>
+                            <div class="company-details">
+                                Building No. ${entity?.location || 'المكتب الرئيسي'}<br>
+                                Riyadh 12613, Saudi Arabia<br>
+                                Tel: + 966 11 XXXXXXX<br>
+                                Tax ID: 310XXXXXXXXX
                             </div>
                         </div>
                     </div>
-
-                    <div class="customer-info">
-                        <h2>📄 تفاصيل الفاتورة</h2>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <div class="info-label">عنوان الفاتورة</div>
-                                <div class="info-value">${invoice.title || '-'}</div>
+                    
+                    <!-- Quote Info -->
+                    <table class="info-table">
+                        <tr>
+                            <td>Quote</td>
+                            <td>${invoice.id}</td>
+                            <td>SalesMan</td>
+                            <td>${invoice.customerName || 'غير محدد'}</td>
+                        </tr>
+                        <tr>
+                            <td>SalesMan Email</td>
+                            <td>${invoice.customerEmail || 'info@nayosh.com'}</td>
+                            <td>Date</td>
+                            <td>${currentDate}</td>
+                        </tr>
+                        <tr>
+                            <td>Payment Terms</td>
+                            <td>${invoice.paymentMethod || 'نقدي'}</td>
+                            <td>Country</td>
+                            <td>Saudi Arabia</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"></td>
+                            <td>Currency</td>
+                            <td>SAR</td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Reseller & End User Details -->
+                    <div class="details-section">
+                        <!-- Reseller Details -->
+                        <div class="detail-box">
+                            <div class="detail-header">Reseller Details</div>
+                            <div class="detail-content">
+                                <div class="detail-row">
+                                    <div class="detail-label">Company Name</div>
+                                    <div class="detail-value">نايوش لأنظمة الأعمال</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Address</div>
+                                    <div class="detail-value">Building No.7554, Riyadh 12613</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Country</div>
+                                    <div class="detail-value">Saudi Arabia</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Sales Person</div>
+                                    <div class="detail-value">${invoice.customerName || 'مدير المبيعات'}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Phone</div>
+                                    <div class="detail-value">${invoice.customerPhone || '+ 966 11 XXXXXXX'}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Email Address</div>
+                                    <div class="detail-value">info@nayosh.com</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Website</div>
+                                    <div class="detail-value">https://www.nayosh.com</div>
+                                </div>
                             </div>
-                            <div class="info-item">
-                                <div class="info-label">تاريخ الإصدار</div>
-                                <div class="info-value">${invoice.date || '-'}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">تاريخ الاستحقاق</div>
-                                <div class="info-value">${invoice.dueDate || '-'}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">الحالة</div>
-                                <div class="info-value" style="color: ${invoice.status === 'PAID' ? '#059669' : '#dc2626'}">
-                                    ${invoice.status === 'PAID' ? '✅ مدفوع' : invoice.status === 'UNPAID' ? '⏳ غير مدفوع' : invoice.status === 'PARTIAL' ? '⚠️ دفع جزئي' : '❌ متأخر'}
+                        </div>
+                        
+                        <!-- End User Details -->
+                        <div class="detail-box">
+                            <div class="detail-header">End User Details</div>
+                            <div class="detail-content">
+                                <div class="detail-row">
+                                    <div class="detail-label">Customer Name</div>
+                                    <div class="detail-value">${invoice.customerName || 'العميل'}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Address</div>
+                                    <div class="detail-value">${entity?.location || 'المملكة العربية السعودية'}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Country</div>
+                                    <div class="detail-value">Saudi Arabia</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Phone</div>
+                                    <div class="detail-value">${invoice.customerPhone || '00966 XXXXXXXXX'}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Email Address</div>
+                                    <div class="detail-value">${invoice.customerEmail || 'customer@example.com'}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Website</div>
+                                    <div class="detail-value">-</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">VAT Number</div>
+                                    <div class="detail-value">${invoice.customerNumber || '310XXXXXXXXX'}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="amounts">
-                        <div class="amount-row">
-                            <span class="amount-label">المبلغ الإجمالي</span>
-                            <span class="amount-value">${invoice.amount.toLocaleString()} ر.س</span>
-                        </div>
-                        <div class="amount-row">
-                            <span class="amount-label">المدفوع</span>
-                            <span class="amount-value" style="color: #059669">${(invoice.paidAmount || 0).toLocaleString()} ر.س</span>
-                        </div>
-                        <div class="amount-row">
-                            <span class="amount-label">المتبقي</span>
-                            <span class="amount-value total-due">${remaining.toLocaleString()} ر.س</span>
-                        </div>
+                    
+                    <!-- Products Table -->
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>SN</th>
+                                <th>رقم المنتج<br>Product Number</th>
+                                <th>اسم المنتج<br>Product Name</th>
+                                <th>الكمية<br>Qty</th>
+                                <th>السعر<br>Unit price</th>
+                                <th>المجموع<br>subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>${invoice.id}</td>
+                                <td class="text-right">${invoice.title}</td>
+                                <td>1.00</td>
+                                <td>${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})} SR</td>
+                                <td>${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})} SR</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Totals -->
+                    <div class="totals-section">
+                        <table class="totals-table">
+                            <tr>
+                                <td>Subtotal</td>
+                                <td>${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})} SR</td>
+                            </tr>
+                            <tr>
+                                <td>VAT (15%)</td>
+                                <td>${vat.toLocaleString('en-US', {minimumFractionDigits: 2})} SR</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>Total</td>
+                                <td>${total.toLocaleString('en-US', {minimumFractionDigits: 2})} SR</td>
+                            </tr>
+                        </table>
                     </div>
-
-                    <div class="footer">
-                        <p>تم الطباعة في: ${new Date().toLocaleString('ar-SA')}</p>
-                        <p>نظام إدارة الكيانات - نيوش</p>
-                    </div>
+                    <div style="clear: both;"></div>
                 </div>
+                
                 <script>
-                    window.onload = function() { 
-                        window.print(); 
-                        setTimeout(function() { window.close(); }, 100);
-                    }
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
+                    };
                 </script>
             </body>
             </html>
