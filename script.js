@@ -943,7 +943,6 @@ const app = (() => {
         else if (route === 'employees') content = await renderEmployees();
         else if (route === 'saas') content = renderSaaSManager();
         else if (route === 'ads') content = renderAdsManager();
-        else if (route === 'billing') content = renderBilling();
         else if (route === 'finance') content = renderFinance();
         else if (route === 'collections') content = renderCollections();
         else if (route === 'approvals') content = renderApprovals();
@@ -984,7 +983,6 @@ const app = (() => {
             'dashboard': 'لوحة القيادة (Tenant Dashboard)',
             'hierarchy': 'الهيكل الهرمي - Multi-Tenant',
             'saas': 'إدارة الاشتراك والخدمات (SaaS)',
-            'billing': 'الإدارة المالية والفواتير',
             'finance': 'المالية',
             'collections': 'التحصيل',
             'approvals': 'الموافقات المالية التدريجية',
@@ -1086,131 +1084,21 @@ const app = (() => {
     };
 
     // --- FINANCIAL MODULE ---
-    const renderBilling = () => {
-        const invoices = perms.getVisibleInvoices();
-        const ledger = perms.getVisibleLedger();
-        
-        const totalDue = invoices.reduce((s, i) => s + (i.amount - (i.paidAmount || 0)), 0);
-        const totalPaid = invoices.reduce((s, i) => s + (i.paidAmount || 0), 0);
-        const overdue = invoices.filter(i => i.status === 'OVERDUE').length;
-
-        return `
-        <div class="space-y-8 animate-fade-in">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800">النظام المالي والتحصيل</h2>
-                    <p class="text-slate-500">${perms.isHQ() ? 'متابعة فواتير المستأجرين والتحصيل' : 'فواتير الاشتراكات والذمم المالية'}</p>
-                </div>
-                ${perms.isHQ() ? `<button onclick="app.openCreateInvoiceModal()" class="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2"><i class="fas fa-plus"></i> إنشاء فاتورة جديدة</button>` : ''}
-            </div>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                ${renderKpiCard('المبالغ المستحقة (AR)', totalDue.toLocaleString() + ' ر.س', 'fa-hand-holding-usd', 'text-red-600', 'bg-red-50')}
-                ${renderKpiCard('المبالغ المحصلة', totalPaid.toLocaleString() + ' ر.س', 'fa-check-double', 'text-green-600', 'bg-green-50')}
-                ${renderKpiCard('الفواتير المتأخرة', overdue, 'fa-clock', 'text-orange-600', 'bg-orange-50')}
-            </div>
-
-            <!-- Tabs -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="flex border-b border-slate-100">
-                    <button onclick="app.switchTab('invoices')" id="tab-btn-invoices" class="flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition">الفواتير (Invoices)</button>
-                    <button onclick="app.switchTab('ledger')" id="tab-btn-ledger" class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">سجل القيود (Ledger)</button>
-                </div>
-
-                <!-- Invoices Tab -->
-                <div id="tab-content-invoices" class="p-6">
-                    <div class="overflow-x-auto">
-                         <table class="w-full text-right whitespace-nowrap">
-                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                                <tr>
-                                    <th class="p-4">رقم الفاتورة</th>
-                                    ${perms.isHQ() ? '<th class="p-4">المستأجر</th>' : ''}
-                                    <th class="p-4">البيان</th>
-                                    <th class="p-4">المبلغ</th>
-                                    <th class="p-4">المدفوع</th>
-                                    <th class="p-4">الحالة</th>
-                                    <th class="p-4">التاريخ</th>
-                                    <th class="p-4">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-50 text-sm">
-                                ${invoices.length ? invoices.map(inv => {
-                                    const status = INVOICE_STATUS[inv.status] || INVOICE_STATUS.UNPAID;
-                                    const entityName = db.entities.find(e => e.id === inv.entityId)?.name || inv.entityId;
-                                    return `
-                                    <tr class="hover:bg-slate-50 transition group">
-                                        <td class="p-4 font-mono font-bold text-brand-600">${inv.id}</td>
-                                        ${perms.isHQ() ? `<td class="p-4 font-bold text-slate-700">${entityName}</td>` : ''}
-                                        <td class="p-4 text-slate-600">${inv.title}</td>
-                                        <td class="p-4 font-bold">${inv.amount.toLocaleString()}</td>
-                                        <td class="p-4 text-green-600">${inv.paidAmount.toLocaleString()}</td>
-                                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${status.bg} ${status.color} border-current border-opacity-20">${status.label}</span></td>
-                                        <td class="p-4 text-xs text-slate-400">${inv.date}</td>
-                                        <td class="p-4">
-                                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                                                <button onclick="app.openPaymentModal('${inv.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg tooltip" title="سداد"><i class="fas fa-money-bill-wave"></i></button>
-                                                <button class="p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-print"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>`;
-                                }).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد فواتير مسجلة</td></tr>'}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Ledger Tab -->
-                <div id="tab-content-ledger" class="hidden p-6">
-                    <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 mb-6 flex items-start gap-3">
-                        <i class="fas fa-shield-alt text-yellow-600 mt-1"></i>
-                        <div>
-                            <h4 class="font-bold text-yellow-800 text-sm">سجل مالي غير قابل للحذف (Immutable Ledger)</h4>
-                            <p class="text-xs text-yellow-700 mt-1">يتم تسجيل جميع العمليات المالية هنا. لا يمكن حذف القيود، ولكن يمكن إجراء قيود عكسية (Reversal) لتصحيح الأخطاء.</p>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right whitespace-nowrap">
-                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                                <tr>
-                                    <th class="p-4">#</th>
-                                    <th class="p-4">التاريخ</th>
-                                    <th class="p-4">المرجع (Trx ID)</th>
-                                    <th class="p-4">الوصف</th>
-                                    <th class="p-4">دائن (Credit)</th>
-                                    <th class="p-4">رصيد تراكمي</th>
-                                    <th class="p-4">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-50 text-sm font-mono">
-                                ${ledger.length ? ledger.map(l => `
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4 text-slate-400">${l.id}</td>
-                                    <td class="p-4 text-slate-500">${l.date}</td>
-                                    <td class="p-4 text-brand-600">${l.trxId}</td>
-                                    <td class="p-4 font-sans font-bold text-slate-700">${l.desc}</td>
-                                    <td class="p-4 text-green-600">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
-                                    <td class="p-4 font-bold text-slate-800">${l.balance.toLocaleString()}</td>
-                                    <td class="p-4">
-                                        ${l.credit > 0 ? `<button onclick="app.reverseTransaction('${l.trxId}')" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 hover:bg-red-100 transition">قيد عكسي</button>` : ''}
-                                    </td>
-                                </tr>`).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">السجل المالي فارغ</td></tr>'}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    };
-
+    
     const switchTab = (tab) => {
-        document.getElementById('tab-content-invoices').classList.add('hidden');
-        document.getElementById('tab-content-ledger').classList.add('hidden');
-        document.getElementById('tab-btn-invoices').className = 'flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition';
-        document.getElementById('tab-btn-ledger').className = 'flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition';
-
-        document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
-        document.getElementById(`tab-btn-${tab}`).className = 'flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition';
+        // Hide all tabs
+        ['invoices', 'ledger', 'transactions'].forEach(t => {
+            const content = document.getElementById('tab-content-' + t);
+            const btn = document.getElementById('tab-btn-' + t);
+            if (content) content.classList.add('hidden');
+            if (btn) btn.className = 'flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition';
+        });
+        
+        // Show selected tab
+        const selectedContent = document.getElementById('tab-content-' + tab);
+        const selectedBtn = document.getElementById('tab-btn-' + tab);
+        if (selectedContent) selectedContent.classList.remove('hidden');
+        if (selectedBtn) selectedBtn.className = 'flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition';
     };
 
     // --- MODALS ---
@@ -2184,6 +2072,10 @@ const app = (() => {
             return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
         }).reduce((sum, l) => sum + (l.credit || 0), 0);
 
+        const totalDue = invoices.reduce((s, i) => s + (i.amount - (i.paidAmount || 0)), 0);
+        const totalPaid = invoices.reduce((s, i) => s + (i.paidAmount || 0), 0);
+        const overdue = invoices.filter(i => i.status === 'OVERDUE').length;
+
         return `
         <div class="space-y-6 animate-fade-in">
             <!-- Header -->
@@ -2193,12 +2085,15 @@ const app = (() => {
                         <i class="fas fa-dollar-sign text-green-600"></i>
                         المالية
                     </h2>
-                    <p class="text-slate-500 mt-1">إدارة الإيرادات والمصروفات والتقارير المالية</p>
+                    <p class="text-slate-500 mt-1">إدارة الإيرادات والمصروفات والفواتير والتقارير المالية</p>
                 </div>
-                <button onclick="window.openAddTransactionModal()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg flex items-center gap-2">
-                    <i class="fas fa-plus"></i>
-                    إضافة معاملة مالية
-                </button>
+                <div class="flex gap-3">
+                    ${perms.isHQ() ? `<button onclick="app.openCreateInvoiceModal()" class="bg-brand-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2"><i class="fas fa-plus"></i> إنشاء فاتورة</button>` : ''}
+                    <button onclick="window.openAddTransactionModal()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        إضافة معاملة مالية
+                    </button>
+                </div>
             </div>
 
             <!-- Financial Summary Cards -->
@@ -2219,7 +2114,7 @@ const app = (() => {
                     <div class="text-3xl font-bold">${totalExpenses.toLocaleString()} ر.س</div>
                 </div>
 
-                <div class="bg-gradient-to-br from-red-500 to-cyan-600 p-6 rounded-2xl text-white shadow-xl">
+                <div class="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-2xl text-white shadow-xl">
                     <div class="flex items-center justify-between mb-2">
                         <i class="fas fa-wallet text-3xl opacity-30"></i>
                         <span class="text-xs opacity-75">الرصيد الصافي</span>
@@ -2236,52 +2131,141 @@ const app = (() => {
                 </div>
             </div>
 
-            <!-- Financial Ledger -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div class="p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
-                    <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-book text-slate-600"></i>
-                        السجل المالي (Ledger)
-                    </h3>
-                    <p class="text-sm text-slate-500 mt-1">جميع المعاملات المالية مسجلة هنا</p>
+            <!-- Tabs System -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="flex border-b border-slate-100">
+                    <button onclick="app.switchTab('invoices')" id="tab-btn-invoices" class="flex-1 py-4 text-sm font-bold text-brand-600 border-b-2 border-brand-600 bg-brand-50 transition">الفواتير (Invoices)</button>
+                    <button onclick="app.switchTab('ledger')" id="tab-btn-ledger" class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">سجل القيود (Ledger)</button>
+                    <button onclick="app.switchTab('transactions')" id="tab-btn-transactions" class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 transition">المعاملات المالية</button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right">
-                        <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                            <tr>
-                                <th class="p-4">#</th>
-                                <th class="p-4">التاريخ</th>
-                                <th class="p-4">المرجع</th>
-                                <th class="p-4">الوصف</th>
-                                <th class="p-4">دائن (إيراد)</th>
-                                <th class="p-4">مدين (مصروف)</th>
-                                <th class="p-4">الرصيد</th>
-                                <th class="p-4">إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-50 text-sm">
-                            ${ledger.length ? ledger.map((l, idx) => `
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-4 text-slate-400">${idx + 1}</td>
-                                <td class="p-4 text-slate-600">${l.date || '-'}</td>
-                                <td class="p-4 text-red-600 font-mono">${l.trxId || '-'}</td>
-                                <td class="p-4 text-slate-700">${l.desc || '-'}</td>
-                                <td class="p-4 text-green-600 font-bold">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
-                                <td class="p-4 text-red-600 font-bold">${l.debit > 0 ? l.debit.toLocaleString() : '-'}</td>
-                                <td class="p-4 font-bold text-slate-800">${(l.balance || 0).toLocaleString()}</td>
-                                <td class="p-4">
-                                    <div class="flex gap-2">
-                                        <button onclick="window.viewTransactionDetails('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="عرض">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button onclick="window.deleteTransaction('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>`).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد معاملات مالية</td></tr>'}
-                        </tbody>
-                    </table>
+
+                <!-- Invoices Tab -->
+                <div id="tab-content-invoices" class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        ${renderKpiCard('المبالغ المستحقة (AR)', totalDue.toLocaleString() + ' ر.س', 'fa-hand-holding-usd', 'text-red-600', 'bg-red-50')}
+                        ${renderKpiCard('المبالغ المحصلة', totalPaid.toLocaleString() + ' ر.س', 'fa-check-double', 'text-green-600', 'bg-green-50')}
+                        ${renderKpiCard('الفواتير المتأخرة', overdue, 'fa-clock', 'text-orange-600', 'bg-orange-50')}
+                    </div>
+                    <div class="overflow-x-auto">
+                         <table class="w-full text-right whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-4">رقم الفاتورة</th>
+                                    ${perms.isHQ() ? '<th class="p-4">المستأجر</th>' : ''}
+                                    <th class="p-4">البيان</th>
+                                    <th class="p-4">المبلغ</th>
+                                    <th class="p-4">المدفوع</th>
+                                    <th class="p-4">الحالة</th>
+                                    <th class="p-4">التاريخ</th>
+                                    <th class="p-4">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 text-sm">
+                                ${invoices.length ? invoices.map(inv => {
+                                    const status = INVOICE_STATUS[inv.status] || INVOICE_STATUS.UNPAID;
+                                    const entityName = db.entities.find(e => e.id === inv.entityId)?.name || inv.entityId;
+                                    return `
+                                    <tr class="hover:bg-slate-50 transition group">
+                                        <td class="p-4 font-mono font-bold text-brand-600">${inv.id}</td>
+                                        ${perms.isHQ() ? `<td class="p-4 font-bold text-slate-700">${entityName}</td>` : ''}
+                                        <td class="p-4 text-slate-600">${inv.title}</td>
+                                        <td class="p-4 font-bold">${inv.amount.toLocaleString()}</td>
+                                        <td class="p-4 text-green-600">${inv.paidAmount.toLocaleString()}</td>
+                                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${status.bg} ${status.color} border-current border-opacity-20">${status.label}</span></td>
+                                        <td class="p-4 text-xs text-slate-400">${inv.date}</td>
+                                        <td class="p-4">
+                                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                                                <button onclick="app.openPaymentModal('${inv.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg tooltip" title="سداد"><i class="fas fa-money-bill-wave"></i></button>
+                                                <button class="p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-print"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>`;
+                                }).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد فواتير مسجلة</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Ledger Tab -->
+                <div id="tab-content-ledger" class="hidden p-6">
+                    <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 mb-6 flex items-start gap-3">
+                        <i class="fas fa-shield-alt text-yellow-600 mt-1"></i>
+                        <div>
+                            <h4 class="font-bold text-yellow-800 text-sm">سجل مالي غير قابل للحذف (Immutable Ledger)</h4>
+                            <p class="text-xs text-yellow-700 mt-1">يتم تسجيل جميع العمليات المالية هنا. لا يمكن حذف القيود، ولكن يمكن إجراء قيود عكسية (Reversal) لتصحيح الأخطاء.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-4">#</th>
+                                    <th class="p-4">التاريخ</th>
+                                    <th class="p-4">المرجع (Trx ID)</th>
+                                    <th class="p-4">الوصف</th>
+                                    <th class="p-4">دائن (Credit)</th>
+                                    <th class="p-4">رصيد تراكمي</th>
+                                    <th class="p-4">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 text-sm font-mono">
+                                ${ledger.length ? ledger.map(l => `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 text-slate-400">${l.id}</td>
+                                    <td class="p-4 text-slate-500">${l.date}</td>
+                                    <td class="p-4 text-brand-600">${l.trxId}</td>
+                                    <td class="p-4 font-sans font-bold text-slate-700">${l.desc}</td>
+                                    <td class="p-4 text-green-600">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
+                                    <td class="p-4 font-bold text-slate-800">${l.balance.toLocaleString()}</td>
+                                    <td class="p-4">
+                                        ${l.credit > 0 ? `<button onclick="app.reverseTransaction('${l.trxId}')" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 hover:bg-red-100 transition">قيد عكسي</button>` : ''}
+                                    </td>
+                                </tr>`).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">السجل المالي فارغ</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="tab-content-transactions" class="hidden p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right">
+                            <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                <tr>
+                                    <th class="p-4">#</th>
+                                    <th class="p-4">التاريخ</th>
+                                    <th class="p-4">المرجع</th>
+                                    <th class="p-4">الوصف</th>
+                                    <th class="p-4">دائن (إيراد)</th>
+                                    <th class="p-4">مدين (مصروف)</th>
+                                    <th class="p-4">الرصيد</th>
+                                    <th class="p-4">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 text-sm">
+                                ${ledger.length ? ledger.map((l, idx) => `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 text-slate-400">${idx + 1}</td>
+                                    <td class="p-4 text-slate-600">${l.date || '-'}</td>
+                                    <td class="p-4 text-red-600 font-mono">${l.trxId || '-'}</td>
+                                    <td class="p-4 text-slate-700">${l.desc || '-'}</td>
+                                    <td class="p-4 text-green-600 font-bold">${l.credit > 0 ? l.credit.toLocaleString() : '-'}</td>
+                                    <td class="p-4 text-red-600 font-bold">${l.debit > 0 ? l.debit.toLocaleString() : '-'}</td>
+                                    <td class="p-4 font-bold text-slate-800">${(l.balance || 0).toLocaleString()}</td>
+                                    <td class="p-4">
+                                        <div class="flex gap-2">
+                                            <button onclick="window.viewTransactionDetails('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="window.deleteTransaction('${l.trxId}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>`).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400">لا توجد معاملات مالية</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>`;
