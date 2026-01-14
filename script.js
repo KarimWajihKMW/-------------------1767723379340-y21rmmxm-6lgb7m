@@ -9120,11 +9120,12 @@ async function loadIncubatorsForPlatformByBranch() {
   }
   
   try {
-    const response = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    // Use junction table API
+    const response = await fetch(`${API_BASE_URL}/incubators?branch_id=${branchId}`);
     const incubators = await response.json();
     const select = document.getElementById('platform_incubator_id');
     select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
-      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+      incubators.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
   } catch (error) {
     console.error('Error loading incubators:', error);
   }
@@ -9219,21 +9220,21 @@ async function loadIncubatorsForOfficeByBranch() {
   }
   
   try {
-    // Get incubators for this branch
-    const incResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    // Get incubators for this branch using junction table
+    const incResponse = await fetch(`${API_BASE_URL}/incubators?branch_id=${branchId}`);
     const incubators = await incResponse.json();
     
     const select = document.getElementById('office_incubator_id');
     select.innerHTML = '<option value="">-- اختر حاضنة --</option>' +
-      incubators.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('');
+      incubators.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
     
-    // Load ALL platforms immediately when branch is selected
-    const platResponse = await fetch(`${API_BASE_URL}/platforms`);
-    const allPlatforms = await platResponse.json();
+    // Load platforms for this branch using junction table
+    const platResponse = await fetch(`${API_BASE_URL}/platforms?branch_id=${branchId}`);
+    const platforms = await platResponse.json();
     
     const platformSelect = document.getElementById('office_platform_id');
     platformSelect.innerHTML = '<option value="">-- اختر منصة --</option>' +
-      allPlatforms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
+      platforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   } catch (error) {
     console.error('Error loading incubators:', error);
   }
@@ -9300,13 +9301,9 @@ async function loadIncubatorsForOfficeByPlatform() {
   }
   
   try {
-    // Get the platform details to find its incubator
-    const response = await fetch(`${API_BASE_URL}/platforms/${platformId}`);
-    const platform = await response.json();
-    
-    // Get incubators for this branch that contain this platform
+    // Get incubators for this branch using junction table
     const branchId = document.getElementById('office_branch_id').value;
-    const incResponse = await fetch(`${API_BASE_URL}/branches/${branchId}/incubators`);
+    const incResponse = await fetch(`${API_BASE_URL}/incubators?branch_id=${branchId}`);
     const incubators = await incResponse.json();
     
     const select = document.getElementById('office_incubator_id');
