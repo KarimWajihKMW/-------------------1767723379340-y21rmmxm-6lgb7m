@@ -304,6 +304,14 @@ const app = (() => {
                         </div>
 
                         <div id="tenant-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"></div>
+                        
+                        <div id="load-more-container" class="flex justify-center pt-4">
+                          <button id="load-more-btn" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition shadow-lg hidden">
+                            <i class="fas fa-chevron-down ml-2"></i>
+                            عرض المزيد
+                          </button>
+                        </div>
+                        
                         <p class="text-center text-sm text-gray-500 mt-4 pt-4 border-t">
                           💡 اختيار الكيان سيحدد البيانات التي تراها في النظام
                         </p>
@@ -316,6 +324,11 @@ const app = (() => {
                   const searchInput = modal.querySelector('#tenant-search');
                   const grid = modal.querySelector('#tenant-grid');
                   const resultCount = modal.querySelector('#tenant-results-count');
+                  const loadMoreBtn = modal.querySelector('#load-more-btn');
+                  
+                  let currentPage = 1;
+                  const itemsPerPage = 20; // عرض 20 كيان في كل مرة
+                  let filteredEntities = [...entities];
 
                   const renderCards = (list) => {
                     if (!list || list.length === 0) {
@@ -329,7 +342,7 @@ const app = (() => {
                             <h3 class="font-bold text-lg mb-2 text-gray-900 truncate" title="${e.name}">${e.name}</h3>
                             <p class="text-sm text-gray-600 mb-3">النوع: <span class="font-semibold">${e.type === 'HQ' ? 'المكتب الرئيسي' : e.type === 'BRANCH' ? 'فرع' : e.type === 'INCUBATOR' ? 'حاضنة' : e.type === 'PLATFORM' ? 'منصة' : e.type === 'OFFICE' ? 'مكتب' : 'كيان'}</span></p>
                             <div class="flex flex-wrap gap-2 text-xs">
-                              <span class="bg-gray-100 px-3 py-1 rounded-full">الحالة: ${e.status === 'active' ? '✅ نشط' : '⏸️ معطل'}</span>
+                              <span class="bg-gray-100 px-3 py-1 rounded-full">الحالة: ${e.status === 'active' || e.status === 'Active' ? '✅ نشط' : '⏸️ معطل'}</span>
                               ${e.id ? `<span class="bg-red-50 text-red-700 px-3 py-1 rounded-full">الكود: ${e.id}</span>` : ''}
                               ${e.location ? `<span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full">الموقع: ${e.location}</span>` : ''}
                             </div>
@@ -342,18 +355,46 @@ const app = (() => {
                     `).join('');
                   };
 
+                  const renderPage = (append = false) => {
+                    const startIdx = 0;
+                    const endIdx = currentPage * itemsPerPage;
+                    const pageItems = filteredEntities.slice(startIdx, endIdx);
+                    
+                    if (append) {
+                      grid.innerHTML += renderCards(pageItems.slice((currentPage - 1) * itemsPerPage));
+                    } else {
+                      grid.innerHTML = renderCards(pageItems);
+                    }
+                    
+                    // Show/hide load more button
+                    if (endIdx < filteredEntities.length) {
+                      loadMoreBtn.classList.remove('hidden');
+                      loadMoreBtn.textContent = `عرض المزيد (${filteredEntities.length - endIdx} متبقي)`;
+                    } else {
+                      loadMoreBtn.classList.add('hidden');
+                    }
+                  };
+
                   const applyFilter = () => {
                     const term = (searchInput.value || '').trim().toLowerCase();
-                    const filtered = term
+                    filteredEntities = term
                       ? entities.filter(e => [e.name, e.type, e.id, e.location, e.status]
                         .filter(Boolean)
                         .some(v => v.toString().toLowerCase().includes(term)))
                       : entities;
-                    grid.innerHTML = renderCards(filtered);
+                    
+                    currentPage = 1; // Reset to first page
+                    renderPage(false);
+                    
                     resultCount.textContent = term
-                      ? `${filtered.length} كيان مطابق`
+                      ? `${filteredEntities.length} كيان مطابق من ${entities.length}`
                       : `${entities.length} كيان متاح`;
                   };
+
+                  loadMoreBtn.addEventListener('click', () => {
+                    currentPage++;
+                    renderPage(true);
+                  });
 
                   searchInput.addEventListener('input', applyFilter);
                   applyFilter();
