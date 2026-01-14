@@ -102,6 +102,107 @@ app.get('/api/entities/:id', async (req, res) => {
   }
 });
 
+// Create new entity
+app.post('/api/entities', async (req, res) => {
+  try {
+    const { id, name, type, location, status = 'Active' } = req.body;
+    
+    if (!id || !name || !type) {
+      return res.status(400).json({ error: 'Missing required fields: id, name, type' });
+    }
+    
+    const query = `
+      INSERT INTO entities (id, name, type, location, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, NOW())
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [id, name, type, location || '', status]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating entity:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update entity
+app.put('/api/entities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, location, status } = req.body;
+    
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    if (name !== undefined) {
+      updates.push(`name = $${paramIndex}`);
+      values.push(name);
+      paramIndex++;
+    }
+    
+    if (location !== undefined) {
+      updates.push(`location = $${paramIndex}`);
+      values.push(location);
+      paramIndex++;
+    }
+    
+    if (status !== undefined) {
+      updates.push(`status = $${paramIndex}`);
+      values.push(status);
+      paramIndex++;
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+    
+    values.push(id);
+    const query = `
+      UPDATE entities 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entity not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating entity:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete entity
+app.delete('/api/entities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if entity exists
+    const checkResult = await db.query('SELECT * FROM entities WHERE id = $1', [id]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Entity not found' });
+    }
+    
+    // Delete entity
+    const deleteQuery = 'DELETE FROM entities WHERE id = $1 RETURNING *';
+    const result = await db.query(deleteQuery, [id]);
+    
+    res.json({ 
+      message: 'Entity deleted successfully',
+      entity: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error deleting entity:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all users with data isolation
 app.get('/api/users', async (req, res) => {
   try {

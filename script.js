@@ -3336,11 +3336,39 @@ const app = (() => {
         const type = document.querySelector('input[name="reg-type"]:checked')?.value;
         const plan = document.querySelector('input[name="reg-plan"]:checked')?.value;
         if (!name || !location || !type || !plan) return showToast('الرجاء تعبئة جميع الحقول', 'error');
-        const newId = (type === 'BRANCH' ? 'BR' : 'TNT') + Math.floor(100 + Math.random() * 900);
-        db.entities.push({ id: newId, name: name, type: type, status: 'Active', balance: 0, location: location, users: 1, plan: plan, expiry: '2025-01-01', theme: 'BLUE' });
-        db.users.push({ id: db.users.length + 1, name: 'مسؤول جديد', role: ROLES.ADMIN, tenantType: type, entityId: newId, entityName: name });
-        showToast(`تم إنشاء المستأجر ${name} بنجاح!`, 'success');
-        loadRoute('entities');
+        
+        const newId = (type === 'BRANCH' ? 'BR' : type === 'INCUBATOR' ? 'INC' : type === 'PLATFORM' ? 'PLT' : type === 'OFFICE' ? 'OFF' : 'TNT') + Math.floor(100 + Math.random() * 900);
+        
+        // Save to database via API
+        fetch('/api/entities', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-entity-type': window.currentUser?.entityType || 'HQ',
+                'x-entity-id': window.currentUser?.entityId || 'HQ001'
+            },
+            body: JSON.stringify({
+                id: newId,
+                name: name,
+                type: type,
+                location: location,
+                status: 'Active'
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('فشل حفظ البيانات');
+            return response.json();
+        })
+        .then(entity => {
+            // Add to local cache
+            db.entities.push(entity);
+            showToast(`تم إنشاء المستأجر ${name} بنجاح!`, 'success');
+            loadRoute('entities');
+        })
+        .catch(error => {
+            console.error('Error creating entity:', error);
+            showToast('حدث خطأ: ' + error.message, 'error');
+        });
     };
 
     // Entity Management Functions
@@ -3351,23 +3379,62 @@ const app = (() => {
 
     window.suspendEntity = function(entityId) {
         if (!confirm('هل أنت متأكد من إيقاف هذا الكيان مؤقتاً؟')) return;
-        const entity = db.entities.find(e => e.id === entityId);
-        if (entity) {
-            entity.status = 'Suspended';
+        
+        fetch(`/api/entities/${entityId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-entity-type': window.currentUser?.entityType || 'HQ',
+                'x-entity-id': window.currentUser?.entityId || 'HQ001'
+            },
+            body: JSON.stringify({ status: 'Suspended' })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('فشل إيقاف الكيان');
+            return response.json();
+        })
+        .then(updatedEntity => {
+            // Update local cache
+            const entity = db.entities.find(e => e.id === entityId);
+            if (entity) entity.status = 'Suspended';
+            
             logAction('SUSPEND_ENTITY', `Suspended entity ${entityId}`);
             showToast('تم إيقاف الكيان مؤقتاً', 'success');
             loadRoute('entities');
-        }
+        })
+        .catch(error => {
+            console.error('Error suspending entity:', error);
+            showToast('حدث خطأ: ' + error.message, 'error');
+        });
     };
 
     window.reactivateEntity = function(entityId) {
-        const entity = db.entities.find(e => e.id === entityId);
-        if (entity) {
-            entity.status = 'Active';
+        fetch(`/api/entities/${entityId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-entity-type': window.currentUser?.entityType || 'HQ',
+                'x-entity-id': window.currentUser?.entityId || 'HQ001'
+            },
+            body: JSON.stringify({ status: 'Active' })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('فشل إعادة تفعيل الكيان');
+            return response.json();
+        })
+        .then(updatedEntity => {
+            // Update local cache
+            const entity = db.entities.find(e => e.id === entityId);
+            if (entity) entity.status = 'Active';
+            
             logAction('REACTIVATE_ENTITY', `Reactivated entity ${entityId}`);
             showToast('تم إعادة تفعيل الكيان', 'success');
             loadRoute('entities');
-        }
+        })
+        .catch(error => {
+            console.error('Error reactivating entity:', error);
+            showToast('حدث خطأ: ' + error.message, 'error');
+        });
     };
 
     window.editEntity = function(entityId) {
@@ -3401,15 +3468,39 @@ const app = (() => {
     };
 
     window.saveEntityEdits = function(entityId) {
-        const entity = db.entities.find(e => e.id === entityId);
-        if (entity) {
-            entity.name = document.getElementById('edit-entity-name').value;
-            entity.location = document.getElementById('edit-entity-location').value;
+        const name = document.getElementById('edit-entity-name').value;
+        const location = document.getElementById('edit-entity-location').value;
+        
+        fetch(`/api/entities/${entityId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-entity-type': window.currentUser?.entityType || 'HQ',
+                'x-entity-id': window.currentUser?.entityId || 'HQ001'
+            },
+            body: JSON.stringify({ name, location })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('فشل حفظ التعديلات');
+            return response.json();
+        })
+        .then(updatedEntity => {
+            // Update local cache
+            const entity = db.entities.find(e => e.id === entityId);
+            if (entity) {
+                entity.name = name;
+                entity.location = location;
+            }
+            
             logAction('EDIT_ENTITY', `Edited entity ${entityId}`);
             showToast('تم تحديث بيانات الكيان', 'success');
             document.getElementById('edit-entity-modal').remove();
             loadRoute('entities');
-        }
+        })
+        .catch(error => {
+            console.error('Error editing entity:', error);
+            showToast('حدث خطأ: ' + error.message, 'error');
+        });
     };
 
     // Dropdown Menu Controls
@@ -3458,14 +3549,33 @@ const app = (() => {
     window.deleteEntityPermanent = function(entityId) {
         if (!confirm('⚠️ تحذير: هل أنت متأكد من الحذف النهائي؟\n\nهذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع البيانات المرتبطة.')) return;
         
-        const index = db.entities.findIndex(e => e.id === entityId);
-        if (index !== -1) {
-            const entityName = db.entities[index].name;
-            db.entities.splice(index, 1);
-            logAction('DELETE_ENTITY_PERMANENT', `Permanently deleted entity ${entityId}`);
-            showToast(`تم حذف ${entityName} نهائياً`, 'success');
+        fetch(`/api/entities/${entityId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-entity-type': window.currentUser?.entityType || 'HQ',
+                'x-entity-id': window.currentUser?.entityId || 'HQ001'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('فشل حذف الكيان');
+            return response.json();
+        })
+        .then(data => {
+            // Remove from local cache
+            const index = db.entities.findIndex(e => e.id === entityId);
+            if (index !== -1) {
+                const entityName = db.entities[index].name;
+                db.entities.splice(index, 1);
+                logAction('DELETE_ENTITY_PERMANENT', `Permanently deleted entity ${entityId}`);
+                showToast(`تم حذف ${entityName} نهائياً`, 'success');
+            }
             loadRoute('entities');
-        }
+        })
+        .catch(error => {
+            console.error('Error deleting entity:', error);
+            showToast('حدث خطأ: ' + error.message, 'error');
+        });
     };
 
     const renderTasksManager = () => {
