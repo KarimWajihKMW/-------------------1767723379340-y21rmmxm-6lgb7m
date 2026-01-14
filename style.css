@@ -1,11 +1,22 @@
 :root {
-    --brand-50: 254 242 242;
-    --brand-100: 254 226 226;
-    --brand-400: 248 113 113;
-    --brand-500: 239 68 68;
-    --brand-600: 220 38 38;
-    --brand-800: 153 27 27;
-    --brand-900: 127 29 29;
+    --brand-50: 255 245 245;
+    --brand-100: 253 225 225;
+    --brand-400: 229 80 80;
+    --brand-500: 187 18 38;
+    --brand-600: 153 14 30;
+    --brand-800: 89 6 15;
+    --brand-900: 52 3 9;
+
+    --primary-red: #b11226;
+    --primary-red-dark: #7a0b16;
+    --surface-white: #ffffff;
+    --surface-wash: #f6f6f6;
+    --surface-gray: #e1e1e1;
+    --ink: #050505;
+    --charcoal: #1a1a1a;
+    --graphite: #2f3033;
+    --steel: #4d515a;
+    --muted-gray: #8a8d95;
 }
 
 ::-webkit-scrollbar {
@@ -60,12 +71,12 @@
 }
 
 #tenant-selector .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #9333ea;
+    background: var(--primary-red);
     border-radius: 4px;
 }
 
 #tenant-selector .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #7e22ce;
+    background: var(--primary-red-dark);
 }
 
 @keyframes fadeIn {
@@ -143,8 +154,8 @@
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: #1e293b;
-    color: white;
+    background: var(--charcoal);
+    color: var(--surface-white);
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 10px;
