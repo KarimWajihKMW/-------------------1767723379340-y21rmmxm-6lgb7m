@@ -2213,7 +2213,9 @@ const app = (() => {
                                         <td class="p-4">
                                             <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                                                 <button onclick="app.openPaymentModal('${inv.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg tooltip" title="سداد"><i class="fas fa-money-bill-wave"></i></button>
-                                                <button class="p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-print"></i></button>
+                                                <button onclick="window.viewInvoiceDetails('${inv.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="عرض"><i class="fas fa-eye"></i></button>
+                                                <button onclick="window.printInvoice('${inv.id}')" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg" title="طباعة"><i class="fas fa-print"></i></button>
+                                                <button onclick="window.deleteInvoice('${inv.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="حذف"><i class="fas fa-trash"></i></button>
                                             </div>
                                         </td>
                                     </tr>`;
@@ -2427,6 +2429,7 @@ const app = (() => {
                                             ${i.status !== 'PAID' ? `<button onclick="app.openPaymentModal('${i.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="دفع"><i class="fas fa-money-bill"></i></button>` : ''}
                                             <button onclick="window.viewInvoiceDetails('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="عرض"><i class="fas fa-eye"></i></button>
                                             <button onclick="window.printInvoice('${i.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="طباعة"><i class="fas fa-print"></i></button>
+                                            <button onclick="window.deleteInvoice('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف"><i class="fas fa-trash"></i></button>
                                         </div>
                                     </td>
                                 </tr>`;
@@ -2839,6 +2842,34 @@ const app = (() => {
             </html>
         `);
         printWindow.document.close();
+    };
+
+    // Delete Invoice Function
+    window.deleteInvoice = function(invoiceId) {
+        const invoice = db.invoices.find(inv => inv.id === invoiceId);
+        if (!invoice) {
+            showToast('لم يتم العثور على الفاتورة', 'error');
+            return;
+        }
+
+        // Confirm deletion
+        if (!confirm(`هل أنت متأكد من حذف الفاتورة ${invoiceId}؟\n\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+            return;
+        }
+
+        // Find index and remove
+        const index = db.invoices.findIndex(inv => inv.id === invoiceId);
+        if (index !== -1) {
+            db.invoices.splice(index, 1);
+            logAction('DELETE_INVOICE', `Deleted Invoice ${invoiceId}`);
+            showToast('تم حذف الفاتورة بنجاح', 'success');
+            
+            // Reload current page
+            const currentRoute = window.location.hash.slice(1) || 'dashboard';
+            loadRoute(currentRoute);
+        } else {
+            showToast('حدث خطأ أثناء حذف الفاتورة', 'error');
+        }
     };
 
     // --- APPROVALS MODULE ---
