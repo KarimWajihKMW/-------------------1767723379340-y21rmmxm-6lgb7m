@@ -2299,10 +2299,10 @@ const app = (() => {
                                     <tr class="hover:bg-slate-50 transition group">
                                         <td class="p-4 font-mono font-bold text-brand-600">${inv.id}</td>
                                         ${perms.isHQ() ? `<td class="p-4 font-bold text-slate-700">${entityName}</td>` : ''}
-                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isBranch ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
-                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isIncubator ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
-                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isPlatform ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
-                                        ${perms.isHQ() ? `<td class="p-4 text-center">${isOffice ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700"><i class="fas fa-check text-[8px] ml-1"></i></span>' : '<span class="text-slate-300">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4">${isBranch ? `<span class="text-blue-700 font-semibold">${entityName}</span>` : '<span class="text-slate-400 text-center block">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4">${isIncubator ? `<span class="text-purple-700 font-semibold">${entityName}</span>` : '<span class="text-slate-400 text-center block">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4">${isPlatform ? `<span class="text-green-700 font-semibold">${entityName}</span>` : '<span class="text-slate-400 text-center block">-</span>'}</td>` : ''}
+                                        ${perms.isHQ() ? `<td class="p-4">${isOffice ? `<span class="text-orange-700 font-semibold">${entityName}</span>` : '<span class="text-slate-400 text-center block">-</span>'}</td>` : ''}
                                         <td class="p-4 text-slate-600">${inv.title}</td>
                                         <td class="p-4 font-bold">${inv.amount.toLocaleString()}</td>
                                         <td class="p-4 text-green-600">${inv.paidAmount.toLocaleString()}</td>
@@ -3218,17 +3218,17 @@ const app = (() => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="p-4 text-center">
-                                        ${isBranch ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700"><i class="fas fa-check ml-1"></i> فرع</span>' : '<span class="text-slate-400">-</span>'}
+                                    <td class="p-4">
+                                        ${isBranch ? `<span class="text-blue-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
                                     </td>
-                                    <td class="p-4 text-center">
-                                        ${isIncubator ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700"><i class="fas fa-check ml-1"></i> حاضنة</span>' : '<span class="text-slate-400">-</span>'}
+                                    <td class="p-4">
+                                        ${isIncubator ? `<span class="text-purple-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
                                     </td>
-                                    <td class="p-4 text-center">
-                                        ${isPlatform ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700"><i class="fas fa-check ml-1"></i> منصة</span>' : '<span class="text-slate-400">-</span>'}
+                                    <td class="p-4">
+                                        ${isPlatform ? `<span class="text-green-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
                                     </td>
-                                    <td class="p-4 text-center">
-                                        ${isOffice ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700"><i class="fas fa-check ml-1"></i> مكتب</span>' : '<span class="text-slate-400">-</span>'}
+                                    <td class="p-4">
+                                        ${isOffice ? `<span class="text-orange-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
                                     </td>
                                     <td class="p-4">
                                         <div class="relative inline-block" id="dropdown-${e.id}">
