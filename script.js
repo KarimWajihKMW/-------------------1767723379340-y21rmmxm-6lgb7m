@@ -1133,6 +1133,10 @@ const app = (() => {
                                 <input type="tel" id="inv-customer-phone" placeholder="05xxxxxxxx" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
                             </div>
                             <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">البريد الإلكتروني</label>
+                                <input type="email" id="inv-customer-email" placeholder="example@email.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                            </div>
+                            <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-slate-600 mb-1.5">الكيان</label>
                                 <select id="inv-entity" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
                                     ${db.entities.filter(e => e.type !== 'HQ').map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`).join('')}
@@ -1162,6 +1166,15 @@ const app = (() => {
                                      <input type="date" id="inv-due" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">طريقة الدفع</label>
+                                <select id="inv-payment-method" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200">
+                                    <option value="">اختر طريقة الدفع</option>
+                                    <option value="نقدي">💵 نقدي</option>
+                                    <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                    <option value="شيك">📝 شيك</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1181,6 +1194,8 @@ const app = (() => {
         const customerName = document.getElementById('inv-customer-name').value;
         const customerNumber = document.getElementById('inv-customer-number').value;
         const customerPhone = document.getElementById('inv-customer-phone').value;
+        const customerEmail = document.getElementById('inv-customer-email').value;
+        const paymentMethod = document.getElementById('inv-payment-method').value;
 
         if(!title || !amount || !due) return showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
 
@@ -1196,7 +1211,9 @@ const app = (() => {
             dueDate: due,
             customerName: customerName || '',
             customerNumber: customerNumber || '',
-            customerPhone: customerPhone || ''
+            customerPhone: customerPhone || '',
+            customerEmail: customerEmail || '',
+            paymentMethod: paymentMethod || ''
         };
 
         db.invoices.unshift(newInv);

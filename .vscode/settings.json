@@ -289,6 +289,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && python - <<'PY'\nimport re\nfrom pathlib import Path\npattern = re\\.compile\\(r'\\(\\(\\?:\\[a-z\\]\\+\\(\\?:-\\[a-z\\]\\+\\)\\*:\\)\\*\\)\\(bg\\|text\\|border\\|ring\\|from\\|to\\|via\\|outline\\|fill\\|stroke\\|placeholder\\)-\\(\\?!red\\|gray\\|slate\\|stone\\|zinc\\|neutral\\|brand\\|white\\|black\\)\\(\\[a-z\\]\\+\\)-\\(\\[0-9\\]\\{2,3\\}\\)'\\)\nfiles = \\['index\\.html','script\\.js'\\]\ncolors = set\\(\\)\nfor file in files:\n    text = Path\\(file\\)\\.read_text\\(\\)\n    for match in pattern\\.finditer\\(text\\):\n        colors\\.add\\(match\\.group\\(3\\)\\)\nprint\\(sorted\\(colors\\)\\)\nPY$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js 2>&1 && echo \"✅ الكود صحيح - لا توجد أخطاء في الصياغة\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
