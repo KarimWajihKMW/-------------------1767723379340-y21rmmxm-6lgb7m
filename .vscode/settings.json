@@ -333,6 +333,22 @@
         "/^node create-requests-table\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node check-merge-counts\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node merge-branches-incubators\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node merge-branches-platforms\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node generate-merge-report\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

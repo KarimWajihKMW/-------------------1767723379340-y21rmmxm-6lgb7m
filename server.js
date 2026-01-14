@@ -550,6 +550,125 @@ app.delete('/api/employee-requests/:id', async (req, res) => {
   }
 });
 
+// ========================================
+// BRANCH RELATIONSHIPS APIs
+// ========================================
+
+// Get incubators for a specific branch
+app.get('/api/branches/:branchId/incubators', async (req, res) => {
+  try {
+    const { branchId } = req.params;
+    
+    const query = `
+      SELECT 
+        i.id,
+        i.name,
+        i.type,
+        i.status,
+        i.location,
+        bi.relationship_status,
+        bi.assigned_date,
+        bi.notes
+      FROM branch_incubators bi
+      JOIN entities i ON bi.incubator_id = i.id
+      WHERE bi.branch_id = $1
+      ORDER BY i.name
+    `;
+    
+    const result = await db.query(query, [branchId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching branch incubators:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get platforms for a specific branch
+app.get('/api/branches/:branchId/platforms', async (req, res) => {
+  try {
+    const { branchId } = req.params;
+    
+    const query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.type,
+        p.status,
+        p.location,
+        bp.relationship_status,
+        bp.assigned_date,
+        bp.performance_score,
+        bp.monthly_revenue,
+        bp.notes
+      FROM branch_platforms bp
+      JOIN entities p ON bp.platform_id = p.id
+      WHERE bp.branch_id = $1
+      ORDER BY p.name
+    `;
+    
+    const result = await db.query(query, [branchId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching branch platforms:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all branches with their relationship counts
+app.get('/api/branches/stats', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        b.id,
+        b.name,
+        b.type,
+        b.status,
+        b.location,
+        COUNT(DISTINCT bi.incubator_id) as incubator_count,
+        COUNT(DISTINCT bp.platform_id) as platform_count
+      FROM entities b
+      LEFT JOIN branch_incubators bi ON b.id = bi.branch_id
+      LEFT JOIN branch_platforms bp ON b.id = bp.branch_id
+      WHERE b.type = 'BRANCH'
+      GROUP BY b.id, b.name, b.type, b.status, b.location
+      ORDER BY b.name
+    `;
+    
+    const result = await db.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching branch stats:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get merge statistics summary
+app.get('/api/merge-stats', async (req, res) => {
+  try {
+    const branchesCount = await db.query(`SELECT COUNT(*) as count FROM entities WHERE type = 'BRANCH'`);
+    const incubatorsCount = await db.query(`SELECT COUNT(*) as count FROM entities WHERE type = 'INCUBATOR'`);
+    const platformsCount = await db.query(`SELECT COUNT(*) as count FROM entities WHERE type = 'PLATFORM'`);
+    const branchIncubatorsCount = await db.query(`SELECT COUNT(*) as count FROM branch_incubators`);
+    const branchPlatformsCount = await db.query(`SELECT COUNT(*) as count FROM branch_platforms`);
+    
+    res.json({
+      entities: {
+        branches: parseInt(branchesCount.rows[0].count),
+        incubators: parseInt(incubatorsCount.rows[0].count),
+        platforms: parseInt(platformsCount.rows[0].count)
+      },
+      merges: {
+        branchIncubators: parseInt(branchIncubatorsCount.rows[0].count),
+        branchPlatforms: parseInt(branchPlatformsCount.rows[0].count),
+        total: parseInt(branchIncubatorsCount.rows[0].count) + parseInt(branchPlatformsCount.rows[0].count)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching merge stats:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all transactions
 app.get('/api/transactions', async (req, res) => {
   try {
