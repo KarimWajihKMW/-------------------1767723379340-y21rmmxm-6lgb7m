@@ -2368,13 +2368,13 @@ const app = (() => {
                         <thead class="bg-slate-50 text-xs text-slate-500 font-bold uppercase">
                             <tr>
                                 <th class="p-4">رقم الفاتورة</th>
-                                <th class="p-4">العميل/الكيان</th>
-                                <th class="p-4">العنوان</th>
+                                <th class="p-4">اسم العميل</th>
+                                <th class="p-4">رقم العميل</th>
+                                <th class="p-4">الهاتف</th>
+                                <th class="p-4">اسم الكيان</th>
                                 <th class="p-4">المبلغ</th>
-                                <th class="p-4">المدفوع</th>
                                 <th class="p-4">المتبقي</th>
                                 <th class="p-4">الحالة</th>
-                                <th class="p-4">تاريخ الاستحقاق</th>
                                 <th class="p-4">إجراءات</th>
                             </tr>
                         </thead>
@@ -2389,23 +2389,23 @@ const app = (() => {
                                 };
                                 return `
                                 <tr class="hover:bg-slate-50">
-                                    <td class="p-4 font-mono text-red-600">${i.id}</td>
+                                    <td class="p-4 font-mono text-red-600 font-bold">${i.id}</td>
+                                    <td class="p-4 text-slate-800 font-semibold">${i.customerName || '-'}</td>
+                                    <td class="p-4 text-slate-600">${i.customerNumber || '-'}</td>
+                                    <td class="p-4 text-slate-600 direction-ltr">${i.customerPhone || '-'}</td>
                                     <td class="p-4 text-slate-700">${i.entityId}</td>
-                                    <td class="p-4 text-slate-700">${i.title || '-'}</td>
                                     <td class="p-4 font-bold text-slate-800">${i.amount.toLocaleString()} ر.س</td>
-                                    <td class="p-4 text-green-600">${(i.paidAmount || 0).toLocaleString()} ر.س</td>
                                     <td class="p-4 font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-600'}">${remaining.toLocaleString()} ر.س</td>
                                     <td class="p-4">
                                         <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[i.status] || 'bg-gray-100 text-gray-700'}">
                                             ${i.status === 'PAID' ? 'مدفوع' : i.status === 'UNPAID' ? 'غير مدفوع' : i.status === 'PARTIAL' ? 'دفع جزئي' : 'متأخر'}
                                         </span>
                                     </td>
-                                    <td class="p-4 text-slate-600">${i.dueDate || '-'}</td>
                                     <td class="p-4">
                                         <div class="flex gap-2">
                                             ${i.status !== 'PAID' ? `<button onclick="app.openPaymentModal('${i.id}')" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="دفع"><i class="fas fa-money-bill"></i></button>` : ''}
                                             <button onclick="window.viewInvoiceDetails('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="عرض"><i class="fas fa-eye"></i></button>
-                                            <button onclick="window.deleteInvoice('${i.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف"><i class="fas fa-trash"></i></button>
+                                            <button onclick="window.printInvoice('${i.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="طباعة"><i class="fas fa-print"></i></button>
                                         </div>
                                     </td>
                                 </tr>`;
@@ -2627,9 +2627,29 @@ const app = (() => {
                         </div>
                     </div>
                     
-                    <div class="border-t pt-4">
-                        <label class="text-xs font-bold text-slate-500">العميل/الكيان</label>
-                        <div class="text-lg font-bold text-slate-800">${entity ? entity.name : invoice.entityId}</div>
+                    <div class="border-t pt-4 bg-slate-50 p-4 rounded-xl">
+                        <h4 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-user-circle text-red-600"></i>
+                            معلومات العميل
+                        </h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500">اسم العميل</label>
+                                <div class="text-base font-semibold text-slate-800">${invoice.customerName || 'غير محدد'}</div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500">رقم العميل</label>
+                                <div class="text-base font-semibold text-slate-800">${invoice.customerNumber || 'غير محدد'}</div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500">رقم الهاتف</label>
+                                <div class="text-base font-semibold text-slate-800 direction-ltr">${invoice.customerPhone || 'غير محدد'}</div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500">اسم الكيان</label>
+                                <div class="text-base font-semibold text-slate-800">${entity ? entity.name : invoice.entityId}</div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="border-t pt-4">
@@ -2669,6 +2689,135 @@ const app = (() => {
                 </div>
             </div>`;
         document.body.appendChild(modal);
+    };
+
+    // Print invoice with customer details
+    window.printInvoice = function(invoiceId) {
+        const invoice = db.invoices.find(inv => inv.id === invoiceId);
+        if (!invoice) {
+            alert('لم يتم العثور على الفاتورة');
+            return;
+        }
+
+        const entity = db.entities.find(e => e.id === invoice.entityId);
+        const remaining = invoice.amount - (invoice.paidAmount || 0);
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <title>فاتورة ${invoice.id}</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                    body { padding: 40px; background: #f5f5f5; }
+                    .invoice { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+                    .header { text-align: center; border-bottom: 3px solid #b11226; padding-bottom: 20px; margin-bottom: 30px; }
+                    .header h1 { color: #b11226; font-size: 32px; margin-bottom: 10px; }
+                    .header .invoice-num { color: #666; font-size: 18px; }
+                    .customer-info { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+                    .customer-info h2 { color: #333; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+                    .info-item { }
+                    .info-label { color: #666; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+                    .info-value { color: #333; font-size: 16px; font-weight: 600; }
+                    .amounts { background: #fff5f5; padding: 20px; border-radius: 8px; border: 2px solid #b11226; }
+                    .amount-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
+                    .amount-row:last-child { border-bottom: none; font-size: 20px; font-weight: bold; }
+                    .amount-label { color: #666; }
+                    .amount-value { color: #333; font-weight: bold; }
+                    .total-due { color: #b11226 !important; }
+                    .footer { margin-top: 40px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #ddd; padding-top: 20px; }
+                    @media print {
+                        body { padding: 0; background: white; }
+                        .invoice { box-shadow: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="invoice">
+                    <div class="header">
+                        <h1>🧾 فاتورة</h1>
+                        <div class="invoice-num">رقم الفاتورة: ${invoice.id}</div>
+                    </div>
+                    
+                    <div class="customer-info">
+                        <h2>📋 معلومات العميل</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">اسم العميل</div>
+                                <div class="info-value">${invoice.customerName || 'غير محدد'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">رقم العميل</div>
+                                <div class="info-value">${invoice.customerNumber || 'غير محدد'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">رقم الهاتف</div>
+                                <div class="info-value">${invoice.customerPhone || 'غير محدد'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">اسم الكيان</div>
+                                <div class="info-value">${entity ? entity.name : invoice.entityId}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="customer-info">
+                        <h2>📄 تفاصيل الفاتورة</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">عنوان الفاتورة</div>
+                                <div class="info-value">${invoice.title || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">تاريخ الإصدار</div>
+                                <div class="info-value">${invoice.date || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">تاريخ الاستحقاق</div>
+                                <div class="info-value">${invoice.dueDate || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">الحالة</div>
+                                <div class="info-value" style="color: ${invoice.status === 'PAID' ? '#059669' : '#dc2626'}">
+                                    ${invoice.status === 'PAID' ? '✅ مدفوع' : invoice.status === 'UNPAID' ? '⏳ غير مدفوع' : invoice.status === 'PARTIAL' ? '⚠️ دفع جزئي' : '❌ متأخر'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="amounts">
+                        <div class="amount-row">
+                            <span class="amount-label">المبلغ الإجمالي</span>
+                            <span class="amount-value">${invoice.amount.toLocaleString()} ر.س</span>
+                        </div>
+                        <div class="amount-row">
+                            <span class="amount-label">المدفوع</span>
+                            <span class="amount-value" style="color: #059669">${(invoice.paidAmount || 0).toLocaleString()} ر.س</span>
+                        </div>
+                        <div class="amount-row">
+                            <span class="amount-label">المتبقي</span>
+                            <span class="amount-value total-due">${remaining.toLocaleString()} ر.س</span>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>تم الطباعة في: ${new Date().toLocaleString('ar-SA')}</p>
+                        <p>نظام إدارة الكيانات - نيوش</p>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() { 
+                        window.print(); 
+                        setTimeout(function() { window.close(); }, 100);
+                    }
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     };
 
     // --- APPROVALS MODULE ---
