@@ -3088,26 +3088,100 @@ const app = (() => {
         `;
     };
 
-    const renderEntitiesManager = () => `
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h2 class="text-2xl font-bold text-slate-800">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
-            ${perms.isHQ() ? `<button onclick="app.loadRoute('register-tenant')" class="w-full md:w-auto bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center justify-center gap-2 animate-pulse-slow"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>` : ''}
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${perms.getVisibleEntities().map(e => `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-14 h-14 rounded-2xl ${TENANT_TYPES[e.type].bg} ${TENANT_TYPES[e.type].color} flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
-                                <i class="fas ${TENANT_TYPES[e.type].icon}"></i>
-                            </div>
-                            <div class="bg-slate-50 px-3 py-1.5 rounded-lg text-xs font-mono font-bold border border-slate-100 text-slate-600">${e.plan}</div>
-                        </div>
-                        <h3 class="font-bold text-xl text-slate-800 mb-1 group-hover:text-brand-600 transition">${e.name}</h3>
-                        <p class="text-sm text-slate-500 mb-4"><i class="fas fa-map-pin text-xs"></i> ${e.location}</p>
-                    </div>
-                </div>`).join('')}
+    const renderEntitiesManager = () => {
+        const entities = perms.getVisibleEntities();
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
+                    <p class="text-slate-500 mt-1">إدارة جميع المستأجرين والفروع والكيانات</p>
+                </div>
+                ${perms.isHQ() ? `<button onclick="app.loadRoute('register-tenant')" class="w-full md:w-auto bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center justify-center gap-2"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>` : ''}
+            </div>
+
+            <!-- Entities Table -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">المستأجرين</th>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الفرع</th>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الحاضنة</th>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">المنصة</th>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">المكتب</th>
+                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الخيارات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${entities.length ? entities.map(e => {
+                                const typeInfo = TENANT_TYPES[e.type] || TENANT_TYPES.BRANCH;
+                                const isBranch = e.type === 'BRANCH';
+                                const isIncubator = e.type === 'INCUBATOR';
+                                const isPlatform = e.type === 'PLATFORM';
+                                const isOffice = e.type === 'OFFICE';
+                                const isActive = e.status !== 'Suspended';
+                                
+                                return `
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl ${typeInfo.bg} ${typeInfo.color} flex items-center justify-center">
+                                                <i class="fas ${typeInfo.icon}"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-slate-800">${e.name}</div>
+                                                <div class="text-xs text-slate-500">${e.id}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        ${isBranch ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700"><i class="fas fa-check ml-1"></i> فرع</span>' : '<span class="text-slate-400">-</span>'}
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        ${isIncubator ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700"><i class="fas fa-check ml-1"></i> حاضنة</span>' : '<span class="text-slate-400">-</span>'}
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        ${isPlatform ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700"><i class="fas fa-check ml-1"></i> منصة</span>' : '<span class="text-slate-400">-</span>'}
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        ${isOffice ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700"><i class="fas fa-check ml-1"></i> مكتب</span>' : '<span class="text-slate-400">-</span>'}
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="flex flex-wrap gap-2">
+                                            <button onclick="window.manageEntity('${e.id}')" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1" title="إدارة الفرع">
+                                                <i class="fas fa-cog"></i> إدارة الفرع
+                                            </button>
+                                            ${isActive ? `
+                                                <button onclick="window.suspendEntity('${e.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs font-bold hover:bg-orange-100 transition flex items-center gap-1" title="إيقاف مؤقت">
+                                                    <i class="fas fa-pause"></i> إيقاف مؤقت
+                                                </button>
+                                            ` : `
+                                                <button onclick="window.reactivateEntity('${e.id}')" class="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition flex items-center gap-1" title="إعادة تفعيل">
+                                                    <i class="fas fa-play"></i> إعادة تفعيل
+                                                </button>
+                                            `}
+                                            <button onclick="window.editEntity('${e.id}')" class="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-bold hover:bg-purple-100 transition flex items-center gap-1" title="تعديل الفرع">
+                                                <i class="fas fa-edit"></i> تعديل الفرع
+                                            </button>
+                                            <button onclick="window.moveEntityUp('${e.id}')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-100 transition flex items-center gap-1" title="نقل للأعلى">
+                                                <i class="fas fa-arrow-up"></i> نقل للأعلى
+                                            </button>
+                                            <button onclick="window.deleteEntityPermanent('${e.id}')" class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-bold hover:bg-red-100 transition flex items-center gap-1" title="حذف نهائي">
+                                                <i class="fas fa-trash"></i> حذف نهائي
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            }).join('') : '<tr><td colspan="6" class="p-8 text-center text-slate-400">لا توجد كيانات</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>`;
+    };
 
     const renderTenantRegistration = () => {
         if (!perms.isHQ()) return renderPlaceholder('هذه الميزة متاحة فقط للمكتب الرئيسي (Super Admin)');
@@ -3136,6 +3210,100 @@ const app = (() => {
         db.users.push({ id: db.users.length + 1, name: 'مسؤول جديد', role: ROLES.ADMIN, tenantType: type, entityId: newId, entityName: name });
         showToast(`تم إنشاء المستأجر ${name} بنجاح!`, 'success');
         loadRoute('entities');
+    };
+
+    // Entity Management Functions
+    window.manageEntity = function(entityId) {
+        showToast('فتح لوحة إدارة الكيان...', 'info');
+        // يمكن إضافة modal أو صفحة منفصلة لإدارة الكيان
+    };
+
+    window.suspendEntity = function(entityId) {
+        if (!confirm('هل أنت متأكد من إيقاف هذا الكيان مؤقتاً؟')) return;
+        const entity = db.entities.find(e => e.id === entityId);
+        if (entity) {
+            entity.status = 'Suspended';
+            logAction('SUSPEND_ENTITY', `Suspended entity ${entityId}`);
+            showToast('تم إيقاف الكيان مؤقتاً', 'success');
+            loadRoute('entities');
+        }
+    };
+
+    window.reactivateEntity = function(entityId) {
+        const entity = db.entities.find(e => e.id === entityId);
+        if (entity) {
+            entity.status = 'Active';
+            logAction('REACTIVATE_ENTITY', `Reactivated entity ${entityId}`);
+            showToast('تم إعادة تفعيل الكيان', 'success');
+            loadRoute('entities');
+        }
+    };
+
+    window.editEntity = function(entityId) {
+        const entity = db.entities.find(e => e.id === entityId);
+        if (!entity) return showToast('الكيان غير موجود', 'error');
+        
+        const modal = document.createElement('div');
+        modal.id = 'edit-entity-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-lg text-slate-800">تعديل الكيان: ${entity.name}</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-600 mb-2">اسم الكيان</label>
+                        <input type="text" id="edit-entity-name" value="${entity.name}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-600 mb-2">الموقع</label>
+                        <input type="text" id="edit-entity-location" value="${entity.location || ''}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                    <button onclick="document.getElementById('edit-entity-modal').remove()" class="px-4 py-2 rounded-lg text-slate-500 font-bold hover:bg-slate-200">إلغاء</button>
+                    <button onclick="window.saveEntityEdits('${entityId}')" class="px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700">حفظ</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    };
+
+    window.saveEntityEdits = function(entityId) {
+        const entity = db.entities.find(e => e.id === entityId);
+        if (entity) {
+            entity.name = document.getElementById('edit-entity-name').value;
+            entity.location = document.getElementById('edit-entity-location').value;
+            logAction('EDIT_ENTITY', `Edited entity ${entityId}`);
+            showToast('تم تحديث بيانات الكيان', 'success');
+            document.getElementById('edit-entity-modal').remove();
+            loadRoute('entities');
+        }
+    };
+
+    window.moveEntityUp = function(entityId) {
+        const index = db.entities.findIndex(e => e.id === entityId);
+        if (index > 0) {
+            [db.entities[index - 1], db.entities[index]] = [db.entities[index], db.entities[index - 1]];
+            logAction('MOVE_ENTITY_UP', `Moved entity ${entityId} up`);
+            showToast('تم نقل الكيان للأعلى', 'success');
+            loadRoute('entities');
+        } else {
+            showToast('الكيان بالفعل في الموضع الأول', 'info');
+        }
+    };
+
+    window.deleteEntityPermanent = function(entityId) {
+        if (!confirm('⚠️ تحذير: هل أنت متأكد من الحذف النهائي؟\n\nهذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع البيانات المرتبطة.')) return;
+        
+        const index = db.entities.findIndex(e => e.id === entityId);
+        if (index !== -1) {
+            const entityName = db.entities[index].name;
+            db.entities.splice(index, 1);
+            logAction('DELETE_ENTITY_PERMANENT', `Permanently deleted entity ${entityId}`);
+            showToast(`تم حذف ${entityName} نهائياً`, 'success');
+            loadRoute('entities');
+        }
     };
 
     const renderTasksManager = () => {
