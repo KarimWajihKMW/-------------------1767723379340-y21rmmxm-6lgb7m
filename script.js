@@ -509,7 +509,12 @@ const app = (() => {
                 paidAmount: parseFloat(inv.paid_amount),
                 status: inv.status,
                 date: inv.issue_date,
-                dueDate: inv.due_date
+                dueDate: inv.due_date,
+                customerName: inv.customer_name || '',
+                customerNumber: inv.customer_number || '',
+                customerPhone: inv.customer_phone || '',
+                customerEmail: inv.customer_email || '',
+                paymentMethod: inv.payment_method || ''
             }));
             loadedData.invoices = db.invoices.length;
             console.log(`✅ Loaded ${loadedData.invoices} invoices`);
@@ -1245,7 +1250,7 @@ const app = (() => {
         document.body.appendChild(modal);
     };
 
-    const submitInvoice = () => {
+    const submitInvoice = async () => {
         const entityId = document.getElementById('inv-entity').value;
         const title = document.getElementById('inv-title').value;
         const amount = parseFloat(document.getElementById('inv-amount').value);
@@ -1283,11 +1288,32 @@ const app = (() => {
             paymentMethod: paymentMethod || ''
         };
 
-        db.invoices.unshift(newInv);
-        logAction('CREATE_INVOICE', `Generated Invoice ${newInv.id} for ${entityId} - Customer: ${customerName}`);
-        document.getElementById('invoice-modal').remove();
-        showToast('تم إصدار الفاتورة بنجاح', 'success');
-        loadRoute('collections');
+        try {
+            // Save to database
+            const response = await fetch('/api/invoices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newInv)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'فشل في حفظ الفاتورة');
+            }
+
+            const result = await response.json();
+            
+            // Update local db
+            db.invoices.unshift(newInv);
+            
+            logAction('CREATE_INVOICE', `Generated Invoice ${newInv.id} for ${entityId} - Customer: ${customerName}`);
+            document.getElementById('invoice-modal').remove();
+            showToast('تم إصدار الفاتورة بنجاح وحفظها في قاعدة البيانات', 'success');
+            loadRoute('collections');
+        } catch (error) {
+            console.error('Error saving invoice:', error);
+            showToast('حدث خطأ في حفظ الفاتورة: ' + error.message, 'error');
+        }
     };
 
     const openPaymentModal = (invId) => {

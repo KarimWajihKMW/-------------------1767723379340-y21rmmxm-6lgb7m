@@ -313,6 +313,22 @@
         "/^node -c server\\.js && node -c script\\.js && echo \"✅ Build validation passed\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cat > check-invoices-schema\\.js << 'EOF'\nconst \\{ Pool \\} = require\\('pg'\\);\n\nconst pool = new Pool\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\nasync function checkSchema\\(\\) \\{\n  try \\{\n    const result = await pool\\.query\\(`\n      SELECT column_name, data_type, character_maximum_length\n      FROM information_schema\\.columns\n      WHERE table_name = 'invoices'\n      ORDER BY ordinal_position\n    `\\);\n    \n    console\\.log\\('\\\\n📋 Invoices Table Schema:'\\);\n    console\\.log\\('==================================='\\);\n    result\\.rows\\.forEach\\(col => \\{\n      console\\.log\\(`\\$\\{col\\.column_name\\} \\(\\$\\{col\\.data_type\\}\\$\\{col\\.character_maximum_length \\? `\\(\\$\\{col\\.character_maximum_length\\}\\)` : ''\\}\\)`\\);\n    \\}\\);\n    \n    await pool\\.end\\(\\);\n  \\} catch \\(error\\) \\{\n    console\\.error\\('❌ Error:', error\\.message\\);\n    await pool\\.end\\(\\);\n  \\}\n\\}\n\ncheckSchema\\(\\);\nEOF\nnode check-invoices-schema\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-invoices-schema\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node update-invoices-schema\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-invoice-creation\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

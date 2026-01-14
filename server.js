@@ -238,6 +238,71 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
+// Create new invoice
+app.post('/api/invoices', async (req, res) => {
+  try {
+    const {
+      id,
+      entityId,
+      type,
+      title,
+      amount,
+      paidAmount,
+      status,
+      date,
+      dueDate,
+      customerName,
+      customerNumber,
+      customerPhone,
+      customerEmail,
+      paymentMethod
+    } = req.body;
+
+    // Validate required fields
+    if (!id || !entityId || !type || !title || !amount || !date || !dueDate) {
+      return res.status(400).json({ error: 'الرجاء تعبئة جميع الحقول المطلوبة' });
+    }
+
+    // Check permissions - only HQ or the entity itself can create invoice
+    if (req.userEntity.type !== 'HQ' && entityId !== req.userEntity.id) {
+      return res.status(403).json({ error: 'ليس لديك صلاحيات لإنشاء فاتورة لهذا الكيان' });
+    }
+
+    // Insert invoice
+    const query = `
+      INSERT INTO invoices (
+        id, entity_id, type, title, amount, paid_amount, status,
+        issue_date, due_date, customer_name, customer_number,
+        customer_phone, customer_email, payment_method
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `;
+    
+    const values = [
+      id,
+      entityId,
+      type,
+      title,
+      amount,
+      paidAmount || 0,
+      status || 'UNPAID',
+      date,
+      dueDate,
+      customerName || null,
+      customerNumber || null,
+      customerPhone || null,
+      customerEmail || null,
+      paymentMethod || null
+    ];
+
+    const result = await db.query(query, values);
+    res.json({ success: true, invoice: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all invoices with data isolation
 app.get('/api/invoices', async (req, res) => {
   try {
