@@ -2101,29 +2101,133 @@ const app = (() => {
         </div>`;
 
     const renderSaaSManager = () => {
-        const entity = db.entities.find(e => e.id === currentUser.entityId);
+        const entities = perms.getVisibleEntities();
+        
         if(perms.isHQ()) {
             return `
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">إدارة جميع المستأجرين (Tenants)</h2>
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
-                 <table class="w-full text-right whitespace-nowrap">
-                    <thead class="bg-slate-50/80 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                        <tr><th class="p-5">المستأجر</th><th class="p-5">الخطة</th><th class="p-5">انتهاء الصلاحية</th><th class="p-5">الحالة</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50 text-sm">
-                        ${db.entities.filter(e => e.type !== 'HQ').map(e => `
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-5 font-bold">${e.name} <span class="block text-xs text-gray-400 font-normal">${e.id}</span></td>
-                                <td class="p-5"><span class="px-2 py-1 rounded bg-red-50 text-red-600 font-bold text-xs">${e.plan}</span></td>
-                                <td class="p-5 font-mono text-gray-600">${e.expiry}</td>
-                                <td class="p-5"><span class="text-green-600 font-bold">نشط</span></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+            <div class="space-y-6 animate-fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">إدارة الاشتراك والخدمات (SaaS)</h2>
+                        <p class="text-slate-500 mt-1">إدارة جميع المستأجرين والفروع والكيانات</p>
+                    </div>
+                    <button onclick="app.loadRoute('register-tenant')" class="w-full md:w-auto bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center justify-center gap-2"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>
+                </div>
+
+                <!-- SaaS Management Table -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">المستأجر</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">الجوال</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">الإيميل</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">الفرع</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">الحاضنة</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">المنصة</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">المكتب</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">الخيارات</th>
+                                    <th class="p-4 text-xs font-bold text-slate-600 uppercase">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${entities.length ? entities.map(e => {
+                                    const typeInfo = TENANT_TYPES[e.type] || TENANT_TYPES.BRANCH;
+                                    const isBranch = e.type === 'BRANCH';
+                                    const isIncubator = e.type === 'INCUBATOR';
+                                    const isPlatform = e.type === 'PLATFORM';
+                                    const isOffice = e.type === 'OFFICE';
+                                    const isActive = e.status !== 'Suspended';
+                                    
+                                    return `
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-xl ${typeInfo.bg} ${typeInfo.color} flex items-center justify-center">
+                                                    <i class="fas ${typeInfo.icon}"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-slate-800">${e.name}</div>
+                                                    <div class="text-xs text-slate-500">${e.id}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="text-slate-700 font-mono text-sm">${e.phone || '-'}</span>
+                                        </td>
+                                        <td class="p-4">
+                                            <span class="text-blue-600 text-sm">${e.email || '-'}</span>
+                                        </td>
+                                        <td class="p-4">
+                                            ${isBranch ? `<span class="text-blue-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
+                                        </td>
+                                        <td class="p-4">
+                                            ${isIncubator ? `<span class="text-purple-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
+                                        </td>
+                                        <td class="p-4">
+                                            ${isPlatform ? `<span class="text-green-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
+                                        </td>
+                                        <td class="p-4">
+                                            ${isOffice ? `<span class="text-orange-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
+                                        </td>
+                                        <td class="p-4">
+                                            <div class="relative inline-block" id="dropdown-saas-${e.id}">
+                                                <button onclick="window.toggleDropdown('saas-${e.id}')" class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition flex items-center gap-2">
+                                                    <i class="fas fa-ellipsis-v"></i> الخيارات
+                                                    <i class="fas fa-chevron-down text-xs"></i>
+                                                </button>
+                                                <div id="dropdown-menu-saas-${e.id}" class="hidden absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                                                    <div class="py-2">
+                                                        <button onclick="window.manageEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-blue-50 transition flex items-center gap-3 text-blue-700 font-bold">
+                                                            <i class="fas fa-cog w-5"></i>
+                                                            <span>إدارة الفرع</span>
+                                                        </button>
+                                                        ${isActive ? `
+                                                            <button onclick="window.suspendEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-orange-50 transition flex items-center gap-3 text-orange-700 font-bold">
+                                                                <i class="fas fa-pause w-5"></i>
+                                                                <span>إيقاف مؤقت</span>
+                                                            </button>
+                                                        ` : `
+                                                            <button onclick="window.reactivateEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-green-50 transition flex items-center gap-3 text-green-700 font-bold">
+                                                                <i class="fas fa-play w-5"></i>
+                                                                <span>إعادة تفعيل</span>
+                                                            </button>
+                                                        `}
+                                                        <button onclick="window.editEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-purple-50 transition flex items-center gap-3 text-purple-700 font-bold">
+                                                            <i class="fas fa-edit w-5"></i>
+                                                            <span>تعديل الفرع</span>
+                                                        </button>
+                                                        <button onclick="window.moveEntityUp('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-indigo-50 transition flex items-center gap-3 text-indigo-700 font-bold">
+                                                            <i class="fas fa-arrow-up w-5"></i>
+                                                            <span>نقل للأعلى</span>
+                                                        </button>
+                                                        <div class="border-t border-slate-200 my-1"></div>
+                                                        <button onclick="window.deleteEntityPermanent('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-red-50 transition flex items-center gap-3 text-red-700 font-bold">
+                                                            <i class="fas fa-trash w-5"></i>
+                                                            <span>حذف نهائي</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 text-center">
+                                            ${isActive ? 
+                                                '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200"><i class="fas fa-check-circle ml-1"></i> مفعّل</span>' : 
+                                                '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fas fa-pause-circle ml-1"></i> موقوف</span>'
+                                            }
+                                        </td>
+                                    </tr>`;
+                                }).join('') : '<tr><td colspan="9" class="p-8 text-center text-slate-400">لا توجد كيانات</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>`;
         }
         
+        // For non-HQ users, show their subscription
+        const entity = db.entities.find(e => e.id === currentUser.entityId);
         const plan = SUBSCRIPTION_PLANS[entity.plan];
         return `
         <div class="max-w-4xl mx-auto">
@@ -3992,118 +4096,23 @@ const app = (() => {
     };
 
     const renderEntitiesManager = () => {
-        const entities = perms.getVisibleEntities();
-        
+        // تم نقل كل البيانات إلى صفحة "إدارة الاشتراك والخدمات (SaaS)"
         return `
-        <div class="space-y-6 animate-fade-in">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800">${perms.isHQ() ? 'إدارة المستأجرين (Tenants)' : 'بيانات الكيان/الفرع'}</h2>
-                    <p class="text-slate-500 mt-1">إدارة جميع المستأجرين والفروع والكيانات</p>
+        <div class="max-w-2xl mx-auto text-center py-20 animate-fade-in">
+            <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-12 shadow-xl border border-slate-200">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-arrow-right text-3xl text-blue-600"></i>
                 </div>
-                ${perms.isHQ() ? `<button onclick="app.loadRoute('register-tenant')" class="w-full md:w-auto bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center justify-center gap-2"><i class="fas fa-plus-circle"></i> تسجيل مستأجر جديد</button>` : ''}
-            </div>
-
-            <!-- Entities Table -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right">
-                        <thead class="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">المستأجرين</th>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الفرع</th>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الحاضنة</th>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">المنصة</th>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">المكتب</th>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الخيارات</th>
-                                <th class="p-4 text-xs font-bold text-slate-600 uppercase">الحالة</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            ${entities.length ? entities.map(e => {
-                                const typeInfo = TENANT_TYPES[e.type] || TENANT_TYPES.BRANCH;
-                                const isBranch = e.type === 'BRANCH';
-                                const isIncubator = e.type === 'INCUBATOR';
-                                const isPlatform = e.type === 'PLATFORM';
-                                const isOffice = e.type === 'OFFICE';
-                                const isActive = e.status !== 'Suspended';
-                                
-                                return `
-                                <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-xl ${typeInfo.bg} ${typeInfo.color} flex items-center justify-center">
-                                                <i class="fas ${typeInfo.icon}"></i>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-slate-800">${e.name}</div>
-                                                <div class="text-xs text-slate-500">${e.id}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        ${isBranch ? `<span class="text-blue-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
-                                    </td>
-                                    <td class="p-4">
-                                        ${isIncubator ? `<span class="text-purple-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
-                                    </td>
-                                    <td class="p-4">
-                                        ${isPlatform ? `<span class="text-green-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
-                                    </td>
-                                    <td class="p-4">
-                                        ${isOffice ? `<span class="text-orange-700 font-semibold">${e.name}</span>` : '<span class="text-slate-400 text-center block">-</span>'}
-                                    </td>
-                                    <td class="p-4">
-                                        <div class="relative inline-block" id="dropdown-${e.id}">
-                                            <button onclick="window.toggleDropdown('${e.id}')" class="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition flex items-center gap-2">
-                                                <i class="fas fa-ellipsis-v"></i> الخيارات
-                                                <i class="fas fa-chevron-down text-xs"></i>
-                                            </button>
-                                            <div id="dropdown-menu-${e.id}" class="hidden absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
-                                                <div class="py-2">
-                                                    <button onclick="window.manageEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-blue-50 transition flex items-center gap-3 text-blue-700 font-bold">
-                                                        <i class="fas fa-cog w-5"></i>
-                                                        <span>إدارة الفرع</span>
-                                                    </button>
-                                                    ${isActive ? `
-                                                        <button onclick="window.suspendEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-orange-50 transition flex items-center gap-3 text-orange-700 font-bold">
-                                                            <i class="fas fa-pause w-5"></i>
-                                                            <span>إيقاف مؤقت</span>
-                                                        </button>
-                                                    ` : `
-                                                        <button onclick="window.reactivateEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-green-50 transition flex items-center gap-3 text-green-700 font-bold">
-                                                            <i class="fas fa-play w-5"></i>
-                                                            <span>إعادة تفعيل</span>
-                                                        </button>
-                                                    `}
-                                                    <button onclick="window.editEntity('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-purple-50 transition flex items-center gap-3 text-purple-700 font-bold">
-                                                        <i class="fas fa-edit w-5"></i>
-                                                        <span>تعديل الفرع</span>
-                                                    </button>
-                                                    <button onclick="window.moveEntityUp('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-indigo-50 transition flex items-center gap-3 text-indigo-700 font-bold">
-                                                        <i class="fas fa-arrow-up w-5"></i>
-                                                        <span>نقل للأعلى</span>
-                                                    </button>
-                                                    <div class="border-t border-slate-200 my-1"></div>
-                                                    <button onclick="window.deleteEntityPermanent('${e.id}'); window.closeAllDropdowns();" class="w-full text-right px-4 py-3 hover:bg-red-50 transition flex items-center gap-3 text-red-700 font-bold">
-                                                        <i class="fas fa-trash w-5"></i>
-                                                        <span>حذف نهائي</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-4 text-center">
-                                        ${isActive ? 
-                                            '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200"><i class="fas fa-check-circle ml-1"></i> مفعّل</span>' : 
-                                            '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fas fa-pause-circle ml-1"></i> موقوف</span>'
-                                        }
-                                    </td>
-                                </tr>`;
-                            }).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد كيانات</td></tr>'}
-                        </tbody>
-                    </table>
-                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">تم نقل البيانات</h2>
+                <p class="text-slate-600 mb-8 leading-relaxed">
+                    تم نقل جميع بيانات المستأجرين إلى صفحة<br>
+                    <strong class="text-brand-600">إدارة الاشتراك والخدمات (SaaS)</strong>
+                </p>
+                <button onclick="app.loadRoute('saas')" class="px-8 py-4 bg-brand-600 text-white rounded-xl font-bold hover:shadow-lg hover:bg-brand-700 transition flex items-center justify-center gap-3 mx-auto">
+                    <i class="fas fa-cubes"></i>
+                    <span>الانتقال إلى صفحة SaaS</span>
+                    <i class="fas fa-arrow-left"></i>
+                </button>
             </div>
         </div>`;
     };
