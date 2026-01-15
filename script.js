@@ -1090,6 +1090,16 @@ const app = (() => {
         else if (route === 'tasks') content = renderTasksManager();
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
+        // Payment System Routes
+        else if (route === 'invoices-enhanced') content = renderInvoicesEnhanced();
+        else if (route === 'payment-methods') content = renderPaymentMethods();
+        else if (route === 'installment-plans') content = renderInstallmentPlans();
+        else if (route === 'payment-tracking') content = renderPaymentTracking();
+        else if (route === 'tax-settings') content = renderTaxSettings();
+        else if (route === 'collection-rules') content = renderCollectionRules();
+        else if (route === 'payment-reminders') content = renderPaymentReminders();
+        else if (route === 'overdue-management') content = renderOverdueManagement();
+        else if (route === 'payment-analytics') content = renderPaymentAnalytics();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1200,6 +1210,23 @@ const app = (() => {
             { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: true },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'requests', icon: 'fa-clipboard-list', label: 'الطلبات', show: true },
+            {
+                id: 'payment-menu',
+                icon: 'fa-credit-card',
+                label: 'نظام الدفع',
+                show: true,
+                subItems: [
+                    { id: 'invoices-enhanced', icon: 'fa-file-invoice-dollar', label: 'الفواتير الذكية' },
+                    { id: 'payment-methods', icon: 'fa-wallet', label: 'طرق الدفع' },
+                    { id: 'installment-plans', icon: 'fa-calendar-days', label: 'خطط الأقساط' },
+                    { id: 'payment-tracking', icon: 'fa-chart-line', label: 'تتبع الدفعات' },
+                    { id: 'tax-settings', icon: 'fa-percent', label: 'إعدادات الضرائب' },
+                    { id: 'collection-rules', icon: 'fa-cog', label: 'قواعد التحصيل' },
+                    { id: 'payment-reminders', icon: 'fa-bell', label: 'التذكيرات الآلية' },
+                    { id: 'overdue-management', icon: 'fa-exclamation-circle', label: 'إدارة المتأخرات' },
+                    { id: 'payment-analytics', icon: 'fa-chart-bar', label: 'تحليلات الدفع' }
+                ]
+            },
             { 
                 id: 'employee-menu', 
                 icon: 'fa-user-tie', 
@@ -9973,6 +10000,313 @@ async function loadBranchesWatermark() {
     console.log('Could not load branches watermark:', error.message);
   }
 }
+
+// ========================================
+// PAYMENT SYSTEM FUNCTIONS
+// ========================================
+
+// 1. Render Enhanced Invoices
+const renderInvoicesEnhanced = () => `
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">🧾 الفواتير الذكية</h1>
+        <button onclick="app.openCreateInvoiceModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-bold flex items-center gap-2">
+            <i class="fas fa-plus"></i> فاتورة جديدة
+        </button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-green-100 text-sm">الفواتير المدفوعة</p>
+                    <p class="text-3xl font-bold">45</p>
+                </div>
+                <i class="fas fa-check-circle text-3xl opacity-50"></i>
+            </div>
+            <p class="text-xs text-green-100 mt-2">↑ 12% هذا الشهر</p>
+        </div>
+        
+        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-orange-100 text-sm">الدفع الجزئي</p>
+                    <p class="text-3xl font-bold">12</p>
+                </div>
+                <i class="fas fa-half-circle text-3xl opacity-50"></i>
+            </div>
+            <p class="text-xs text-orange-100 mt-2">↑ 5% هذا الشهر</p>
+        </div>
+        
+        <div class="bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-red-100 text-sm">المتأخرة</p>
+                    <p class="text-3xl font-bold">8</p>
+                </div>
+                <i class="fas fa-exclamation-circle text-3xl opacity-50"></i>
+            </div>
+            <p class="text-xs text-red-100 mt-2">↑ 3% هذا الشهر</p>
+        </div>
+        
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-blue-100 text-sm">الإجمالي المستحق</p>
+                    <p class="text-2xl font-bold">450,000 ر.س</p>
+                </div>
+                <i class="fas fa-wallet text-3xl opacity-50"></i>
+            </div>
+            <p class="text-xs text-blue-100 mt-2">↓ 8% هذا الشهر</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="text-right p-3 font-bold text-gray-700">رقم الفاتورة</th>
+                    <th class="text-right p-3 font-bold text-gray-700">العميل</th>
+                    <th class="text-right p-3 font-bold text-gray-700">المبلغ</th>
+                    <th class="text-right p-3 font-bold text-gray-700">الحالة</th>
+                    <th class="text-right p-3 font-bold text-gray-700">التاريخ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3">INV-2026-001</td>
+                    <td class="p-3">شركة النور</td>
+                    <td class="p-3">45,000 ر.س</td>
+                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">مدفوعة</span></td>
+                    <td class="p-3">2026-01-10</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3">INV-2026-002</td>
+                    <td class="p-3">مؤسسة الخليج</td>
+                    <td class="p-3">75,000 ر.س</td>
+                    <td class="p-3"><span class="bg-orange-100 text-orange-700 px-3 py-1 rounded text-xs font-bold">جزئي</span></td>
+                    <td class="p-3">2026-01-05</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3">INV-2026-003</td>
+                    <td class="p-3">شركة الاستثمار</td>
+                    <td class="p-3">120,000 ر.س</td>
+                    <td class="p-3"><span class="bg-red-100 text-red-700 px-3 py-1 rounded text-xs font-bold">متأخرة</span></td>
+                    <td class="p-3">2025-12-20</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>`;
+
+// 2. Render Payment Methods
+const renderPaymentMethods = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">💳 طرق الدفع المتاحة</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white border-2 border-blue-200 rounded-lg p-6 hover:shadow-lg transition">
+            <div class="text-4xl mb-4">🏦</div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">تحويل بنكي</h3>
+            <p class="text-gray-600 mb-4">تحويل مباشر من حسابك البنكي</p>
+            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold">متاح</span>
+        </div>
+        
+        <div class="bg-white border-2 border-green-200 rounded-lg p-6 hover:shadow-lg transition">
+            <div class="text-4xl mb-4">💰</div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">دفع نقداً</h3>
+            <p class="text-gray-600 mb-4">دفع فوري في أحد فروعنا</p>
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">متاح</span>
+        </div>
+        
+        <div class="bg-white border-2 border-purple-200 rounded-lg p-6 hover:shadow-lg transition">
+            <div class="text-4xl mb-4">💳</div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">بطاقة ائتمان</h3>
+            <p class="text-gray-600 mb-4">بطاقات فيزا وماستركارد</p>
+            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded text-xs font-bold">متاح</span>
+        </div>
+    </div>
+</div>`;
+
+// 3. Render Installment Plans
+const renderInstallmentPlans = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">📅 خطط الأقساط</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">3 أشهر</h3>
+            <p class="text-gray-600 mb-4">✓ بدون فائدة إضافية</p>
+            <div class="text-2xl font-bold text-slate-800">3 دفعات متساوية</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">6 أشهر</h3>
+            <p class="text-gray-600 mb-4">✓ معدل فائدة منخفض</p>
+            <div class="text-2xl font-bold text-slate-800">6 دفعات متساوية</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">12 شهر</h3>
+            <p class="text-gray-600 mb-4">✓ مرونة عالية</p>
+            <div class="text-2xl font-bold text-slate-800">12 دفعة شهرية</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">24 شهر</h3>
+            <p class="text-gray-600 mb-4">✓ مدفوعات صغيرة</p>
+            <div class="text-2xl font-bold text-slate-800">24 دفعة شهرية</div>
+        </div>
+    </div>
+</div>`;
+
+// 4. Render Payment Tracking
+const renderPaymentTracking = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">📊 تتبع الدفعات</h1>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">حركة الدفعات هذا الشهر</h3>
+        <p class="text-gray-600">تحليل تفصيلي لحركة الدفعات والمستحقات</p>
+    </div>
+</div>`;
+
+// 5. Render Tax Settings
+const renderTaxSettings = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">🌍 إعدادات الضرائب حسب الدول</h1>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="text-right p-3 font-bold text-gray-700">الدولة</th>
+                    <th class="text-right p-3 font-bold text-gray-700">ضريبة القيمة المضافة</th>
+                    <th class="text-right p-3 font-bold text-gray-700">ضرائب أخرى</th>
+                    <th class="text-right p-3 font-bold text-gray-700">الحالة</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-bold">السعودية 🇸🇦</td>
+                    <td class="p-3">15%</td>
+                    <td class="p-3">زكاة 2.5%</td>
+                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">فعال</span></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-bold">الأردن 🇯🇴</td>
+                    <td class="p-3">16%</td>
+                    <td class="p-3">-</td>
+                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">فعال</span></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-bold">مصر 🇪🇬</td>
+                    <td class="p-3">14%</td>
+                    <td class="p-3">-</td>
+                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">فعال</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>`;
+
+// 6. Render Collection Rules
+const renderCollectionRules = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">⚙️ قواعد التحصيل الذكية</h1>
+    
+    <div class="space-y-4">
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-4 rounded">
+            <h3 class="font-bold text-blue-900">📌 التذكير الأول</h3>
+            <p class="text-blue-800 text-sm">بعد 5 أيام من تاريخ الفاتورة</p>
+        </div>
+        
+        <div class="bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-500 p-4 rounded">
+            <h3 class="font-bold text-orange-900">📌 التصعيد</h3>
+            <p class="text-orange-800 text-sm">بعد 30 يوم - إشعار رسمي</p>
+        </div>
+        
+        <div class="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-4 rounded">
+            <h3 class="font-bold text-red-900">📌 إجراء قانوني</h3>
+            <p class="text-red-800 text-sm">بعد 60 يوم - إحالة للجهات المختصة</p>
+        </div>
+        
+        <div class="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-4 rounded">
+            <h3 class="font-bold text-green-900">💰 خصم الدفع المبكر</h3>
+            <p class="text-green-800 text-sm">خصم 3% للدفع قبل 7 أيام</p>
+        </div>
+    </div>
+</div>`;
+
+// 7. Render Payment Reminders
+const renderPaymentReminders = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">🔔 التذكيرات الآلية</h1>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">جدول التذكيرات المجدولة</h3>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span class="font-semibold text-gray-700">تذكير: فاتورة INV-2026-002</span>
+                <span class="text-xs bg-blue-200 text-blue-800 px-3 py-1 rounded font-bold">مرسلة</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                <span class="font-semibold text-gray-700">تذكير: فاتورة INV-2026-003</span>
+                <span class="text-xs bg-yellow-200 text-yellow-800 px-3 py-1 rounded font-bold">معلقة</span>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+// 8. Render Overdue Management
+const renderOverdueManagement = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">⚠️ إدارة المتأخرات</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p class="text-red-800 font-semibold mb-2">📊 إجمالي المتأخرات</p>
+            <p class="text-3xl font-bold text-red-600">8 فواتير</p>
+            <p class="text-xs text-red-600 mt-2">المبلغ الإجمالي: 350,000 ر.س</p>
+        </div>
+        
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <p class="text-orange-800 font-semibold mb-2">⏰ متأخرة أقل من 30 يوم</p>
+            <p class="text-3xl font-bold text-orange-600">3 فواتير</p>
+            <p class="text-xs text-orange-600 mt-2">المبلغ: 120,000 ر.س</p>
+        </div>
+        
+        <div class="bg-red-100 border border-red-400 rounded-lg p-4">
+            <p class="text-red-900 font-semibold mb-2">🚨 متأخرة أكثر من 60 يوم</p>
+            <p class="text-3xl font-bold text-red-700">2 فواتير</p>
+            <p class="text-xs text-red-700 mt-2">المبلغ: 150,000 ر.س</p>
+        </div>
+    </div>
+</div>`;
+
+// 9. Render Payment Analytics
+const renderPaymentAnalytics = () => `
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">📈 تحليلات الدفع</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">معدل التحصيل</h3>
+            <div class="text-center">
+                <div class="text-5xl font-bold text-green-600">87.5%</div>
+                <p class="text-gray-600 mt-2">من إجمالي المبلغ المستحق</p>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">متوسط وقت الدفع</h3>
+            <div class="text-center">
+                <div class="text-5xl font-bold text-blue-600">12 أيام</div>
+                <p class="text-gray-600 mt-2">من تاريخ الفاتورة</p>
+            </div>
+        </div>
+    </div>
+</div>`;
 
 // ========================================
 // DELETE FUNCTIONS
