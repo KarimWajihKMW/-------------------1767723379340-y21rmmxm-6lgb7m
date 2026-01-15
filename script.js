@@ -1322,12 +1322,15 @@ const app = (() => {
         modal.id = 'invoice-modal';
         modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
         modal.innerHTML = `
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up max-h-[90vh] overflow-y-auto">
-                <div class="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center sticky top-0 z-10">
-                    <h3 class="font-bold text-lg text-slate-800">إنشاء فاتورة جديدة</h3>
-                    <button onclick="document.getElementById('invoice-modal').remove()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-up max-h-[95vh] overflow-y-auto">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-red-600 to-red-700 flex justify-between items-center sticky top-0 z-10">
+                    <h3 class="font-bold text-2xl text-white flex items-center gap-2">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        إنشاء فاتورة ذكية جديدة
+                    </h3>
+                    <button onclick="document.getElementById('invoice-modal').remove()" class="text-white/80 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
                 </div>
-                <div class="p-6 space-y-4">
+                <div class="p-6 space-y-6">
                     <!-- معلومات العميل -->
                     <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
                         <h4 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
@@ -1451,13 +1454,176 @@ const app = (() => {
                             </div>
                         </div>
                     </div>
+
+                    <!-- خيارات الدفع الذكية -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
+                        <h4 class="font-bold text-purple-900 mb-4 flex items-center gap-2 text-lg">
+                            <i class="fas fa-credit-card"></i>
+                            خيارات الدفع المرنة (بعد الإصدار)
+                        </h4>
+                        <p class="text-sm text-purple-700 mb-4 bg-white p-3 rounded-lg border border-purple-100">
+                            <i class="fas fa-info-circle ml-2"></i>
+                            بعد إصدار الفاتورة، يمكنك اختيار طريقة الدفع المناسبة:
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Full Payment -->
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="payment-plan" value="دفع كامل" class="peer sr-only" checked>
+                                <div class="p-4 rounded-xl border-2 border-green-200 peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-green-400 transition group-hover:shadow-lg">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <i class="fas fa-check-circle text-2xl text-green-600"></i>
+                                        <h5 class="font-bold text-green-900">دفع كامل</h5>
+                                    </div>
+                                    <p class="text-xs text-green-700">دفع المبلغ كاملاً دفعة واحدة</p>
+                                    <div class="mt-2 text-xs font-bold text-green-600">✓ بدون فائدة إضافية</div>
+                                </div>
+                            </label>
+
+                            <!-- Partial Payment -->
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="payment-plan" value="دفع جزئي" class="peer sr-only" onchange="document.getElementById('partial-options').classList.remove('hidden')">
+                                <div class="p-4 rounded-xl border-2 border-orange-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 hover:border-orange-400 transition group-hover:shadow-lg">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <i class="fas fa-half-circle text-2xl text-orange-600"></i>
+                                        <h5 class="font-bold text-orange-900">دفع جزئي</h5>
+                                    </div>
+                                    <p class="text-xs text-orange-700">ادفع جزء من المبلغ الآن</p>
+                                    <div class="mt-2 text-xs font-bold text-orange-600">✓ والباقي لاحقاً</div>
+                                </div>
+                            </label>
+
+                            <!-- Installment Plan -->
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="payment-plan" value="أقساط" class="peer sr-only" onchange="document.getElementById('installment-options').classList.remove('hidden')">
+                                <div class="p-4 rounded-xl border-2 border-blue-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-blue-400 transition group-hover:shadow-lg">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <i class="fas fa-calendar-alt text-2xl text-blue-600"></i>
+                                        <h5 class="font-bold text-blue-900">نظام الأقساط</h5>
+                                    </div>
+                                    <p class="text-xs text-blue-700">قسّط المبلغ على عدة أشهر</p>
+                                    <div class="mt-2 text-xs font-bold text-blue-600">✓ أقساط متساوية</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Partial Payment Options -->
+                        <div id="partial-options" class="hidden mt-4 p-4 bg-white rounded-lg border border-orange-200 animate-fade-in">
+                            <label class="block text-xs font-bold text-slate-600 mb-2">اختر نسبة الدفع الأولى:</label>
+                            <div class="flex gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="partial-percent" value="25" class="w-4 h-4">
+                                    <span class="text-sm">25% (ربع المبلغ)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="partial-percent" value="50" class="w-4 h-4" checked>
+                                    <span class="text-sm">50% (نصف المبلغ)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="partial-percent" value="75" class="w-4 h-4">
+                                    <span class="text-sm">75% (ثلاثة أرباع)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Installment Options -->
+                        <div id="installment-options" class="hidden mt-4 p-4 bg-white rounded-lg border border-blue-200 animate-fade-in">
+                            <label class="block text-xs font-bold text-slate-600 mb-3">اختر عدد الأقساط:</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="installment-count" value="3" class="w-4 h-4" checked>
+                                    <span class="text-sm font-bold">3 أقساط</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="installment-count" value="6" class="w-4 h-4">
+                                    <span class="text-sm font-bold">6 أقساط</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="installment-count" value="12" class="w-4 h-4">
+                                    <span class="text-sm font-bold">12 قسط</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="installment-count" value="24" class="w-4 h-4">
+                                    <span class="text-sm font-bold">24 قسط</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Interest Rate -->
+                            <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <p class="text-xs font-bold text-blue-900 mb-1">معدل الفائدة:</p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="interest-rate" value="0" class="w-4 h-4" checked>
+                                        <span class="text-xs">0% (بدون فائدة)</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="interest-rate" value="2" class="w-4 h-4">
+                                        <span class="text-xs">2% فائدة</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="interest-rate" value="3.5" class="w-4 h-4">
+                                        <span class="text-xs">3.5% فائدة</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="interest-rate" value="5" class="w-4 h-4">
+                                        <span class="text-xs">5% فائدة</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ملخص الفاتورة -->
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-xl">
+                        <h4 class="font-bold mb-4 flex items-center gap-2">
+                            <i class="fas fa-calculator"></i>
+                            ملخص الفاتورة
+                        </h4>
+                        <div class="space-y-2 mb-4 pb-4 border-b border-slate-700">
+                            <div class="flex justify-between">
+                                <span>المبلغ الأساسي:</span>
+                                <span id="summary-amount" class="font-bold">0.00 ر.س</span>
+                            </div>
+                            <div class="flex justify-between text-slate-300">
+                                <span>الضريبة (15%):</span>
+                                <span id="summary-tax" class="font-bold">0.00 ر.س</span>
+                            </div>
+                            <div class="flex justify-between text-slate-300">
+                                <span>الإجمالي:</span>
+                                <span id="summary-total" class="font-bold text-lg text-yellow-300">0.00 ر.س</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 italic">
+                            <i class="fas fa-shield-alt ml-1"></i>
+                            سيتم حفظ جميع خيارات الدفع وتوفيرها للعميل بعد إصدار الفاتورة
+                        </p>
+                    </div>
                 </div>
-                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 sticky bottom-0">
-                    <button onclick="document.getElementById('invoice-modal').remove()" class="px-4 py-2 rounded-lg text-slate-500 font-bold hover:bg-slate-200">إلغاء</button>
-                    <button onclick="app.submitInvoice()" class="px-6 py-2 rounded-lg bg-brand-600 text-white font-bold hover:bg-brand-700 shadow-lg">إصدار الفاتورة</button>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 sticky bottom-0 shadow-lg">
+                    <button onclick="document.getElementById('invoice-modal').remove()" class="px-6 py-3 rounded-lg text-slate-700 font-bold hover:bg-slate-200 transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button onclick="app.submitInvoice()" class="px-6 py-3 rounded-lg bg-gradient-to-r from-red-600 to-red-700 text-white font-bold hover:from-red-700 hover:to-red-800 shadow-lg transition">
+                        <i class="fas fa-file-pdf ml-2"></i>
+                        إصدار الفاتورة
+                    </button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
+
+        // Update summary when amount changes
+        const amountInput = document.getElementById('inv-amount');
+        if (amountInput) {
+            amountInput.addEventListener('change', () => {
+                const amount = parseFloat(amountInput.value) || 0;
+                const tax = amount * 0.15;
+                const total = amount + tax;
+                document.getElementById('summary-amount').textContent = amount.toFixed(2) + ' ر.س';
+                document.getElementById('summary-tax').textContent = tax.toFixed(2) + ' ر.س';
+                document.getElementById('summary-total').textContent = total.toFixed(2) + ' ر.س';
+            });
+        }
     };
 
     const submitInvoice = async () => {
@@ -1475,8 +1641,14 @@ const app = (() => {
         const bankName = document.getElementById('inv-bank-name')?.value || '';
         let paymentMethod = paymentType;
         if (paymentType === 'تحويل بنكي' && bankName) {
-            paymentMethod = `تحويل بنكي - ${bankName}`;
+            paymentMethod = `${paymentType} - ${bankName}`;
         }
+
+        // Get payment plan options
+        const paymentPlan = document.querySelector('input[name="payment-plan"]:checked')?.value || 'دفع كامل';
+        const partialPercent = document.querySelector('input[name="partial-percent"]:checked')?.value || '50';
+        const installmentCount = document.querySelector('input[name="installment-count"]:checked')?.value || '3';
+        const interestRate = document.querySelector('input[name="interest-rate"]:checked')?.value || '0';
 
         if(!title || !amount || !due) return showToast('يرجى تعبئة جميع الحقول المطلوبة', 'error');
         if(!paymentType) return showToast('يرجى اختيار طريقة الدفع', 'error');
@@ -1488,14 +1660,20 @@ const app = (() => {
             title: title,
             amount: amount,
             paidAmount: 0,
-            status: 'UNPAID',
+            tax: amount * 0.15,
+            total: amount + (amount * 0.15),
+            status: 'ISSUED',
             date: new Date().toISOString().slice(0, 10),
             dueDate: due,
             customerName: customerName || '',
             customerNumber: customerNumber || '',
             customerPhone: customerPhone || '',
             customerEmail: customerEmail || '',
-            paymentMethod: paymentMethod || ''
+            paymentMethod: paymentMethod || '',
+            paymentPlan: paymentPlan,
+            partialPercent: paymentPlan === 'دفع جزئي' ? partialPercent : null,
+            installmentCount: paymentPlan === 'أقساط' ? installmentCount : null,
+            interestRate: paymentPlan === 'أقساط' ? interestRate : null
         };
 
         try {
@@ -1535,42 +1713,242 @@ const app = (() => {
         modal.id = 'pay-modal';
         modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm fade-in p-4';
         modal.innerHTML = `
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-up">
-                <div class="p-6 border-b border-slate-100 bg-green-50 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-green-800"><i class="fas fa-cash-register mr-2"></i> تسجيل دفعة</h3>
-                    <button onclick="document.getElementById('pay-modal').remove()" class="text-green-600 hover:text-green-800"><i class="fas fa-times"></i></button>
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up max-h-[95vh] overflow-y-auto">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-green-600 to-emerald-600 flex justify-between items-center sticky top-0 z-10">
+                    <h3 class="font-bold text-2xl text-white flex items-center gap-2">
+                        <i class="fas fa-cash-register"></i>
+                        خيارات الدفع المرنة
+                    </h3>
+                    <button onclick="document.getElementById('pay-modal').remove()" class="text-white/80 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
                 </div>
-                <div class="p-6 space-y-4">
-                    <div class="bg-slate-50 p-3 rounded-lg flex justify-between text-sm">
-                         <span class="text-slate-500">المبلغ المتبقي:</span>
-                         <span class="font-bold text-slate-800">${remaining.toLocaleString()} ر.س</span>
+                <div class="p-6 space-y-6">
+                    <!-- معلومات الفاتورة -->
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-xl">
+                        <h4 class="font-bold mb-4 flex items-center gap-2">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            تفاصيل الفاتورة
+                        </h4>
+                        <div class="space-y-2 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-slate-400 text-sm">رقم الفاتورة</p>
+                                <p class="text-lg font-bold">${inv.id}</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-sm">العميل</p>
+                                <p class="text-lg font-bold">${inv.customerName}</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-sm">المبلغ الأصلي</p>
+                                <p class="text-lg font-bold text-blue-400">${(inv.amount).toLocaleString()} ر.س</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-sm">المبلغ المدفوع</p>
+                                <p class="text-lg font-bold text-green-400">${(inv.paidAmount).toLocaleString()} ر.س</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-slate-400 text-sm">المبلغ المتبقي</p>
+                                <p class="text-2xl font-bold text-red-400">${remaining.toLocaleString()} ر.س</p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">المبلغ المدفوع</label>
-                        <input type="number" id="pay-amount" value="${remaining}" max="${remaining}" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 font-bold text-lg">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">طريقة الدفع</label>
-                        <select id="pay-method" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200">
-                            <option>تحويل بنكي</option>
-                            <option>بطاقة ائتمان</option>
-                            <option>نقدي</option>
-                        </select>
+
+                    <!-- خيارات الدفع -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-credit-card"></i>
+                            اختر طريقة الدفع
+                        </h4>
+
+                        <!-- Option 1: Full Payment -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="payment-option" value="full" class="peer sr-only" onchange="document.getElementById('partial-section').classList.add('hidden'); document.getElementById('installment-section').classList.add('hidden');" checked>
+                            <div class="p-4 rounded-xl border-2 border-green-200 peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-green-400 transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-check-circle text-2xl text-green-600"></i>
+                                        <div>
+                                            <h5 class="font-bold text-green-900">دفع كامل</h5>
+                                            <p class="text-sm text-green-700">ادفع المبلغ الكامل المتبقي</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-green-600 text-lg">${remaining.toLocaleString()} ر.س</span>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-green-200">
+                                    <select id="full-payment-method" class="w-full px-3 py-2 rounded-lg border border-green-300 text-sm focus:ring-2 focus:ring-green-500 outline-none">
+                                        <option value="">اختر طريقة الدفع</option>
+                                        <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                        <option value="بطاقة ائتمان">💳 بطاقة ائتمان</option>
+                                        <option value="نقدي">💰 نقدي</option>
+                                        <option value="شيك">📋 شيك</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Option 2: Partial Payment -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="payment-option" value="partial" class="peer sr-only" onchange="document.getElementById('partial-section').classList.remove('hidden'); document.getElementById('installment-section').classList.add('hidden');">
+                            <div class="p-4 rounded-xl border-2 border-orange-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 hover:border-orange-400 transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-half-circle text-2xl text-orange-600"></i>
+                                        <div>
+                                            <h5 class="font-bold text-orange-900">دفع جزئي</h5>
+                                            <p class="text-sm text-orange-700">ادفع جزء من المبلغ الآن</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="partial-section" class="hidden mt-3 pt-3 border-t border-orange-200 space-y-3 animate-fade-in">
+                                    <div>
+                                        <label class="text-xs font-bold text-orange-900 block mb-2">اختر المبلغ المراد دفعه:</label>
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2">
+                                                <input type="radio" name="partial-amount" value="${(remaining * 0.25).toFixed(2)}" class="w-4 h-4">
+                                                <span class="text-sm">25% (${(remaining * 0.25).toLocaleString('ar-SA')} ر.س)</span>
+                                            </label>
+                                            <label class="flex items-center gap-2">
+                                                <input type="radio" name="partial-amount" value="${(remaining * 0.50).toFixed(2)}" class="w-4 h-4" checked>
+                                                <span class="text-sm">50% (${(remaining * 0.50).toLocaleString('ar-SA')} ر.س)</span>
+                                            </label>
+                                            <label class="flex items-center gap-2">
+                                                <input type="radio" name="partial-amount" value="${(remaining * 0.75).toFixed(2)}" class="w-4 h-4">
+                                                <span class="text-sm">75% (${(remaining * 0.75).toLocaleString('ar-SA')} ر.س)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-orange-900 block mb-2">أو أدخل مبلغاً مخصصاً:</label>
+                                        <input type="number" id="custom-partial-amount" placeholder="أدخل المبلغ" max="${remaining}" class="w-full px-3 py-2 rounded-lg border border-orange-300 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <select id="partial-payment-method" class="w-full px-3 py-2 rounded-lg border border-orange-300 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                                            <option value="">اختر طريقة الدفع</option>
+                                            <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                            <option value="بطاقة ائتمان">💳 بطاقة ائتمان</option>
+                                            <option value="نقدي">💰 نقدي</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Option 3: Installment Plan -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="payment-option" value="installment" class="peer sr-only" onchange="document.getElementById('installment-section').classList.remove('hidden'); document.getElementById('partial-section').classList.add('hidden');">
+                            <div class="p-4 rounded-xl border-2 border-blue-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-blue-400 transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-calendar-alt text-2xl text-blue-600"></i>
+                                        <div>
+                                            <h5 class="font-bold text-blue-900">نظام الأقساط</h5>
+                                            <p class="text-sm text-blue-700">قسّط المبلغ على عدة أشهر</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="installment-section" class="hidden mt-3 pt-3 border-t border-blue-200 space-y-3 animate-fade-in">
+                                    <div>
+                                        <label class="text-xs font-bold text-blue-900 block mb-2">عدد الأقساط:</label>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-months" value="3" class="sr-only peer">
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-blue-500 peer-checked:text-white text-center text-sm font-bold cursor-pointer">3 شهور</span>
+                                            </label>
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-months" value="6" class="sr-only peer" checked>
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-blue-500 peer-checked:text-white text-center text-sm font-bold cursor-pointer">6 شهور</span>
+                                            </label>
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-months" value="12" class="sr-only peer">
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-blue-500 peer-checked:text-white text-center text-sm font-bold cursor-pointer">12 شهر</span>
+                                            </label>
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-months" value="24" class="sr-only peer">
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-blue-500 peer-checked:text-white text-center text-sm font-bold cursor-pointer">24 شهر</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-blue-900 block mb-2">معدل الفائدة:</label>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-interest" value="0" class="sr-only peer" checked>
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-green-500 peer-checked:text-white text-center text-xs font-bold cursor-pointer">0%</span>
+                                            </label>
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-interest" value="2" class="sr-only peer">
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-green-500 peer-checked:text-white text-center text-xs font-bold cursor-pointer">2%</span>
+                                            </label>
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-interest" value="3.5" class="sr-only peer">
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-green-500 peer-checked:text-white text-center text-xs font-bold cursor-pointer">3.5%</span>
+                                            </label>
+                                            <label class="flex items-center justify-center cursor-pointer">
+                                                <input type="radio" name="installment-interest" value="5" class="sr-only peer">
+                                                <span class="w-full p-2 rounded-lg border border-blue-300 peer-checked:bg-green-500 peer-checked:text-white text-center text-xs font-bold cursor-pointer">5%</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <select id="installment-payment-method" class="w-full px-3 py-2 rounded-lg border border-blue-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                                            <option value="">اختر طريقة الدفع</option>
+                                            <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                                            <option value="بطاقة ائتمان">💳 بطاقة ائتمان</option>
+                                            <option value="نقدي">💰 نقدي</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
                     </div>
                 </div>
-                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-                    <button onclick="app.submitPayment('${inv.id}')" class="w-full px-6 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition transform hover:-translate-y-1">تأكيد السداد</button>
+
+                <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 sticky bottom-0 shadow-lg">
+                    <button onclick="document.getElementById('pay-modal').remove()" class="px-6 py-3 rounded-lg text-slate-700 font-bold hover:bg-slate-200 transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button onclick="app.submitPayment('${invId}')" class="px-6 py-3 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold hover:from-green-700 hover:to-emerald-700 shadow-lg transition">
+                        <i class="fas fa-check-circle ml-2"></i>
+                        تأكيد الدفع
+                    </button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
     };
 
     const submitPayment = (invId) => {
-        const amount = parseFloat(document.getElementById('pay-amount').value);
-        const method = document.getElementById('pay-method').value;
         const inv = db.invoices.find(i => i.id === invId);
+        if (!inv) return showToast('الفاتورة غير موجودة', 'error');
 
-        if (amount <= 0 || amount > (inv.amount - inv.paidAmount)) return showToast('مبلغ غير صالح', 'error');
+        const paymentOption = document.querySelector('input[name="payment-option"]:checked')?.value;
+        let amount = 0;
+        let method = '';
+        let paymentType = '';
+
+        if (paymentOption === 'full') {
+            amount = inv.amount - inv.paidAmount;
+            method = document.getElementById('full-payment-method')?.value;
+            paymentType = 'دفع كامل';
+            if (!method) return showToast('يرجى اختيار طريقة الدفع', 'error');
+        } else if (paymentOption === 'partial') {
+            const selectedAmount = document.querySelector('input[name="partial-amount"]:checked')?.value;
+            const customAmount = document.getElementById('custom-partial-amount')?.value;
+            amount = customAmount ? parseFloat(customAmount) : parseFloat(selectedAmount);
+            method = document.getElementById('partial-payment-method')?.value;
+            paymentType = 'دفع جزئي';
+            if (!method) return showToast('يرجى اختيار طريقة الدفع', 'error');
+        } else if (paymentOption === 'installment') {
+            amount = inv.amount - inv.paidAmount;
+            const months = document.querySelector('input[name="installment-months"]:checked')?.value;
+            const interest = document.querySelector('input[name="installment-interest"]:checked')?.value;
+            method = document.getElementById('installment-payment-method')?.value;
+            paymentType = `أقساط (${months} شهر - فائدة ${interest}%)`;
+            if (!method) return showToast('يرجى اختيار طريقة الدفع', 'error');
+        }
+
+        if (amount <= 0 || amount > (inv.amount - inv.paidAmount)) {
+            return showToast('مبلغ غير صالح', 'error');
+        }
 
         // 1. Create Transaction
         const trxId = `TRX-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -1581,6 +1959,7 @@ const app = (() => {
             type: 'PAYMENT',
             amount: amount,
             method: method,
+            paymentType: paymentType,
             date: new Date().toISOString().slice(0, 10),
             user: currentUser.name
         };
@@ -1589,7 +1968,7 @@ const app = (() => {
         // 2. Update Invoice
         inv.paidAmount += amount;
         if (inv.paidAmount >= inv.amount) inv.status = 'PAID';
-        else if (inv.paidAmount > 0) inv.status = 'PARTIAL';
+        else if (inv.paidAmount > 0) inv.status = 'PARTIAL_PAID';
 
         // 3. Add to Ledger (Immutable)
         db.ledger.unshift({
@@ -1597,17 +1976,17 @@ const app = (() => {
             entityId: inv.entityId,
             trxId: trxId,
             date: new Date().toISOString().slice(0, 10),
-            desc: `سداد جزئي/كلي للفاتورة ${invId}`,
+            desc: `سداد (${paymentType}) للفاتورة ${invId}`,
             debit: 0,
             credit: amount,
             balance: (db.ledger[0]?.balance || 0) + amount,
             type: 'Credit'
         });
 
-        logAction('PAYMENT', `Recorded payment of ${amount} for ${invId}`);
+        logAction('PAYMENT', `تم تسجيل دفع ${paymentType} بمبلغ ${amount} ر.س للفاتورة ${invId}`);
         document.getElementById('pay-modal').remove();
-        showToast('تم تسجيل الدفع بنجاح', 'success');
-        loadRoute('billing');
+        showToast(`✅ تم تسجيل ${paymentType} بنجاح - المبلغ: ${amount.toLocaleString('ar-SA')} ر.س`, 'success');
+        loadRoute('invoices-enhanced');
     };
 
     const reverseTransaction = (trxId) => {
