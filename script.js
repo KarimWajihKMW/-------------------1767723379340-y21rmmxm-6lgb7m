@@ -1065,13 +1065,22 @@ const app = (() => {
         else if (route === 'requests') content = renderRequests();
         // Employee HR Routes
         else if (route === 'attendance-departure') content = renderAttendanceDeparture();
-        else if (route === 'attendance-table') content = renderAttendanceTable();
-        else if (route === 'shift-schedules') content = renderShiftSchedules();
-        else if (route === 'leave-management') content = renderLeaveManagement();
-        else if (route === 'employee-profile') content = renderEmployeeProfile();
-        else if (route === 'payroll') content = renderPayroll();
-        else if (route === 'performance') content = renderPerformance();
+        else if (route === 'emp-requests') content = renderEmpRequests();
+        else if (route === 'emp-leaves') content = renderEmpLeaves();
+        else if (route === 'leave-balance') content = renderLeaveBalance();
+        else if (route === 'notifications-warnings') content = renderNotificationsWarnings();
+        else if (route === 'emp-decisions') content = renderEmpDecisions();
+        else if (route === 'company-violations') content = renderCompanyViolations();
+        else if (route === 'evaluation-forms') content = renderEvaluationForms();
+        else if (route === 'circulars') content = renderCirculars();
+        else if (route === 'advances-receivables') content = renderAdvancesReceivables();
+        else if (route === 'surveys') content = renderSurveys();
+        else if (route === 'business-activities') content = renderBusinessActivities();
+        else if (route === 'emp-letters') content = renderEmpLetters();
+        else if (route === 'custodies') content = renderCustodies();
+        else if (route === 'salary-slips') content = renderSalarySlips();
         else if (route === 'attendance-register') content = renderAttendanceRegister();
+        else if (route === 'attendance-table') content = renderAttendanceTable();
         else if (route === 'incubator') {
             view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             await renderIncubator();
@@ -1198,13 +1207,22 @@ const app = (() => {
                 show: true,
                 subItems: [
                     { id: 'attendance-departure', icon: 'fa-clock', label: 'الحضور والانصراف' },
-                    { id: 'attendance-table', icon: 'fa-table', label: 'جدول الحضور' },
-                    { id: 'shift-schedules', icon: 'fa-calendar-alt', label: 'جدول المناوبات' },
-                    { id: 'leave-management', icon: 'fa-umbrella-beach', label: 'إدارة الإجازات' },
-                    { id: 'employee-profile', icon: 'fa-id-card', label: 'ملف الموظف' },
-                    { id: 'payroll', icon: 'fa-money-check-alt', label: 'الرواتب' },
-                    { id: 'performance', icon: 'fa-chart-line', label: 'تقييم الأداء' },
-                    { id: 'attendance-register', icon: 'fa-fingerprint', label: 'تسجيل الحضور' }
+                    { id: 'emp-requests', icon: 'fa-clipboard-list', label: 'الطلبات' },
+                    { id: 'emp-leaves', icon: 'fa-umbrella-beach', label: 'الإجازات' },
+                    { id: 'leave-balance', icon: 'fa-calendar-check', label: 'رصيد الإجازات' },
+                    { id: 'notifications-warnings', icon: 'fa-bell', label: 'الإشعارات/الإنذارات' },
+                    { id: 'emp-decisions', icon: 'fa-gavel', label: 'القرارات' },
+                    { id: 'company-violations', icon: 'fa-exclamation-triangle', label: 'مخالفات أنظمة الشركة' },
+                    { id: 'evaluation-forms', icon: 'fa-clipboard-check', label: 'نماذج التقييم' },
+                    { id: 'circulars', icon: 'fa-file-alt', label: 'التعاميم' },
+                    { id: 'advances-receivables', icon: 'fa-hand-holding-usd', label: 'السلف/الذمم' },
+                    { id: 'surveys', icon: 'fa-poll', label: 'الاستبيانات' },
+                    { id: 'business-activities', icon: 'fa-briefcase', label: 'أنشطة الأعمال' },
+                    { id: 'emp-letters', icon: 'fa-envelope', label: 'الخطابات' },
+                    { id: 'custodies', icon: 'fa-box', label: 'العهد' },
+                    { id: 'salary-slips', icon: 'fa-receipt', label: 'قسائم الراتب' },
+                    { id: 'attendance-register', icon: 'fa-fingerprint', label: 'تسجيل الحضور' },
+                    { id: 'attendance-table', icon: 'fa-table', label: 'جدول الحضور' }
                 ]
             },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
@@ -5742,6 +5760,329 @@ const app = (() => {
                         </div>
                         <span class="text-sm font-bold text-green-700">08:00 ص</span>
                     </div>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    // NEW EMPLOYEE HR PAGES
+    
+    const renderEmpRequests = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-clipboard-list text-brand-600"></i>
+                        الطلبات
+                    </h2>
+                    <p class="text-slate-500 mt-1">طلبات الموظفين المختلفة</p>
+                </div>
+                <button class="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-bold">
+                    <i class="fas fa-plus mr-2"></i>
+                    طلب جديد
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-clipboard-list text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">نظام الطلبات متاح</p>
+                    <p class="text-sm mt-2">يمكنك تقديم طلباتك المختلفة من هنا</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderEmpLeaves = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-umbrella-beach text-brand-600"></i>
+                        الإجازات
+                    </h2>
+                    <p class="text-slate-500 mt-1">طلبات الإجازات الخاصة بك</p>
+                </div>
+                <button class="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-bold">
+                    <i class="fas fa-plus mr-2"></i>
+                    طلب إجازة
+                </button>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-umbrella-beach text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">إدارة الإجازات</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderLeaveBalance = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-calendar-check text-brand-600"></i>
+                    رصيد الإجازات
+                </h2>
+                <p class="text-slate-500 mt-1">الرصيد المتبقي من الإجازات</p>
+            </div>
+            
+            <!-- Leave Balance Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-blue-800">إجازة سنوية</h3>
+                        <i class="fas fa-calendar text-3xl text-blue-300"></i>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-black text-blue-700">21</p>
+                        <p class="text-sm text-blue-600 mt-1">يوم متبقي</p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-green-800">إجازة مرضية</h3>
+                        <i class="fas fa-medkit text-3xl text-green-300"></i>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-black text-green-700">15</p>
+                        <p class="text-sm text-green-600 mt-1">يوم متبقي</p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-purple-800">إجازة طارئة</h3>
+                        <i class="fas fa-exclamation-circle text-3xl text-purple-300"></i>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-black text-purple-700">5</p>
+                        <p class="text-sm text-purple-600 mt-1">يوم متبقي</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderNotificationsWarnings = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-bell text-brand-600"></i>
+                    الإشعارات والإنذارات
+                </h2>
+                <p class="text-slate-500 mt-1">الإشعارات والإنذارات الموجهة لك</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-bell text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">لا توجد إشعارات حالياً</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderEmpDecisions = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-gavel text-brand-600"></i>
+                    القرارات
+                </h2>
+                <p class="text-slate-500 mt-1">القرارات الإدارية الخاصة بك</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-gavel text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">القرارات الإدارية</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderCompanyViolations = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle text-brand-600"></i>
+                    مخالفات أنظمة الشركة
+                </h2>
+                <p class="text-slate-500 mt-1">سجل المخالفات والجزاءات</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-exclamation-triangle text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">لا توجد مخالفات مسجلة</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderEvaluationForms = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-clipboard-check text-brand-600"></i>
+                    نماذج التقييم
+                </h2>
+                <p class="text-slate-500 mt-1">نماذج تقييم الأداء والكفاءة</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-clipboard-check text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">نماذج التقييم</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderCirculars = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-file-alt text-brand-600"></i>
+                    التعاميم
+                </h2>
+                <p class="text-slate-500 mt-1">التعاميم والإعلانات الإدارية</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-file-alt text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">التعاميم الإدارية</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderAdvancesReceivables = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-hand-holding-usd text-brand-600"></i>
+                    السلف والذمم
+                </h2>
+                <p class="text-slate-500 mt-1">إدارة السلف والمستحقات المالية</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-hand-holding-usd text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">السلف والذمم المالية</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderSurveys = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-poll text-brand-600"></i>
+                    الاستبيانات
+                </h2>
+                <p class="text-slate-500 mt-1">الاستبيانات واستطلاعات الرأي</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-poll text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">الاستبيانات المتاحة</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderBusinessActivities = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-briefcase text-brand-600"></i>
+                    أنشطة الأعمال
+                </h2>
+                <p class="text-slate-500 mt-1">الأنشطة والمشاريع الجارية</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-briefcase text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">أنشطة الأعمال</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderEmpLetters = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-envelope text-brand-600"></i>
+                    الخطابات
+                </h2>
+                <p class="text-slate-500 mt-1">الخطابات والمراسلات الرسمية</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-envelope text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">الخطابات الرسمية</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderCustodies = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-box text-brand-600"></i>
+                    العهد
+                </h2>
+                <p class="text-slate-500 mt-1">العهد والأصول المسلمة للموظف</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-box text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">العهد المسلمة</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderSalarySlips = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i class="fas fa-receipt text-brand-600"></i>
+                    قسائم الراتب
+                </h2>
+                <p class="text-slate-500 mt-1">قسائم الرواتب الشهرية</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-receipt text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">قسائم الراتب</p>
                 </div>
             </div>
         </div>
