@@ -517,6 +517,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node add-performance-indexes\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node add-100-incubators\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-incubators-structure\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
