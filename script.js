@@ -1063,6 +1063,15 @@ const app = (() => {
         else if (route === 'collections') content = renderCollections();
         else if (route === 'approvals') content = renderApprovals();
         else if (route === 'requests') content = renderRequests();
+        // Employee HR Routes
+        else if (route === 'attendance-departure') content = renderAttendanceDeparture();
+        else if (route === 'attendance-table') content = renderAttendanceTable();
+        else if (route === 'shift-schedules') content = renderShiftSchedules();
+        else if (route === 'leave-management') content = renderLeaveManagement();
+        else if (route === 'employee-profile') content = renderEmployeeProfile();
+        else if (route === 'payroll') content = renderPayroll();
+        else if (route === 'performance') content = renderPerformance();
+        else if (route === 'attendance-register') content = renderAttendanceRegister();
         else if (route === 'incubator') {
             view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             await renderIncubator();
@@ -1182,6 +1191,22 @@ const app = (() => {
             { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: true },
             { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
             { id: 'requests', icon: 'fa-clipboard-list', label: 'الطلبات', show: true },
+            { 
+                id: 'employee-menu', 
+                icon: 'fa-user-tie', 
+                label: 'الموظف', 
+                show: true,
+                subItems: [
+                    { id: 'attendance-departure', icon: 'fa-clock', label: 'الحضور والانصراف' },
+                    { id: 'attendance-table', icon: 'fa-table', label: 'جدول الحضور' },
+                    { id: 'shift-schedules', icon: 'fa-calendar-alt', label: 'جدول المناوبات' },
+                    { id: 'leave-management', icon: 'fa-umbrella-beach', label: 'إدارة الإجازات' },
+                    { id: 'employee-profile', icon: 'fa-id-card', label: 'ملف الموظف' },
+                    { id: 'payroll', icon: 'fa-money-check-alt', label: 'الرواتب' },
+                    { id: 'performance', icon: 'fa-chart-line', label: 'تقييم الأداء' },
+                    { id: 'attendance-register', icon: 'fa-fingerprint', label: 'تسجيل الحضور' }
+                ]
+            },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
@@ -1192,6 +1217,31 @@ const app = (() => {
 
         menu.innerHTML = items.filter(i => i.show).map(item => {
             const path = routeToPath[item.id] || '/';
+            
+            // Check if item has submenu
+            if (item.subItems) {
+                return `
+                <li>
+                    <div class="submenu-container">
+                        <button onclick="app.toggleSubmenu('${item.id}')" 
+                           class="flex items-center gap-3 px-4 py-3.5 text-red-200 hover:text-white hover:bg-red-800/50 rounded-lg transition-all group relative overflow-hidden w-full text-right">
+                           <i class="fas ${item.icon} w-6 text-center group-hover:text-red-400 transition-colors z-10"></i> 
+                           <span class="z-10 relative font-medium flex-1">${item.label}</span>
+                           <i class="fas fa-chevron-down z-10 transition-transform duration-200 submenu-arrow-${item.id}"></i>
+                        </button>
+                        <div id="submenu-${item.id}" class="hidden mt-2 mr-6 space-y-1">
+                            ${item.subItems.map(subItem => `
+                                <a href="#${subItem.id}" onclick="event.preventDefault(); app.loadRoute('${subItem.id}')" 
+                                   class="flex items-center gap-2 px-4 py-2.5 text-red-300 hover:text-white hover:bg-red-800/30 rounded-lg transition-all text-sm">
+                                   <i class="fas ${subItem.icon} w-5 text-center"></i>
+                                   <span>${subItem.label}</span>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                </li>`;
+            }
+            
             return `<li>
                 <a href="${path}" id="link-${item.id}" onclick="event.preventDefault(); app.loadRoute('${item.id}')" 
                    class="flex items-center gap-3 px-4 py-3.5 text-red-200 hover:text-white hover:bg-red-800/50 rounded-lg transition-all group relative overflow-hidden">
@@ -5334,15 +5384,388 @@ const app = (() => {
         }
     };
 
+    // Toggle Submenu
+    const toggleSubmenu = (menuId) => {
+        const submenu = document.getElementById(`submenu-${menuId}`);
+        const arrow = document.querySelector(`.submenu-arrow-${menuId}`);
+        
+        if (submenu) {
+            submenu.classList.toggle('hidden');
+            if (arrow) {
+                arrow.classList.toggle('rotate-180');
+            }
+        }
+    };
+
+    // --- EMPLOYEE HR MODULES ---
+    
+    const renderAttendanceDeparture = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-clock text-brand-600"></i>
+                        الحضور والانصراف
+                    </h2>
+                    <p class="text-slate-500 mt-1">تتبع وقت حضور وانصراف الموظفين</p>
+                </div>
+                <button onclick="app.markAttendance()" class="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-bold flex items-center gap-2">
+                    <i class="fas fa-fingerprint"></i>
+                    تسجيل حضور
+                </button>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-600 text-sm font-bold mb-1">حاضر اليوم</p>
+                            <h3 class="text-3xl font-black text-green-700">45</h3>
+                        </div>
+                        <i class="fas fa-user-check text-4xl text-green-300"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 border border-red-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-600 text-sm font-bold mb-1">غائب اليوم</p>
+                            <h3 class="text-3xl font-black text-red-700">5</h3>
+                        </div>
+                        <i class="fas fa-user-times text-4xl text-red-300"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 border border-yellow-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-600 text-sm font-bold mb-1">متأخر</p>
+                            <h3 class="text-3xl font-black text-yellow-700">3</h3>
+                        </div>
+                        <i class="fas fa-clock text-4xl text-yellow-300"></i>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-600 text-sm font-bold mb-1">إجازات</p>
+                            <h3 class="text-3xl font-black text-blue-700">7</h3>
+                        </div>
+                        <i class="fas fa-umbrella-beach text-4xl text-blue-300"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Log -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4">
+                    <i class="fas fa-list text-brand-600 mr-2"></i>
+                    سجل الحضور اليوم
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b-2 border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">الموظف</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">القسم</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">وقت الحضور</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">وقت الانصراف</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">ساعات العمل</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-white font-bold">أح</div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">أحمد محمد</p>
+                                            <p class="text-xs text-slate-500">EMP-001</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-700">المبيعات</td>
+                                <td class="px-4 py-3 text-slate-700 font-medium">08:00 ص</td>
+                                <td class="px-4 py-3 text-slate-700 font-medium">05:30 م</td>
+                                <td class="px-4 py-3 text-brand-600 font-bold">9.5 ساعة</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">في الوقت</span>
+                                </td>
+                            </tr>
+                            <!-- Add more sample rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderAttendanceTable = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-table text-brand-600"></i>
+                        جدول الحضور
+                    </h2>
+                    <p class="text-slate-500 mt-1">عرض تفصيلي لحضور الموظفين</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-bold">
+                        <i class="fas fa-download mr-2"></i>
+                        تصدير Excel
+                    </button>
+                    <button class="px-4 py-2 bg-slate-600 text-white rounded-xl hover:bg-slate-700 transition font-bold">
+                        <i class="fas fa-print mr-2"></i>
+                        طباعة
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">من تاريخ</label>
+                        <input type="date" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">إلى تاريخ</label>
+                        <input type="date" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">القسم</label>
+                        <select class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none">
+                            <option>جميع الأقسام</option>
+                            <option>المبيعات</option>
+                            <option>المحاسبة</option>
+                            <option>الموارد البشرية</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="w-full px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-bold">
+                            <i class="fas fa-filter mr-2"></i>
+                            تصفية
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Calendar View -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4">
+                    <i class="fas fa-calendar-alt text-brand-600 mr-2"></i>
+                    جدول الحضور الشهري
+                </h3>
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-calendar text-6xl text-slate-300 mb-4"></i>
+                    <p>سيتم عرض جدول الحضور التفصيلي هنا</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderShiftSchedules = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-calendar-alt text-brand-600"></i>
+                        جدول المناوبات
+                    </h2>
+                    <p class="text-slate-500 mt-1">إدارة مواعيد عمل الموظفين والمناوبات</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-calendar-week text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">جدول المناوبات قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderLeaveManagement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-umbrella-beach text-brand-600"></i>
+                        إدارة الإجازات
+                    </h2>
+                    <p class="text-slate-500 mt-1">طلبات الإجازات والرصيد المتاح</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-umbrella-beach text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">نظام إدارة الإجازات قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderEmployeeProfile = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-id-card text-brand-600"></i>
+                        ملف الموظف
+                    </h2>
+                    <p class="text-slate-500 mt-1">المعلومات الشخصية والوظيفية للموظف</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-id-card text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">ملف الموظف قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderPayroll = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-money-check-alt text-brand-600"></i>
+                        الرواتب
+                    </h2>
+                    <p class="text-slate-500 mt-1">إدارة رواتب الموظفين والبدلات</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-money-check-alt text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">نظام الرواتب قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderPerformance = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-chart-line text-brand-600"></i>
+                        تقييم الأداء
+                    </h2>
+                    <p class="text-slate-500 mt-1">تقييم وقياس أداء الموظفين</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="text-center py-12 text-slate-500">
+                    <i class="fas fa-chart-line text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-lg font-bold">نظام تقييم الأداء قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const renderAttendanceRegister = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="fas fa-fingerprint text-brand-600"></i>
+                        تسجيل الحضور
+                    </h2>
+                    <p class="text-slate-500 mt-1">نظام البصمة وتسجيل الدخول والخروج</p>
+                </div>
+            </div>
+
+            <!-- Fingerprint Scanner Interface -->
+            <div class="bg-gradient-to-br from-brand-50 to-brand-100 rounded-2xl shadow-xl p-12">
+                <div class="max-w-md mx-auto text-center">
+                    <div class="relative inline-block mb-8">
+                        <div class="w-48 h-48 rounded-full bg-white shadow-2xl flex items-center justify-center animate-pulse">
+                            <i class="fas fa-fingerprint text-8xl text-brand-600"></i>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                            <i class="fas fa-check text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 mb-2">ضع إصبعك على الماسح</h3>
+                    <p class="text-slate-600 mb-8">للتسجيل أو الخروج من العمل</p>
+                    <div class="flex justify-center gap-4">
+                        <button onclick="app.registerAttendance('in')" class="px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-bold text-lg shadow-lg">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            تسجيل دخول
+                        </button>
+                        <button onclick="app.registerAttendance('out')" class="px-8 py-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition font-bold text-lg shadow-lg">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            تسجيل خروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Registrations -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4">
+                    <i class="fas fa-history text-brand-600 mr-2"></i>
+                    آخر التسجيلات
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">أحمد محمد</p>
+                                <p class="text-xs text-slate-500">تسجيل دخول</p>
+                            </div>
+                        </div>
+                        <span class="text-sm font-bold text-green-700">08:00 ص</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    };
+
+    const markAttendance = () => {
+        showToast('تم تسجيل الحضور بنجاح', 'success');
+    };
+
+    const registerAttendance = (type) => {
+        const message = type === 'in' ? 'تم تسجيل الدخول بنجاح' : 'تم تسجيل الخروج بنجاح';
+        showToast(message, 'success');
+    };
+
     // Expose functions
     return { 
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
-        renderSettings, saveSettings, previewTheme, toggleMobileMenu, wizardNext, wizardPrev, switchTab,
+        renderSettings, saveSettings, previewTheme, toggleMobileMenu, toggleSubmenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
         handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
         openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails,
         openRequestModal, submitRequest, filterRequests, viewRequestDetails, deleteRequest,
-        loadBranchRelationships, viewBranchDetails,
+        loadBranchRelationships, viewBranchDetails, markAttendance, registerAttendance,
         getDb: () => db  // Expose db for task management
     };
 })();
