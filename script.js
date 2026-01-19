@@ -4011,6 +4011,11 @@ const app = (() => {
                     </h2>
                     <p class="text-slate-500 mt-1">هذه المكونات الرئيسية لطلبات الموظفين والعاملين على نظام ERP</p>
                 </div>
+                <button onclick="window.open('/manage-request-types.html', '_blank')" 
+                        class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>إدارة المكونات</span>
+                </button>
             </div>
 
             <!-- Request Types Grid -->
