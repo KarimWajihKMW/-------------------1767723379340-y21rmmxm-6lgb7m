@@ -10508,6 +10508,7 @@ const renderInvoicesEnhanced = () => `
 
 // 2. Render Payment Methods
 const renderPaymentMethods = () => {
+    const db = app.getDb();
     const paymentMethods = db.paymentMethods || [];
     
     const colorClasses = {
