@@ -2128,8 +2128,37 @@ const app = (() => {
     };
 
     const renderDashboard = async () => {
-        const entity = db.entities.find(e => e.id === currentUser.entityId);
-        if (!entity) return renderPlaceholder('Entity Not Found');
+        // Verify currentUser exists
+        if (!currentUser || !currentUser.entityId) {
+            console.error('❌ No current user or entity ID found');
+            return renderPlaceholder('يرجى تسجيل الدخول أولاً');
+        }
+
+        console.log('🔍 Looking for entity:', currentUser.entityId, 'in', db.entities.length, 'entities');
+        
+        let entity = db.entities.find(e => e.id === currentUser.entityId);
+        
+        // If entity not found in db.entities, try to fetch it directly
+        if (!entity) {
+            console.warn('⚠️ Entity not found in db.entities, fetching from API...');
+            try {
+                const fetchedEntity = await fetchAPI(`/entities/${currentUser.entityId}`);
+                if (fetchedEntity) {
+                    entity = fetchedEntity;
+                    // Add to db.entities for future use
+                    db.entities.push(entity);
+                    console.log('✅ Entity fetched and added to cache:', entity);
+                }
+            } catch (error) {
+                console.error('❌ Failed to fetch entity:', error);
+                return renderPlaceholder('لم يتم العثور على بيانات الكيان. يرجى تحديث الصفحة.');
+            }
+        }
+        
+        if (!entity) {
+            console.error('❌ Entity still not found after fetch attempt');
+            return renderPlaceholder('لم يتم العثور على بيانات الكيان');
+        }
 
         // Check if entity has specific dashboard type
         try {
