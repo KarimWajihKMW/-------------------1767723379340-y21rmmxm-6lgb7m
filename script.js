@@ -1170,6 +1170,25 @@ const app = (() => {
         else if (route === 'facilities') content = renderFacilities();
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
+        // Strategic Management Routes
+        else if (route === 'executive-management') content = renderExecutiveManagement();
+        else if (route === 'employee-management') content = renderEmployeeManagement();
+        else if (route === 'smart-systems') content = renderSmartSystems();
+        else if (route === 'subscription-management') content = renderSubscriptionManagement();
+        else if (route === 'operations-management') content = renderOperationsManagement();
+        else if (route === 'financial-approvals') content = renderFinancialApprovals();
+        else if (route === 'tenants') content = renderTenants();
+        else if (route === 'collections-strategic') content = renderCollectionsStrategic();
+        else if (route === 'marketing') content = renderMarketing();
+        else if (route === 'advertisers-center') content = renderAdvertisersCenter();
+        else if (route === 'training-development') content = renderTrainingDevelopment();
+        else if (route === 'quality-audit') content = renderQualityAudit();
+        else if (route === 'evaluation') content = renderEvaluation();
+        else if (route === 'tasks-strategic') content = renderTasksStrategic();
+        else if (route === 'information-center') content = renderInformationCenter();
+        else if (route === 'identity-settings') content = renderIdentitySettings();
+        else if (route === 'system-log') content = renderSystemLog();
+        else if (route === 'reports') content = renderReports();
         // Payment System Routes
         else if (route === 'invoices-enhanced') content = renderInvoicesEnhanced();
         else if (route === 'payment-methods') content = renderPaymentMethods();
@@ -1218,7 +1237,26 @@ const app = (() => {
             'tasks': 'المهام الداخلية',
             'facilities': 'إدارة المرافق',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
-            'settings': 'إعدادات الهوية والعلامة التجارية'
+            'settings': 'إعدادات الهوية والعلامة التجارية',
+            // Strategic Management subitems
+            'executive-management': 'الإدارة التنفيذية',
+            'employee-management': 'إدارة الموظفين',
+            'smart-systems': 'الأنظمة الذكية',
+            'subscription-management': 'إدارة الاشتراكات',
+            'operations-management': 'إدارة العمليات',
+            'financial-approvals': 'الموافقات المالية',
+            'tenants': 'المستأجرين',
+            'collections-strategic': 'التحصيل',
+            'marketing': 'التسويق',
+            'advertisers-center': 'مركز المعلنين',
+            'training-development': 'التدريب والتطوير',
+            'quality-audit': 'الجودة والتدقيق',
+            'evaluation': 'التقييم',
+            'tasks-strategic': 'المهام',
+            'information-center': 'مركز المعلومات',
+            'identity-settings': 'إعدادات الهوية',
+            'system-log': 'سجل النظام',
+            'reports': 'التقارير'
         };
         return map[r] || 'نظام نايوش';
     };
@@ -1286,6 +1324,32 @@ const app = (() => {
         
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
+            {
+                id: 'strategic-management',
+                icon: 'fa-chess',
+                label: 'الإدارة الاستراتيجية',
+                show: true,
+subItems: [
+                    { id: 'executive-management', icon: 'fa-user-tie', label: 'الإدارة التنفيذية' },
+                    { id: 'employee-management', icon: 'fa-users-cog', label: 'إدارة الموظفين' },
+                    { id: 'smart-systems', icon: 'fa-microchip', label: 'الأنظمة الذكية' },
+                    { id: 'subscription-management', icon: 'fa-tags', label: 'إدارة الاشتراكات' },
+                    { id: 'operations-management', icon: 'fa-cogs', label: 'إدارة العمليات' },
+                    { id: 'financial-approvals', icon: 'fa-file-signature', label: 'الموافقات المالية' },
+                    { id: 'tenants', icon: 'fa-building', label: 'المستأجرين' },
+                    { id: 'collections-strategic', icon: 'fa-coins', label: 'التحصيل' },
+                    { id: 'marketing', icon: 'fa-bullhorn', label: 'التسويق' },
+                    { id: 'advertisers-center', icon: 'fa-ad', label: 'مركز المعلنين' },
+                    { id: 'training-development', icon: 'fa-chalkboard-teacher', label: 'التدريب والتطوير' },
+                    { id: 'quality-audit', icon: 'fa-clipboard-check', label: 'الجودة والتدقيق' },
+                    { id: 'evaluation', icon: 'fa-star', label: 'التقييم' },
+                    { id: 'tasks-strategic', icon: 'fa-tasks', label: 'المهام' },
+                    { id: 'information-center', icon: 'fa-info-circle', label: 'مركز المعلومات' },
+                    { id: 'identity-settings', icon: 'fa-palette', label: 'إعدادات الهوية' },
+                    { id: 'system-log', icon: 'fa-file-alt', label: 'سجل النظام' },
+                    { id: 'reports', icon: 'fa-chart-line', label: 'التقارير' }
+                ]
+            },
             { id: 'hierarchy', icon: 'fa-sitemap', label: 'الهيكل الهرمي', show: true },
             { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
             { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
@@ -5139,6 +5203,398 @@ const app = (() => {
 
     const handleFacilityAction = (moduleKey, action) => {
         showToast(`🛠️ [${moduleKey}] ${action}`, 'info');
+    };
+
+    // Strategic Management Render Functions
+    const renderExecutiveManagement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-user-tie"></i>
+                    الإدارة التنفيذية
+                </h2>
+                <p class="mt-2 opacity-90">مؤشرات الأداء، العمليات، البيانات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">مؤشرات الأداء</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>الإنجاز الشهري</span>
+                            <span class="font-bold text-green-600">92%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>الأهداف المحققة</span>
+                            <span class="font-bold text-blue-600">15/18</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">العمليات</h3>
+                    <p class="text-slate-600">مراقبة وإدارة العمليات التشغيلية</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">البيانات</h3>
+                    <p class="text-slate-600">تحليل البيانات والتقارير التنفيذية</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderEmployeeManagement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-users-cog"></i>
+                    إدارة الموظفين
+                </h2>
+                <p class="mt-2 opacity-90">الفروع، الحاضنات، المنصات، المكاتب</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-building text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">الفروع</h3>
+                    </div>
+                    <p class="text-2xl font-black text-blue-600">24</p>
+                    <p class="text-sm text-slate-500">فرع نشط</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-seedling text-orange-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">الحاضنات</h3>
+                    </div>
+                    <p class="text-2xl font-black text-orange-600">8</p>
+                    <p class="text-sm text-slate-500">حاضنة فعالة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-server text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">المنصات</h3>
+                    </div>
+                    <p class="text-2xl font-black text-green-600">12</p>
+                    <p class="text-sm text-slate-500">منصة رقمية</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-briefcase text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">المكاتب</h3>
+                    </div>
+                    <p class="text-2xl font-black text-purple-600">16</p>
+                    <p class="text-sm text-slate-500">مكتب إداري</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderSmartSystems = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-microchip"></i>
+                    الأنظمة الذكية
+                </h2>
+                <p class="mt-2 opacity-90">التسويق الإلكتروني، التسويق المجتمعي، التسويق عبر الفعاليات</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
+                <i class="fas fa-robot text-6xl text-cyan-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">الأنظمة الذكية قيد التطوير</h3>
+                <p class="text-slate-600 mt-2">سيتم إطلاق الأنظمة الذكية قريباً</p>
+            </div>
+        </div>`;
+    };
+
+    const renderSubscriptionManagement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-tags"></i>
+                    إدارة الاشتراكات
+                </h2>
+                <p class="mt-2 opacity-90">الإدار والتقييم KPI، الدورات، المهارات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الإدار والتقييم KPI</h3>
+                    <div class="text-3xl font-black text-amber-600">87%</div>
+                    <p class="text-sm text-slate-500 mt-2">معدل الأداء</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الدورات</h3>
+                    <div class="text-3xl font-black text-orange-600">42</div>
+                    <p class="text-sm text-slate-500 mt-2">دورة متاحة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المهارات</h3>
+                    <div class="text-3xl font-black text-red-600">156</div>
+                    <p class="text-sm text-slate-500 mt-2">مهارة مسجلة</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderOperationsManagement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-cogs"></i>
+                    إدارة العمليات
+                </h2>
+                <p class="mt-2 opacity-90">الفروع، الحاضنات، المنصات، الموظفين</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border">
+                <div class="text-center">
+                    <i class="fas fa-cogs text-6xl text-emerald-500 mb-4"></i>
+                    <h3 class="text-xl font-bold text-slate-800">إدارة العمليات اليومية</h3>
+                    <p class="text-slate-600 mt-2">مراقبة وإدارة جميع العمليات التشغيلية</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFinancialApprovals = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-rose-600 to-pink-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-file-signature"></i>
+                    الموافقات المالية
+                </h2>
+                <p class="mt-2 opacity-90">السياسات والإجراءات، دليل التشغيل، آخر الأخبار</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">السياسات والإجراءات</h3>
+                    <p class="text-slate-600">جميع السياسات المالية المعتمدة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">دليل التشغيل</h3>
+                    <p class="text-slate-600">إرشادات تشغيل الموافقات المالية</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">آخر الأخبار</h3>
+                    <p class="text-slate-600">التحديثات والإشعارات الحديثة</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderTenants = () => {
+        return renderEntitiesManager();
+    };
+
+    const renderCollectionsStrategic = () => {
+        return renderCollections();
+    };
+
+    const renderMarketing = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-pink-600 to-rose-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-bullhorn"></i>
+                    التسويق
+                </h2>
+                <p class="mt-2 opacity-90">التسويق الإلكتروني، التسويق المجتمعي، التسويق عبر الفعاليات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-laptop text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">التسويق الإلكتروني</h3>
+                    <p class="text-slate-600 text-sm">حملات رقمية وإعلانات إلكترونية</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">التسويق المجتمعي</h3>
+                    <p class="text-slate-600 text-sm">تواصل مع المجتمع المحلي</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-calendar-alt text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">التسويق عبر الفعاليات</h3>
+                    <p class="text-slate-600 text-sm">المعارض والفعاليات الترويجية</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderAdvertisersCenter = () => {
+        return renderAdsManager();
+    };
+
+    const renderTrainingDevelopment = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    التدريب والتطوير
+                </h2>
+                <p class="mt-2 opacity-90">البرامج التدريبية وتطوير المهارات</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
+                <i class="fas fa-graduation-cap text-6xl text-indigo-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">مركز التدريب والتطوير</h3>
+                <p class="text-slate-600 mt-2">برامج تدريبية متخصصة لتطوير الكفاءات</p>
+            </div>
+        </div>`;
+    };
+
+    const renderQualityAudit = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-clipboard-check"></i>
+                    الجودة والتدقيق
+                </h2>
+                <p class="mt-2 opacity-90">معايير الجودة ومراجعة الأداء</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
+                <i class="fas fa-certificate text-6xl text-teal-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">ضمان الجودة</h3>
+                <p class="text-slate-600 mt-2">مراقبة وتدقيق معايير الجودة</p>
+            </div>
+        </div>`;
+    };
+
+    const renderEvaluation = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-yellow-600 to-amber-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-star"></i>
+                    التقييم
+                </h2>
+                <p class="mt-2 opacity-90">تقييم الأداء والكفاءات</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
+                <i class="fas fa-chart-line text-6xl text-yellow-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">نظام التقييم</h3>
+                <p class="text-slate-600 mt-2">تقييم شامل للأداء والإنجازات</p>
+            </div>
+        </div>`;
+    };
+
+    const renderTasksStrategic = () => {
+        return renderTasksManager();
+    };
+
+    const renderInformationCenter = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-info-circle"></i>
+                    مركز المعلومات
+                </h2>
+                <p class="mt-2 opacity-90">قاعدة بيانات شاملة ومرجعية</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
+                <i class="fas fa-database text-6xl text-blue-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">مركز المعلومات المركزي</h3>
+                <p class="text-slate-600 mt-2">الوصول إلى جميع المعلومات والبيانات</p>
+            </div>
+        </div>`;
+    };
+
+    const renderIdentitySettings = () => {
+        return renderSettings();
+    };
+
+    const renderSystemLog = () => {
+        return renderAuditLogs();
+    };
+
+    const renderReports = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-red-600 to-rose-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-chart-line"></i>
+                    التقارير
+                </h2>
+                <p class="mt-2 opacity-90">تقارير شاملة لجميع الأقسام</p>
+                <div class="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                    <p class="text-sm font-bold"><i class="fas fa-exclamation-triangle ml-2"></i>مهم من أجل المتابعه</p>
+                    <p class="text-xs mt-1 opacity-90">إضافة التقارير لجميع الأجزاء</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">التقارير المالية</h3>
+                    </div>
+                    <p class="text-sm text-slate-600">تقارير الإيرادات والمصروفات</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-users text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">تقارير الموظفين</h3>
+                    </div>
+                    <p class="text-sm text-slate-600">الحضور والأداء والرواتب</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-bar text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">تقارير الأداء</h3>
+                    </div>
+                    <p class="text-sm text-slate-600">مؤشرات KPI والإنجازات</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-bullhorn text-orange-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">تقارير التسويق</h3>
+                    </div>
+                    <p class="text-sm text-slate-600">الحملات والإعلانات</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">تقارير المتأخرات</h3>
+                    </div>
+                    <p class="text-sm text-slate-600">الديون والمستحقات</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-building text-teal-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold">تقارير المرافق</h3>
+                    </div>
+                    <p class="text-sm text-slate-600">الصيانة والعقود</p>
+                </div>
+            </div>
+        </div>`;
     };
 
     const renderSettings = () => {
