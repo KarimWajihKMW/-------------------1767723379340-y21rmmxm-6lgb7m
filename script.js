@@ -5067,11 +5067,11 @@ const app = (() => {
                         <p class="text-slate-600 mt-2 max-w-2xl">الصيانة، العقود، الموردين، الطاقة، والحشود تحت لوحة واحدة لرفع الجاهزية وتقليل الأعطال.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="window.exportFacilityReport()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2">
+                        <button onclick="app.exportFacilityReport()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2">
                             <i class="fas fa-download"></i>
                             تصدير تقرير
                         </button>
-                        <button onclick="window.createFacilityRequest()" class="px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
+                        <button onclick="app.createFacilityRequest()" class="px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
                             <i class="fas fa-plus"></i>
                             إنشاء طلب مرفق
                         </button>
@@ -5081,7 +5081,7 @@ const app = (() => {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
                 ${summaries.map(card => `
-                    <button onclick="window.handleFacilitySummary('${card.label}')" class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-right w-full hover:border-red-200 hover:shadow transition">
+                    <button onclick="app.handleFacilitySummary('${card.label}')" class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-right w-full hover:border-red-200 hover:shadow transition">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-[11px] font-bold text-slate-500">${card.label}</p>
@@ -5112,7 +5112,7 @@ const app = (() => {
                         </div>
                         <div class="grid grid-cols-1 gap-2">
                             ${m.actions.map(action => `
-                                <button onclick="window.handleFacilityAction('${m.key}','${action}')" class="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-right w-full hover:border-red-200 hover:shadow-sm transition">
+                                <button onclick="app.handleFacilityAction('${m.key}','${action}')" class="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-right w-full hover:border-red-200 hover:shadow-sm transition">
                                     <span class="text-sm font-semibold text-slate-700">${action}</span>
                                     <i class="fas fa-chevron-left text-slate-400"></i>
                                 </button>
@@ -5125,19 +5125,19 @@ const app = (() => {
     };
 
     // Facilities actions
-    window.createFacilityRequest = () => {
+    const createFacilityRequest = () => {
         showToast('📌 تم فتح طلب مرفق جديد (نموذج افتراضي)', 'info');
     };
 
-    window.exportFacilityReport = () => {
+    const exportFacilityReport = () => {
         showToast('⬇️ تم تجهيز تقرير المرافق (تنزيل افتراضي)', 'success');
     };
 
-    window.handleFacilitySummary = (label) => {
+    const handleFacilitySummary = (label) => {
         showToast(`✅ تم فتح لوحة: ${label}`, 'success');
     };
 
-    window.handleFacilityAction = (moduleKey, action) => {
+    const handleFacilityAction = (moduleKey, action) => {
         showToast(`🛠️ [${moduleKey}] ${action}`, 'info');
     };
 
@@ -6792,7 +6792,9 @@ const app = (() => {
         loadBranchRelationships, viewBranchDetails, markAttendance, registerAttendance,
         getDb: () => db,  // Expose db for task management
         init: init,  // Expose init function
-        loadRoute: loadRoute  // Expose loadRoute function
+        loadRoute: loadRoute,  // Expose loadRoute function
+        showToast: showToast,  // Expose showToast for external use
+        createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction  // Facilities functions
     };
 })();
 
