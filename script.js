@@ -10706,6 +10706,7 @@ const renderInstallmentPlans = () => {
 
 // 4. Render Tax Settings
 const renderTaxSettings = () => {
+    const db = app.getDb();
     const taxes = db.taxSettings || [];
     return `
     <div class="space-y-6">
