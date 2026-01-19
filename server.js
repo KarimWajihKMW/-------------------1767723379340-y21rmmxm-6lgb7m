@@ -809,6 +809,222 @@ app.patch('/api/request-types/:id/toggle-active', async (req, res) => {
 });
 
 // ========================================
+// PAYMENT METHODS APIs (إدارة طرق الدفع)
+// ========================================
+
+// Get all payment methods
+app.get('/api/payment-methods', async (req, res) => {
+  try {
+    const { is_active } = req.query;
+    let query = 'SELECT * FROM payment_methods WHERE 1=1';
+    let params = [];
+    
+    if (is_active !== undefined) {
+      query += ' AND is_active = $1';
+      params.push(is_active === 'true');
+    }
+    
+    query += ' ORDER BY display_order, method_name_ar';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching payment methods:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single payment method
+app.get('/api/payment-methods/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM payment_methods WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'طريقة الدفع غير موجودة' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching payment method:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new payment method
+app.post('/api/payment-methods', async (req, res) => {
+  try {
+    const {
+      method_code,
+      method_name_ar,
+      method_name_en,
+      description_ar,
+      description_en,
+      icon,
+      color,
+      is_active,
+      requires_bank_details,
+      requires_card_details,
+      processing_fee_percentage,
+      processing_fee_fixed,
+      min_amount,
+      max_amount,
+      display_order,
+      created_by
+    } = req.body;
+
+    // Validate required fields
+    if (!method_code || !method_name_ar) {
+      return res.status(400).json({ error: 'الرجاء تعبئة الحقول المطلوبة (الكود والاسم)' });
+    }
+
+    const query = `
+      INSERT INTO payment_methods (
+        method_code, method_name_ar, method_name_en, description_ar, description_en,
+        icon, color, is_active, requires_bank_details, requires_card_details,
+        processing_fee_percentage, processing_fee_fixed, min_amount, max_amount,
+        display_order, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING *
+    `;
+    
+    const values = [
+      method_code,
+      method_name_ar,
+      method_name_en || null,
+      description_ar || null,
+      description_en || null,
+      icon || '💳',
+      color || '#3b82f6',
+      is_active !== undefined ? is_active : true,
+      requires_bank_details || false,
+      requires_card_details || false,
+      processing_fee_percentage || 0,
+      processing_fee_fixed || 0,
+      min_amount || null,
+      max_amount || null,
+      display_order || 0,
+      created_by || null
+    ];
+
+    const result = await db.query(query, values);
+    res.status(201).json({ success: true, paymentMethod: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating payment method:', error);
+    
+    // Handle unique constraint violation
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'كود طريقة الدفع موجود مسبقاً' });
+    }
+    
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update payment method
+app.put('/api/payment-methods/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      method_code,
+      method_name_ar,
+      method_name_en,
+      description_ar,
+      description_en,
+      icon,
+      color,
+      is_active,
+      requires_bank_details,
+      requires_card_details,
+      processing_fee_percentage,
+      processing_fee_fixed,
+      min_amount,
+      max_amount,
+      display_order
+    } = req.body;
+
+    const query = `
+      UPDATE payment_methods 
+      SET method_code = COALESCE($1, method_code),
+          method_name_ar = COALESCE($2, method_name_ar),
+          method_name_en = COALESCE($3, method_name_en),
+          description_ar = COALESCE($4, description_ar),
+          description_en = COALESCE($5, description_en),
+          icon = COALESCE($6, icon),
+          color = COALESCE($7, color),
+          is_active = COALESCE($8, is_active),
+          requires_bank_details = COALESCE($9, requires_bank_details),
+          requires_card_details = COALESCE($10, requires_card_details),
+          processing_fee_percentage = COALESCE($11, processing_fee_percentage),
+          processing_fee_fixed = COALESCE($12, processing_fee_fixed),
+          min_amount = COALESCE($13, min_amount),
+          max_amount = COALESCE($14, max_amount),
+          display_order = COALESCE($15, display_order),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $16
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [
+      method_code, method_name_ar, method_name_en, description_ar, description_en,
+      icon, color, is_active, requires_bank_details, requires_card_details,
+      processing_fee_percentage, processing_fee_fixed, min_amount, max_amount,
+      display_order, id
+    ]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'طريقة الدفع غير موجودة' });
+    }
+    
+    res.json({ success: true, paymentMethod: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating payment method:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete payment method
+app.delete('/api/payment-methods/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'DELETE FROM payment_methods WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'طريقة الدفع غير موجودة' });
+    }
+    
+    res.json({ success: true, message: 'تم حذف طريقة الدفع بنجاح' });
+  } catch (error) {
+    console.error('Error deleting payment method:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle payment method active status
+app.patch('/api/payment-methods/:id/toggle-active', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'UPDATE payment_methods SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'طريقة الدفع غير موجودة' });
+    }
+    
+    res.json({ success: true, paymentMethod: result.rows[0] });
+  } catch (error) {
+    console.error('Error toggling payment method status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // BRANCH RELATIONSHIPS APIs
 // ========================================
 

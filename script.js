@@ -719,6 +719,29 @@ const app = (() => {
             }));
             console.log(`✅ Loaded ${db.employeeRequests.length} employee requests`);
 
+            // Load payment methods
+            console.log('📥 Loading payment methods...');
+            const paymentMethods = await fetchAPI('/payment-methods?is_active=true');
+            db.paymentMethods = paymentMethods.map(pm => ({
+                id: pm.id,
+                methodCode: pm.method_code,
+                methodNameAr: pm.method_name_ar,
+                methodNameEn: pm.method_name_en,
+                descriptionAr: pm.description_ar,
+                descriptionEn: pm.description_en,
+                icon: pm.icon,
+                color: pm.color,
+                isActive: pm.is_active,
+                requiresBankDetails: pm.requires_bank_details,
+                requiresCardDetails: pm.requires_card_details,
+                processingFeePercentage: pm.processing_fee_percentage,
+                processingFeeFixed: pm.processing_fee_fixed,
+                minAmount: pm.min_amount,
+                maxAmount: pm.max_amount,
+                displayOrder: pm.display_order
+            }));
+            console.log(`✅ Loaded ${db.paymentMethods.length} payment methods`);
+
             // Load notifications for current user
             if (currentUser?.id) {
                 console.log('📥 Loading notifications...');
@@ -10484,33 +10507,59 @@ const renderInvoicesEnhanced = () => `
 </div>`;
 
 // 2. Render Payment Methods
-const renderPaymentMethods = () => `
-<div class="space-y-6">
-    <h1 class="text-3xl font-bold text-gray-800">💳 طرق الدفع المتاحة</h1>
+const renderPaymentMethods = () => {
+    const paymentMethods = db.paymentMethods || [];
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white border-2 border-blue-200 rounded-lg p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">🏦</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">تحويل بنكي</h3>
-            <p class="text-gray-600 mb-4">تحويل مباشر من حسابك البنكي</p>
-            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold">متاح</span>
+    const colorClasses = {
+        '#3b82f6': 'border-blue-200',
+        '#10b981': 'border-green-200',
+        '#a855f7': 'border-purple-200',
+        '#f59e0b': 'border-orange-200',
+        '#ec4899': 'border-pink-200',
+        '#6366f1': 'border-indigo-200'
+    };
+    
+    return `
+    <div class="space-y-6 animate-fade-in">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <i class="fas fa-wallet text-red-600"></i>
+                    طرق الدفع المتاحة
+                </h1>
+                <p class="text-slate-500 mt-1">إدارة طرق الدفع المتاحة للعملاء</p>
+            </div>
+            <button onclick="window.open('/manage-payment-methods.html', '_blank')" 
+                    class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                <i class="fas fa-plus-circle"></i>
+                <span>إدارة طرق الدفع</span>
+            </button>
         </div>
         
-        <div class="bg-white border-2 border-green-200 rounded-lg p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">💰</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">دفع نقداً</h3>
-            <p class="text-gray-600 mb-4">دفع فوري في أحد فروعنا</p>
-            <span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">متاح</span>
-        </div>
-        
-        <div class="bg-white border-2 border-purple-200 rounded-lg p-6 hover:shadow-lg transition">
-            <div class="text-4xl mb-4">💳</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">بطاقة ائتمان</h3>
-            <p class="text-gray-600 mb-4">بطاقات فيزا وماستركارد</p>
-            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded text-xs font-bold">متاح</span>
+        <!-- Payment Methods Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${paymentMethods.length > 0 ? paymentMethods.map(method => `
+                <div class="bg-white border-2 ${colorClasses[method.color] || 'border-gray-200'} rounded-lg p-6 hover:shadow-lg transition transform hover:scale-105">
+                    <div class="text-4xl mb-4">${method.icon || '💳'}</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">${method.method_name_ar}</h3>
+                    <p class="text-gray-600 mb-4">${method.description_ar || ''}</p>
+                    ${method.is_active 
+                        ? '<span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">متاح</span>'
+                        : '<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold">غير متاح</span>'
+                    }
+                </div>
+            `).join('') : `
+                <div class="col-span-full text-center py-12">
+                    <i class="fas fa-wallet text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-500 text-lg">لا توجد طرق دفع متاحة</p>
+                    <p class="text-slate-400 text-sm mt-2">اضغط على "إدارة طرق الدفع" لإضافة طرق جديدة</p>
+                </div>
+            `}
         </div>
     </div>
-</div>`;
+`};
+
 
 // 3. Render Installment Plans
 const renderInstallmentPlans = () => `
