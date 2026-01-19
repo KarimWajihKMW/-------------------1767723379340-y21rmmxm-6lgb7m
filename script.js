@@ -721,7 +721,7 @@ const app = (() => {
 
             // Load payment methods
             console.log('📥 Loading payment methods...');
-            const paymentMethods = await fetchAPI('/payment-methods?is_active=true');
+            const paymentMethods = await fetchAPI('/api/payment-methods?is_active=true');
             db.paymentMethods = paymentMethods.map(pm => ({
                 id: pm.id,
                 methodCode: pm.method_code,
