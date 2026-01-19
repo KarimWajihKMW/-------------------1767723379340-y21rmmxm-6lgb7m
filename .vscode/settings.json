@@ -525,6 +525,42 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-incubators-structure\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node create-request-types-table\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && lsof -i :3000 \\| grep LISTEN \\|\\| echo \"Server not running\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node server\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-request-types\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node server\\.js > /dev/null 2>&1 &$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sleep 2 && cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-request-types\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && bash test-build\\.sh$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^pkill -f \"node server\\.js\" && sleep 1 && echo \"Server stopped\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && bash pre-deployment-tests\\.sh$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

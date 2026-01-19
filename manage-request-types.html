@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة أنواع الطلبات - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .request-card {
+            transition: all 0.3s ease;
+        }
+        .request-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg border-b-4 border-red-600">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-gray-600 hover:text-red-600 transition">
+                        <i class="fas fa-arrow-right text-2xl"></i>
+                    </a>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-3">
+                        <i class="fas fa-clipboard-list text-red-600"></i>
+                        إدارة أنواع الطلبات
+                    </h1>
+                </div>
+                <button onclick="openAddModal()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg transition transform hover:scale-105">
+                    <i class="fas fa-plus ml-2"></i>
+                    إضافة نوع جديد
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 border-r-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">إجمالي الأنواع</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-types">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-full">
+                        <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-r-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">الأنواع النشطة</p>
+                        <p class="text-3xl font-bold text-gray-800" id="active-types">0</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded-full">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-r-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">الأنواع غير النشطة</p>
+                        <p class="text-3xl font-bold text-gray-800" id="inactive-types">0</p>
+                    </div>
+                    <div class="bg-yellow-100 p-4 rounded-full">
+                        <i class="fas fa-pause-circle text-yellow-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-r-4 border-purple-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">الفئات</p>
+                        <p class="text-3xl font-bold text-gray-800" id="categories-count">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded-full">
+                        <i class="fas fa-layer-group text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">بحث</label>
+                    <input type="text" id="search-input" placeholder="ابحث عن نوع الطلب..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">الفئة</label>
+                    <select id="category-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="">جميع الفئات</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">الحالة</label>
+                    <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="">الكل</option>
+                        <option value="true">نشط</option>
+                        <option value="false">غير نشط</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition">
+                        <i class="fas fa-filter ml-2"></i>
+                        تطبيق الفلاتر
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request Types Grid -->
+        <div id="types-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Types will be loaded here -->
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden flex items-center justify-center py-20">
+            <div class="text-center">
+                <i class="fas fa-spinner fa-spin text-6xl text-red-600 mb-4"></i>
+                <p class="text-gray-600 font-bold">جاري التحميل...</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20">
+            <i class="fas fa-inbox text-8xl text-gray-300 mb-4"></i>
+            <h3 class="text-2xl font-bold text-gray-600 mb-2">لا توجد أنواع طلبات</h3>
+            <p class="text-gray-500 mb-6">ابدأ بإضافة نوع طلب جديد</p>
+            <button onclick="openAddModal()" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg transition">
+                <i class="fas fa-plus ml-2"></i>
+                إضافة نوع جديد
+            </button>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="requestTypeModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="sticky top-0 bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-t-2xl flex justify-between items-center z-10">
+                <h2 class="text-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span id="modal-title">إضافة نوع طلب جديد</span>
+                </h2>
+                <button onclick="closeModal()" class="text-white/80 hover:text-white hover:rotate-90 transition-all duration-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="requestTypeForm" class="p-6 space-y-6">
+                <input type="hidden" id="request-type-id">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Type Code -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">كود النوع *</label>
+                        <input type="text" id="type-code" required 
+                               placeholder="مثال: vacation_request"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">يستخدم في البرمجة (بدون مسافات)</p>
+                    </div>
+
+                    <!-- Arabic Name -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">الاسم بالعربية *</label>
+                        <input type="text" id="type-name-ar" required 
+                               placeholder="مثال: طلب إجازة"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+
+                    <!-- English Name -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">الاسم بالإنجليزية</label>
+                        <input type="text" id="type-name-en" 
+                               placeholder="Example: Vacation Request"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Icon -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">الأيقونة</label>
+                        <input type="text" id="icon" 
+                               placeholder="مثال: 🏖️"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">استخدم emoji أو Font Awesome</p>
+                    </div>
+
+                    <!-- Color -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">اللون</label>
+                        <input type="color" id="color" value="#ffffff"
+                               class="w-full h-12 border border-gray-300 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">الفئة</label>
+                        <select id="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="general">عام</option>
+                            <option value="hr">موارد بشرية</option>
+                            <option value="admin">إداري</option>
+                            <option value="financial">مالي</option>
+                            <option value="travel">سفر</option>
+                            <option value="training">تدريب</option>
+                            <option value="procurement">مشتريات</option>
+                            <option value="health">صحي</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+
+                    <!-- Display Order -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">ترتيب العرض</label>
+                        <input type="number" id="display-order" min="0" value="0"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Approval Levels -->
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">مستويات الموافقة</label>
+                        <input type="number" id="approval-levels" min="0" max="5" value="1"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <!-- Description Arabic -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">الوصف بالعربية</label>
+                    <textarea id="description-ar" rows="3" 
+                              placeholder="وصف مختصر لنوع الطلب..."
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="is-active" checked 
+                               class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500">
+                        <span class="font-bold text-gray-700">نشط</span>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="requires-approval" checked 
+                               class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500">
+                        <span class="font-bold text-gray-700">يتطلب موافقة</span>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="requires-manager-approval" 
+                               class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500">
+                        <span class="font-bold text-gray-700">يتطلب موافقة المدير</span>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="requires-hr-approval" 
+                               class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500">
+                        <span class="font-bold text-gray-700">يتطلب موافقة HR</span>
+                    </label>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex gap-4 pt-4 border-t">
+                    <button type="button" onclick="closeModal()" 
+                            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-bold transition">
+                        <i class="fas fa-times ml-2"></i>
+                        إلغاء
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold shadow-lg transition transform hover:scale-105">
+                        <i class="fas fa-save ml-2"></i>
+                        حفظ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+        let currentEditId = null;
+        let allTypes = [];
+
+        // Load request types
+        async function loadRequestTypes() {
+            const loadingEl = document.getElementById('loading');
+            const containerEl = document.getElementById('types-container');
+            const emptyStateEl = document.getElementById('empty-state');
+
+            try {
+                loadingEl.classList.remove('hidden');
+                containerEl.innerHTML = '';
+                emptyStateEl.classList.add('hidden');
+
+                const response = await fetch(`${API_BASE_URL}/request-types`);
+                allTypes = await response.json();
+
+                if (allTypes.length === 0) {
+                    emptyStateEl.classList.remove('hidden');
+                } else {
+                    displayTypes(allTypes);
+                    updateStats(allTypes);
+                    populateCategoryFilter(allTypes);
+                }
+            } catch (error) {
+                console.error('Error loading types:', error);
+                alert('حدث خطأ في تحميل البيانات');
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+
+        // Display types
+        function displayTypes(types) {
+            const container = document.getElementById('types-container');
+            container.innerHTML = '';
+
+            types.forEach(type => {
+                const card = document.createElement('div');
+                card.className = 'request-card bg-white rounded-xl shadow-lg overflow-hidden border-r-4';
+                card.style.borderColor = type.color || '#e5e7eb';
+                card.style.backgroundColor = type.color || '#ffffff';
+
+                const statusBadge = type.is_active 
+                    ? '<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">نشط</span>'
+                    : '<span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-bold">غير نشط</span>';
+
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="text-4xl">${type.icon || '📄'}</span>
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-800">${type.type_name_ar}</h3>
+                                    <p class="text-xs text-gray-500">${type.type_code}</p>
+                                </div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        
+                        ${type.description_ar ? `<p class="text-sm text-gray-600 mb-4">${type.description_ar}</p>` : ''}
+                        
+                        <div class="flex items-center gap-2 mb-4 text-xs text-gray-500">
+                            <span class="bg-gray-100 px-2 py-1 rounded">${type.category}</span>
+                            ${type.requires_approval ? '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">يتطلب موافقة</span>' : ''}
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="editType(${type.id})" 
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+                                <i class="fas fa-edit ml-1"></i>
+                                تعديل
+                            </button>
+                            <button onclick="toggleActive(${type.id})" 
+                                    class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+                                <i class="fas fa-power-off ml-1"></i>
+                                تبديل
+                            </button>
+                            <button onclick="deleteType(${type.id})" 
+                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Update stats
+        function updateStats(types) {
+            document.getElementById('total-types').textContent = types.length;
+            document.getElementById('active-types').textContent = types.filter(t => t.is_active).length;
+            document.getElementById('inactive-types').textContent = types.filter(t => !t.is_active).length;
+            
+            const categories = new Set(types.map(t => t.category));
+            document.getElementById('categories-count').textContent = categories.size;
+        }
+
+        // Populate category filter
+        function populateCategoryFilter(types) {
+            const categories = new Set(types.map(t => t.category));
+            const filterEl = document.getElementById('category-filter');
+            
+            filterEl.innerHTML = '<option value="">جميع الفئات</option>';
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                filterEl.appendChild(option);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const category = document.getElementById('category-filter').value;
+            const status = document.getElementById('status-filter').value;
+
+            let filtered = allTypes;
+
+            if (search) {
+                filtered = filtered.filter(t => 
+                    t.type_name_ar.toLowerCase().includes(search) ||
+                    t.type_code.toLowerCase().includes(search)
+                );
+            }
+
+            if (category) {
+                filtered = filtered.filter(t => t.category === category);
+            }
+
+            if (status !== '') {
+                const isActive = status === 'true';
+                filtered = filtered.filter(t => t.is_active === isActive);
+            }
+
+            displayTypes(filtered);
+        }
+
+        // Open add modal
+        function openAddModal() {
+            currentEditId = null;
+            document.getElementById('modal-title').textContent = 'إضافة نوع طلب جديد';
+            document.getElementById('requestTypeForm').reset();
+            document.getElementById('request-type-id').value = '';
+            document.getElementById('requestTypeModal').classList.remove('hidden');
+        }
+
+        // Edit type
+        async function editType(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/request-types/${id}`);
+                const type = await response.json();
+
+                currentEditId = id;
+                document.getElementById('modal-title').textContent = 'تعديل نوع الطلب';
+                document.getElementById('request-type-id').value = id;
+                document.getElementById('type-code').value = type.type_code;
+                document.getElementById('type-name-ar').value = type.type_name_ar;
+                document.getElementById('type-name-en').value = type.type_name_en || '';
+                document.getElementById('icon').value = type.icon || '';
+                document.getElementById('color').value = type.color || '#ffffff';
+                document.getElementById('category').value = type.category || 'general';
+                document.getElementById('display-order').value = type.display_order || 0;
+                document.getElementById('approval-levels').value = type.approval_levels || 1;
+                document.getElementById('description-ar').value = type.description_ar || '';
+                document.getElementById('is-active').checked = type.is_active;
+                document.getElementById('requires-approval').checked = type.requires_approval;
+                document.getElementById('requires-manager-approval').checked = type.requires_manager_approval || false;
+                document.getElementById('requires-hr-approval').checked = type.requires_hr_approval || false;
+
+                document.getElementById('requestTypeModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading type:', error);
+                alert('حدث خطأ في تحميل البيانات');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('requestTypeModal').classList.add('hidden');
+            currentEditId = null;
+        }
+
+        // Toggle active status
+        async function toggleActive(id) {
+            if (!confirm('هل تريد تبديل حالة هذا النوع؟')) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/request-types/${id}/toggle-active`, {
+                    method: 'PATCH'
+                });
+
+                if (response.ok) {
+                    loadRequestTypes();
+                } else {
+                    alert('حدث خطأ في تبديل الحالة');
+                }
+            } catch (error) {
+                console.error('Error toggling status:', error);
+                alert('حدث خطأ في تبديل الحالة');
+            }
+        }
+
+        // Delete type
+        async function deleteType(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا النوع؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/request-types/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadRequestTypes();
+                } else {
+                    alert('حدث خطأ في الحذف');
+                }
+            } catch (error) {
+                console.error('Error deleting type:', error);
+                alert('حدث خطأ في الحذف');
+            }
+        }
+
+        // Form submit
+        document.getElementById('requestTypeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                type_code: document.getElementById('type-code').value,
+                type_name_ar: document.getElementById('type-name-ar').value,
+                type_name_en: document.getElementById('type-name-en').value,
+                icon: document.getElementById('icon').value,
+                color: document.getElementById('color').value,
+                category: document.getElementById('category').value,
+                display_order: parseInt(document.getElementById('display-order').value),
+                approval_levels: parseInt(document.getElementById('approval-levels').value),
+                description_ar: document.getElementById('description-ar').value,
+                is_active: document.getElementById('is-active').checked,
+                requires_approval: document.getElementById('requires-approval').checked,
+                requires_manager_approval: document.getElementById('requires-manager-approval').checked,
+                requires_hr_approval: document.getElementById('requires-hr-approval').checked
+            };
+
+            try {
+                const url = currentEditId 
+                    ? `${API_BASE_URL}/request-types/${currentEditId}`
+                    : `${API_BASE_URL}/request-types`;
+                
+                const method = currentEditId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    loadRequestTypes();
+                    alert(currentEditId ? 'تم التحديث بنجاح' : 'تم الإضافة بنجاح');
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'حدث خطأ');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                alert('حدث خطأ في الحفظ');
+            }
+        });
+
+        // Search on input
+        document.getElementById('search-input').addEventListener('input', applyFilters);
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadRequestTypes);
+    </script>
+</body>
+</html>

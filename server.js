@@ -584,6 +584,231 @@ app.delete('/api/employee-requests/:id', async (req, res) => {
 });
 
 // ========================================
+// REQUEST TYPES APIs (إدارة أنواع الطلبات)
+// ========================================
+
+// Get all request types
+app.get('/api/request-types', async (req, res) => {
+  try {
+    const { is_active, category } = req.query;
+    let query = 'SELECT * FROM request_types WHERE 1=1';
+    let params = [];
+    let paramIndex = 1;
+    
+    if (is_active !== undefined) {
+      query += ` AND is_active = $${paramIndex}`;
+      params.push(is_active === 'true');
+      paramIndex++;
+    }
+    
+    if (category) {
+      query += ` AND category = $${paramIndex}`;
+      params.push(category);
+      paramIndex++;
+    }
+    
+    query += ' ORDER BY display_order, type_name_ar';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching request types:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single request type
+app.get('/api/request-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM request_types WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'نوع الطلب غير موجود' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching request type:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new request type
+app.post('/api/request-types', async (req, res) => {
+  try {
+    const {
+      type_code,
+      type_name_ar,
+      type_name_en,
+      description_ar,
+      description_en,
+      icon,
+      color,
+      category,
+      is_active,
+      requires_approval,
+      requires_manager_approval,
+      requires_hr_approval,
+      approval_levels,
+      form_fields,
+      display_order,
+      created_by
+    } = req.body;
+
+    // Validate required fields
+    if (!type_code || !type_name_ar) {
+      return res.status(400).json({ error: 'الرجاء تعبئة الحقول المطلوبة (الكود والاسم)' });
+    }
+
+    const query = `
+      INSERT INTO request_types (
+        type_code, type_name_ar, type_name_en, description_ar, description_en,
+        icon, color, category, is_active, requires_approval,
+        requires_manager_approval, requires_hr_approval, approval_levels,
+        form_fields, display_order, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING *
+    `;
+    
+    const values = [
+      type_code,
+      type_name_ar,
+      type_name_en || null,
+      description_ar || null,
+      description_en || null,
+      icon || '📄',
+      color || '#ffffff',
+      category || 'general',
+      is_active !== undefined ? is_active : true,
+      requires_approval !== undefined ? requires_approval : true,
+      requires_manager_approval || false,
+      requires_hr_approval || false,
+      approval_levels || 1,
+      form_fields ? JSON.stringify(form_fields) : null,
+      display_order || 0,
+      created_by || null
+    ];
+
+    const result = await db.query(query, values);
+    res.status(201).json({ success: true, requestType: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating request type:', error);
+    
+    // Handle unique constraint violation
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'كود نوع الطلب موجود مسبقاً' });
+    }
+    
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update request type
+app.put('/api/request-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      type_code,
+      type_name_ar,
+      type_name_en,
+      description_ar,
+      description_en,
+      icon,
+      color,
+      category,
+      is_active,
+      requires_approval,
+      requires_manager_approval,
+      requires_hr_approval,
+      approval_levels,
+      form_fields,
+      display_order
+    } = req.body;
+
+    const query = `
+      UPDATE request_types 
+      SET type_code = COALESCE($1, type_code),
+          type_name_ar = COALESCE($2, type_name_ar),
+          type_name_en = COALESCE($3, type_name_en),
+          description_ar = COALESCE($4, description_ar),
+          description_en = COALESCE($5, description_en),
+          icon = COALESCE($6, icon),
+          color = COALESCE($7, color),
+          category = COALESCE($8, category),
+          is_active = COALESCE($9, is_active),
+          requires_approval = COALESCE($10, requires_approval),
+          requires_manager_approval = COALESCE($11, requires_manager_approval),
+          requires_hr_approval = COALESCE($12, requires_hr_approval),
+          approval_levels = COALESCE($13, approval_levels),
+          form_fields = COALESCE($14, form_fields),
+          display_order = COALESCE($15, display_order),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $16
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [
+      type_code, type_name_ar, type_name_en, description_ar, description_en,
+      icon, color, category, is_active, requires_approval,
+      requires_manager_approval, requires_hr_approval, approval_levels,
+      form_fields ? JSON.stringify(form_fields) : null,
+      display_order, id
+    ]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'نوع الطلب غير موجود' });
+    }
+    
+    res.json({ success: true, requestType: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating request type:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete request type
+app.delete('/api/request-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'DELETE FROM request_types WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'نوع الطلب غير موجود' });
+    }
+    
+    res.json({ success: true, message: 'تم حذف نوع الطلب بنجاح' });
+  } catch (error) {
+    console.error('Error deleting request type:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle request type active status
+app.patch('/api/request-types/:id/toggle-active', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'UPDATE request_types SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'نوع الطلب غير موجود' });
+    }
+    
+    res.json({ success: true, requestType: result.rows[0] });
+  } catch (error) {
+    console.error('Error toggling request type status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // BRANCH RELATIONSHIPS APIs
 // ========================================
 
