@@ -1275,6 +1275,227 @@ app.patch('/api/installment-plan-types/:id/toggle-active', async (req, res) => {
 });
 
 // ========================================
+// TAX SETTINGS APIs
+// ========================================
+
+// Get all tax settings
+app.get('/api/tax-settings', async (req, res) => {
+  try {
+    const { is_active, branch_id, tax_type } = req.query;
+    let query = 'SELECT * FROM tax_settings WHERE 1=1';
+    let params = [];
+    let paramIndex = 1;
+
+    if (is_active !== undefined) {
+      query += ` AND is_active = $${paramIndex}`;
+      params.push(is_active === 'true');
+      paramIndex++;
+    }
+
+    if (branch_id !== undefined) {
+      query += ` AND (branch_id = $${paramIndex} OR branch_id IS NULL)`;
+      params.push(branch_id);
+      paramIndex++;
+    }
+
+    if (tax_type) {
+      query += ` AND tax_type = $${paramIndex}`;
+      params.push(tax_type);
+      paramIndex++;
+    }
+
+    query += ' ORDER BY branch_id DESC NULLS FIRST, priority, tax_name_ar';
+    
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching tax settings:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get tax setting by ID
+app.get('/api/tax-settings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM tax_settings WHERE id = $1', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'إعداد الضريبة غير موجود' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching tax setting:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new tax setting
+app.post('/api/tax-settings', async (req, res) => {
+  try {
+    const {
+      tax_code,
+      tax_name_ar,
+      tax_name_en,
+      description_ar,
+      description_en,
+      tax_type,
+      default_rate,
+      branch_id,
+      branch_name_ar,
+      branch_specific_rate,
+      is_active,
+      applicable_on,
+      calculation_method,
+      include_in_total,
+      is_default,
+      priority,
+      min_amount,
+      max_amount,
+      created_by
+    } = req.body;
+
+    if (!tax_code || !tax_name_ar || default_rate === undefined) {
+      return res.status(400).json({ error: 'البيانات المطلوبة: tax_code, tax_name_ar, default_rate' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO tax_settings (
+        tax_code, tax_name_ar, tax_name_en, description_ar, description_en, tax_type,
+        default_rate, branch_id, branch_name_ar, branch_specific_rate, is_active,
+        applicable_on, calculation_method, include_in_total, is_default, priority,
+        min_amount, max_amount, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      RETURNING *`,
+      [
+        tax_code, tax_name_ar, tax_name_en, description_ar, description_en,
+        tax_type || 'VAT', default_rate, branch_id || null, branch_name_ar || null,
+        branch_specific_rate || null, is_active !== false, applicable_on || 'invoice',
+        calculation_method || 'percentage', include_in_total !== false, is_default || false,
+        priority || 0, min_amount || null, max_amount || null, created_by || 'system'
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating tax setting:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update tax setting
+app.put('/api/tax-settings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      tax_code,
+      tax_name_ar,
+      tax_name_en,
+      description_ar,
+      description_en,
+      tax_type,
+      default_rate,
+      branch_id,
+      branch_name_ar,
+      branch_specific_rate,
+      is_active,
+      applicable_on,
+      calculation_method,
+      include_in_total,
+      is_default,
+      priority,
+      min_amount,
+      max_amount,
+      updated_by
+    } = req.body;
+
+    const result = await db.query(
+      `UPDATE tax_settings SET
+        tax_code = COALESCE($1, tax_code),
+        tax_name_ar = COALESCE($2, tax_name_ar),
+        tax_name_en = COALESCE($3, tax_name_en),
+        description_ar = COALESCE($4, description_ar),
+        description_en = COALESCE($5, description_en),
+        tax_type = COALESCE($6, tax_type),
+        default_rate = COALESCE($7, default_rate),
+        branch_id = COALESCE($8, branch_id),
+        branch_name_ar = COALESCE($9, branch_name_ar),
+        branch_specific_rate = COALESCE($10, branch_specific_rate),
+        is_active = COALESCE($11, is_active),
+        applicable_on = COALESCE($12, applicable_on),
+        calculation_method = COALESCE($13, calculation_method),
+        include_in_total = COALESCE($14, include_in_total),
+        is_default = COALESCE($15, is_default),
+        priority = COALESCE($16, priority),
+        min_amount = COALESCE($17, min_amount),
+        max_amount = COALESCE($18, max_amount),
+        updated_by = $19,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $20
+      RETURNING *`,
+      [
+        tax_code, tax_name_ar, tax_name_en, description_ar, description_en, tax_type,
+        default_rate, branch_id, branch_name_ar, branch_specific_rate, is_active,
+        applicable_on, calculation_method, include_in_total, is_default, priority,
+        min_amount, max_amount, updated_by || 'system', id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'إعداد الضريبة غير موجود' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating tax setting:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete tax setting
+app.delete('/api/tax-settings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      'DELETE FROM tax_settings WHERE id = $1 RETURNING id',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'إعداد الضريبة غير موجود' });
+    }
+
+    res.json({ success: true, message: 'تم حذف إعداد الضريبة بنجاح' });
+  } catch (error) {
+    console.error('Error deleting tax setting:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle tax setting active status
+app.patch('/api/tax-settings/:id/toggle-active', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      'UPDATE tax_settings SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'إعداد الضريبة غير موجود' });
+    }
+
+    res.json({ success: true, taxSetting: result.rows[0] });
+  } catch (error) {
+    console.error('Error toggling tax setting status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // BRANCH RELATIONSHIPS APIs
 // ========================================
 

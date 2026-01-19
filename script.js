@@ -772,6 +772,32 @@ const app = (() => {
             }));
             console.log(`✅ Loaded ${db.installmentPlanTypes.length} installment plan types`);
 
+            // Load tax settings
+            console.log('📥 Loading tax settings...');
+            const taxSettings = await fetchAPI('/api/tax-settings?is_active=true');
+            db.taxSettings = taxSettings.map(ts => ({
+                id: ts.id,
+                taxCode: ts.tax_code,
+                taxNameAr: ts.tax_name_ar,
+                taxNameEn: ts.tax_name_en,
+                descriptionAr: ts.description_ar,
+                descriptionEn: ts.description_en,
+                taxType: ts.tax_type,
+                defaultRate: ts.default_rate,
+                branchId: ts.branch_id,
+                branchNameAr: ts.branch_name_ar,
+                branchSpecificRate: ts.branch_specific_rate,
+                isActive: ts.is_active,
+                applicableOn: ts.applicable_on,
+                calculationMethod: ts.calculation_method,
+                includeInTotal: ts.include_in_total,
+                isDefault: ts.is_default,
+                priority: ts.priority,
+                minAmount: ts.min_amount,
+                maxAmount: ts.max_amount
+            }));
+            console.log(`✅ Loaded ${db.taxSettings.length} tax settings`);
+
             // Load notifications for current user
             if (currentUser?.id) {
                 console.log('📥 Loading notifications...');
@@ -10647,7 +10673,80 @@ const renderInstallmentPlans = () => {
 `};
 
 
-// 4. Render Payment Tracking
+// 4. Render Tax Settings
+const renderTaxSettings = () => {
+    const taxes = db.taxSettings || [];
+    return `
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <i class="fas fa-percent text-red-600"></i>
+                    إدارة الضرائب والإعدادات
+                </h1>
+                <p class="text-slate-500 mt-1">إدارة معدلات الضرائب والرسوم المطبقة على الفواتير</p>
+            </div>
+            <button onclick="window.open('/manage-tax-settings.html', '_blank')" 
+                    class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                <i class="fas fa-cog"></i>
+                <span>إدارة الضرائب</span>
+            </button>
+        </div>
+        
+        <!-- Taxes Table -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gradient-to-r from-red-500 to-red-600 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-right font-bold">اسم الضريبة</th>
+                            <th class="px-6 py-4 text-right font-bold">النوع</th>
+                            <th class="px-6 py-4 text-right font-bold">المعدل</th>
+                            <th class="px-6 py-4 text-right font-bold">الفرع</th>
+                            <th class="px-6 py-4 text-right font-bold">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        ${taxes.length > 0 ? taxes.map(tax => {
+                            const rate = tax.branchSpecificRate || tax.defaultRate;
+                            const branch = tax.branchNameAr || 'عام';
+                            const statusBadge = tax.isActive 
+                                ? '<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">✅ نشطة</span>'
+                                : '<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold">❌ معطلة</span>';
+                            
+                            return `
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-gray-800">${tax.taxNameAr}</div>
+                                        <div class="text-sm text-gray-500">${tax.taxCode}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-bold">${tax.taxType}</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-bold text-red-600">${rate}%</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">${branch}</td>
+                                    <td class="px-6 py-4">${statusBadge}</td>
+                                </tr>
+                            `;
+                        }).join('') : `
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                    <i class="fas fa-inbox text-4xl mb-2"></i>
+                                    <p>لا توجد ضرائب مفعلة</p>
+                                    <p class="text-sm mt-2">اضغط على "إدارة الضرائب" لإضافة ضرائب جديدة</p>
+                                </td>
+                            </tr>
+                        `}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+`;
+};
+
+
+// 5. Render Payment Tracking
 const renderPaymentTracking = () => `
 <div class="space-y-6">
     <h1 class="text-3xl font-bold text-gray-800">📊 تتبع الدفعات</h1>
