@@ -742,6 +742,36 @@ const app = (() => {
             }));
             console.log(`✅ Loaded ${db.paymentMethods.length} payment methods`);
 
+            // Load installment plan types
+            console.log('📥 Loading installment plan types...');
+            const installmentPlanTypes = await fetchAPI('/api/installment-plan-types?is_active=true');
+            db.installmentPlanTypes = installmentPlanTypes.map(ipt => ({
+                id: ipt.id,
+                planCode: ipt.plan_code,
+                planNameAr: ipt.plan_name_ar,
+                planNameEn: ipt.plan_name_en,
+                descriptionAr: ipt.description_ar,
+                descriptionEn: ipt.description_en,
+                durationMonths: ipt.duration_months,
+                numberOfPayments: ipt.number_of_payments,
+                paymentFrequency: ipt.payment_frequency,
+                interestRate: ipt.interest_rate,
+                adminFee: ipt.admin_fee,
+                latePaymentFee: ipt.late_payment_fee,
+                minAmount: ipt.min_amount,
+                maxAmount: ipt.max_amount,
+                hasGracePeriod: ipt.has_grace_period,
+                gracePeriodDays: ipt.grace_period_days,
+                earlyPaymentDiscount: ipt.early_payment_discount,
+                icon: ipt.icon,
+                color: ipt.color,
+                badgeText: ipt.badge_text,
+                isActive: ipt.is_active,
+                isFeatured: ipt.is_featured,
+                displayOrder: ipt.display_order
+            }));
+            console.log(`✅ Loaded ${db.installmentPlanTypes.length} installment plan types`);
+
             // Load notifications for current user
             if (currentUser?.id) {
                 console.log('📥 Loading notifications...');
@@ -10563,36 +10593,59 @@ const renderPaymentMethods = () => {
 
 
 // 3. Render Installment Plans
-const renderInstallmentPlans = () => `
-<div class="space-y-6">
-    <h1 class="text-3xl font-bold text-gray-800">📅 خطط الأقساط</h1>
+const renderInstallmentPlans = () => {
+    const db = app.getDb();
+    const plans = db.installmentPlanTypes || [];
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">3 أشهر</h3>
-            <p class="text-gray-600 mb-4">✓ بدون فائدة إضافية</p>
-            <div class="text-2xl font-bold text-slate-800">3 دفعات متساوية</div>
+    return `
+    <div class="space-y-6 animate-fade-in">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <i class="fas fa-calendar-alt text-blue-600"></i>
+                    خطط الأقساط
+                </h1>
+                <p class="text-slate-500 mt-1">إدارة خطط الدفع بالتقسيط المتاحة للعملاء</p>
+            </div>
+            <button onclick="window.open('/manage-installment-plans.html', '_blank')" 
+                    class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+                <i class="fas fa-cog"></i>
+                <span>إدارة الخطط</span>
+            </button>
         </div>
         
-        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">6 أشهر</h3>
-            <p class="text-gray-600 mb-4">✓ معدل فائدة منخفض</p>
-            <div class="text-2xl font-bold text-slate-800">6 دفعات متساوية</div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">12 شهر</h3>
-            <p class="text-gray-600 mb-4">✓ مرونة عالية</p>
-            <div class="text-2xl font-bold text-slate-800">12 دفعة شهرية</div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">24 شهر</h3>
-            <p class="text-gray-600 mb-4">✓ مدفوعات صغيرة</p>
-            <div class="text-2xl font-bold text-slate-800">24 دفعة شهرية</div>
+        <!-- Plans Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${plans.length > 0 ? plans.map(plan => `
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-300 rounded-lg p-6 hover:shadow-lg transition transform hover:scale-105">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-3xl">${plan.icon || '📅'}</span>
+                            <h3 class="text-xl font-bold text-gray-800">${plan.planNameAr}</h3>
+                        </div>
+                        ${plan.isFeatured ? '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">⭐ مميز</span>' : ''}
+                    </div>
+                    ${plan.badgeText ? `<p class="text-gray-600 mb-4">${plan.badgeText}</p>` : ''}
+                    ${plan.descriptionAr ? `<p class="text-sm text-gray-600 mb-3">${plan.descriptionAr}</p>` : ''}
+                    <div class="text-2xl font-bold text-slate-800 mb-3">${plan.numberOfPayments} دفعات متساوية</div>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <div>📅 المدة: ${plan.durationMonths} شهر</div>
+                        ${plan.interestRate > 0 ? `<div>📊 الفائدة: ${plan.interestRate}%</div>` : '<div>✓ بدون فائدة إضافية</div>'}
+                        ${plan.earlyPaymentDiscount > 0 ? `<div>🎁 خصم الدفع المبكر: ${plan.earlyPaymentDiscount}%</div>` : ''}
+                    </div>
+                </div>
+            `).join('') : `
+                <div class="col-span-full text-center py-12">
+                    <i class="fas fa-calendar-alt text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-500 text-lg">لا توجد خطط أقساط متاحة</p>
+                    <p class="text-slate-400 text-sm mt-2">اضغط على "إدارة الخطط" لإضافة خطط جديدة</p>
+                </div>
+            `}
         </div>
     </div>
-</div>`;
+`};
+
 
 // 4. Render Payment Tracking
 const renderPaymentTracking = () => `

@@ -1025,6 +1025,256 @@ app.patch('/api/payment-methods/:id/toggle-active', async (req, res) => {
 });
 
 // ========================================
+// INSTALLMENT PLAN TYPES APIs
+// ========================================
+
+// Get all installment plan types
+app.get('/api/installment-plan-types', async (req, res) => {
+  try {
+    const { is_active } = req.query;
+    let query = 'SELECT * FROM installment_plan_types WHERE 1=1';
+    let params = [];
+    
+    if (is_active !== undefined) {
+      query += ' AND is_active = $1';
+      params.push(is_active === 'true');
+    }
+    
+    query += ' ORDER BY display_order, duration_months';
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching installment plan types:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single installment plan type
+app.get('/api/installment-plan-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('SELECT * FROM installment_plan_types WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'خطة الأقساط غير موجودة' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching installment plan type:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new installment plan type
+app.post('/api/installment-plan-types', async (req, res) => {
+  try {
+    const {
+      plan_code,
+      plan_name_ar,
+      plan_name_en,
+      description_ar,
+      description_en,
+      duration_months,
+      number_of_payments,
+      payment_frequency,
+      interest_rate,
+      admin_fee,
+      late_payment_fee,
+      min_amount,
+      max_amount,
+      has_grace_period,
+      grace_period_days,
+      early_payment_discount,
+      icon,
+      color,
+      badge_text,
+      is_active,
+      is_featured,
+      display_order,
+      created_by
+    } = req.body;
+
+    // Validate required fields
+    if (!plan_code || !plan_name_ar || !duration_months || !number_of_payments) {
+      return res.status(400).json({ error: 'الرجاء تعبئة الحقول المطلوبة (الكود، الاسم، المدة، عدد الدفعات)' });
+    }
+
+    const query = `
+      INSERT INTO installment_plan_types (
+        plan_code, plan_name_ar, plan_name_en, description_ar, description_en,
+        duration_months, number_of_payments, payment_frequency,
+        interest_rate, admin_fee, late_payment_fee,
+        min_amount, max_amount,
+        has_grace_period, grace_period_days, early_payment_discount,
+        icon, color, badge_text,
+        is_active, is_featured, display_order, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      RETURNING *
+    `;
+    
+    const values = [
+      plan_code,
+      plan_name_ar,
+      plan_name_en || null,
+      description_ar || null,
+      description_en || null,
+      duration_months,
+      number_of_payments,
+      payment_frequency || 'MONTHLY',
+      interest_rate || 0,
+      admin_fee || 0,
+      late_payment_fee || 0,
+      min_amount || null,
+      max_amount || null,
+      has_grace_period || false,
+      grace_period_days || 0,
+      early_payment_discount || 0,
+      icon || '📅',
+      color || '#3b82f6',
+      badge_text || null,
+      is_active !== undefined ? is_active : true,
+      is_featured || false,
+      display_order || 0,
+      created_by || null
+    ];
+
+    const result = await db.query(query, values);
+    res.status(201).json({ success: true, planType: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating installment plan type:', error);
+    
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'كود خطة الأقساط موجود مسبقاً' });
+    }
+    
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update installment plan type
+app.put('/api/installment-plan-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      plan_code,
+      plan_name_ar,
+      plan_name_en,
+      description_ar,
+      description_en,
+      duration_months,
+      number_of_payments,
+      payment_frequency,
+      interest_rate,
+      admin_fee,
+      late_payment_fee,
+      min_amount,
+      max_amount,
+      has_grace_period,
+      grace_period_days,
+      early_payment_discount,
+      icon,
+      color,
+      badge_text,
+      is_active,
+      is_featured,
+      display_order
+    } = req.body;
+
+    const query = `
+      UPDATE installment_plan_types 
+      SET plan_code = COALESCE($1, plan_code),
+          plan_name_ar = COALESCE($2, plan_name_ar),
+          plan_name_en = COALESCE($3, plan_name_en),
+          description_ar = COALESCE($4, description_ar),
+          description_en = COALESCE($5, description_en),
+          duration_months = COALESCE($6, duration_months),
+          number_of_payments = COALESCE($7, number_of_payments),
+          payment_frequency = COALESCE($8, payment_frequency),
+          interest_rate = COALESCE($9, interest_rate),
+          admin_fee = COALESCE($10, admin_fee),
+          late_payment_fee = COALESCE($11, late_payment_fee),
+          min_amount = COALESCE($12, min_amount),
+          max_amount = COALESCE($13, max_amount),
+          has_grace_period = COALESCE($14, has_grace_period),
+          grace_period_days = COALESCE($15, grace_period_days),
+          early_payment_discount = COALESCE($16, early_payment_discount),
+          icon = COALESCE($17, icon),
+          color = COALESCE($18, color),
+          badge_text = COALESCE($19, badge_text),
+          is_active = COALESCE($20, is_active),
+          is_featured = COALESCE($21, is_featured),
+          display_order = COALESCE($22, display_order),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $23
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [
+      plan_code, plan_name_ar, plan_name_en, description_ar, description_en,
+      duration_months, number_of_payments, payment_frequency,
+      interest_rate, admin_fee, late_payment_fee,
+      min_amount, max_amount,
+      has_grace_period, grace_period_days, early_payment_discount,
+      icon, color, badge_text,
+      is_active, is_featured, display_order,
+      id
+    ]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'خطة الأقساط غير موجودة' });
+    }
+    
+    res.json({ success: true, planType: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating installment plan type:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete installment plan type
+app.delete('/api/installment-plan-types/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'DELETE FROM installment_plan_types WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'خطة الأقساط غير موجودة' });
+    }
+    
+    res.json({ success: true, message: 'تم حذف خطة الأقساط بنجاح' });
+  } catch (error) {
+    console.error('Error deleting installment plan type:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle installment plan type active status
+app.patch('/api/installment-plan-types/:id/toggle-active', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await db.query(
+      'UPDATE installment_plan_types SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'خطة الأقساط غير موجودة' });
+    }
+    
+    res.json({ success: true, planType: result.rows[0] });
+  } catch (error) {
+    console.error('Error toggling installment plan type status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
 // BRANCH RELATIONSHIPS APIs
 // ========================================
 
