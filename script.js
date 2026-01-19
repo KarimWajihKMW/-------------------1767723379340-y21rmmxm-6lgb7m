@@ -6606,7 +6606,9 @@ const app = (() => {
         openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails,
         openRequestModal, submitRequest, filterRequests, viewRequestDetails, deleteRequest,
         loadBranchRelationships, viewBranchDetails, markAttendance, registerAttendance,
-        getDb: () => db  // Expose db for task management
+        getDb: () => db,  // Expose db for task management
+        init: init,  // Expose init function
+        loadRoute: loadRoute  // Expose loadRoute function
     };
 })();
 
@@ -10754,45 +10756,6 @@ const renderPaymentTracking = () => `
     <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h3 class="text-xl font-bold text-gray-800 mb-6">حركة الدفعات هذا الشهر</h3>
         <p class="text-gray-600">تحليل تفصيلي لحركة الدفعات والمستحقات</p>
-    </div>
-</div>`;
-
-// 5. Render Tax Settings
-const renderTaxSettings = () => `
-<div class="space-y-6">
-    <h1 class="text-3xl font-bold text-gray-800">🌍 إعدادات الضرائب حسب الدول</h1>
-    
-    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 border-b">
-                <tr>
-                    <th class="text-right p-3 font-bold text-gray-700">الدولة</th>
-                    <th class="text-right p-3 font-bold text-gray-700">ضريبة القيمة المضافة</th>
-                    <th class="text-right p-3 font-bold text-gray-700">ضرائب أخرى</th>
-                    <th class="text-right p-3 font-bold text-gray-700">الحالة</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                <tr class="hover:bg-gray-50">
-                    <td class="p-3 font-bold">السعودية 🇸🇦</td>
-                    <td class="p-3">15%</td>
-                    <td class="p-3">زكاة 2.5%</td>
-                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">فعال</span></td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="p-3 font-bold">الأردن 🇯🇴</td>
-                    <td class="p-3">16%</td>
-                    <td class="p-3">-</td>
-                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">فعال</span></td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="p-3 font-bold">مصر 🇪🇬</td>
-                    <td class="p-3">14%</td>
-                    <td class="p-3">-</td>
-                    <td class="p-3"><span class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">فعال</span></td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>`;
 
