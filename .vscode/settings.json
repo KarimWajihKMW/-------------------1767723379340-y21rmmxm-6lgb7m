@@ -577,6 +577,18 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && node -c server\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node verify-edit-buttons\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-complete-edit-flow\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && node -c server\\.js && echo \"✅ اختبار البناء نجح - لا توجد أخطاء!\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
