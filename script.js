@@ -4964,7 +4964,10 @@ const app = (() => {
                     return `
                     <div onclick="window.viewTaskDetails(${t.id})" class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer group">
                         <div class="flex justify-between items-start mb-3">
-                            <h4 class="font-bold text-lg text-slate-800 group-hover:text-red-600 transition-colors">${t.title}</h4>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-lg text-slate-800 group-hover:text-red-600 transition-colors">${t.title}</h4>
+                                ${t.assignee ? `<p class="text-sm text-blue-600 mt-1"><i class="fas fa-user ml-1"></i> ${t.assignee}</p>` : ''}
+                            </div>
                             <div class="flex gap-2">
                                 <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[t.status] || 'bg-slate-100 text-slate-700'}">${t.status}</span>
                                 <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 ${priorityColors[t.priority] || ''}">${t.priority}</span>
@@ -6666,6 +6669,7 @@ window.closeCreateTaskModal = function() {
 window.submitCreateTask = async function() {
   const formData = {
     title: document.getElementById('task_title').value,
+    assignee: document.getElementById('task_assignee').value,
     priority: document.getElementById('task_priority').value,
     status: document.getElementById('task_status').value,
     type: document.getElementById('task_type').value,
@@ -6675,7 +6679,7 @@ window.submitCreateTask = async function() {
   };
 
   // Validation
-  if (!formData.title || !formData.priority || !formData.status || !formData.type || !formData.dueDate) {
+  if (!formData.title || !formData.assignee || !formData.priority || !formData.status || !formData.type || !formData.dueDate) {
     alert('❌ يرجى ملء جميع الحقول المطلوبة');
     return;
   }
@@ -6691,6 +6695,7 @@ window.submitCreateTask = async function() {
     const newTask = {
       id: newId,
       title: formData.title,
+      assignee: formData.assignee,
       dueDate: formData.dueDate,
       status: formData.status,
       priority: formData.priority,
