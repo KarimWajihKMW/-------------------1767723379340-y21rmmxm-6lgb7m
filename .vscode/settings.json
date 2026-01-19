@@ -569,6 +569,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && pkill -f \"node server\\.js\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-edit-approval\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && node -c server\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

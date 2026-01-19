@@ -4595,6 +4595,10 @@ subItems: [
                                                     class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg font-bold transition">
                                                     <i class="fas fa-times ml-2"></i>رفض
                                                 </button>
+                                                <button onclick="app.editApproval(${approval.id})" 
+                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg font-bold transition">
+                                                    <i class="fas fa-edit ml-2"></i>تعديل
+                                                </button>
                                             </div>
                                         ` : ''}
                                     </div>
@@ -4627,7 +4631,7 @@ subItems: [
                                     </div>
                                     
                                     <!-- Steps Progress -->
-                                    <div class="bg-slate-50 rounded-lg p-4">
+                                    <div class="bg-slate-50 rounded-lg p-4 mb-3">
                                         <div class="space-y-2">
                                             ${approval.steps.map((step, idx) => `
                                                 <div class="flex items-center gap-3">
@@ -4643,6 +4647,16 @@ subItems: [
                                             `).join('')}
                                         </div>
                                     </div>
+                                    
+                                    <!-- Edit Button for My Requests -->
+                                    ${approval.status === 'PENDING' || approval.status === 'IN_REVIEW' ? `
+                                        <div class="flex justify-end">
+                                            <button onclick="app.editApproval(${approval.id})" 
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-bold transition">
+                                                <i class="fas fa-edit ml-2"></i>تعديل الموافقة
+                                            </button>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -4661,6 +4675,7 @@ subItems: [
                                     <th class="p-3">الحالة</th>
                                     <th class="p-3">طالب الموافقة</th>
                                     <th class="p-3">التاريخ</th>
+                                    <th class="p-3">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
@@ -4672,6 +4687,12 @@ subItems: [
                                         <td class="p-3">${statusBadge(approval.status)}</td>
                                         <td class="p-3">${approval.createdByName}</td>
                                         <td class="p-3 text-slate-500">${new Date(approval.createdAt).toLocaleDateString('ar-SA')}</td>
+                                        <td class="p-3">
+                                            <button onclick="app.editApproval(${approval.id})" 
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                                <i class="fas fa-edit ml-1"></i>تعديل
+                                            </button>
+                                        </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -6188,6 +6209,119 @@ subItems: [
         }
     };
 
+    const editApproval = async (approvalId) => {
+        const approval = db.approvals.find(a => a.id === approvalId);
+        
+        if (!approval) {
+            showToast('الموافقة غير موجودة', 'error');
+            return;
+        }
+        
+        // Check if user can edit (creator or has permission)
+        if (approval.createdBy !== currentUser.id && !perms.isAdmin()) {
+            showToast('ليس لديك صلاحية لتعديل هذه الموافقة', 'error');
+            return;
+        }
+        
+        // Create edit dialog
+        const dialog = document.createElement('div');
+        dialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+        dialog.innerHTML = `
+            <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                    <h2 class="text-2xl font-bold flex items-center gap-3">
+                        <i class="fas fa-edit"></i>
+                        تعديل الموافقة
+                    </h2>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">عنوان الموافقة</label>
+                        <input type="text" id="edit-approval-title" value="${approval.itemTitle}" 
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">المبلغ (ر.س)</label>
+                        <input type="number" id="edit-approval-amount" value="${approval.amount}" 
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الحالة</label>
+                        <span class="text-sm text-slate-600">الحالة الحالية: <strong>${approval.status}</strong></span>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-slate-700 mb-3">مسار الموافقة:</h3>
+                        <div class="space-y-2">
+                            ${approval.steps.map((step, idx) => `
+                                <div class="flex items-center gap-3 text-sm">
+                                    <span class="font-bold text-slate-600">${idx + 1}.</span>
+                                    <span class="flex-1">${step.approver_name} (${step.approver_role})</span>
+                                    <span class="px-2 py-1 rounded text-xs font-bold
+                                        ${step.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 
+                                          step.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 
+                                          'bg-yellow-100 text-yellow-700'}">
+                                        ${step.status}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 p-6 flex gap-3">
+                    <button onclick="app.saveApprovalEdit(${approvalId})" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition">
+                        <i class="fas fa-save ml-2"></i>حفظ التعديلات
+                    </button>
+                    <button onclick="this.closest('.fixed').remove()" 
+                        class="flex-1 bg-slate-300 hover:bg-slate-400 text-slate-700 px-6 py-3 rounded-lg font-bold transition">
+                        <i class="fas fa-times ml-2"></i>إلغاء
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(dialog);
+    };
+    
+    const saveApprovalEdit = async (approvalId) => {
+        const title = document.getElementById('edit-approval-title').value;
+        const amount = parseFloat(document.getElementById('edit-approval-amount').value);
+        
+        if (!title || !amount) {
+            showToast('يرجى ملء جميع الحقول', 'error');
+            return;
+        }
+        
+        try {
+            await fetchAPI(`/approvals/${approvalId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    item_title: title,
+                    amount: amount,
+                    updated_by: currentUser.id
+                })
+            });
+            
+            showToast('تم تعديل الموافقة بنجاح', 'success');
+            
+            // Close dialog
+            document.querySelector('.fixed.inset-0').remove();
+            
+            // Reload data and refresh view
+            await loadDataFromAPI();
+            loadRoute('approvals');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('حدث خطأ في تعديل الموافقة', 'error');
+        }
+    };
+
+
     // INCUBATOR SYSTEM - moved inside app to access db
     const renderIncubator = async () => {
         const view = document.getElementById('main-view');
@@ -7438,7 +7572,7 @@ subItems: [
         init, switchUser, loadRoute, openAdWizard, submitAdWizard, toggleRoleMenu, submitTenantRegistration, 
         renderSettings, saveSettings, previewTheme, toggleMobileMenu, toggleSubmenu, wizardNext, wizardPrev, switchTab,
         openCreateInvoiceModal, submitInvoice, openPaymentModal, submitPayment, reverseTransaction,
-        handleApprovalDecision, refreshHierarchy: () => loadRoute('hierarchy'),
+        handleApprovalDecision, editApproval, saveApprovalEdit, refreshHierarchy: () => loadRoute('hierarchy'),
         openCreateLinkModal, closeCreateLinkModal, submitCreateLink, deleteLink, changeTenant, viewEntityDetails,
         openRequestModal, submitRequest, filterRequests, viewRequestDetails, deleteRequest,
         loadBranchRelationships, viewBranchDetails, markAttendance, registerAttendance,

@@ -2091,6 +2091,51 @@ app.post('/api/approvals/:id/decide', async (req, res) => {
   }
 });
 
+// Update approval workflow
+app.put('/api/approvals/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { item_title, amount, updated_by } = req.body;
+    
+    // Check if workflow exists
+    const workflow = await db.query(
+      'SELECT * FROM approval_workflows WHERE id = $1',
+      [id]
+    );
+    
+    if (workflow.rows.length === 0) {
+      return res.status(404).json({ error: 'الموافقة غير موجودة' });
+    }
+    
+    // Update workflow
+    await db.query(
+      `UPDATE approval_workflows 
+       SET item_title = $1, amount = $2, updated_at = NOW()
+       WHERE id = $3`,
+      [item_title, amount, id]
+    );
+    
+    // Create audit log
+    await db.query(
+      `INSERT INTO audit_log 
+       (user_id, entity_id, action, entity_type, entity_name, details)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        updated_by,
+        workflow.rows[0].entity_id,
+        'UPDATE',
+        'APPROVAL_WORKFLOW',
+        item_title,
+        `تم تعديل الموافقة: العنوان من "${workflow.rows[0].item_title}" إلى "${item_title}"، المبلغ من ${workflow.rows[0].amount} إلى ${amount}`
+      ]
+    );
+    
+    res.json({ success: true, message: 'تم تعديل الموافقة بنجاح' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ========================================
 // NOTIFICATIONS ENDPOINTS
 // ========================================
