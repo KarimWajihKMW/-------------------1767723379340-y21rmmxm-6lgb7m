@@ -5525,75 +5525,271 @@ subItems: [
     };
 
     const renderReports = () => {
+        const reportCategories = [
+            {
+                id: 'financial',
+                title: 'التقارير المالية',
+                icon: 'fa-file-invoice-dollar',
+                color: 'blue',
+                reports: [
+                    { name: 'تقرير الإيرادات الشهري', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' },
+                    { name: 'تقرير المصروفات', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'الميزانية العمومية', frequency: 'ربع سنوي', lastRun: '2026-01-01', status: 'active' },
+                    { name: 'تقرير الأرباح والخسائر', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'employees',
+                title: 'تقارير الموظفين',
+                icon: 'fa-users',
+                color: 'green',
+                reports: [
+                    { name: 'تقرير الحضور والانصراف', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'تقرير الرواتب', frequency: 'شهري', lastRun: '2026-01-01', status: 'active' },
+                    { name: 'تقييم الأداء', frequency: 'ربع سنوي', lastRun: '2026-01-01', status: 'active' },
+                    { name: 'تقرير الإجازات', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'performance',
+                title: 'تقارير الأداء',
+                icon: 'fa-chart-bar',
+                color: 'purple',
+                reports: [
+                    { name: 'مؤشرات KPI', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'تقرير الإنجازات', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' },
+                    { name: 'تحليل الإنتاجية', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' }
+                ]
+            },
+            {
+                id: 'marketing',
+                title: 'تقارير التسويق',
+                icon: 'fa-bullhorn',
+                color: 'orange',
+                reports: [
+                    { name: 'أداء الحملات', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'تقرير الإعلانات', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' },
+                    { name: 'تحليل العملاء', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'collections',
+                title: 'تقارير التحصيل',
+                icon: 'fa-money-bill-wave',
+                color: 'emerald',
+                reports: [
+                    { name: 'تقرير التحصيل اليومي', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'المتأخرات والديون', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'تحليل قنوات الدفع', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'facilities',
+                title: 'تقارير المرافق',
+                icon: 'fa-building',
+                color: 'teal',
+                reports: [
+                    { name: 'تقرير الصيانة', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'العقود والموردين', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' },
+                    { name: 'استهلاك الطاقة', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'operations',
+                title: 'تقارير العمليات',
+                icon: 'fa-cogs',
+                color: 'indigo',
+                reports: [
+                    { name: 'تقرير العمليات اليومية', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'كفاءة العمليات', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'تقرير المشاكل والحلول', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' }
+                ]
+            },
+            {
+                id: 'quality',
+                title: 'تقارير الجودة',
+                icon: 'fa-certificate',
+                color: 'cyan',
+                reports: [
+                    { name: 'تدقيق الجودة', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' },
+                    { name: 'شكاوى العملاء', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'مراجعة الإجراءات', frequency: 'ربع سنوي', lastRun: '2026-01-01', status: 'active' }
+                ]
+            },
+            {
+                id: 'training',
+                title: 'تقارير التدريب',
+                icon: 'fa-chalkboard-teacher',
+                color: 'pink',
+                reports: [
+                    { name: 'البرامج التدريبية', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' },
+                    { name: 'تقييم المتدربين', frequency: 'بعد كل دورة', lastRun: '2026-01-10', status: 'active' },
+                    { name: 'احتياجات التدريب', frequency: 'ربع سنوي', lastRun: '2026-01-01', status: 'active' }
+                ]
+            },
+            {
+                id: 'inventory',
+                title: 'تقارير المخزون',
+                icon: 'fa-boxes',
+                color: 'amber',
+                reports: [
+                    { name: 'حركة المخزون', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'المواد المنخفضة', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'تقييم المخزون', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'subscriptions',
+                title: 'تقارير الاشتراكات',
+                icon: 'fa-tags',
+                color: 'rose',
+                reports: [
+                    { name: 'الاشتراكات النشطة', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'التجديدات القادمة', frequency: 'أسبوعي', lastRun: '2026-01-18', status: 'active' },
+                    { name: 'إيرادات الاشتراكات', frequency: 'شهري', lastRun: '2026-01-15', status: 'active' }
+                ]
+            },
+            {
+                id: 'system',
+                title: 'تقارير النظام',
+                icon: 'fa-server',
+                color: 'slate',
+                reports: [
+                    { name: 'سجل الأنشطة', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'أداء النظام', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' },
+                    { name: 'النسخ الاحتياطي', frequency: 'يومي', lastRun: '2026-01-19', status: 'active' }
+                ]
+            }
+        ];
+
         return `
         <div class="space-y-6 animate-fade-in">
+            <!-- Header -->
             <div class="bg-gradient-to-r from-red-600 to-rose-600 rounded-2xl p-6 text-white">
                 <h2 class="text-3xl font-bold flex items-center gap-3">
                     <i class="fas fa-chart-line"></i>
-                    التقارير
+                    التقارير الدورية
                 </h2>
-                <p class="mt-2 opacity-90">تقارير شاملة لجميع الأقسام</p>
+                <p class="mt-2 opacity-90">تقارير تلقائية شاملة لجميع أقسام النظام</p>
                 <div class="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-3">
-                    <p class="text-sm font-bold"><i class="fas fa-exclamation-triangle ml-2"></i>مهم من أجل المتابعه</p>
-                    <p class="text-xs mt-1 opacity-90">إضافة التقارير لجميع الأجزاء</p>
+                    <p class="text-sm font-bold"><i class="fas fa-exclamation-triangle ml-2"></i>مهم من أجل المتابعة</p>
+                    <p class="text-xs mt-1 opacity-90">جميع التقارير تعمل بشكل دوري تلقائياً</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+
+            <!-- Statistics Overview -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
                         </div>
-                        <h3 class="font-bold">التقارير المالية</h3>
+                        <div>
+                            <p class="text-xs text-slate-500">تقارير نشطة</p>
+                            <p class="text-2xl font-black text-green-600">${reportCategories.reduce((sum, cat) => sum + cat.reports.length, 0)}</p>
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-600">تقارير الإيرادات والمصروفات</p>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-users text-green-600 text-xl"></i>
+                <div class="bg-white rounded-xl p-4 shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-blue-600"></i>
                         </div>
-                        <h3 class="font-bold">تقارير الموظفين</h3>
+                        <div>
+                            <p class="text-xs text-slate-500">تقارير يومية</p>
+                            <p class="text-2xl font-black text-blue-600">${reportCategories.reduce((sum, cat) => sum + cat.reports.filter(r => r.frequency === 'يومي').length, 0)}</p>
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-600">الحضور والأداء والرواتب</p>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-chart-bar text-purple-600 text-xl"></i>
+                <div class="bg-white rounded-xl p-4 shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calendar-week text-purple-600"></i>
                         </div>
-                        <h3 class="font-bold">تقارير الأداء</h3>
+                        <div>
+                            <p class="text-xs text-slate-500">تقارير أسبوعية</p>
+                            <p class="text-2xl font-black text-purple-600">${reportCategories.reduce((sum, cat) => sum + cat.reports.filter(r => r.frequency === 'أسبوعي').length, 0)}</p>
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-600">مؤشرات KPI والإنجازات</p>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-bullhorn text-orange-600 text-xl"></i>
+                <div class="bg-white rounded-xl p-4 shadow-sm border">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calendar-alt text-orange-600"></i>
                         </div>
-                        <h3 class="font-bold">تقارير التسويق</h3>
-                    </div>
-                    <p class="text-sm text-slate-600">الحملات والإعلانات</p>
-                </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                        <div>
+                            <p class="text-xs text-slate-500">تقارير شهرية</p>
+                            <p class="text-2xl font-black text-orange-600">${reportCategories.reduce((sum, cat) => sum + cat.reports.filter(r => r.frequency === 'شهري').length, 0)}</p>
                         </div>
-                        <h3 class="font-bold">تقارير المتأخرات</h3>
                     </div>
-                    <p class="text-sm text-slate-600">الديون والمستحقات</p>
-                </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition cursor-pointer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-building text-teal-600 text-xl"></i>
-                        </div>
-                        <h3 class="font-bold">تقارير المرافق</h3>
-                    </div>
-                    <p class="text-sm text-slate-600">الصيانة والعقود</p>
                 </div>
             </div>
+
+            <!-- Report Categories -->
+            ${reportCategories.map((category, idx) => {
+                const colors = [
+                    { bg: 'bg-blue-50', border: 'border-blue-100', icon: 'bg-blue-100 text-blue-600', btn: 'bg-blue-600 hover:bg-blue-700' },
+                    { bg: 'bg-green-50', border: 'border-green-100', icon: 'bg-green-100 text-green-600', btn: 'bg-green-600 hover:bg-green-700' },
+                    { bg: 'bg-purple-50', border: 'border-purple-100', icon: 'bg-purple-100 text-purple-600', btn: 'bg-purple-600 hover:bg-purple-700' },
+                    { bg: 'bg-orange-50', border: 'border-orange-100', icon: 'bg-orange-100 text-orange-600', btn: 'bg-orange-600 hover:bg-orange-700' },
+                    { bg: 'bg-emerald-50', border: 'border-emerald-100', icon: 'bg-emerald-100 text-emerald-600', btn: 'bg-emerald-600 hover:bg-emerald-700' },
+                    { bg: 'bg-teal-50', border: 'border-teal-100', icon: 'bg-teal-100 text-teal-600', btn: 'bg-teal-600 hover:bg-teal-700' },
+                    { bg: 'bg-indigo-50', border: 'border-indigo-100', icon: 'bg-indigo-100 text-indigo-600', btn: 'bg-indigo-600 hover:bg-indigo-700' },
+                    { bg: 'bg-cyan-50', border: 'border-cyan-100', icon: 'bg-cyan-100 text-cyan-600', btn: 'bg-cyan-600 hover:bg-cyan-700' },
+                    { bg: 'bg-pink-50', border: 'border-pink-100', icon: 'bg-pink-100 text-pink-600', btn: 'bg-pink-600 hover:bg-pink-700' },
+                    { bg: 'bg-amber-50', border: 'border-amber-100', icon: 'bg-amber-100 text-amber-600', btn: 'bg-amber-600 hover:bg-amber-700' },
+                    { bg: 'bg-rose-50', border: 'border-rose-100', icon: 'bg-rose-100 text-rose-600', btn: 'bg-rose-600 hover:bg-rose-700' },
+                    { bg: 'bg-slate-50', border: 'border-slate-100', icon: 'bg-slate-100 text-slate-600', btn: 'bg-slate-600 hover:bg-slate-700' }
+                ];
+                const color = colors[idx % colors.length];
+                return `
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <div class="${color.bg} ${color.border} border-b p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 ${color.icon} rounded-xl flex items-center justify-center">
+                                    <i class="fas ${category.icon} text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-slate-800">${category.title}</h3>
+                                    <p class="text-sm text-slate-600">${category.reports.length} تقرير نشط</p>
+                                </div>
+                            </div>
+                            <button onclick="app.showToast('تم تصدير جميع تقارير ${category.title}', 'success')" class="px-4 py-2 ${color.btn} text-white rounded-lg transition text-sm font-bold">
+                                <i class="fas fa-download ml-2"></i>تصدير الكل
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${category.reports.map(report => `
+                                <div class="border border-slate-200 rounded-lg p-4 hover:shadow-md transition">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex-1">
+                                            <h4 class="font-bold text-slate-800">${report.name}</h4>
+                                            <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                                                <span><i class="fas fa-sync-alt ml-1"></i>${report.frequency}</span>
+                                                <span><i class="fas fa-clock ml-1"></i>آخر تشغيل: ${report.lastRun}</span>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-1 rounded-full text-xs font-bold ${report.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
+                                            ${report.status === 'active' ? 'نشط' : 'متوقف'}
+                                        </span>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="app.showToast('تم تشغيل تقرير: ${report.name}', 'info')" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-bold">
+                                            <i class="fas fa-play ml-1"></i>تشغيل الآن
+                                        </button>
+                                        <button onclick="app.showToast('تم تصدير: ${report.name}', 'success')" class="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-bold">
+                                            <i class="fas fa-file-pdf ml-1"></i>تصدير PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('')}
         </div>`;
     };
 
