@@ -1167,6 +1167,7 @@ const app = (() => {
         else if (route === 'entities') content = renderEntitiesManager();
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
+        else if (route === 'facilities') content = renderFacilities();
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
         // Payment System Routes
@@ -1215,6 +1216,7 @@ const app = (() => {
             'register-tenant': 'تسجيل مستأجر جديد',
             'ads': perms.canManageAds() ? 'لوحة المعلن المركزية' : 'منصة الإعلانات',
             'tasks': 'المهام الداخلية',
+            'facilities': 'إدارة المرافق',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية'
         };
@@ -1236,6 +1238,7 @@ const app = (() => {
         'register-tenant': '/register-tenant',
         'ads': '/ads',
         'tasks': '/tasks',
+        'facilities': '/facilities',
         'audit-logs': '/audit-logs',
         'settings': '/settings',
         'employees': '/hr'
@@ -1257,6 +1260,7 @@ const app = (() => {
         '/register-tenant': 'register-tenant',
         '/ads': 'ads',
         '/tasks': 'tasks',
+        '/facilities': 'facilities',
         '/audit-logs': 'audit-logs',
         '/settings': 'settings',
         '/hr': 'employees'
@@ -1335,6 +1339,7 @@ const app = (() => {
             { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
             { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
+            { id: 'facilities', icon: 'fa-building-gear', label: 'إدارة المرافق', show: true },
             { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() },
             { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() }
         ];
@@ -4985,6 +4990,136 @@ const app = (() => {
                         </div>
                     </div>`;
                 }).join('')}
+            </div>
+        </div>`;
+    };
+
+    const renderFacilities = () => {
+        const modules = [
+            {
+                key: 'maintenance',
+                title: 'الصيانة',
+                icon: 'fa-screwdriver-wrench',
+                gradient: 'from-blue-50 to-blue-100',
+                accent: 'text-blue-700',
+                kpi: '7 بلاغات مفتوحة',
+                desc: 'تتبع الصيانة التصحيحية والوقائية مع متابعة SLA.',
+                actions: ['فتح بلاغ صيانة', 'جدولة زيارة فني', 'مراجعة تقارير الأعطال']
+            },
+            {
+                key: 'contracts',
+                title: 'عقود الطرف التاني',
+                icon: 'fa-file-contract',
+                gradient: 'from-amber-50 to-amber-100',
+                accent: 'text-amber-700',
+                kpi: '3 عقود تحتاج تجديد',
+                desc: 'إدارة عقود الصيانة والخدمات مع الموردين الخارجيين.',
+                actions: ['إضافة عقد جديد', 'مراقبة تواريخ الانتهاء', 'تقييم الالتزام بالشروط']
+            },
+            {
+                key: 'vendors',
+                title: 'الموردين',
+                icon: 'fa-truck-loading',
+                gradient: 'from-emerald-50 to-emerald-100',
+                accent: 'text-emerald-700',
+                kpi: '18 مورد معتمد',
+                desc: 'ملفات الموردين، الاعتمادات، وشهادات التأمين والجودة.',
+                actions: ['إضافة مورد', 'تحديث الشهادات', 'تتبع حالات الاعتماد']
+            },
+            {
+                key: 'energy',
+                title: 'ادارة الطاقه',
+                icon: 'fa-bolt',
+                gradient: 'from-yellow-50 to-yellow-100',
+                accent: 'text-yellow-700',
+                kpi: '-5% استهلاك هذا الشهر',
+                desc: 'مراقبة الاستهلاك، الإنذارات، والفرص لخفض التكاليف.',
+                actions: ['تسجيل قراءة عداد', 'ضبط حدود إنذار', 'تحميل تقرير استهلاك']
+            },
+            {
+                key: 'crowd',
+                title: 'اداره الحشود',
+                icon: 'fa-people-group',
+                gradient: 'from-rose-50 to-rose-100',
+                accent: 'text-rose-700',
+                kpi: '2 تدريبات مجدولة',
+                desc: 'خطط الطوارئ، مسارات الإخلاء، ونقاط التجمع.',
+                actions: ['تحديث خطة إخلاء', 'جدولة تدريب', 'تسجيل نقاط تجمع']
+            }
+        ];
+
+        const summaries = [
+            { label: 'بلاغات الصيانة النشطة', value: '7', icon: 'fa-screwdriver-wrench', color: 'text-blue-700', bg: 'bg-blue-50' },
+            { label: 'عقود تحتاج متابعة', value: '3', icon: 'fa-file-contract', color: 'text-amber-700', bg: 'bg-amber-50' },
+            { label: 'موردين تحت التقييم', value: '4', icon: 'fa-user-check', color: 'text-emerald-700', bg: 'bg-emerald-50' },
+            { label: 'إنذارات طاقة', value: '3 حساسات', icon: 'fa-bolt', color: 'text-yellow-700', bg: 'bg-yellow-50' },
+            { label: 'تمارين إخلاء قادمة', value: '2', icon: 'fa-route', color: 'text-rose-700', bg: 'bg-rose-50' }
+        ];
+
+        return `
+        <div class="space-y-8 animate-fade-in">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-6 md:p-8 relative overflow-hidden">
+                <div class="absolute -left-10 top-0 h-full w-40 bg-gradient-to-b from-red-100/40 to-red-300/20 transform -skew-x-12"></div>
+                <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">ادارة المرافق</p>
+                        <h2 class="text-2xl md:text-3xl font-black text-slate-800 mt-2">تشغيل المرافق من مكان واحد</h2>
+                        <p class="text-slate-600 mt-2 max-w-2xl">الصيانة، العقود، الموردين، الطاقة، والحشود تحت لوحة واحدة لرفع الجاهزية وتقليل الأعطال.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2">
+                            <i class="fas fa-download"></i>
+                            تصدير تقرير
+                        </button>
+                        <button class="px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
+                            <i class="fas fa-plus"></i>
+                            إنشاء طلب مرفق
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                ${summaries.map(card => `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-500">${card.label}</p>
+                                <h3 class="text-2xl font-black text-slate-800 mt-1">${card.value}</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color}">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                ${modules.map(m => `
+                    <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 flex flex-col gap-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${m.gradient} flex items-center justify-center ${m.accent}">
+                                    <i class="fas ${m.icon} text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800">${m.title}</h3>
+                                    <p class="text-sm text-slate-500">${m.desc}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700">${m.kpi}</span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-2">
+                            ${m.actions.map(action => `
+                                <div class="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
+                                    <span class="text-sm font-semibold text-slate-700">${action}</span>
+                                    <i class="fas fa-chevron-left text-slate-400"></i>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         </div>`;
     };
