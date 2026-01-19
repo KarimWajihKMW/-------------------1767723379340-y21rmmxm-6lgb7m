@@ -887,7 +887,7 @@ const app = (() => {
             
             // Load data from API (now with proper entity headers)
             try {
-                await loadDataFromAPI();
+                await loadAllData();
                 console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length, invoices: db.invoices.length });
             } catch (apiError) {
                 console.error('❌ خطأ في تحميل البيانات من API:', apiError);
