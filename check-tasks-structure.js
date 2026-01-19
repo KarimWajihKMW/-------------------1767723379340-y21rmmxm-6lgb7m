@@ -1,11 +1,12 @@
 const { Pool } = require('pg');
 
+if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL is not set. Aborting to avoid exposing credentials.');
+    process.exit(1);
+}
+
 const pool = new Pool({
-    host: 'crossover.proxy.rlwy.net',
-    port: 44255,
-    user: 'postgres',
-    password: 'PddzJpAQYezqknsntSzmCUlQYuYJldcT',
-    database: 'railway',
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
