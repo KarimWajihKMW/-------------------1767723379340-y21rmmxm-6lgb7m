@@ -1379,7 +1379,26 @@ const app = (() => {
         'facilities': '/facilities',
         'audit-logs': '/audit-logs',
         'settings': '/settings',
-        'employees': '/hr'
+        'employees': '/hr',
+        // Strategic Management Routes
+        'executive-management': '/strategic/executive',
+        'employee-management': '/strategic/employees',
+        'smart-systems': '/strategic/smart-systems',
+        'subscription-management': '/strategic/subscriptions',
+        'operations-management': '/strategic/operations',
+        'financial-approvals': '/strategic/financial-approvals',
+        'tenants': '/strategic/tenants',
+        'collections-strategic': '/strategic/collections',
+        'marketing': '/strategic/marketing',
+        'advertisers-center': '/strategic/advertisers',
+        'training-development': '/strategic/training',
+        'quality-audit': '/strategic/quality',
+        'evaluation': '/strategic/evaluation',
+        'tasks-strategic': '/strategic/tasks',
+        'information-center': '/strategic/information',
+        'identity-settings': '/strategic/identity',
+        'system-log': '/strategic/log',
+        'reports': '/strategic/reports'
     };
 
     // Path to Route mapping (reverse)
@@ -1401,7 +1420,26 @@ const app = (() => {
         '/facilities': 'facilities',
         '/audit-logs': 'audit-logs',
         '/settings': 'settings',
-        '/hr': 'employees'
+        '/hr': 'employees',
+        // Strategic Management Routes
+        '/strategic/executive': 'executive-management',
+        '/strategic/employees': 'employee-management',
+        '/strategic/smart-systems': 'smart-systems',
+        '/strategic/subscriptions': 'subscription-management',
+        '/strategic/operations': 'operations-management',
+        '/strategic/financial-approvals': 'financial-approvals',
+        '/strategic/tenants': 'tenants',
+        '/strategic/collections': 'collections-strategic',
+        '/strategic/marketing': 'marketing',
+        '/strategic/advertisers': 'advertisers-center',
+        '/strategic/training': 'training-development',
+        '/strategic/quality': 'quality-audit',
+        '/strategic/evaluation': 'evaluation',
+        '/strategic/tasks': 'tasks-strategic',
+        '/strategic/information': 'information-center',
+        '/strategic/identity': 'identity-settings',
+        '/strategic/log': 'system-log',
+        '/strategic/reports': 'reports'
     };
 
     const renderSidebar = () => {
@@ -10067,19 +10105,19 @@ subItems: [
                             { site: 'مشروع البناء - المرحلة الثانية', type: 'مشروع', score: 85, date: '2026-01-12', status: 'جيد جداً' },
                             { site: 'شركة التصنيع المحدودة', type: 'شركة', score: 78, date: '2026-01-08', status: 'جيد' },
                             { site: 'مصنع التعبئة والتغليف', type: 'مصنع', score: 88, date: '2026-01-05', status: 'جيد جداً' }
-                        ].map((eval, i) => `
+                        ].map((evaluation, i) => `
                             <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                            ${eval.score}
+                                            ${evaluation.score}
                                         </div>
                                         <div>
-                                            <p class="font-bold text-slate-800">${eval.site}</p>
-                                            <p class="text-sm text-slate-600">${eval.type} • ${eval.date}</p>
+                                            <p class="font-bold text-slate-800">${evaluation.site}</p>
+                                            <p class="text-sm text-slate-600">${evaluation.type} • ${evaluation.date}</p>
                                         </div>
                                     </div>
-                                    <span class="text-xs px-3 py-1 bg-${eval.score >= 90 ? 'green' : eval.score >= 80 ? 'blue' : 'yellow'}-100 text-${eval.score >= 90 ? 'green' : eval.score >= 80 ? 'blue' : 'yellow'}-700 rounded-full font-bold">${eval.status}</span>
+                                    <span class="text-xs px-3 py-1 bg-${evaluation.score >= 90 ? 'green' : evaluation.score >= 80 ? 'blue' : 'yellow'}-100 text-${evaluation.score >= 90 ? 'green' : evaluation.score >= 80 ? 'blue' : 'yellow'}-700 rounded-full font-bold">${evaluation.status}</span>
                                 </div>
                             </div>
                         `).join('')}
