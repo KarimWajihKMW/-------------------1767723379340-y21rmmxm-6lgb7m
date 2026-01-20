@@ -621,6 +621,22 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-internet-automation\\.js 2>&1$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-occupational-health\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-occupational-health\\.js && echo \"✅ Automated tests passed\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && echo \"✅ Build test passed\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c server\\.js && echo \"✅ Backend test passed\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

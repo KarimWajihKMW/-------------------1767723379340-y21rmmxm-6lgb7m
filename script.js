@@ -1229,6 +1229,15 @@ const app = (() => {
         else if (route === 'knowledge') content = renderKnowledge();
         else if (route === 'intellectual-property') content = renderIntellectualProperty();
         else if (route === 'visitor-chat') content = renderVisitorChat();
+        // Occupational Health & Safety Routes
+        else if (route === 'occupational-safety') content = renderOccupationalSafety();
+        else if (route === 'international-standards') content = renderInternationalStandards();
+        else if (route === 'iso-standards') content = renderISOStandards();
+        else if (route === 'risk-management') content = renderRiskManagement();
+        else if (route === 'consulting') content = renderConsulting();
+        else if (route === 'specialized-courses') content = renderSpecializedCourses();
+        else if (route === 'evaluation') content = renderOHSEvaluation();
+        else if (route === 'data-analysis') content = renderDataAnalysis();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1316,7 +1325,16 @@ const app = (() => {
             'etiquette': 'الإتيكيت وبروتوكولات التواصل',
             'knowledge': 'المعرفة والتحليل',
             'intellectual-property': 'الملكية الفكرية',
-            'visitor-chat': 'الدردشة مع الزوار'
+            'visitor-chat': 'الدردشة مع الزوار',
+            // Occupational Health & Safety subitems
+            'occupational-safety': 'السلامة المهنية',
+            'international-standards': 'المعايير الدولية',
+            'iso-standards': 'الايزو',
+            'risk-management': 'إدارة المخاطر',
+            'consulting': 'الإستشارات',
+            'specialized-courses': 'الدورات التخصصية',
+            'evaluation': 'التقييم - شركات، مصانع، مشاريع',
+            'data-analysis': 'تحليل البيانات'
         };
         return map[r] || 'نظام نايوش';
     };
@@ -1508,6 +1526,22 @@ subItems: [
                     { id: 'knowledge', icon: 'fa-lightbulb', label: 'المعرفة والتحليل' },
                     { id: 'intellectual-property', icon: 'fa-copyright', label: 'الملكية الفكرية' },
                     { id: 'visitor-chat', icon: 'fa-comment-dots', label: 'الدردشة مع الزوار' }
+                ]
+            },
+            {
+                id: 'occupational-health',
+                icon: 'fa-hard-hat',
+                label: 'السلامة والصحة المهنية',
+                show: true,
+                subItems: [
+                    { id: 'occupational-safety', icon: 'fa-shield-alt', label: 'السلامة المهنية' },
+                    { id: 'international-standards', icon: 'fa-globe', label: 'المعايير الدولية' },
+                    { id: 'iso-standards', icon: 'fa-certificate', label: 'الايزو' },
+                    { id: 'risk-management', icon: 'fa-exclamation-triangle', label: 'إدارة المخاطر' },
+                    { id: 'consulting', icon: 'fa-user-tie', label: 'الإستشارات' },
+                    { id: 'specialized-courses', icon: 'fa-graduation-cap', label: 'الدورات التخصصية' },
+                    { id: 'evaluation', icon: 'fa-clipboard-check', label: 'التقييم - شركات، مصانع، مشاريع' },
+                    { id: 'data-analysis', icon: 'fa-chart-bar', label: 'تحليل البيانات' }
                 ]
             },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
@@ -8608,6 +8642,1034 @@ subItems: [
                     <button onclick="app.showToast('إعدادات متقدمة', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
                         <i class="fas fa-cog text-purple-600 ml-2"></i>
                         <span class="font-bold text-purple-700">إعدادات</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // Occupational Health & Safety Render Functions
+    const renderOccupationalSafety = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-shield-alt"></i>
+                    السلامة المهنية
+                </h2>
+                <p class="mt-2 opacity-90">برامج ونظم السلامة والصحة المهنية المتقدمة</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الحوادث المسجلة</span>
+                        <i class="fas fa-exclamation-circle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                    <p class="text-sm text-green-600 mt-1">-75% عن الشهر الماضي</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">أيام بدون حوادث</span>
+                        <i class="fas fa-calendar-check text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">127</h3>
+                    <p class="text-sm text-green-600 mt-1">رقم قياسي جديد</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الامتثال</span>
+                        <i class="fas fa-check-circle text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">98.5%</h3>
+                    <p class="text-sm text-blue-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التدريبات المكتملة</span>
+                        <i class="fas fa-users text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">456</h3>
+                    <p class="text-sm text-purple-600 mt-1">موظف مدرب</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">برامج السلامة النشطة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { program: 'برنامج الوقاية من الحرائق', compliance: 100, status: 'نشط', color: 'green' },
+                            { program: 'السلامة الكهربائية', compliance: 98, status: 'نشط', color: 'green' },
+                            { program: 'معدات الحماية الشخصية', compliance: 96, status: 'نشط', color: 'green' },
+                            { program: 'الإسعافات الأولية', compliance: 94, status: 'قيد التحديث', color: 'yellow' },
+                            { program: 'السلامة الكيميائية', compliance: 92, status: 'قيد التحسين', color: 'orange' }
+                        ].map(prog => `
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${prog.program}</p>
+                                    <span class="text-xs px-3 py-1 bg-${prog.color}-100 text-${prog.color}-700 rounded-full font-bold">${prog.status}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2">
+                                    <div class="bg-${prog.color}-600 h-2 rounded-full transition-all" style="width: ${prog.compliance}%"></div>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-1">${prog.compliance}% امتثال</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الحوادث والإجراءات</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { incident: 'انزلاق بسيط - منطقة التخزين', date: '2026-01-15', severity: 'منخفض', action: 'تم المعالجة' },
+                            { incident: 'تسرب كيميائي محدود', date: '2026-01-10', severity: 'متوسط', action: 'تحت المراقبة' },
+                            { incident: 'كسر في معدات الحماية', date: '2026-01-05', severity: 'منخفض', action: 'تم الاستبدال' }
+                        ].map(inc => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${inc.incident}</p>
+                                        <p class="text-sm text-slate-600">${inc.date}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs px-2 py-1 bg-${inc.severity === 'منخفض' ? 'green' : 'yellow'}-100 text-${inc.severity === 'منخفض' ? 'green' : 'yellow'}-700 rounded-full">${inc.severity}</span>
+                                        <p class="text-xs text-slate-500 mt-1">${inc.action}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('تسجيل حادث', 'info')" class="p-4 bg-red-50 hover:bg-red-100 rounded-lg transition text-right">
+                        <i class="fas fa-exclamation-triangle text-red-600 ml-2"></i>
+                        <span class="font-bold text-red-700">تسجيل حادث</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة تدريب', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-plus text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تدريب جديد</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير السلامة', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('فحص المعدات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-tools text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">فحص</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderInternationalStandards = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-globe"></i>
+                    المعايير الدولية
+                </h2>
+                <p class="mt-2 opacity-90">الامتثال للمعايير الدولية في السلامة والصحة المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المعايير المطبقة</span>
+                        <i class="fas fa-clipboard-check text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">23</h3>
+                    <p class="text-sm text-green-600 mt-1">+3 هذا العام</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل التوافق</span>
+                        <i class="fas fa-percentage text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">97.2%</h3>
+                    <p class="text-sm text-green-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التدقيقات السنوية</span>
+                        <i class="fas fa-search text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                    <p class="text-sm text-purple-600 mt-1">مكتملة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الشهادات</span>
+                        <i class="fas fa-award text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-orange-600 mt-1">سارية</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المعايير الدولية المطبقة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { standard: 'OSHA - معايير السلامة المهنية الأمريكية', compliance: 98, region: 'عالمي' },
+                            { standard: 'ILO - منظمة العمل الدولية', compliance: 96, region: 'عالمي' },
+                            { standard: 'BS OHSAS 18001 - نظام إدارة السلامة', compliance: 95, region: 'بريطاني' },
+                            { standard: 'NFPA - الحماية من الحرائق', compliance: 100, region: 'أمريكي' },
+                            { standard: 'EN Standards - المعايير الأوروبية', compliance: 94, region: 'أوروبي' }
+                        ].map((std, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-certificate text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${std.standard}</p>
+                                            <p class="text-sm text-slate-600">${std.region}</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-blue-600">${std.compliance}%</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تدقيقات التوافق</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { audit: 'تدقيق OSHA السنوي', date: '2026-01-10', result: 'ناجح', score: 98 },
+                            { audit: 'مراجعة ILO', date: '2025-12-15', result: 'ناجح', score: 96 },
+                            { audit: 'فحص OHSAS', date: '2025-11-20', result: 'ناجح', score: 95 },
+                            { audit: 'تقييم NFPA', date: '2025-10-05', result: 'ممتاز', score: 100 }
+                        ].map(audit => `
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${audit.audit}</p>
+                                        <p class="text-sm text-slate-600">${audit.date}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-lg font-bold text-blue-600">${audit.score}%</p>
+                                        <p class="text-xs text-slate-500">${audit.result}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('طلب تدقيق', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-search text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تدقيق جديد</span>
+                    </button>
+                    <button onclick="app.showToast('تحديث المعايير', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-sync text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">تحديث</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير التوافق', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('الشهادات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-certificate text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">شهادات</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderISOStandards = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-green-700 to-teal-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-certificate"></i>
+                    معايير الايزو
+                </h2>
+                <p class="mt-2 opacity-90">شهادات الايزو في السلامة والصحة والجودة</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">شهادات الايزو</span>
+                        <i class="fas fa-award text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">7</h3>
+                    <p class="text-sm text-green-600 mt-1">نشطة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الامتثال</span>
+                        <i class="fas fa-check-circle text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">99.1%</h3>
+                    <p class="text-sm text-blue-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد التجديد</span>
+                        <i class="fas fa-sync text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">2</h3>
+                    <p class="text-sm text-orange-600 mt-1">هذا الربع</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">مراجعات السنة</span>
+                        <i class="fas fa-clipboard-list text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">14</h3>
+                    <p class="text-sm text-purple-600 mt-1">مكتملة</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">شهادات الايزو النشطة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { iso: 'ISO 45001:2018', title: 'نظام إدارة السلامة والصحة المهنية', expiry: '2026-12-31', status: 'نشط' },
+                            { iso: 'ISO 9001:2015', title: 'نظام إدارة الجودة', expiry: '2027-06-30', status: 'نشط' },
+                            { iso: 'ISO 14001:2015', title: 'نظام الإدارة البيئية', expiry: '2026-09-15', status: 'نشط' },
+                            { iso: 'ISO 27001:2013', title: 'نظام إدارة أمن المعلومات', expiry: '2026-03-20', status: 'قيد التجديد' },
+                            { iso: 'ISO 50001:2018', title: 'نظام إدارة الطاقة', expiry: '2027-01-10', status: 'نشط' },
+                            { iso: 'ISO 22000:2018', title: 'نظام إدارة سلامة الغذاء', expiry: '2026-08-05', status: 'نشط' },
+                            { iso: 'ISO 31000:2018', title: 'إدارة المخاطر', expiry: '2026-05-15', status: 'قيد التجديد' }
+                        ].map((cert, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-certificate text-green-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${cert.iso}</p>
+                                            <p class="text-sm text-slate-600">${cert.title}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs px-3 py-1 bg-${cert.status === 'نشط' ? 'green' : 'orange'}-100 text-${cert.status === 'نشط' ? 'green' : 'orange'}-700 rounded-full font-bold">${cert.status}</span>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-2">صالحة حتى: ${cert.expiry}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المراجعات والتدقيقات</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { type: 'مراجعة داخلية ISO 45001', date: '2026-01-15', result: 'ناجح', findings: 2 },
+                            { type: 'تدقيق خارجي ISO 9001', date: '2026-01-10', result: 'ناجح', findings: 0 },
+                            { type: 'مراجعة ISO 14001', date: '2025-12-20', result: 'ناجح', findings: 1 },
+                            { type: 'تدقيق ISO 27001', date: '2025-12-05', result: 'ناجح', findings: 3 },
+                            { type: 'مراجعة ISO 50001', date: '2025-11-15', result: 'ممتاز', findings: 0 }
+                        ].map(review => `
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${review.type}</p>
+                                        <p class="text-sm text-slate-600">${review.date}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">${review.result}</span>
+                                        <p class="text-xs text-slate-500 mt-1">${review.findings} ملاحظات</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('طلب شهادة جديدة', 'info')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">شهادة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة مراجعة', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-check text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">مراجعة</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الايزو', 'success')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير الشهادات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderRiskManagement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-red-700 to-pink-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    إدارة المخاطر
+                </h2>
+                <p class="mt-2 opacity-90">تحديد وتقييم ومعالجة المخاطر المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المخاطر المحددة</span>
+                        <i class="fas fa-list text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">47</h3>
+                    <p class="text-sm text-slate-600 mt-1">مخاطر مسجلة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">مخاطر عالية</span>
+                        <i class="fas fa-exclamation-circle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                    <p class="text-sm text-red-600 mt-1">تتطلب إجراء فوري</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">مخاطر معالجة</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">38</h3>
+                    <p class="text-sm text-green-600 mt-1">80.9% معالجة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">تقييمات الشهر</span>
+                        <i class="fas fa-clipboard-check text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-purple-600 mt-1">مكتملة</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المخاطر حسب الأولوية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { risk: 'تسرب المواد الكيميائية', level: 'عالي', probability: 15, impact: 'كبير', color: 'red' },
+                            { risk: 'أعطال المعدات الثقيلة', level: 'متوسط', probability: 30, impact: 'متوسط', color: 'yellow' },
+                            { risk: 'الحرائق والانفجارات', level: 'عالي', probability: 10, impact: 'كبير جداً', color: 'red' },
+                            { risk: 'السقوط من ارتفاعات', level: 'متوسط', probability: 25, impact: 'متوسط', color: 'yellow' },
+                            { risk: 'التعرض للضوضاء', level: 'منخفض', probability: 50, impact: 'قليل', color: 'green' }
+                        ].map((risk, i) => `
+                            <div class="p-3 bg-${risk.color}-50 border-r-4 border-${risk.color}-500 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${risk.risk}</p>
+                                        <p class="text-sm text-slate-600">احتمالية: ${risk.probability}% • تأثير: ${risk.impact}</p>
+                                    </div>
+                                    <span class="text-xs px-3 py-1 bg-${risk.color}-100 text-${risk.color}-700 rounded-full font-bold">${risk.level}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الإجراءات التصحيحية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { action: 'تركيب نظام كشف التسرب', risk: 'تسرب المواد', status: 'قيد التنفيذ', progress: 75 },
+                            { action: 'صيانة دورية للمعدات', risk: 'أعطال المعدات', status: 'مكتمل', progress: 100 },
+                            { action: 'تحديث نظام إطفاء الحريق', risk: 'الحرائق', status: 'قيد التنفيذ', progress: 60 },
+                            { action: 'تدريب السلامة على الارتفاعات', risk: 'السقوط', status: 'مخطط', progress: 30 }
+                        ].map(action => `
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${action.action}</p>
+                                        <p class="text-sm text-slate-600">${action.risk}</p>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">${action.status}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
+                                    <div class="bg-blue-600 h-2 rounded-full transition-all" style="width: ${action.progress}%"></div>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-1">${action.progress}% مكتمل</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('تسجيل خطر جديد', 'info')" class="p-4 bg-red-50 hover:bg-red-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-red-600 ml-2"></i>
+                        <span class="font-bold text-red-700">خطر جديد</span>
+                    </button>
+                    <button onclick="app.showToast('تقييم المخاطر', 'info')" class="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-right">
+                        <i class="fas fa-clipboard-list text-yellow-600 ml-2"></i>
+                        <span class="font-bold text-yellow-700">تقييم</span>
+                    </button>
+                    <button onclick="app.showToast('خطة المعالجة', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-tasks text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">خطة</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير المخاطر', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تقرير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderConsulting = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-purple-700 to-indigo-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-user-tie"></i>
+                    الإستشارات
+                </h2>
+                <p class="mt-2 opacity-90">خدمات استشارية متخصصة في السلامة والصحة المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الاستشارات النشطة</span>
+                        <i class="fas fa-briefcase text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">18</h3>
+                    <p class="text-sm text-green-600 mt-1">+5 هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المستشارون</span>
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-blue-600 mt-1">متخصص</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الرضا</span>
+                        <i class="fas fa-star text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">4.9</h3>
+                    <p class="text-sm text-yellow-600 mt-1">من 5</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المشاريع المكتملة</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                    <p class="text-sm text-green-600 mt-1">هذا العام</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الخدمات الاستشارية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { service: 'تقييم السلامة والصحة المهنية', projects: 45, rating: 4.9 },
+                            { service: 'تطوير نظم الإدارة (ISO 45001)', projects: 32, rating: 4.8 },
+                            { service: 'إدارة المخاطر المهنية', projects: 28, rating: 4.9 },
+                            { service: 'التدريب والتطوير', projects: 67, rating: 4.7 },
+                            { service: 'التدقيق والامتثال', projects: 39, rating: 4.8 }
+                        ].map((svc, i) => `
+                            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        ${i + 1}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${svc.service}</p>
+                                        <p class="text-sm text-slate-600">${svc.projects} مشروع</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">★</span>
+                                        <span class="font-bold text-slate-800">${svc.rating}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المستشارون المتخصصون</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'د. أحمد محمد', specialty: 'السلامة الصناعية', projects: 23, experience: '15 سنة' },
+                            { name: 'م. سارة علي', specialty: 'الصحة المهنية', projects: 19, experience: '12 سنة' },
+                            { name: 'د. خالد إبراهيم', specialty: 'إدارة المخاطر', projects: 21, experience: '18 سنة' },
+                            { name: 'م. فاطمة حسن', specialty: 'نظم الجودة', projects: 17, experience: '10 سنوات' }
+                        ].map(consultant => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
+                                        ${consultant.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${consultant.name}</p>
+                                        <p class="text-sm text-slate-600">${consultant.specialty}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm text-slate-600 mt-2">
+                                    <span>${consultant.projects} مشروع</span>
+                                    <span>${consultant.experience} خبرة</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('طلب استشارة', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">استشارة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة اجتماع', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-check text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">اجتماع</span>
+                    </button>
+                    <button onclick="app.showToast('تقييم الأداء', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-star text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقييم</span>
+                    </button>
+                    <button onclick="app.showToast('المستشارون', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-users text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">المستشارون</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderSpecializedCourses = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-cyan-700 to-blue-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-graduation-cap"></i>
+                    الدورات التخصصية
+                </h2>
+                <p class="mt-2 opacity-90">دورات تدريبية متخصصة في السلامة والصحة المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الدورات المتاحة</span>
+                        <i class="fas fa-book text-cyan-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                    <p class="text-sm text-green-600 mt-1">+6 هذا الربع</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المتدربون النشطون</span>
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">567</h3>
+                    <p class="text-sm text-blue-600 mt-1">متدرب</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الإكمال</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">89.3%</h3>
+                    <p class="text-sm text-green-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الشهادات الصادرة</span>
+                        <i class="fas fa-certificate text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">234</h3>
+                    <p class="text-sm text-orange-600 mt-1">هذا الشهر</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أشهر الدورات</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { course: 'OSHA 30-Hour General Industry', students: 89, rating: 4.9, duration: '30 ساعة' },
+                            { course: 'إدارة السلامة من الحرائق', students: 76, rating: 4.8, duration: '16 ساعة' },
+                            { course: 'الإسعافات الأولية المتقدمة', students: 92, rating: 4.9, duration: '24 ساعة' },
+                            { course: 'السلامة في الأماكن المرتفعة', students: 54, rating: 4.7, duration: '12 ساعة' },
+                            { course: 'إدارة المخاطر الكيميائية', students: 67, rating: 4.8, duration: '20 ساعة' }
+                        ].map((course, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                                            ${i + 1}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${course.course}</p>
+                                            <p class="text-sm text-slate-600">${course.students} متدرب • ${course.duration}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-yellow-500">★</span>
+                                            <span class="font-bold text-slate-800">${course.rating}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">مسارات التدريب</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { track: 'مسار مسؤول السلامة المعتمد', courses: 8, duration: '120 ساعة', level: 'متقدم' },
+                            { track: 'مسار مدقق السلامة الداخلي', courses: 6, duration: '90 ساعة', level: 'متوسط' },
+                            { track: 'مسار المدير المهني للسلامة', courses: 10, duration: '150 ساعة', level: 'خبير' },
+                            { track: 'مسار أساسيات السلامة', courses: 4, duration: '40 ساعة', level: 'مبتدئ' }
+                        ].map((track, i) => `
+                            <div class="p-3 bg-cyan-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${track.track}</p>
+                                        <p class="text-sm text-slate-600">${track.courses} دورات • ${track.duration}</p>
+                                    </div>
+                                    <span class="text-xs px-3 py-1 bg-cyan-100 text-cyan-700 rounded-full font-bold">${track.level}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('تصفح الدورات', 'info')" class="p-4 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition text-right">
+                        <i class="fas fa-search text-cyan-600 ml-2"></i>
+                        <span class="font-bold text-cyan-700">تصفح</span>
+                    </button>
+                    <button onclick="app.showToast('التسجيل في دورة', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-user-plus text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تسجيل</span>
+                    </button>
+                    <button onclick="app.showToast('جدولي التدريبي', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">جدولي</span>
+                    </button>
+                    <button onclick="app.showToast('شهاداتي', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-certificate text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">شهاداتي</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderOHSEvaluation = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-teal-700 to-green-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-clipboard-check"></i>
+                    التقييم - شركات، مصانع، مشاريع
+                </h2>
+                <p class="mt-2 opacity-90">تقييم شامل لمستوى السلامة والصحة المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المواقع المقيّمة</span>
+                        <i class="fas fa-building text-teal-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">47</h3>
+                    <p class="text-sm text-green-600 mt-1">+8 هذا الربع</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متوسط التقييم</span>
+                        <i class="fas fa-star text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">87.5%</h3>
+                    <p class="text-sm text-green-600 mt-1">+3.2% تحسن</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">تقييمات نشطة</span>
+                        <i class="fas fa-tasks text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-blue-600 mt-1">قيد التنفيذ</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">توصيات متابعة</span>
+                        <i class="fas fa-exclamation-circle text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">23</h3>
+                    <p class="text-sm text-orange-600 mt-1">تتطلب اهتمام</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">التقييمات الحديثة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { site: 'مصنع الإنتاج الرئيسي', type: 'مصنع', score: 92, date: '2026-01-15', status: 'ممتاز' },
+                            { site: 'مشروع البناء - المرحلة الثانية', type: 'مشروع', score: 85, date: '2026-01-12', status: 'جيد جداً' },
+                            { site: 'شركة التصنيع المحدودة', type: 'شركة', score: 78, date: '2026-01-08', status: 'جيد' },
+                            { site: 'مصنع التعبئة والتغليف', type: 'مصنع', score: 88, date: '2026-01-05', status: 'جيد جداً' }
+                        ].map((eval, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                            ${eval.score}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${eval.site}</p>
+                                            <p class="text-sm text-slate-600">${eval.type} • ${eval.date}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs px-3 py-1 bg-${eval.score >= 90 ? 'green' : eval.score >= 80 ? 'blue' : 'yellow'}-100 text-${eval.score >= 90 ? 'green' : eval.score >= 80 ? 'blue' : 'yellow'}-700 rounded-full font-bold">${eval.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">معايير التقييم</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { criterion: 'السلامة العامة', weight: 25, score: 90 },
+                            { criterion: 'معدات الحماية الشخصية', weight: 20, score: 88 },
+                            { criterion: 'التدريب والتوعية', weight: 15, score: 85 },
+                            { criterion: 'الوثائق والإجراءات', weight: 15, score: 92 },
+                            { criterion: 'الاستجابة للطوارئ', weight: 15, score: 87 },
+                            { criterion: 'الصحة المهنية', weight: 10, score: 84 }
+                        ].map(crit => `
+                            <div class="p-3 bg-teal-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${crit.criterion}</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm text-slate-600">${crit.weight}%</span>
+                                        <span class="font-bold text-teal-600">${crit.score}/100</span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2">
+                                    <div class="bg-teal-600 h-2 rounded-full transition-all" style="width: ${crit.score}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('تقييم جديد', 'info')" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-teal-600 ml-2"></i>
+                        <span class="font-bold text-teal-700">تقييم جديد</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة تقييم', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-check text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">جدولة</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير التقييمات', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('خطط التحسين', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-tasks text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">خطط</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderDataAnalysis = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-indigo-700 to-purple-700 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-chart-bar"></i>
+                    تحليل البيانات
+                </h2>
+                <p class="mt-2 opacity-90">تحليلات متقدمة لبيانات السلامة والصحة المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">نقاط البيانات</span>
+                        <i class="fas fa-database text-indigo-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">24.5K</h3>
+                    <p class="text-sm text-green-600 mt-1">+2.3K هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التقارير النشطة</span>
+                        <i class="fas fa-chart-pie text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">18</h3>
+                    <p class="text-sm text-purple-600 mt-1">لوحات تحكم</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الدقة</span>
+                        <i class="fas fa-bullseye text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">98.7%</h3>
+                    <p class="text-sm text-green-600 mt-1">دقيق</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التنبؤات</span>
+                        <i class="fas fa-brain text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-blue-600 mt-1">نموذج AI</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">لوحات التحليل الرئيسية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { dashboard: 'تحليل الحوادث', metrics: 15, users: 234, update: 'يومي' },
+                            { dashboard: 'اتجاهات السلامة', metrics: 12, users: 189, update: 'أسبوعي' },
+                            { dashboard: 'أداء التدريب', metrics: 18, users: 156, update: 'شهري' },
+                            { dashboard: 'تقييم المخاطر', metrics: 20, users: 198, update: 'يومي' },
+                            { dashboard: 'الامتثال والتدقيق', metrics: 14, users: 145, update: 'شهري' }
+                        ].map((dash, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-chart-line text-indigo-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${dash.dashboard}</p>
+                                            <p class="text-sm text-slate-600">${dash.metrics} مؤشر • ${dash.users} مستخدم</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">${dash.update}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">التحليلات المتقدمة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { analysis: 'التنبؤ بالحوادث (AI)', accuracy: 94.5, type: 'تنبؤي', icon: 'fa-brain' },
+                            { analysis: 'تحليل الأسباب الجذرية', accuracy: 92.1, type: 'تشخيصي', icon: 'fa-search' },
+                            { analysis: 'تحسين الأداء', accuracy: 89.3, type: 'توجيهي', icon: 'fa-lightbulb' },
+                            { analysis: 'تحليل الاتجاهات', accuracy: 96.7, type: 'وصفي', icon: 'fa-chart-area' }
+                        ].map((analysis, i) => `
+                            <div class="p-3 bg-indigo-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                                            <i class="fas ${analysis.icon}"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${analysis.analysis}</p>
+                                            <p class="text-sm text-slate-600">${analysis.type}</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-indigo-600">${analysis.accuracy}%</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">معدلات الحوادث</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">معدل تكرار الحوادث</span>
+                            <span class="font-bold text-green-600">1.2</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">معدل شدة الحوادث</span>
+                            <span class="font-bold text-blue-600">0.8</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">معدل الأيام الضائعة</span>
+                            <span class="font-bold text-orange-600">2.3</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الأداء الزمني</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">هذا الشهر</span>
+                            <span class="font-bold text-green-600">+12%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">هذا الربع</span>
+                            <span class="font-bold text-blue-600">+8.5%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">هذا العام</span>
+                            <span class="font-bold text-purple-600">+15.3%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المقارنات المعيارية</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">مقابل الصناعة</span>
+                            <span class="font-bold text-green-600">أفضل 15%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">مقابل المنطقة</span>
+                            <span class="font-bold text-blue-600">أفضل 10%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">مقابل الهدف</span>
+                            <span class="font-bold text-purple-600">102%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إنشاء تقرير', 'info')" class="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-indigo-600 ml-2"></i>
+                        <span class="font-bold text-indigo-700">تقرير جديد</span>
+                    </button>
+                    <button onclick="app.showToast('لوحة التحكم', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-line text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">لوحة تحكم</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير البيانات', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تصدير</span>
+                    </button>
+                    <button onclick="app.showToast('التنبؤات', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-brain text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">AI</span>
                     </button>
                 </div>
             </div>
