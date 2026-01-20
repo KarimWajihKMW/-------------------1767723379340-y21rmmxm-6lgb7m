@@ -1171,21 +1171,21 @@ const app = (() => {
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
         // Strategic Management Routes
-        else if (route === 'executive-management') content = renderExecutiveManagement();
+        else if (route === 'executive-management') content = await renderExecutiveManagement();
         else if (route === 'employee-management') content = renderEmployeeManagement();
-        else if (route === 'smart-systems') content = renderSmartSystems();
-        else if (route === 'subscription-management') content = renderSubscriptionManagement();
+        else if (route === 'smart-systems') content = await renderSmartSystems();
+        else if (route === 'subscription-management') content = await renderSubscriptionManagement();
         else if (route === 'operations-management') content = renderOperationsManagement();
-        else if (route === 'financial-approvals') content = renderFinancialApprovals();
+        else if (route === 'financial-approvals') content = await renderFinancialApprovals();
         else if (route === 'tenants') content = renderTenants();
         else if (route === 'collections-strategic') content = renderCollectionsStrategic();
         else if (route === 'marketing') content = renderMarketing();
         else if (route === 'advertisers-center') content = renderAdvertisersCenter();
-        else if (route === 'training-development') content = renderTrainingDevelopment();
-        else if (route === 'quality-audit') content = renderQualityAudit();
-        else if (route === 'evaluation') content = renderEvaluation();
+        else if (route === 'training-development') content = await renderTrainingDevelopment();
+        else if (route === 'quality-audit') content = await renderQualityAudit();
+        else if (route === 'evaluation') content = await renderEvaluation();
         else if (route === 'tasks-strategic') content = renderTasksStrategic();
-        else if (route === 'information-center') content = renderInformationCenter();
+        else if (route === 'information-center') content = await renderInformationCenter();
         else if (route === 'identity-settings') content = renderIdentitySettings();
         else if (route === 'system-log') content = renderSystemLog();
         else if (route === 'reports') content = renderReports();
@@ -5853,7 +5853,13 @@ subItems: [
         </div>`;
     };
 
-    const renderFinancialApprovals = () => {
+    const renderFinancialApprovals = async () => {
+        const [policies, manual, news] = await Promise.all([
+            fetchAPI('/api/financial-policies'),
+            fetchAPI('/api/financial-manual'),
+            fetchAPI('/api/financial-news')
+        ]);
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-rose-600 to-pink-600 rounded-2xl p-6 text-white">
@@ -5863,18 +5869,90 @@ subItems: [
                 </h2>
                 <p class="mt-2 opacity-90">السياسات والإجراءات، دليل التشغيل، آخر الأخبار</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">السياسات والإجراءات</h3>
-                    <p class="text-slate-600">جميع السياسات المالية المعتمدة</p>
+            
+            <!-- Policies -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-file-contract text-rose-600"></i>
+                    السياسات والإجراءات (${policies.length})
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${policies.map(policy => `
+                        <div class="border border-rose-200 bg-rose-50 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-bold text-slate-800">${policy.policy_name}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-rose-600 text-white">
+                                    ${policy.policy_code}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-3">${policy.description}</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="bg-white rounded p-2">
+                                    <div class="text-slate-500">الفئة</div>
+                                    <div class="font-bold">${policy.category}</div>
+                                </div>
+                                <div class="bg-white rounded p-2">
+                                    <div class="text-slate-500">حد الموافقة</div>
+                                    <div class="font-bold">${policy.approval_threshold ? policy.approval_threshold.toLocaleString('ar-EG') + ' ريال' : 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">دليل التشغيل</h3>
-                    <p class="text-slate-600">إرشادات تشغيل الموافقات المالية</p>
+            </div>
+            
+            <!-- Operating Manual -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-book text-pink-600"></i>
+                    دليل التشغيل (${manual.length} قسم)
+                </h3>
+                <div class="space-y-3">
+                    ${manual.map(section => `
+                        <div class="border border-pink-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <span class="px-2 py-1 rounded bg-pink-100 text-pink-700 text-xs font-bold">${section.section_number}</span>
+                                    <h4 class="font-bold text-slate-800 mt-2">${section.section_title}</h4>
+                                </div>
+                                <span class="text-xs text-slate-500">${section.version}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${section.content}</p>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">آخر الأخبار</h3>
-                    <p class="text-slate-600">التحديثات والإشعارات الحديثة</p>
+            </div>
+            
+            <!-- News -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-newspaper text-amber-600"></i>
+                    آخر الأخبار (${news.length})
+                </h3>
+                <div class="space-y-3">
+                    ${news.map(item => `
+                        <div class="border-r-4 ${
+                            item.priority === 'high' ? 'border-red-500 bg-red-50' :
+                            item.priority === 'normal' ? 'border-blue-500 bg-blue-50' :
+                            'border-gray-500 bg-gray-50'
+                        } rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-bold text-slate-800">${item.news_title}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold ${
+                                    item.priority === 'high' ? 'bg-red-600 text-white' :
+                                    item.priority === 'normal' ? 'bg-blue-600 text-white' :
+                                    'bg-gray-600 text-white'
+                                }">
+                                    ${item.priority}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-2">${item.news_content}</p>
+                            <div class="text-xs text-slate-500">
+                                <i class="fas fa-clock ml-1"></i>
+                                ${new Date(item.published_date).toLocaleDateString('ar-EG')}
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         </div>`;
@@ -5928,7 +6006,9 @@ subItems: [
         return renderAdsManager();
     };
 
-    const renderTrainingDevelopment = () => {
+    const renderTrainingDevelopment = async () => {
+        const programs = await fetchAPI('/api/development-programs');
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
@@ -5936,17 +6016,65 @@ subItems: [
                     <i class="fas fa-chalkboard-teacher"></i>
                     التدريب والتطوير
                 </h2>
-                <p class="mt-2 opacity-90">البرامج التدريبية وتطوير المهارات</p>
+                <p class="mt-2 opacity-90">البرامج التدريبية وتطوير المهارات (${programs.length} برنامج)</p>
             </div>
-            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
-                <i class="fas fa-graduation-cap text-6xl text-indigo-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-slate-800">مركز التدريب والتطوير</h3>
-                <p class="text-slate-600 mt-2">برامج تدريبية متخصصة لتطوير الكفاءات</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${programs.map((prog, idx) => {
+                    const colors = ['indigo', 'purple', 'blue', 'pink', 'violet'];
+                    const color = colors[idx % colors.length];
+                    return `
+                    <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-${color}-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-graduation-cap text-${color}-600 text-xl"></i>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                prog.status === 'active' ? 'bg-green-100 text-green-700' :
+                                prog.status === 'upcoming' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                            }">
+                                ${prog.status}
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">${prog.program_name}</h3>
+                        <p class="text-sm text-slate-600 mb-3">${prog.program_type}</p>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2 text-slate-600">
+                                <i class="fas fa-users text-${color}-500"></i>
+                                <span>${prog.enrolled}/${prog.capacity} مشارك</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-600">
+                                <i class="fas fa-clock text-${color}-500"></i>
+                                <span>${prog.duration_weeks} أسابيع</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-600">
+                                <i class="fas fa-user-tie text-${color}-500"></i>
+                                <span>${prog.trainer}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs text-slate-500 mb-1">
+                                <span>معدل الإنجاز</span>
+                                <span>${prog.completion_rate}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-${color}-600 h-2 rounded-full" style="width: ${prog.completion_rate}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
             </div>
         </div>`;
     };
 
-    const renderQualityAudit = () => {
+    const renderQualityAudit = async () => {
+        const [standards, audits] = await Promise.all([
+            fetchAPI('/api/quality-standards'),
+            fetchAPI('/api/quality-audits')
+        ]);
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
@@ -5956,15 +6084,86 @@ subItems: [
                 </h2>
                 <p class="mt-2 opacity-90">معايير الجودة ومراجعة الأداء</p>
             </div>
-            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
-                <i class="fas fa-certificate text-6xl text-teal-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-slate-800">ضمان الجودة</h3>
-                <p class="text-slate-600 mt-2">مراقبة وتدقيق معايير الجودة</p>
+            
+            <!-- Quality Standards -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-award text-teal-600"></i>
+                    معايير الجودة (${standards.length})
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${standards.map(std => `
+                        <div class="border border-teal-200 bg-teal-50 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-slate-800">${std.standard_name}</h4>
+                                    <p class="text-xs text-slate-500 mt-1">${std.standard_code}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-teal-600 text-white">
+                                    ${std.compliance_level}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-3">${std.description}</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="bg-white rounded p-2">
+                                    <div class="text-slate-500">التدقيق التالي</div>
+                                    <div class="font-bold text-slate-800">${new Date(std.next_audit_date).toLocaleDateString('ar-EG')}</div>
+                                </div>
+                                <div class="bg-white rounded p-2">
+                                    <div class="text-slate-500">التكرار</div>
+                                    <div class="font-bold text-slate-800">${std.audit_frequency}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Audits -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-search text-cyan-600"></i>
+                    عمليات التدقيق (${audits.length})
+                </h3>
+                <div class="space-y-3">
+                    ${audits.map(audit => `
+                        <div class="border border-cyan-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-bold text-slate-800">${audit.audit_name}</h4>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                    audit.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                    audit.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-orange-100 text-orange-700'
+                                }">
+                                    ${audit.status}
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                <div>
+                                    <span class="text-slate-500">النوع: </span>
+                                    <span class="font-bold">${audit.audit_type}</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-500">التاريخ: </span>
+                                    <span class="font-bold">${new Date(audit.audit_date).toLocaleDateString('ar-EG')}</span>
+                                </div>
+                                ${audit.compliance_score ? `
+                                <div>
+                                    <span class="text-slate-500">درجة الامتثال: </span>
+                                    <span class="font-bold text-teal-600">${audit.compliance_score}%</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>`;
     };
 
-    const renderEvaluation = () => {
+    const renderEvaluation = async () => {
+        const evaluations = await fetchAPI('/api/evaluations');
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-yellow-600 to-amber-600 rounded-2xl p-6 text-white">
@@ -5972,12 +6171,58 @@ subItems: [
                     <i class="fas fa-star"></i>
                     التقييم
                 </h2>
-                <p class="mt-2 opacity-90">تقييم الأداء والكفاءات</p>
+                <p class="mt-2 opacity-90">تقييم الأداء والكفاءات (${evaluations.length} تقييم)</p>
             </div>
-            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
-                <i class="fas fa-chart-line text-6xl text-yellow-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-slate-800">نظام التقييم</h3>
-                <p class="text-slate-600 mt-2">تقييم شامل للأداء والإنجازات</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${evaluations.map(ev => {
+                    const percentage = (ev.score / ev.max_score) * 100;
+                    return `
+                    <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition">
+                        <div class="flex items-start justify-between mb-3">
+                            <h3 class="font-bold text-lg text-slate-800">${ev.evaluation_name}</h3>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                percentage >= 90 ? 'bg-green-100 text-green-700' :
+                                percentage >= 75 ? 'bg-blue-100 text-blue-700' :
+                                percentage >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                            }">
+                                ${ev.grade}
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4">${ev.evaluation_type}</p>
+                        
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-slate-600">الدرجة</span>
+                            <span class="font-bold text-xl ${
+                                percentage >= 90 ? 'text-green-600' :
+                                percentage >= 75 ? 'text-blue-600' :
+                                percentage >= 60 ? 'text-yellow-600' :
+                                'text-red-600'
+                            }">${ev.score}/${ev.max_score}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                            <div class="${
+                                percentage >= 90 ? 'bg-green-600' :
+                                percentage >= 75 ? 'bg-blue-600' :
+                                percentage >= 60 ? 'bg-yellow-600' :
+                                'bg-red-600'
+                            } h-3 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                        
+                        ${ev.comments ? `
+                        <div class="bg-slate-50 rounded-lg p-3 mt-3">
+                            <p class="text-sm text-slate-600">${ev.comments}</p>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="mt-3 text-xs text-slate-500">
+                            <i class="fas fa-calendar ml-1"></i>
+                            ${new Date(ev.evaluation_date).toLocaleDateString('ar-EG')}
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
             </div>
         </div>`;
     };
@@ -5986,7 +6231,12 @@ subItems: [
         return renderTasksManager();
     };
 
-    const renderInformationCenter = () => {
+    const renderInformationCenter = async () => {
+        const [repository, knowledgeBase] = await Promise.all([
+            fetchAPI('/api/information-repository'),
+            fetchAPI('/api/knowledge-base')
+        ]);
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
@@ -5996,10 +6246,74 @@ subItems: [
                 </h2>
                 <p class="mt-2 opacity-90">قاعدة بيانات شاملة ومرجعية</p>
             </div>
-            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
-                <i class="fas fa-database text-6xl text-blue-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-slate-800">مركز المعلومات المركزي</h3>
-                <p class="text-slate-600 mt-2">الوصول إلى جميع المعلومات والبيانات</p>
+            
+            <!-- Information Repository -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-folder-open text-blue-600"></i>
+                    مستودع المعلومات (${repository.length} مادة)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${repository.slice(0, 6).map(item => `
+                        <div class="border border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-md transition cursor-pointer">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-bold text-slate-800 text-sm">${item.title}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-blue-600 text-white">
+                                    ${item.category}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-3 line-clamp-2">${item.content ? item.content.substring(0, 100) + '...' : ''}</p>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <div>
+                                    <i class="fas fa-eye ml-1"></i>
+                                    ${item.views_count} مشاهدة
+                                </div>
+                                <div>
+                                    <i class="fas fa-lock ml-1"></i>
+                                    ${item.access_level}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Knowledge Base -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-question-circle text-indigo-600"></i>
+                    قاعدة المعرفة (${knowledgeBase.length} سؤال)
+                </h3>
+                <div class="space-y-3">
+                    ${knowledgeBase.map(kb => `
+                        <div class="border border-indigo-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
+                                    <i class="fas fa-question text-indigo-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-slate-800 mb-2">${kb.question}</h4>
+                                    <p class="text-sm text-slate-600 mb-3">${kb.answer}</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">
+                                            ${kb.category}
+                                        </span>
+                                        <div class="flex items-center gap-3 text-xs text-slate-500">
+                                            <div>
+                                                <i class="fas fa-thumbs-up text-green-500 ml-1"></i>
+                                                ${kb.helpful_count}
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-thumbs-down text-red-500 ml-1"></i>
+                                                ${kb.not_helpful_count}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>`;
     };
