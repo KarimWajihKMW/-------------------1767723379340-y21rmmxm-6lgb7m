@@ -70,6 +70,14 @@ const app = (() => {
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
             
+            // Check if response is actually JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const responseText = await response.text();
+                console.error(`❌ [fetchAPI] Expected JSON but got ${contentType} for ${endpoint}:`, responseText.substring(0, 200));
+                throw new Error(`Expected JSON response but got ${contentType}. Response starts with: ${responseText.substring(0, 100)}`);
+            }
+            
             const data = await response.json();
             console.log(`✅ [fetchAPI] Success for ${endpoint}:`, Array.isArray(data) ? `${data.length} items` : 'object');
             

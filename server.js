@@ -4139,35 +4139,10 @@ app.get('/api/hierarchy/entity/:type/:id', async (req, res) => {
   }
 });
 
-// Catch-all route for SPA - serve index.html for all non-API routes
-app.get('*', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
-
-// ========================================
-// Start Server
-// ========================================
-const HOST = process.env.HOST || '0.0.0.0';
-
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error('💥 Uncaught Exception:', error);
-  // Don't exit - let the process continue
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit - let the process continue
-});
-
 // ========================================
 // Strategic Management API Routes
 // ========================================
+// MUST BE BEFORE catch-all route!
 
 // Executive Management KPIs
 app.get('/api/executive-kpis', async (req, res) => {
@@ -4249,7 +4224,7 @@ app.get('/api/training-courses', async (req, res) => {
 // Skills Registry
 app.get('/api/skills', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM skills_registry ORDER BY skill_category, skill_name');
+    const result = await db.query('SELECT * FROM skills_registry ORDER BY skill_name ASC');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching skills:', error);
@@ -4260,7 +4235,7 @@ app.get('/api/skills', async (req, res) => {
 // Financial Policies
 app.get('/api/financial-policies', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM financial_policies WHERE status = $1 ORDER BY effective_date DESC', ['active']);
+    const result = await db.query('SELECT * FROM financial_policies ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching financial policies:', error);
@@ -4268,10 +4243,10 @@ app.get('/api/financial-policies', async (req, res) => {
   }
 });
 
-// Financial Operating Manual
+// Financial Manual
 app.get('/api/financial-manual', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM financial_operating_manual ORDER BY section_number');
+    const result = await db.query('SELECT * FROM financial_manual ORDER BY section_order ASC');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching financial manual:', error);
@@ -4282,7 +4257,7 @@ app.get('/api/financial-manual', async (req, res) => {
 // Financial News
 app.get('/api/financial-news', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM financial_news WHERE status = $1 ORDER BY published_date DESC LIMIT 10', ['published']);
+    const result = await db.query('SELECT * FROM financial_news ORDER BY published_date DESC LIMIT 20');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching financial news:', error);
@@ -4304,7 +4279,7 @@ app.get('/api/development-programs', async (req, res) => {
 // Quality Standards
 app.get('/api/quality-standards', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM quality_standards WHERE status = $1 ORDER BY standard_code', ['active']);
+    const result = await db.query('SELECT * FROM quality_standards ORDER BY standard_code ASC');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching quality standards:', error);
@@ -4323,10 +4298,10 @@ app.get('/api/quality-audits', async (req, res) => {
   }
 });
 
-// General Evaluations
+// Evaluations
 app.get('/api/evaluations', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM general_evaluations ORDER BY evaluation_date DESC');
+    const result = await db.query('SELECT * FROM evaluations ORDER BY evaluation_date DESC');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching evaluations:', error);
@@ -4337,7 +4312,7 @@ app.get('/api/evaluations', async (req, res) => {
 // Information Repository
 app.get('/api/information-repository', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM information_repository WHERE status = $1 ORDER BY views_count DESC', ['active']);
+    const result = await db.query('SELECT * FROM information_repository ORDER BY category, title');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching information repository:', error);
@@ -4355,6 +4330,33 @@ app.get('/api/knowledge-base', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Catch-all route for SPA - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// ========================================
+// Start Server
+// ========================================
+const HOST = process.env.HOST || '0.0.0.0';
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  console.error('💥 Uncaught Exception:', error);
+  // Don't exit - let the process continue
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit - let the process continue
+});
+
 
 const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 نظام نايوش يعمل على ${HOST}:${PORT}`);
