@@ -1199,6 +1199,18 @@ const app = (() => {
         else if (route === 'payment-reminders') content = renderPaymentReminders();
         else if (route === 'overdue-management') content = renderOverdueManagement();
         else if (route === 'payment-analytics') content = renderPaymentAnalytics();
+        // Supply Chain Routes
+        else if (route === 'purchases') content = renderPurchases();
+        else if (route === 'logistics') content = renderLogistics();
+        else if (route === 'inventory') content = renderInventory();
+        else if (route === 'suppliers') content = renderSuppliers();
+        else if (route === 'orders-delivery') content = renderOrdersDelivery();
+        else if (route === 'smart-procurement') content = renderSmartProcurement();
+        else if (route === 'manufacturing') content = renderManufacturing();
+        else if (route === 'product-lifecycle') content = renderProductLifecycle();
+        else if (route === 'maintenance') content = renderMaintenance();
+        else if (route === 'quality-control') content = renderQualityControl();
+        else if (route === 'safety') content = renderSafety();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1256,7 +1268,19 @@ const app = (() => {
             'information-center': 'مركز المعلومات',
             'identity-settings': 'إعدادات الهوية',
             'system-log': 'سجل النظام',
-            'reports': 'التقارير'
+            'reports': 'التقارير',
+            // Supply Chain subitems
+            'purchases': 'المشتريات',
+            'logistics': 'اللوجستيات والنقل والتوصيل',
+            'inventory': 'المخزون',
+            'suppliers': 'التعامل مع الموردين',
+            'orders-delivery': 'إدارة الطلبات والتسليم',
+            'smart-procurement': 'إدارة سلاسل التوريد والإمداد الذكي',
+            'manufacturing': 'التصنيع',
+            'product-lifecycle': 'حياة المنتج',
+            'maintenance': 'الصيانة',
+            'quality-control': 'مراقبة الجودة',
+            'safety': 'السلامة'
         };
         return map[r] || 'نظام نايوش';
     };
@@ -1397,6 +1421,25 @@ subItems: [
                     { id: 'salary-slips', icon: 'fa-receipt', label: 'قسائم الراتب' },
                     { id: 'attendance-register', icon: 'fa-fingerprint', label: 'تسجيل الحضور' },
                     { id: 'attendance-table', icon: 'fa-table', label: 'جدول الحضور' }
+                ]
+            },
+            {
+                id: 'supply-chain',
+                icon: 'fa-truck-loading',
+                label: 'سلاسل التوريد',
+                show: true,
+                subItems: [
+                    { id: 'purchases', icon: 'fa-shopping-cart', label: 'المشتريات' },
+                    { id: 'logistics', icon: 'fa-truck', label: 'اللوجستيات والنقل والتوصيل' },
+                    { id: 'inventory', icon: 'fa-boxes', label: 'المخزون' },
+                    { id: 'suppliers', icon: 'fa-handshake', label: 'التعامل مع الموردين' },
+                    { id: 'orders-delivery', icon: 'fa-clipboard-list', label: 'إدارة الطلبات والتسليم' },
+                    { id: 'smart-procurement', icon: 'fa-brain', label: 'إدارة سلاسل التوريد والإمداد الذكي' },
+                    { id: 'manufacturing', icon: 'fa-industry', label: 'التصنيع' },
+                    { id: 'product-lifecycle', icon: 'fa-recycle', label: 'حياة المنتج' },
+                    { id: 'maintenance', icon: 'fa-wrench', label: 'الصيانة' },
+                    { id: 'quality-control', icon: 'fa-check-double', label: 'مراقبة الجودة' },
+                    { id: 'safety', icon: 'fa-hard-hat', label: 'السلامة' }
                 ]
             },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
@@ -5811,6 +5854,695 @@ subItems: [
                     </div>
                 </div>`;
             }).join('')}
+        </div>`;
+    };
+
+    // Supply Chain Management Render Functions
+    const renderPurchases = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-shopping-cart"></i>
+                    المشتريات
+                </h2>
+                <p class="mt-2 opacity-90">إدارة طلبات الشراء والموافقات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">طلبات قيد الانتظار</span>
+                        <i class="fas fa-clock text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">طلبات معتمدة</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">45</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">إجمالي المشتريات</span>
+                        <i class="fas fa-dollar-sign text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$125,000</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متوسط وقت الموافقة</span>
+                        <i class="fas fa-hourglass-half text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">2.5 يوم</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.showToast('فتح نموذج طلب شراء جديد', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">طلب شراء جديد</span>
+                    </button>
+                    <button onclick="app.showToast('عرض الطلبات المعلقة', 'info')" class="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-right">
+                        <i class="fas fa-list text-yellow-600 ml-2"></i>
+                        <span class="font-bold text-yellow-700">الطلبات المعلقة</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير تقرير المشتريات', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تصدير التقرير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderLogistics = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-truck"></i>
+                    اللوجستيات والنقل والتوصيل
+                </h2>
+                <p class="mt-2 opacity-90">تتبع الشحنات وإدارة النقل</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">شحنات نشطة</span>
+                        <i class="fas fa-shipping-fast text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">28</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">في الطريق</span>
+                        <i class="fas fa-route text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">15</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">تم التسليم اليوم</span>
+                        <i class="fas fa-check-double text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">42</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متأخرة</span>
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">خريطة الشحنات</h3>
+                <div class="bg-slate-100 rounded-lg p-8 text-center">
+                    <i class="fas fa-map-marked-alt text-6xl text-slate-400 mb-4"></i>
+                    <p class="text-slate-600">عرض خريطة تتبع الشحنات في الوقت الفعلي</p>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderInventory = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-boxes"></i>
+                    المخزون
+                </h2>
+                <p class="mt-2 opacity-90">إدارة المخزون والمستودعات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">إجمالي الأصناف</span>
+                        <i class="fas fa-box text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1,245</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">أصناف منخفضة</span>
+                        <i class="fas fa-exclamation-circle text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">نفذت من المخزون</span>
+                        <i class="fas fa-times-circle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيمة المخزون</span>
+                        <i class="fas fa-dollar-sign text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$520,000</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إدارة المخزون</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.showToast('إضافة صنف جديد', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">إضافة صنف</span>
+                    </button>
+                    <button onclick="app.showToast('جرد المخزون', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-clipboard-list text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">جرد</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير المخزون', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-excel text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderSuppliers = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-handshake"></i>
+                    التعامل مع الموردين
+                </h2>
+                <p class="mt-2 opacity-90">إدارة العلاقات مع الموردين</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">موردون نشطون</span>
+                        <i class="fas fa-user-check text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">87</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">طلبات مفتوحة</span>
+                        <i class="fas fa-file-invoice text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">23</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متوسط التقييم</span>
+                        <i class="fas fa-star text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">4.5/5</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">إجمالي المدفوعات</span>
+                        <i class="fas fa-money-bill-wave text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$2.1M</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">أفضل الموردين</h3>
+                <div class="space-y-3">
+                    ${['شركة التوريدات المتقدمة', 'مؤسسة الجودة للتجارة', 'مجموعة الإمداد الذكي'].map((name, i) => `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
+                                    ${i + 1}
+                                </div>
+                                <span class="font-bold text-slate-800">${name}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-yellow-500">★★★★★</span>
+                                <span class="text-sm text-slate-600">4.${9-i}/5</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderOrdersDelivery = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-clipboard-list"></i>
+                    إدارة الطلبات والتسليم
+                </h2>
+                <p class="mt-2 opacity-90">تتبع الطلبات من البداية للنهاية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">طلبات جديدة</span>
+                        <i class="fas fa-inbox text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">18</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد التجهيز</span>
+                        <i class="fas fa-cog text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">32</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد الشحن</span>
+                        <i class="fas fa-truck text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">45</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">تم التسليم</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">حالة الطلبات</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-4">
+                        <span class="w-32 text-slate-600">جديدة</span>
+                        <div class="flex-1 bg-slate-200 rounded-full h-4">
+                            <div class="bg-blue-600 h-4 rounded-full" style="width: 15%"></div>
+                        </div>
+                        <span class="font-bold">15%</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="w-32 text-slate-600">قيد التجهيز</span>
+                        <div class="flex-1 bg-slate-200 rounded-full h-4">
+                            <div class="bg-orange-600 h-4 rounded-full" style="width: 30%"></div>
+                        </div>
+                        <span class="font-bold">30%</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="w-32 text-slate-600">قيد الشحن</span>
+                        <div class="flex-1 bg-slate-200 rounded-full h-4">
+                            <div class="bg-purple-600 h-4 rounded-full" style="width: 25%"></div>
+                        </div>
+                        <span class="font-bold">25%</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="w-32 text-slate-600">مكتملة</span>
+                        <div class="flex-1 bg-slate-200 rounded-full h-4">
+                            <div class="bg-green-600 h-4 rounded-full" style="width: 65%"></div>
+                        </div>
+                        <span class="font-bold">65%</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderSmartProcurement = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-brain"></i>
+                    إدارة سلاسل التوريد والإمداد الذكي
+                </h2>
+                <p class="mt-2 opacity-90">تحليلات وتوقعات ذكية للإمداد</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">كفاءة السلسلة</span>
+                        <i class="fas fa-chart-line text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">92%</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">توقعات الطلب</span>
+                        <i class="fas fa-crystal-ball text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">+15%</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">توفير التكاليف</span>
+                        <i class="fas fa-piggy-bank text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$45K</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">توصيات ذكية</h3>
+                <div class="space-y-3">
+                    ${[
+                        { text: 'يُنصح بطلب مواد خام إضافية بناءً على توقعات الطلب المتزايد', icon: 'fa-arrow-trend-up', color: 'blue' },
+                        { text: 'تحسين مسار الشحن يمكن أن يوفر 12% من تكاليف النقل', icon: 'fa-route', color: 'green' },
+                        { text: 'تقليل مستويات المخزون الزائد للصنف #1245 يوفر مساحة تخزين', icon: 'fa-warehouse', color: 'orange' }
+                    ].map(rec => `
+                        <div class="flex items-start gap-3 p-4 bg-${rec.color}-50 rounded-lg border border-${rec.color}-100">
+                            <i class="fas ${rec.icon} text-${rec.color}-600 mt-1"></i>
+                            <p class="text-slate-700">${rec.text}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderManufacturing = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-gray-700 to-gray-900 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-industry"></i>
+                    التصنيع
+                </h2>
+                <p class="mt-2 opacity-90">إدارة عمليات الإنتاج والتصنيع</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">خطوط الإنتاج النشطة</span>
+                        <i class="fas fa-cogs text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8/10</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الإنتاج اليومي</span>
+                        <i class="fas fa-box-open text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1,245</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الكفاءة</span>
+                        <i class="fas fa-tachometer-alt text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">87%</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">أوامر قيد التنفيذ</span>
+                        <i class="fas fa-tasks text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">أوامر الإنتاج</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <button onclick="app.showToast('إنشاء أمر إنتاج جديد', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">أمر إنتاج جديد</span>
+                    </button>
+                    <button onclick="app.showToast('عرض تقرير الإنتاج', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-bar text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير الإنتاج</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderProductLifecycle = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-recycle"></i>
+                    حياة المنتج
+                </h2>
+                <p class="mt-2 opacity-90">إدارة دورة حياة المنتج من البداية للنهاية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">منتجات نشطة</span>
+                        <i class="fas fa-cube text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">245</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد التطوير</span>
+                        <i class="fas fa-flask text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">في مرحلة النضج</span>
+                        <i class="fas fa-chart-line text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد الإيقاف</span>
+                        <i class="fas fa-stop-circle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">مراحل دورة الحياة</h3>
+                <div class="space-y-4">
+                    ${[
+                        { stage: 'التطوير', count: 12, color: 'purple', percent: 5 },
+                        { stage: 'التقديم', count: 23, color: 'blue', percent: 10 },
+                        { stage: 'النمو', count: 54, color: 'teal', percent: 22 },
+                        { stage: 'النضج', count: 156, color: 'green', percent: 63 },
+                        { stage: 'الانحدار', count: 8, color: 'red', percent: 3 }
+                    ].map(phase => `
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-bold text-slate-700">${phase.stage}</span>
+                                <span class="text-slate-600">${phase.count} منتج (${phase.percent}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3">
+                                <div class="bg-${phase.color}-600 h-3 rounded-full transition-all" style="width: ${phase.percent}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderMaintenance = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-wrench"></i>
+                    الصيانة
+                </h2>
+                <p class="mt-2 opacity-90">إدارة الصيانة الوقائية والتصحيحية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">طلبات صيانة مفتوحة</span>
+                        <i class="fas fa-tools text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">15</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">صيانة وقائية مجدولة</span>
+                        <i class="fas fa-calendar-check text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الاستجابة</span>
+                        <i class="fas fa-stopwatch text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">2.5 ساعة</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الإنجاز</span>
+                        <i class="fas fa-check-circle text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">94%</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">الصيانة الوقائية القادمة</h3>
+                <div class="space-y-3">
+                    ${[
+                        { equipment: 'خط الإنتاج A', date: '2026-01-25', type: 'وقائية' },
+                        { equipment: 'مولد كهربائي رئيسي', date: '2026-01-27', type: 'دورية' },
+                        { equipment: 'نظام التكييف المركزي', date: '2026-02-01', type: 'وقائية' }
+                    ].map(item => `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-wrench text-orange-600"></i>
+                                <div>
+                                    <p class="font-bold text-slate-800">${item.equipment}</p>
+                                    <p class="text-sm text-slate-600">نوع: ${item.type}</p>
+                                </div>
+                            </div>
+                            <span class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">${item.date}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderQualityControl = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-check-double"></i>
+                    مراقبة الجودة
+                </h2>
+                <p class="mt-2 opacity-90">ضمان الجودة والمعايير</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل القبول</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">98.5%</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">فحوصات اليوم</span>
+                        <i class="fas fa-clipboard-check text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">حالات الرفض</span>
+                        <i class="fas fa-times-circle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">شهادات نشطة</span>
+                        <i class="fas fa-certificate text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">معايير الجودة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${[
+                        { standard: 'ISO 9001:2015', status: 'معتمد', expiry: '2027-06-30', color: 'green' },
+                        { standard: 'ISO 14001', status: 'معتمد', expiry: '2026-12-31', color: 'green' },
+                        { standard: 'OHSAS 18001', status: 'قيد التجديد', expiry: '2026-03-15', color: 'yellow' },
+                        { standard: 'HACCP', status: 'معتمد', expiry: '2027-09-20', color: 'green' }
+                    ].map(cert => `
+                        <div class="p-4 border border-${cert.color}-200 bg-${cert.color}-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-bold text-slate-800">${cert.standard}</h4>
+                                <span class="text-xs px-2 py-1 bg-${cert.color}-200 text-${cert.color}-800 rounded-full font-bold">${cert.status}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">تنتهي في: ${cert.expiry}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderSafety = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-hard-hat"></i>
+                    السلامة
+                </h2>
+                <p class="mt-2 opacity-90">السلامة والصحة المهنية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">أيام بدون حوادث</span>
+                        <i class="fas fa-shield-alt text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">245</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">تدريبات السلامة</span>
+                        <i class="fas fa-user-graduate text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">فحوصات السلامة</span>
+                        <i class="fas fa-clipboard-list text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8/8</h3>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدات السلامة</span>
+                        <i class="fas fa-box text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">100%</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">خطط الطوارئ</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    ${[
+                        { plan: 'خطة الإخلاء في حالة الحريق', status: 'محدثة', icon: 'fa-fire-extinguisher', color: 'red' },
+                        { plan: 'خطة الاستجابة للزلازل', status: 'محدثة', icon: 'fa-house-crack', color: 'orange' },
+                        { plan: 'خطة الطوارئ الطبية', status: 'محدثة', icon: 'fa-briefcase-medical', color: 'blue' }
+                    ].map(plan => `
+                        <div class="p-4 bg-${plan.color}-50 border border-${plan.color}-100 rounded-lg">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fas ${plan.icon} text-${plan.color}-600 text-xl"></i>
+                                <h4 class="font-bold text-slate-800">${plan.plan}</h4>
+                            </div>
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold">${plan.status}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">التدريبات القادمة</h3>
+                <div class="space-y-3">
+                    ${[
+                        { training: 'تدريب الإخلاء', date: '2026-01-28', participants: 45 },
+                        { training: 'الإسعافات الأولية', date: '2026-02-05', participants: 20 },
+                        { training: 'السلامة من الحرائق', date: '2026-02-15', participants: 30 }
+                    ].map(tr => `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-calendar-alt text-blue-600"></i>
+                                <div>
+                                    <p class="font-bold text-slate-800">${tr.training}</p>
+                                    <p class="text-sm text-slate-600">${tr.participants} مشارك</p>
+                                </div>
+                            </div>
+                            <span class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">${tr.date}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
         </div>`;
     };
 

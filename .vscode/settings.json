@@ -589,6 +589,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js && node -c server\\.js && echo \"✅ اختبار البناء نجح - لا توجد أخطاء!\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c server\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
