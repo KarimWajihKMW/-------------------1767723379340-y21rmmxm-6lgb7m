@@ -1218,6 +1218,17 @@ const app = (() => {
         else if (route === 'quotes-contracts') content = renderQuotesContracts();
         else if (route === 'commissions') content = renderCommissions();
         else if (route === 'order-tracking') content = renderOrderTracking();
+        // Internet & Automation Routes
+        else if (route === 'ai-integration') content = renderAIIntegration();
+        else if (route === 'governance') content = renderGovernance();
+        else if (route === 'compliance') content = renderCompliance();
+        else if (route === 'iot') content = renderIOT();
+        else if (route === 'elearning') content = renderELearning();
+        else if (route === 'forum') content = renderForum();
+        else if (route === 'etiquette') content = renderEtiquette();
+        else if (route === 'knowledge') content = renderKnowledge();
+        else if (route === 'intellectual-property') content = renderIntellectualProperty();
+        else if (route === 'visitor-chat') content = renderVisitorChat();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1294,7 +1305,18 @@ const app = (() => {
             'pos': 'نظام نقاط البيع التشابكي',
             'quotes-contracts': 'العروض والعقود',
             'commissions': 'نظام العمولات',
-            'order-tracking': 'تتبع الطلبات والشحنات'
+            'order-tracking': 'تتبع الطلبات والشحنات',
+            // Internet & Automation subitems
+            'ai-integration': 'الذكاء الإصطناعي',
+            'governance': 'الحوكمة',
+            'compliance': 'الموائمة',
+            'iot': 'انترنت الأشياء',
+            'elearning': 'التعلم الإلكتروني',
+            'forum': 'المنتدى',
+            'etiquette': 'الإتيكيت وبروتوكولات التواصل',
+            'knowledge': 'المعرفة والتحليل',
+            'intellectual-property': 'الملكية الفكرية',
+            'visitor-chat': 'الدردشة مع الزوار'
         };
         return map[r] || 'نظام نايوش';
     };
@@ -1468,6 +1490,24 @@ subItems: [
                     { id: 'quotes-contracts', icon: 'fa-file-contract', label: 'العروض والعقود' },
                     { id: 'commissions', icon: 'fa-percentage', label: 'نظام العمولات' },
                     { id: 'order-tracking', icon: 'fa-shipping-fast', label: 'تتبع الطلبات والشحنات' }
+                ]
+            },
+            {
+                id: 'internet-automation',
+                icon: 'fa-robot',
+                label: 'الإنترنت والأتمتة',
+                show: true,
+                subItems: [
+                    { id: 'ai-integration', icon: 'fa-brain', label: 'الذكاء الإصطناعي' },
+                    { id: 'governance', icon: 'fa-gavel', label: 'الحوكمة' },
+                    { id: 'compliance', icon: 'fa-balance-scale', label: 'الموائمة' },
+                    { id: 'iot', icon: 'fa-network-wired', label: 'انترنت الأشياء' },
+                    { id: 'elearning', icon: 'fa-graduation-cap', label: 'التعلم الإلكتروني' },
+                    { id: 'forum', icon: 'fa-comments', label: 'المنتدى' },
+                    { id: 'etiquette', icon: 'fa-user-tie', label: 'الإتيكيت وبروتوكولات التواصل' },
+                    { id: 'knowledge', icon: 'fa-lightbulb', label: 'المعرفة والتحليل' },
+                    { id: 'intellectual-property', icon: 'fa-copyright', label: 'الملكية الفكرية' },
+                    { id: 'visitor-chat', icon: 'fa-comment-dots', label: 'الدردشة مع الزوار' }
                 ]
             },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
@@ -7304,6 +7344,1270 @@ subItems: [
                     <button onclick="app.showToast('بحث عن الطلب...', 'info')" class="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-bold">
                         <i class="fas fa-search ml-2"></i>
                         بحث
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // Internet & Automation Render Functions
+    const renderAIIntegration = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-brain"></i>
+                    الذكاء الإصطناعي
+                </h2>
+                <p class="mt-2 opacity-90">إمكانية التدخل الذكاء الإصطناعي في كافة العمليات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">نماذج نشطة</span>
+                        <i class="fas fa-robot text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">15</h3>
+                    <p class="text-sm text-green-600 mt-1">+3 هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">دقة التوقعات</span>
+                        <i class="fas fa-chart-line text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">94.7%</h3>
+                    <p class="text-sm text-slate-600 mt-1">متوسط الدقة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عمليات مؤتمتة</span>
+                        <i class="fas fa-cogs text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1,234</h3>
+                    <p class="text-sm text-green-600 mt-1">هذا الأسبوع</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">وقت موفّر</span>
+                        <i class="fas fa-clock text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">456</h3>
+                    <p class="text-sm text-orange-600 mt-1">ساعة/شهر</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">نماذج الذكاء الإصطناعي</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'التنبؤ بالمبيعات', accuracy: 96.2, status: 'نشط', color: 'green' },
+                            { name: 'تحليل سلوك العملاء', accuracy: 94.5, status: 'نشط', color: 'green' },
+                            { name: 'تحسين المخزون', accuracy: 93.8, status: 'نشط', color: 'green' },
+                            { name: 'كشف الاحتيال', accuracy: 98.1, status: 'نشط', color: 'green' },
+                            { name: 'توصيات المنتجات', accuracy: 91.4, status: 'قيد التدريب', color: 'yellow' }
+                        ].map(model => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${model.name}</p>
+                                    <span class="text-xs px-3 py-1 bg-${model.color}-100 text-${model.color}-700 rounded-full font-bold">${model.status}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-slate-600">دقة النموذج</span>
+                                    <span class="font-bold text-purple-600">${model.accuracy}%</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المهام المؤتمتة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { task: 'معالجة الطلبات', count: 456, savings: '120 ساعة' },
+                            { task: 'ردود العملاء التلقائية', count: 789, savings: '95 ساعة' },
+                            { task: 'تصنيف البريد الإلكتروني', count: 1234, savings: '80 ساعة' },
+                            { task: 'إنشاء التقارير', count: 234, savings: '65 ساعة' },
+                            { task: 'تحديث قاعدة البيانات', count: 567, savings: '96 ساعة' }
+                        ].map((auto, i) => `
+                            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        ${i + 1}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${auto.task}</p>
+                                        <p class="text-sm text-slate-600">${auto.count} عملية</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-green-600">${auto.savings}</p>
+                                    <p class="text-xs text-slate-500">موفرة</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة نموذج جديد', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">نموذج جديد</span>
+                    </button>
+                    <button onclick="app.showToast('تدريب النماذج', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-graduation-cap text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تدريب</span>
+                    </button>
+                    <button onclick="app.showToast('تقييم الأداء', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-bar text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقييم</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير البيانات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderGovernance = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-gray-700 to-slate-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-gavel"></i>
+                    الحوكمة
+                </h2>
+                <p class="mt-2 opacity-90">والأنظمة المرتبطة بها من الذكاء الإصطناعي</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">السياسات النشطة</span>
+                        <i class="fas fa-file-contract text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">47</h3>
+                    <p class="text-sm text-slate-600 mt-1">قيد التطبيق</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الامتثال</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">98.5%</h3>
+                    <p class="text-sm text-green-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التدقيقات الشهرية</span>
+                        <i class="fas fa-clipboard-check text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-purple-600 mt-1">مكتملة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التنبيهات</span>
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                    <p class="text-sm text-red-600 mt-1">تحتاج اهتمام</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أطر الحوكمة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { framework: 'حماية البيانات (GDPR)', compliance: 100, status: 'ملتزم', color: 'green' },
+                            { framework: 'الأمن السيبراني (ISO 27001)', compliance: 98, status: 'ملتزم', color: 'green' },
+                            { framework: 'أخلاقيات الذكاء الإصطناعي', compliance: 96, status: 'ملتزم', color: 'green' },
+                            { framework: 'إدارة المخاطر', compliance: 94, status: 'قيد المراجعة', color: 'yellow' },
+                            { framework: 'الشفافية والمساءلة', compliance: 92, status: 'قيد التحسين', color: 'orange' }
+                        ].map(fw => `
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${fw.framework}</p>
+                                    <span class="text-xs px-3 py-1 bg-${fw.color}-100 text-${fw.color}-700 rounded-full font-bold">${fw.status}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2">
+                                    <div class="bg-${fw.color}-600 h-2 rounded-full transition-all" style="width: ${fw.compliance}%"></div>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-1">${fw.compliance}% امتثال</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تدقيقات حديثة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { audit: 'مراجعة أمن البيانات', date: '2026-01-15', result: 'ناجح', score: 98 },
+                            { audit: 'فحص الامتثال للخصوصية', date: '2026-01-10', result: 'ناجح', score: 96 },
+                            { audit: 'تقييم المخاطر', date: '2026-01-05', result: 'قيد المراجعة', score: 94 },
+                            { audit: 'مراجعة السياسات', date: '2025-12-28', result: 'ناجح', score: 100 }
+                        ].map(audit => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${audit.audit}</p>
+                                        <p class="text-sm text-slate-600">${audit.date}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-lg font-bold text-purple-600">${audit.score}%</p>
+                                        <p class="text-xs text-slate-500">${audit.result}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة سياسة جديدة', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">سياسة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة تدقيق', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-check text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">جدولة تدقيق</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الامتثال', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-pie text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير السياسات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderCompliance = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-balance-scale"></i>
+                    الموائمة
+                </h2>
+                <p class="mt-2 opacity-90">ضمان التوافق مع المعايير والأنظمة المحلية والدولية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المعايير النشطة</span>
+                        <i class="fas fa-certificate text-teal-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">28</h3>
+                    <p class="text-sm text-green-600 mt-1">+2 هذا الربع</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل التوافق</span>
+                        <i class="fas fa-check-double text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">97.8%</h3>
+                    <p class="text-sm text-green-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الشهادات</span>
+                        <i class="fas fa-award text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">15</h3>
+                    <p class="text-sm text-blue-600 mt-1">سارية</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد التجديد</span>
+                        <i class="fas fa-sync text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">4</h3>
+                    <p class="text-sm text-orange-600 mt-1">هذا الشهر</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المعايير والشهادات</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { standard: 'ISO 9001 - إدارة الجودة', status: 'نشط', expiry: '2026-12-31', color: 'green' },
+                            { standard: 'ISO 27001 - أمن المعلومات', status: 'نشط', expiry: '2026-08-15', color: 'green' },
+                            { standard: 'GDPR - حماية البيانات', status: 'نشط', expiry: 'دائم', color: 'green' },
+                            { standard: 'SOC 2 - أمن الخدمات السحابية', status: 'قيد التجديد', expiry: '2026-02-28', color: 'orange' },
+                            { standard: 'PCI DSS - أمن بطاقات الدفع', status: 'نشط', expiry: '2027-01-15', color: 'green' }
+                        ].map(cert => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${cert.standard}</p>
+                                    <span class="text-xs px-3 py-1 bg-${cert.color}-100 text-${cert.color}-700 rounded-full font-bold">${cert.status}</span>
+                                </div>
+                                <p class="text-sm text-slate-600">صالحة حتى: ${cert.expiry}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تقييمات التوافق</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { area: 'حماية البيانات', score: 98, level: 'ممتاز' },
+                            { area: 'أمن المعلومات', score: 96, level: 'ممتاز' },
+                            { area: 'إدارة الجودة', score: 97, level: 'ممتاز' },
+                            { area: 'الخصوصية', score: 95, level: 'جيد جداً' },
+                            { area: 'الأمن السيبراني', score: 94, level: 'جيد جداً' }
+                        ].map(assessment => `
+                            <div class="p-3 bg-teal-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${assessment.area}</p>
+                                    <span class="font-bold text-teal-600">${assessment.score}%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2">
+                                    <div class="bg-teal-600 h-2 rounded-full transition-all" style="width: ${assessment.score}%"></div>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-1">${assessment.level}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('طلب شهادة جديدة', 'info')" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition text-right">
+                        <i class="fas fa-certificate text-teal-600 ml-2"></i>
+                        <span class="font-bold text-teal-700">شهادة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة تقييم', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-clipboard-list text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تقييم</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير التوافق', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير الشهادات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderIOT = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-network-wired"></i>
+                    انترنت الأشياء (IoT)
+                </h2>
+                <p class="mt-2 opacity-90">إدارة ومراقبة الأجهزة المتصلة والمستشعرات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الأجهزة المتصلة</span>
+                        <i class="fas fa-microchip text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">347</h3>
+                    <p class="text-sm text-green-600 mt-1">+23 هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">نشطة الآن</span>
+                        <i class="fas fa-signal text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">328</h3>
+                    <p class="text-sm text-slate-600 mt-1">94.5% متصلة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">نقاط البيانات/يوم</span>
+                        <i class="fas fa-database text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1.2M</h3>
+                    <p class="text-sm text-purple-600 mt-1">مليون</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التنبيهات</span>
+                        <i class="fas fa-bell text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">7</h3>
+                    <p class="text-sm text-orange-600 mt-1">تحتاج انتباه</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">فئات الأجهزة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { category: 'مستشعرات الحرارة', count: 89, status: 'نشط', color: 'red' },
+                            { category: 'كاميرات المراقبة', count: 45, status: 'نشط', color: 'blue' },
+                            { category: 'أجهزة التتبع', count: 67, status: 'نشط', color: 'green' },
+                            { category: 'عدادات ذكية', count: 78, status: 'نشط', color: 'purple' },
+                            { category: 'أنظمة التحكم', count: 68, status: 'نشط', color: 'orange' }
+                        ].map(device => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-${device.color}-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-microchip text-${device.color}-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${device.category}</p>
+                                        <p class="text-sm text-slate-600">${device.count} جهاز</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold">${device.status}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">القراءات الحية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { sensor: 'الطاقة المستهلكة', value: '234.5 kWh', trend: '+2.3%', color: 'green' },
+                            { sensor: 'درجة الحرارة المتوسطة', value: '22.5°C', trend: '+0.5°C', color: 'blue' },
+                            { sensor: 'استهلاك المياه', value: '145.2 L', trend: '-1.2%', color: 'cyan' },
+                            { sensor: 'مستوى الرطوبة', value: '45%', trend: '+3%', color: 'purple' },
+                            { sensor: 'جودة الهواء', value: 'جيد', trend: 'مستقر', color: 'green' }
+                        ].map(reading => `
+                            <div class="p-3 bg-${reading.color}-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${reading.sensor}</p>
+                                    <span class="text-xs text-slate-600">${reading.trend}</span>
+                                </div>
+                                <p class="text-2xl font-black text-${reading.color}-600">${reading.value}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة جهاز جديد', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">جهاز جديد</span>
+                    </button>
+                    <button onclick="app.showToast('مراقبة البيانات', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-line text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">مراقبة</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الأداء', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-chart-line text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير البيانات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderELearning = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-graduation-cap"></i>
+                    التعلم الإلكتروني
+                </h2>
+                <p class="mt-2 opacity-90">منصة تعليمية شاملة للتدريب والتطوير المهني</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الدورات المتاحة</span>
+                        <i class="fas fa-book text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                    <p class="text-sm text-green-600 mt-1">+12 هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المتعلمون النشطون</span>
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">2,847</h3>
+                    <p class="text-sm text-blue-600 mt-1">متدرب</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الإكمال</span>
+                        <i class="fas fa-check-circle text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">78.5%</h3>
+                    <p class="text-sm text-green-600 mt-1">+5% تحسن</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الشهادات الصادرة</span>
+                        <i class="fas fa-certificate text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1,234</h3>
+                    <p class="text-sm text-orange-600 mt-1">هذا الشهر</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أشهر الدورات</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { course: 'إدارة المشاريع الاحترافية', students: 456, progress: 85, rating: 4.8 },
+                            { course: 'الذكاء الإصطناعي للأعمال', students: 389, progress: 78, rating: 4.9 },
+                            { course: 'تحليل البيانات المتقدم', students: 345, progress: 82, rating: 4.7 },
+                            { course: 'التسويق الرقمي', students: 298, progress: 90, rating: 4.6 },
+                            { course: 'القيادة والإدارة', students: 267, progress: 75, rating: 4.8 }
+                        ].map((course, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                                            ${i + 1}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${course.course}</p>
+                                            <p class="text-sm text-slate-600">${course.students} متدرب</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-yellow-500">★</span>
+                                            <span class="font-bold text-slate-800">${course.rating}</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500">${course.progress}% مكتمل</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الأداء التعليمي</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { metric: 'معدل الحضور', value: '92.3%', trend: '+2.1%', color: 'green' },
+                            { metric: 'متوسط الدرجات', value: '85.7%', trend: '+3.5%', color: 'blue' },
+                            { metric: 'وقت التعلم/يومياً', value: '2.5 ساعة', trend: '+0.3', color: 'purple' },
+                            { metric: 'التفاعل في المنتديات', value: '78%', trend: '+5%', color: 'orange' },
+                            { metric: 'رضا المتدربين', value: '4.7/5', trend: 'مستقر', color: 'green' }
+                        ].map(metric => `
+                            <div class="p-3 bg-${metric.color}-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${metric.metric}</p>
+                                    <span class="text-xs text-slate-600">${metric.trend}</span>
+                                </div>
+                                <p class="text-2xl font-black text-${metric.color}-600">${metric.value}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة دورة جديدة', 'info')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">دورة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('إنشاء اختبار', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">اختبار جديد</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الأداء', 'success')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-bar text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('إصدار شهادات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-certificate text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">شهادات</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderForum = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-comments"></i>
+                    المنتدى
+                </h2>
+                <p class="mt-2 opacity-90">منصة تواصل وتبادل المعرفة والخبرات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الأعضاء النشطون</span>
+                        <i class="fas fa-users text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">3,456</h3>
+                    <p class="text-sm text-green-600 mt-1">+234 هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المناقشات</span>
+                        <i class="fas fa-comments text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">789</h3>
+                    <p class="text-sm text-blue-600 mt-1">نشطة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المشاركات اليوم</span>
+                        <i class="fas fa-comment text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">456</h3>
+                    <p class="text-sm text-green-600 mt-1">مشاركة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل التفاعل</span>
+                        <i class="fas fa-heart text-red-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">87.5%</h3>
+                    <p class="text-sm text-red-600 mt-1">ممتاز</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المناقشات الأكثر نشاطاً</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { topic: 'أفضل ممارسات الذكاء الإصطناعي', replies: 234, views: 1234, author: 'أحمد محمد' },
+                            { topic: 'استراتيجيات التسويق الرقمي 2026', replies: 189, views: 987, author: 'سارة علي' },
+                            { topic: 'تحسين الأداء التشغيلي', replies: 156, views: 876, author: 'خالد إبراهيم' },
+                            { topic: 'إدارة المشاريع الإحترافية', replies: 145, views: 765, author: 'فاطمة حسن' },
+                            { topic: 'الأمن السيبراني والحماية', replies: 134, views: 654, author: 'محمود أحمد' }
+                        ].map((topic, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                        ${i + 1}
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-slate-800 mb-1">${topic.topic}</p>
+                                        <div class="flex items-center gap-4 text-sm text-slate-600">
+                                            <span><i class="fas fa-user ml-1"></i>${topic.author}</span>
+                                            <span><i class="fas fa-comments ml-1"></i>${topic.replies}</span>
+                                            <span><i class="fas fa-eye ml-1"></i>${topic.views}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أقسام المنتدى</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { category: 'التقنية والذكاء الإصطناعي', topics: 156, posts: 2340, icon: 'fa-robot' },
+                            { category: 'الأعمال والإدارة', topics: 134, posts: 1890, icon: 'fa-briefcase' },
+                            { category: 'التسويق والمبيعات', topics: 98, posts: 1456, icon: 'fa-chart-line' },
+                            { category: 'التطوير المهني', topics: 87, posts: 1234, icon: 'fa-graduation-cap' },
+                            { category: 'عام', topics: 234, posts: 3456, icon: 'fa-comments' }
+                        ].map(cat => `
+                            <div class="p-3 bg-purple-50 rounded-lg hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white">
+                                            <i class="fas ${cat.icon}"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${cat.category}</p>
+                                            <p class="text-sm text-slate-600">${cat.topics} موضوع • ${cat.posts} مشاركة</p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-left text-slate-400"></i>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إنشاء موضوع جديد', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">موضوع جديد</span>
+                    </button>
+                    <button onclick="app.showToast('البحث في المنتدى', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-search text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">بحث</span>
+                    </button>
+                    <button onclick="app.showToast('الأعضاء النشطون', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-users text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">الأعضاء</span>
+                    </button>
+                    <button onclick="app.showToast('إحصائيات المنتدى', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-bar text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">إحصائيات</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderEtiquette = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-rose-600 to-pink-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-user-tie"></i>
+                    الإتيكيت وبروتوكولات التواصل
+                </h2>
+                <p class="mt-2 opacity-90">معايير الأعمال والمراسلات الرسمية والتواصل المهني</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">البروتوكولات النشطة</span>
+                        <i class="fas fa-file-contract text-rose-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">23</h3>
+                    <p class="text-sm text-slate-600 mt-1">قيد التطبيق</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الالتزام</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">96.8%</h3>
+                    <p class="text-sm text-green-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">دورات تدريبية</span>
+                        <i class="fas fa-graduation-cap text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-blue-600 mt-1">متاحة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">الشهادات الصادرة</span>
+                        <i class="fas fa-award text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">456</h3>
+                    <p class="text-sm text-purple-600 mt-1">هذا الربع</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">بروتوكولات التواصل</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { protocol: 'المراسلات الرسمية', completion: 98, status: 'نشط' },
+                            { protocol: 'آداب الاجتماعات', completion: 96, status: 'نشط' },
+                            { protocol: 'التواصل عبر البريد', completion: 97, status: 'نشط' },
+                            { protocol: 'آداب المكالمات الهاتفية', completion: 95, status: 'نشط' },
+                            { protocol: 'التواصل مع العملاء', completion: 99, status: 'نشط' }
+                        ].map(proto => `
+                            <div class="p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-bold text-slate-800">${proto.protocol}</p>
+                                    <span class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold">${proto.status}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2">
+                                    <div class="bg-rose-600 h-2 rounded-full transition-all" style="width: ${proto.completion}%"></div>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-1">${proto.completion}% التزام</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الدورات التدريبية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { course: 'إتيكيت الأعمال الدولي', students: 234, rating: 4.9 },
+                            { course: 'فن التواصل المهني', students: 189, rating: 4.8 },
+                            { course: 'المراسلات الرسمية الفعّالة', students: 156, rating: 4.7 },
+                            { course: 'آداب الاجتماعات والعروض', students: 145, rating: 4.8 },
+                            { course: 'التعامل مع VIP والشخصيات', students: 123, rating: 4.9 }
+                        ].map((course, i) => `
+                            <div class="flex items-center justify-between p-3 bg-rose-50 rounded-lg hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-rose-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        ${i + 1}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${course.course}</p>
+                                        <p class="text-sm text-slate-600">${course.students} متدرب</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">★</span>
+                                        <span class="font-bold text-slate-800">${course.rating}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة بروتوكول جديد', 'info')" class="p-4 bg-rose-50 hover:bg-rose-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-rose-600 ml-2"></i>
+                        <span class="font-bold text-rose-700">بروتوكول جديد</span>
+                    </button>
+                    <button onclick="app.showToast('التسجيل في دورة', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-user-plus text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تسجيل</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الالتزام', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-line text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('دليل الإتيكيت', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-book text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">الدليل</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderKnowledge = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-amber-600 to-yellow-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-lightbulb"></i>
+                    المعرفة والتحليل
+                </h2>
+                <p class="mt-2 opacity-90">إدارة المعلومات والبيانات والتحليلات الذكية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قواعد المعرفة</span>
+                        <i class="fas fa-database text-amber-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">47</h3>
+                    <p class="text-sm text-green-600 mt-1">+5 هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">المقالات المنشورة</span>
+                        <i class="fas fa-file-alt text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1,234</h3>
+                    <p class="text-sm text-blue-600 mt-1">مقالة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">التقارير التحليلية</span>
+                        <i class="fas fa-chart-pie text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">89</h3>
+                    <p class="text-sm text-purple-600 mt-1">نشط</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الاستخدام</span>
+                        <i class="fas fa-users text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">94.2%</h3>
+                    <p class="text-sm text-green-600 mt-1">نشط</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">قواعد المعرفة النشطة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { kb: 'الدليل التشغيلي', articles: 234, category: 'عمليات', color: 'blue' },
+                            { kb: 'السياسات والإجراءات', articles: 189, category: 'إداري', color: 'purple' },
+                            { kb: 'الأسئلة الشائعة', articles: 456, category: 'دعم', color: 'green' },
+                            { kb: 'أفضل الممارسات', articles: 178, category: 'تطوير', color: 'orange' },
+                            { kb: 'المعايير التقنية', articles: 156, category: 'تقني', color: 'red' }
+                        ].map((kb, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-${kb.color}-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-book text-${kb.color}-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${kb.kb}</p>
+                                            <p class="text-sm text-slate-600">${kb.articles} مقال • ${kb.category}</p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-left text-slate-400"></i>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">لوحات التحليل</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { dashboard: 'تحليل المبيعات', users: 456, updates: 'يومي', icon: 'fa-chart-line' },
+                            { dashboard: 'أداء الموظفين', users: 234, updates: 'أسبوعي', icon: 'fa-users' },
+                            { dashboard: 'الأداء المالي', users: 189, updates: 'شهري', icon: 'fa-dollar-sign' },
+                            { dashboard: 'رضا العملاء', users: 345, updates: 'يومي', icon: 'fa-smile' },
+                            { dashboard: 'العمليات التشغيلية', users: 278, updates: 'يومي', icon: 'fa-cogs' }
+                        ].map((dash, i) => `
+                            <div class="p-3 bg-amber-50 rounded-lg hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-amber-600 rounded-full flex items-center justify-center text-white">
+                                            <i class="fas ${dash.icon}"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${dash.dashboard}</p>
+                                            <p class="text-sm text-slate-600">${dash.users} مستخدم • تحديث ${dash.updates}</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="app.showToast('فتح ${dash.dashboard}', 'info')" class="px-3 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition text-sm">
+                                        عرض
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة مقال جديد', 'info')" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-amber-600 ml-2"></i>
+                        <span class="font-bold text-amber-700">مقال جديد</span>
+                    </button>
+                    <button onclick="app.showToast('إنشاء تقرير تحليلي', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-bar text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تقرير جديد</span>
+                    </button>
+                    <button onclick="app.showToast('البحث في المعرفة', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-search text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">بحث</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير البيانات', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderIntellectualProperty = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-copyright"></i>
+                    الملكية الفكرية
+                </h2>
+                <p class="mt-2 opacity-90">وحقوق العلامة التجارية والبراءات والتصاميم</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">العلامات المسجلة</span>
+                        <i class="fas fa-registered text-violet-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                    <p class="text-sm text-green-600 mt-1">+3 هذا الربع</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">براءات الاختراع</span>
+                        <i class="fas fa-lightbulb text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-orange-600 mt-1">نشطة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">حقوق الملكية</span>
+                        <i class="fas fa-shield-alt text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">89</h3>
+                    <p class="text-sm text-blue-600 mt-1">محمية</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد التجديد</span>
+                        <i class="fas fa-sync text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">5</h3>
+                    <p class="text-sm text-green-600 mt-1">هذا الشهر</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">العلامات التجارية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { trademark: 'Nayosh® - العلامة الرئيسية', status: 'نشطة', expiry: '2028-12-31', class: 'خدمات تقنية' },
+                            { trademark: 'Nayosh ERP™', status: 'نشطة', expiry: '2027-08-15', class: 'برمجيات' },
+                            { trademark: 'Smart Management©', status: 'قيد التجديد', expiry: '2026-06-30', class: 'استشارات' },
+                            { trademark: 'Digital Solutions®', status: 'نشطة', expiry: '2029-03-20', class: 'خدمات رقمية' },
+                            { trademark: 'Innovation Hub™', status: 'نشطة', expiry: '2027-11-10', class: 'تدريب' }
+                        ].map((tm, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-copyright text-violet-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${tm.trademark}</p>
+                                            <p class="text-sm text-slate-600">${tm.class}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs px-3 py-1 bg-${tm.status === 'نشطة' ? 'green' : 'orange'}-100 text-${tm.status === 'نشطة' ? 'green' : 'orange'}-700 rounded-full font-bold">${tm.status}</span>
+                                </div>
+                                <p class="text-sm text-slate-600">صالحة حتى: ${tm.expiry}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">براءات الاختراع</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { patent: 'نظام إدارة ذكي متعدد المستأجرين', num: 'PAT-2024-001', status: 'نشط' },
+                            { patent: 'خوارزمية التنبؤ بالمبيعات', num: 'PAT-2024-002', status: 'نشط' },
+                            { patent: 'نظام الموافقات التلقائية', num: 'PAT-2023-045', status: 'نشط' },
+                            { patent: 'تقنية الحوكمة بالذكاء الإصطناعي', num: 'PAT-2025-012', status: 'قيد المراجعة' },
+                            { patent: 'منصة IoT للأعمال', num: 'PAT-2025-023', status: 'قيد المراجعة' }
+                        ].map((patent, i) => `
+                            <div class="p-3 bg-violet-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-violet-600 rounded-full flex items-center justify-center text-white font-bold">
+                                            ${i + 1}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${patent.patent}</p>
+                                            <p class="text-sm text-slate-600">${patent.num}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs px-3 py-1 bg-${patent.status === 'نشط' ? 'green' : 'yellow'}-100 text-${patent.status === 'نشط' ? 'green' : 'yellow'}-700 rounded-full font-bold">${patent.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('تسجيل علامة جديدة', 'info')" class="p-4 bg-violet-50 hover:bg-violet-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-violet-600 ml-2"></i>
+                        <span class="font-bold text-violet-700">علامة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('طلب براءة اختراع', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-lightbulb text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">براءة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الملكية', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير السجلات', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderVisitorChat = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-comment-dots"></i>
+                    الدردشة مع الزوار
+                </h2>
+                <p class="mt-2 opacity-90">مباشر عبر وكيل اصطناعي - دعم فوري ذكي 24/7</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">محادثات نشطة</span>
+                        <i class="fas fa-comments text-emerald-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">47</h3>
+                    <p class="text-sm text-green-600 mt-1">جارية الآن</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">اليوم</span>
+                        <i class="fas fa-calendar-day text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">234</h3>
+                    <p class="text-sm text-blue-600 mt-1">محادثة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الرضا</span>
+                        <i class="fas fa-smile text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">96.8%</h3>
+                    <p class="text-sm text-green-600 mt-1">ممتاز</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">وقت الاستجابة</span>
+                        <i class="fas fa-clock text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">2.3s</h3>
+                    <p class="text-sm text-orange-600 mt-1">متوسط</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">المحادثات النشطة</h3>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        ${[
+                            { visitor: 'أحمد محمد', message: 'ما هي خطط الاشتراك المتاحة؟', time: 'الآن', status: 'نشط', type: 'AI' },
+                            { visitor: 'سارة علي', message: 'هل يمكنني جدولة عرض توضيحي؟', time: '1 دقيقة', status: 'نشط', type: 'AI' },
+                            { visitor: 'خالد إبراهيم', message: 'كيف أقوم بإعادة تعيين كلمة المرور؟', time: '3 دقائق', status: 'نشط', type: 'AI' },
+                            { visitor: 'فاطمة حسن', message: 'أحتاج مساعدة في الفواتير', time: '5 دقائق', status: 'تحويل', type: 'Human' },
+                            { visitor: 'محمود أحمد', message: 'استفسار عن الأسعار', time: '7 دقائق', status: 'نشط', type: 'AI' }
+                        ].map((chat, i) => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition cursor-pointer border-r-4 border-${chat.type === 'AI' ? 'emerald' : 'blue'}-500">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">${chat.visitor}</p>
+                                            <p class="text-sm text-slate-600 truncate">${chat.message}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex flex-col items-end gap-1">
+                                        <span class="text-xs px-2 py-1 bg-${chat.type === 'AI' ? 'emerald' : 'blue'}-100 text-${chat.type === 'AI' ? 'emerald' : 'blue'}-700 rounded-full font-bold">${chat.type}</span>
+                                        <span class="text-xs text-slate-500">${chat.time}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">إحصائيات الوكيل الذكي</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { metric: 'استفسارات تم حلها تلقائياً', value: '87.5%', color: 'emerald', icon: 'fa-check-circle' },
+                            { metric: 'دقة الإجابات', value: '96.2%', color: 'blue', icon: 'fa-bullseye' },
+                            { metric: 'محادثات محولة للبشر', value: '12.5%', color: 'purple', icon: 'fa-exchange-alt' },
+                            { metric: 'وقت الحل المتوسط', value: '45 ثانية', color: 'orange', icon: 'fa-stopwatch' },
+                            { metric: 'تقييم العملاء', value: '4.8/5', color: 'yellow', icon: 'fa-star' }
+                        ].map(stat => `
+                            <div class="p-3 bg-${stat.color}-50 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-${stat.color}-600 rounded-full flex items-center justify-center text-white">
+                                            <i class="fas ${stat.icon}"></i>
+                                        </div>
+                                        <p class="font-bold text-slate-800">${stat.metric}</p>
+                                    </div>
+                                    <p class="text-xl font-black text-${stat.color}-600">${stat.value}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الأسئلة الأكثر شيوعاً</h3>
+                    <div class="space-y-2">
+                        ${[
+                            { question: 'كيف أبدأ استخدام النظام؟', count: 234 },
+                            { question: 'ما هي خطط الأسعار المتاحة؟', count: 189 },
+                            { question: 'كيف أضيف مستخدمين جدد؟', count: 156 },
+                            { question: 'هل يوجد نسخة تجريبية مجانية؟', count: 145 },
+                            { question: 'كيف يمكنني تصدير البيانات؟', count: 123 }
+                        ].map((faq, i) => `
+                            <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-slate-500">${i + 1}.</span>
+                                    <p class="text-sm text-slate-700">${faq.question}</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">${faq.count}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">إعدادات الوكيل الذكي</h3>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-slate-50 rounded-lg">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="font-bold text-slate-700">تفعيل الرد التلقائي</span>
+                                <input type="checkbox" checked class="toggle">
+                            </label>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="font-bold text-slate-700">التحويل للبشر عند الحاجة</span>
+                                <input type="checkbox" checked class="toggle">
+                            </label>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="font-bold text-slate-700">إرسال تقارير يومية</span>
+                                <input type="checkbox" checked class="toggle">
+                            </label>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="font-bold text-slate-700">تسجيل المحادثات</span>
+                                <input type="checkbox" checked class="toggle">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('فتح لوحة المحادثات', 'info')" class="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition text-right">
+                        <i class="fas fa-comments text-emerald-600 ml-2"></i>
+                        <span class="font-bold text-emerald-700">لوحة الدردشة</span>
+                    </button>
+                    <button onclick="app.showToast('تدريب الوكيل', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-graduation-cap text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تدريب</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير الأداء', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-chart-line text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تقرير</span>
+                    </button>
+                    <button onclick="app.showToast('إعدادات متقدمة', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-cog text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">إعدادات</span>
                     </button>
                 </div>
             </div>

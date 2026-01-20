@@ -609,6 +609,18 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-sales-system\\.js 2>&1$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c script\\.js 2>&1 && echo \"✅ اختبار البناء نجح!\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node -c server\\.js 2>&1 && echo \"✅ اختبار الخلفية نجح!\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-internet-automation\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
