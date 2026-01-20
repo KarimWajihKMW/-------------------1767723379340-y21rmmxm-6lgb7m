@@ -1211,6 +1211,13 @@ const app = (() => {
         else if (route === 'maintenance') content = renderMaintenance();
         else if (route === 'quality-control') content = renderQualityControl();
         else if (route === 'safety') content = renderSafety();
+        // Sales Routes
+        else if (route === 'crm') content = renderCRM();
+        else if (route === 'sales-operations') content = renderSalesOperations();
+        else if (route === 'pos') content = renderPOS();
+        else if (route === 'quotes-contracts') content = renderQuotesContracts();
+        else if (route === 'commissions') content = renderCommissions();
+        else if (route === 'order-tracking') content = renderOrderTracking();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1280,7 +1287,14 @@ const app = (() => {
             'product-lifecycle': 'حياة المنتج',
             'maintenance': 'الصيانة',
             'quality-control': 'مراقبة الجودة',
-            'safety': 'السلامة'
+            'safety': 'السلامة',
+            // Sales subitems
+            'crm': 'نظام إدارة علاقات العملاء CRM',
+            'sales-operations': 'إدارة عمليات البيع',
+            'pos': 'نظام نقاط البيع التشابكي',
+            'quotes-contracts': 'العروض والعقود',
+            'commissions': 'نظام العمولات',
+            'order-tracking': 'تتبع الطلبات والشحنات'
         };
         return map[r] || 'نظام نايوش';
     };
@@ -1440,6 +1454,20 @@ subItems: [
                     { id: 'maintenance', icon: 'fa-wrench', label: 'الصيانة' },
                     { id: 'quality-control', icon: 'fa-check-double', label: 'مراقبة الجودة' },
                     { id: 'safety', icon: 'fa-hard-hat', label: 'السلامة' }
+                ]
+            },
+            {
+                id: 'sales',
+                icon: 'fa-chart-line',
+                label: 'البيع',
+                show: true,
+                subItems: [
+                    { id: 'crm', icon: 'fa-users-cog', label: 'نظام إدارة علاقات العملاء CRM' },
+                    { id: 'sales-operations', icon: 'fa-handshake', label: 'إدارة عمليات البيع' },
+                    { id: 'pos', icon: 'fa-cash-register', label: 'نظام نقاط البيع التشابكي' },
+                    { id: 'quotes-contracts', icon: 'fa-file-contract', label: 'العروض والعقود' },
+                    { id: 'commissions', icon: 'fa-percentage', label: 'نظام العمولات' },
+                    { id: 'order-tracking', icon: 'fa-shipping-fast', label: 'تتبع الطلبات والشحنات' }
                 ]
             },
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
@@ -6541,6 +6569,742 @@ subItems: [
                             <span class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">${tr.date}</span>
                         </div>
                     `).join('')}
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // Sales Management Render Functions
+    const renderCRM = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-users-cog"></i>
+                    نظام إدارة علاقات العملاء CRM
+                </h2>
+                <p class="mt-2 opacity-90">إدارة شاملة لعلاقات العملاء ورحلة المبيعات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">إجمالي العملاء</span>
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">2,547</h3>
+                    <p class="text-sm text-green-600 mt-1">+12% هذا الشهر</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عملاء نشطون</span>
+                        <i class="fas fa-user-check text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">1,823</h3>
+                    <p class="text-sm text-slate-600 mt-1">71.6% من الإجمالي</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عملاء محتملون</span>
+                        <i class="fas fa-user-clock text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">456</h3>
+                    <p class="text-sm text-orange-600 mt-1">يحتاجون متابعة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل التحويل</span>
+                        <i class="fas fa-chart-line text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">34.5%</h3>
+                    <p class="text-sm text-green-600 mt-1">+5.2% تحسن</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">مراحل العملاء</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { stage: 'عملاء محتملون', count: 456, color: 'yellow', percent: 18 },
+                            { stage: 'تواصل أولي', count: 234, color: 'blue', percent: 9 },
+                            { stage: 'عرض سعر مقدم', count: 189, color: 'purple', percent: 7 },
+                            { stage: 'تفاوض', count: 145, color: 'orange', percent: 6 },
+                            { stage: 'عملاء نشطون', count: 1823, color: 'green', percent: 72 }
+                        ].map(stage => `
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-slate-700">${stage.stage}</span>
+                                    <span class="text-slate-600">${stage.count} عميل (${stage.percent}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-3">
+                                    <div class="bg-${stage.color}-600 h-3 rounded-full transition-all" style="width: ${stage.percent}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أهم العملاء (حسب الإيرادات)</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'شركة النجاح للتجارة', revenue: '$245,000', status: 'VIP', color: 'gold' },
+                            { name: 'مؤسسة الأمل التجارية', revenue: '$189,000', status: 'VIP', color: 'gold' },
+                            { name: 'مجموعة التميز للأعمال', revenue: '$156,000', status: 'Premium', color: 'blue' },
+                            { name: 'شركة الابتكار المحدودة', revenue: '$134,000', status: 'Premium', color: 'blue' },
+                            { name: 'مؤسسة التطوير', revenue: '$98,000', status: 'Standard', color: 'green' }
+                        ].map((customer, i) => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                                        ${i + 1}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${customer.name}</p>
+                                        <p class="text-sm text-slate-600">${customer.revenue}</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs px-3 py-1 bg-${customer.color === 'gold' ? 'yellow' : customer.color}-100 text-${customer.color === 'gold' ? 'yellow' : customer.color}-700 rounded-full font-bold">
+                                    ${customer.status}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إضافة عميل جديد', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-user-plus text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">إضافة عميل</span>
+                    </button>
+                    <button onclick="app.showToast('إنشاء فرصة بيع', 'info')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-bullseye text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">فرصة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('جدولة اجتماع', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-plus text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">جدولة اجتماع</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير بيانات العملاء', 'success')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderSalesOperations = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-handshake"></i>
+                    إدارة عمليات البيع
+                </h2>
+                <p class="mt-2 opacity-90">متابعة وإدارة جميع عمليات البيع والصفقات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">صفقات مفتوحة</span>
+                        <i class="fas fa-briefcase text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">87</h3>
+                    <p class="text-sm text-slate-600 mt-1">قيمة $1.2M</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">صفقات مغلقة اليوم</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-green-600 mt-1">قيمة $145K</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل الإغلاق</span>
+                        <i class="fas fa-percentage text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">42%</h3>
+                    <p class="text-sm text-green-600 mt-1">+8% تحسن</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متوسط حجم الصفقة</span>
+                        <i class="fas fa-dollar-sign text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$15.7K</h3>
+                    <p class="text-sm text-slate-600 mt-1">لكل صفقة</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">مراحل خط المبيعات</h3>
+                <div class="grid grid-cols-5 gap-3">
+                    ${[
+                        { stage: 'تأهيل', count: 24, value: '$180K', color: 'yellow' },
+                        { stage: 'عرض', count: 18, value: '$320K', color: 'blue' },
+                        { stage: 'مفاوضة', count: 15, value: '$450K', color: 'purple' },
+                        { stage: 'اقتراح', count: 12, value: '$280K', color: 'indigo' },
+                        { stage: 'إغلاق', count: 18, value: '$540K', color: 'green' }
+                    ].map(stage => `
+                        <div class="p-4 bg-${stage.color}-50 border-2 border-${stage.color}-200 rounded-lg">
+                            <div class="text-center">
+                                <h4 class="font-bold text-${stage.color}-700 mb-2">${stage.stage}</h4>
+                                <div class="text-3xl font-black text-${stage.color}-600 mb-1">${stage.count}</div>
+                                <div class="text-sm text-slate-600">${stage.value}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أعلى مندوبي المبيعات</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'أحمد محمد', deals: 23, value: '$340K', achievement: 142 },
+                            { name: 'سارة أحمد', deals: 19, value: '$285K', achievement: 128 },
+                            { name: 'محمد علي', deals: 17, value: '$256K', achievement: 115 },
+                            { name: 'فاطمة حسن', deals: 15, value: '$223K', achievement: 108 }
+                        ].map((rep, i) => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 ${i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-gray-400' : i === 2 ? 'bg-amber-700' : 'bg-slate-300'} rounded-full flex items-center justify-center text-white font-bold">
+                                        ${i + 1}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${rep.name}</p>
+                                        <p class="text-sm text-slate-600">${rep.deals} صفقة • ${rep.value}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-green-600">${rep.achievement}%</div>
+                                    <div class="text-xs text-slate-600">من الهدف</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">نشاطات البيع الأخيرة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { activity: 'إغلاق صفقة مع شركة النجاح', time: 'منذ 15 دقيقة', icon: 'fa-check-circle', color: 'green' },
+                            { activity: 'اجتماع مع مؤسسة التميز', time: 'منذ ساعة', icon: 'fa-handshake', color: 'blue' },
+                            { activity: 'إرسال عرض سعر', time: 'منذ ساعتين', icon: 'fa-file-invoice', color: 'purple' },
+                            { activity: 'مكالمة متابعة', time: 'منذ 3 ساعات', icon: 'fa-phone', color: 'orange' }
+                        ].map(act => `
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                <div class="w-10 h-10 bg-${act.color}-100 rounded-full flex items-center justify-center">
+                                    <i class="fas ${act.icon} text-${act.color}-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-800">${act.activity}</p>
+                                    <p class="text-sm text-slate-600">${act.time}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderPOS = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-cash-register"></i>
+                    نظام نقاط البيع التشابكي (POS)
+                </h2>
+                <p class="mt-2 opacity-90">نظام متكامل لإدارة نقاط البيع والمتاجر</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">مبيعات اليوم</span>
+                        <i class="fas fa-cash-register text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$12,450</h3>
+                    <p class="text-sm text-green-600 mt-1">+18% عن الأمس</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عدد المعاملات</span>
+                        <i class="fas fa-receipt text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                    <p class="text-sm text-slate-600 mt-1">معاملة اليوم</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متوسط قيمة الفاتورة</span>
+                        <i class="fas fa-dollar-sign text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$79.8</h3>
+                    <p class="text-sm text-green-600 mt-1">+5.2% تحسن</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">نقاط بيع نشطة</span>
+                        <i class="fas fa-store text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">8/10</h3>
+                    <p class="text-sm text-slate-600 mt-1">متاجر مفتوحة</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أداء نقاط البيع</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { store: 'المتجر الرئيسي', sales: '$4,250', transactions: 52, status: 'نشط' },
+                            { store: 'فرع المول', sales: '$3,890', transactions: 45, status: 'نشط' },
+                            { store: 'فرع المطار', sales: '$2,100', transactions: 28, status: 'نشط' },
+                            { store: 'المتجر الإلكتروني', sales: '$2,210', transactions: 31, status: 'نشط' }
+                        ].map(store => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-store text-purple-600 text-xl"></i>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${store.store}</p>
+                                        <p class="text-sm text-slate-600">${store.transactions} معاملة</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-green-600">${store.sales}</div>
+                                    <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">${store.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">طرق الدفع</h3>
+                    <div class="space-y-4">
+                        ${[
+                            { method: 'بطاقات ائتمانية', amount: '$6,780', percent: 54, color: 'blue' },
+                            { method: 'نقدي', amount: '$3,450', percent: 28, color: 'green' },
+                            { method: 'محافظ إلكترونية', amount: '$1,890', percent: 15, color: 'purple' },
+                            { method: 'تحويل بنكي', amount: '$330', percent: 3, color: 'orange' }
+                        ].map(method => `
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-slate-700">${method.method}</span>
+                                    <span class="text-slate-600">${method.amount} (${method.percent}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-3">
+                                    <div class="bg-${method.color}-600 h-3 rounded-full transition-all" style="width: ${method.percent}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('فتح فاتورة جديدة', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus-circle text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">فاتورة جديدة</span>
+                    </button>
+                    <button onclick="app.showToast('فتح درج النقدية', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-cash-register text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">درج النقدية</span>
+                    </button>
+                    <button onclick="app.showToast('تقرير نهاية الوردية', 'info')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-alt text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">نهاية الوردية</span>
+                    </button>
+                    <button onclick="app.showToast('إدارة الخصومات', 'info')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-tags text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">الخصومات</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderQuotesContracts = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-file-contract"></i>
+                    العروض والعقود
+                </h2>
+                <p class="mt-2 opacity-90">إدارة عروض الأسعار والعقود التجارية</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عروض مفتوحة</span>
+                        <i class="fas fa-file-alt text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                    <p class="text-sm text-slate-600 mt-1">قيمة $890K</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عقود نشطة</span>
+                        <i class="fas fa-file-signature text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">67</h3>
+                    <p class="text-sm text-green-600 mt-1">قيمة $2.3M</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل قبول العروض</span>
+                        <i class="fas fa-check-double text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">45%</h3>
+                    <p class="text-sm text-green-600 mt-1">+7% تحسن</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عقود تحتاج تجديد</span>
+                        <i class="fas fa-exclamation-triangle text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <p class="text-sm text-orange-600 mt-1">خلال 30 يوم</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">عروض الأسعار الأخيرة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { client: 'شركة التطوير', value: '$125,000', date: '2026-01-20', status: 'قيد المراجعة', color: 'yellow' },
+                            { client: 'مؤسسة النجاح', value: '$89,500', date: '2026-01-19', status: 'مقبول', color: 'green' },
+                            { client: 'مجموعة الأمل', value: '$156,000', date: '2026-01-18', status: 'قيد التفاوض', color: 'blue' },
+                            { client: 'شركة الابتكار', value: '$67,000', date: '2026-01-17', status: 'مرسل', color: 'purple' }
+                        ].map(quote => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-file-invoice text-indigo-600 text-xl"></i>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${quote.client}</p>
+                                        <p class="text-sm text-slate-600">${quote.date}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-slate-800">${quote.value}</div>
+                                    <span class="text-xs px-2 py-1 bg-${quote.color}-100 text-${quote.color}-700 rounded-full font-bold">${quote.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">العقود حسب النوع</h3>
+                    <div class="space-y-4">
+                        ${[
+                            { type: 'عقود خدمات', count: 28, value: '$1.2M', color: 'blue' },
+                            { type: 'عقود توريد', count: 23, value: '$780K', color: 'green' },
+                            { type: 'عقود صيانة', count: 12, value: '$245K', color: 'purple' },
+                            { type: 'عقود استشارات', count: 4, value: '$95K', color: 'orange' }
+                        ].map(contract => `
+                            <div class="p-3 border-l-4 border-${contract.color}-500 bg-${contract.color}-50 rounded">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${contract.type}</p>
+                                        <p class="text-sm text-slate-600">${contract.count} عقد نشط</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-${contract.color}-600">${contract.value}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <button onclick="app.showToast('إنشاء عرض سعر جديد', 'info')" class="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-invoice text-indigo-600 ml-2"></i>
+                        <span class="font-bold text-indigo-700">عرض سعر جديد</span>
+                    </button>
+                    <button onclick="app.showToast('إنشاء عقد جديد', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-file-signature text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">عقد جديد</span>
+                    </button>
+                    <button onclick="app.showToast('القوالب المحفوظة', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-copy text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">القوالب</span>
+                    </button>
+                    <button onclick="app.showToast('تصدير التقارير', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderCommissions = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-percentage"></i>
+                    نظام العمولات
+                </h2>
+                <p class="mt-2 opacity-90">إدارة وحساب عمولات فريق المبيعات</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">إجمالي العمولات (الشهر)</span>
+                        <i class="fas fa-money-bill-wave text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$45,680</h3>
+                    <p class="text-sm text-green-600 mt-1">+12% عن الشهر الماضي</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عمولات مستحقة</span>
+                        <i class="fas fa-clock text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$12,340</h3>
+                    <p class="text-sm text-slate-600 mt-1">قيد الصرف</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">عمولات مدفوعة</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$33,340</h3>
+                    <p class="text-sm text-green-600 mt-1">تم الصرف</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">متوسط العمولة</span>
+                        <i class="fas fa-chart-bar text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">$2,135</h3>
+                    <p class="text-sm text-slate-600 mt-1">لكل مندوب</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أعلى العمولات (هذا الشهر)</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'أحمد محمد', sales: '$340,000', commission: '$8,500', percent: 2.5 },
+                            { name: 'سارة أحمد', sales: '$285,000', commission: '$7,125', percent: 2.5 },
+                            { name: 'محمد علي', sales: '$256,000', commission: '$6,400', percent: 2.5 },
+                            { name: 'فاطمة حسن', sales: '$223,000', commission: '$5,575', percent: 2.5 },
+                            { name: 'خالد يوسف', sales: '$198,000', commission: '$4,950', percent: 2.5 }
+                        ].map((rep, i) => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' : i === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800' : 'bg-gradient-to-br from-orange-400 to-red-500'} rounded-full flex items-center justify-center text-white font-bold">
+                                        ${i + 1}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${rep.name}</p>
+                                        <p class="text-sm text-slate-600">مبيعات: ${rep.sales}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-green-600">${rep.commission}</div>
+                                    <div class="text-xs text-slate-600">${rep.percent}% عمولة</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">هيكل العمولات</h3>
+                    <div class="space-y-4">
+                        ${[
+                            { tier: 'مستوى أساسي (0-100K)', rate: '2.0%', color: 'blue' },
+                            { tier: 'مستوى متوسط (100K-250K)', rate: '2.5%', color: 'green' },
+                            { tier: 'مستوى متقدم (250K-500K)', rate: '3.0%', color: 'purple' },
+                            { tier: 'مستوى النخبة (500K+)', rate: '3.5%', color: 'orange' }
+                        ].map(tier => `
+                            <div class="p-4 border-l-4 border-${tier.color}-500 bg-${tier.color}-50 rounded-lg">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${tier.tier}</p>
+                                    </div>
+                                    <div class="text-2xl font-black text-${tier.color}-600">${tier.rate}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">العمولات المستحقة للصرف</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-right text-sm font-bold text-slate-700">المندوب</th>
+                                <th class="px-4 py-3 text-right text-sm font-bold text-slate-700">المبيعات</th>
+                                <th class="px-4 py-3 text-right text-sm font-bold text-slate-700">العمولة</th>
+                                <th class="px-4 py-3 text-right text-sm font-bold text-slate-700">الفترة</th>
+                                <th class="px-4 py-3 text-right text-sm font-bold text-slate-700">الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            ${[
+                                { name: 'أحمد محمد', sales: '$85,000', commission: '$2,125', period: 'يناير 2026' },
+                                { name: 'سارة أحمد', sales: '$67,000', commission: '$1,675', period: 'يناير 2026' },
+                                { name: 'محمد علي', sales: '$56,000', commission: '$1,400', period: 'يناير 2026' }
+                            ].map(pay => `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-4 py-3 font-bold text-slate-800">${pay.name}</td>
+                                    <td class="px-4 py-3 text-slate-600">${pay.sales}</td>
+                                    <td class="px-4 py-3 font-bold text-green-600">${pay.commission}</td>
+                                    <td class="px-4 py-3 text-slate-600">${pay.period}</td>
+                                    <td class="px-4 py-3">
+                                        <button onclick="app.showToast('صرف عمولة ${pay.name}', 'success')" class="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-bold">
+                                            صرف
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderOrderTracking = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <h2 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-shipping-fast"></i>
+                    تتبع الطلبات والشحنات
+                </h2>
+                <p class="mt-2 opacity-90">تتبع شامل لجميع الطلبات والشحنات في الوقت الفعلي</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">طلبات نشطة</span>
+                        <i class="fas fa-box text-blue-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">142</h3>
+                    <p class="text-sm text-slate-600 mt-1">قيد المعالجة</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">قيد الشحن</span>
+                        <i class="fas fa-truck text-orange-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">67</h3>
+                    <p class="text-sm text-orange-600 mt-1">في الطريق</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">تم التسليم اليوم</span>
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">89</h3>
+                    <p class="text-sm text-green-600 mt-1">طلب مكتمل</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-600">معدل التسليم في الموعد</span>
+                        <i class="fas fa-clock text-purple-600"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800">94.5%</h3>
+                    <p class="text-sm text-green-600 mt-1">أداء ممتاز</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">حالة الطلبات</h3>
+                <div class="grid grid-cols-5 gap-3">
+                    ${[
+                        { status: 'جديد', count: 34, color: 'blue', icon: 'fa-inbox' },
+                        { status: 'قيد التحضير', count: 56, color: 'yellow', icon: 'fa-boxes' },
+                        { status: 'جاهز للشحن', count: 52, color: 'purple', icon: 'fa-box-open' },
+                        { status: 'قيد الشحن', count: 67, color: 'orange', icon: 'fa-shipping-fast' },
+                        { status: 'تم التسليم', count: 89, color: 'green', icon: 'fa-check-double' }
+                    ].map(status => `
+                        <div class="p-4 bg-${status.color}-50 border-2 border-${status.color}-200 rounded-lg text-center">
+                            <i class="fas ${status.icon} text-3xl text-${status.color}-600 mb-2"></i>
+                            <div class="text-2xl font-black text-${status.color}-600">${status.count}</div>
+                            <div class="text-sm font-bold text-slate-700 mt-1">${status.status}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">الشحنات النشطة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { order: 'ORD-2026-1234', customer: 'شركة النجاح', status: 'في الطريق', eta: '3 ساعات', color: 'blue' },
+                            { order: 'ORD-2026-1235', customer: 'مؤسسة التميز', status: 'قيد التحميل', eta: 'غداً', color: 'orange' },
+                            { order: 'ORD-2026-1236', customer: 'مجموعة الأمل', status: 'في المستودع', eta: 'يومين', color: 'purple' },
+                            { order: 'ORD-2026-1237', customer: 'شركة الابتكار', status: 'قيد التجهيز', eta: '3 أيام', color: 'yellow' }
+                        ].map(shipment => `
+                            <div class="p-3 bg-slate-50 rounded-lg hover:shadow-md transition">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="font-bold text-slate-800">${shipment.order}</p>
+                                        <p class="text-sm text-slate-600">${shipment.customer}</p>
+                                    </div>
+                                    <button onclick="app.showToast('تتبع الشحنة ${shipment.order}', 'info')" class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                                        تتبع
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="px-2 py-1 bg-${shipment.color}-100 text-${shipment.color}-700 rounded-full font-bold">${shipment.status}</span>
+                                    <span class="text-slate-600"><i class="fas fa-clock ml-1"></i>${shipment.eta}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">شركات الشحن</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { company: 'شركة الشحن السريع', active: 23, delivered: 156, rating: 4.8 },
+                            { company: 'النقل الذكي', active: 18, delivered: 134, rating: 4.6 },
+                            { company: 'التوصيل الآمن', active: 15, delivered: 98, rating: 4.5 },
+                            { company: 'اللوجستيات المتقدمة', active: 11, delivered: 87, rating: 4.7 }
+                        ].map((carrier, i) => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-truck text-teal-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">${carrier.company}</p>
+                                        <p class="text-sm text-slate-600">${carrier.active} نشط • ${carrier.delivered} مكتمل</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-yellow-500">★</span>
+                                        <span class="font-bold text-slate-800">${carrier.rating}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">بحث عن طلب</h3>
+                <div class="flex gap-3">
+                    <input type="text" placeholder="رقم الطلب أو الشحنة..." class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    <button onclick="app.showToast('بحث عن الطلب...', 'info')" class="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-bold">
+                        <i class="fas fa-search ml-2"></i>
+                        بحث
+                    </button>
                 </div>
             </div>
         </div>`;

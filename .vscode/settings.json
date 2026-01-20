@@ -601,6 +601,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-supply-chain\\.js 2>&1$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && echo \"=== اختبار نهائي شامل ===\" && echo \"\" && echo \"1️⃣ اختبار البناء:\" && node -c script\\.js && echo \"   ✅ البناء نجح\" && echo \"\" && echo \"2️⃣ اختبار الخلفية:\" && node -c server\\.js && echo \"   ✅ الخلفية نجحت\" && echo \"\" && echo \"3️⃣ اختبار نظام سلاسل التوريد:\" && node test-supply-chain\\.js \\| tail -15 && echo \"\" && echo \"4️⃣ عدد الملفات:\" && ls -1 \\*\\.md \\| wc -l && echo \"   ملفات توثيق\" && echo \"\" && echo \"5️⃣ آخر commit:\" && git log --oneline -1 && echo \"\" && echo \"=== ✅ جميع الاختبارات نجحت ===\" 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-sales-system\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
