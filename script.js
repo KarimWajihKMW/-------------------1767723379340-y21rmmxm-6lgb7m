@@ -5412,7 +5412,16 @@ subItems: [
     };
 
     // Strategic Management Render Functions
-    const renderExecutiveManagement = () => {
+    const renderExecutiveManagement = async () => {
+        const [kpis, goals, operations] = await Promise.all([
+            fetchAPI('/api/executive-kpis'),
+            fetchAPI('/api/executive-goals'),
+            fetchAPI('/api/executive-operations')
+        ]);
+        
+        const activeGoals = goals.filter(g => g.status === 'in_progress');
+        const completedGoals = goals.filter(g => g.completion_percentage >= 100);
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
@@ -5420,29 +5429,109 @@ subItems: [
                     <i class="fas fa-user-tie"></i>
                     الإدارة التنفيذية
                 </h2>
-                <p class="mt-2 opacity-90">مؤشرات الأداء، العمليات، البيانات</p>
+                <p class="mt-2 opacity-90">مؤشرات الأداء، الأهداف، العمليات</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">مؤشرات الأداء</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span>الإنجاز الشهري</span>
-                            <span class="font-bold text-green-600">92%</span>
+            
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${kpis.slice(0, 6).map((kpi, idx) => {
+                    const colors = ['blue', 'green', 'purple', 'orange', 'red', 'teal'];
+                    const color = colors[idx % colors.length];
+                    const percentage = ((kpi.metric_value / kpi.target_value) * 100).toFixed(0);
+                    return `
+                    <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-sm text-slate-700">${kpi.metric_name}</h3>
+                            <span class="px-2 py-1 rounded-full text-xs font-bold bg-${color}-100 text-${color}-700">
+                                ${kpi.period}
+                            </span>
                         </div>
-                        <div class="flex justify-between">
-                            <span>الأهداف المحققة</span>
-                            <span class="font-bold text-blue-600">15/18</span>
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <div class="text-3xl font-black text-${color}-600">${kpi.metric_value}${kpi.metric_unit}</div>
+                                <div class="text-sm text-slate-500 mt-1">الهدف: ${kpi.target_value}${kpi.metric_unit}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold ${percentage >= 100 ? 'text-green-600' : 'text-orange-600'}">
+                                    ${percentage}%
+                                </div>
+                            </div>
                         </div>
+                        <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-${color}-600 h-2 rounded-full" style="width: ${Math.min(percentage, 100)}%"></div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <!-- Goals Section -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-bold text-xl text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-bullseye text-indigo-600"></i>
+                        الأهداف الاستراتيجية
+                    </h3>
+                    <div class="text-sm">
+                        <span class="text-green-600 font-bold">${completedGoals.length}</span>
+                        <span class="text-slate-500"> / ${goals.length} مكتمل</span>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">العمليات</h3>
-                    <p class="text-slate-600">مراقبة وإدارة العمليات التشغيلية</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${activeGoals.slice(0, 6).map(goal => `
+                        <div class="border border-slate-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-bold text-slate-800 flex-1">${goal.goal_title}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold ${
+                                    goal.completion_percentage >= 75 ? 'bg-green-100 text-green-700' :
+                                    goal.completion_percentage >= 50 ? 'bg-blue-100 text-blue-700' :
+                                    'bg-orange-100 text-orange-700'
+                                }">
+                                    ${goal.completion_percentage.toFixed(0)}%
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-3">${goal.description}</p>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" style="width: ${goal.completion_percentage}%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span><i class="fas fa-calendar ml-1"></i>الموعد: ${new Date(goal.target_date).toLocaleDateString('ar-EG')}</span>
+                                <span class="px-2 py-1 rounded bg-slate-100">${goal.status}</span>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">البيانات</h3>
-                    <p class="text-slate-600">تحليل البيانات والتقارير التنفيذية</p>
+            </div>
+
+            <!-- Operations Section -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-tasks text-purple-600"></i>
+                    العمليات التنفيذية الأخيرة
+                </h3>
+                <div class="space-y-3">
+                    ${operations.slice(0, 5).map(op => `
+                        <div class="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-cog text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-800">${op.operation_name}</div>
+                                    <div class="text-sm text-slate-500">${op.operation_type}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                    op.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                }">
+                                    ${op.status}
+                                </span>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    ${new Date(op.start_date).toLocaleDateString('ar-EG')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         </div>`;
@@ -5503,7 +5592,13 @@ subItems: [
         </div>`;
     };
 
-    const renderSmartSystems = () => {
+    const renderSmartSystems = async () => {
+        const [digital, community, events] = await Promise.all([
+            fetchAPI('/api/digital-marketing'),
+            fetchAPI('/api/community-marketing'),
+            fetchAPI('/api/event-marketing')
+        ]);
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl p-6 text-white">
@@ -5513,15 +5608,123 @@ subItems: [
                 </h2>
                 <p class="mt-2 opacity-90">التسويق الإلكتروني، التسويق المجتمعي، التسويق عبر الفعاليات</p>
             </div>
-            <div class="bg-white rounded-xl p-8 shadow-sm border text-center">
-                <i class="fas fa-robot text-6xl text-cyan-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-slate-800">الأنظمة الذكية قيد التطوير</h3>
-                <p class="text-slate-600 mt-2">سيتم إطلاق الأنظمة الذكية قريباً</p>
+            
+            <!-- Digital Marketing -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-laptop text-blue-600"></i>
+                    التسويق الإلكتروني (${digital.length} حملة)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${digital.slice(0, 6).map(camp => {
+                        const roi = ((camp.conversions / camp.reach) * 100).toFixed(2);
+                        return `
+                        <div class="border border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-md transition">
+                            <h4 class="font-bold text-slate-800 mb-3">${camp.campaign_name}</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-600">الميزانية:</span>
+                                    <span class="font-bold">${camp.budget.toLocaleString('ar-EG')} ريال</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-600">المصروف:</span>
+                                    <span class="font-bold text-orange-600">${camp.spent.toLocaleString('ar-EG')} ريال</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-600">الوصول:</span>
+                                    <span class="font-bold text-blue-600">${camp.reach.toLocaleString('ar-EG')}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-600">التفاعل:</span>
+                                    <span class="font-bold text-green-600">${camp.engagement.toLocaleString('ar-EG')}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-600">التحويلات:</span>
+                                    <span class="font-bold text-purple-600">${camp.conversions}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-600">ROI:</span>
+                                    <span class="font-bold text-amber-600">${roi}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            
+            <!-- Community Marketing -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-users text-green-600"></i>
+                    التسويق المجتمعي (${community.length} فعالية)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${community.map(cm => `
+                        <div class="border border-green-200 bg-green-50 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-3">
+                                <h4 class="font-bold text-slate-800">${cm.initiative_name}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold ${
+                                    cm.status === 'completed' ? 'bg-green-600 text-white' :
+                                    cm.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                }">
+                                    ${cm.status}
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-sm text-slate-600">
+                                <div><i class="fas fa-map-marker-alt text-red-500 ml-2"></i>${cm.location}</div>
+                                <div><i class="fas fa-calendar text-blue-500 ml-2"></i>${new Date(cm.event_date).toLocaleDateString('ar-EG')}</div>
+                                <div><i class="fas fa-users text-purple-500 ml-2"></i>${cm.participants_count} مشارك</div>
+                                <div><i class="fas fa-star text-amber-500 ml-2"></i>التأثير: ${cm.impact_score}/10</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Event Marketing -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-purple-600"></i>
+                    التسويق عبر الفعاليات (${events.length} حدث)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${events.map(ev => `
+                        <div class="border border-purple-200 bg-purple-50 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-3">
+                                <h4 class="font-bold text-slate-800">${ev.event_name}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold ${
+                                    ev.status === 'upcoming' ? 'bg-blue-100 text-blue-700' :
+                                    ev.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                    'bg-gray-100 text-gray-700'
+                                }">
+                                    ${ev.status}
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-sm text-slate-600">
+                                <div><i class="fas fa-tag text-indigo-500 ml-2"></i>${ev.event_type}</div>
+                                <div><i class="fas fa-map-marker-alt text-red-500 ml-2"></i>${ev.venue}</div>
+                                <div><i class="fas fa-calendar text-blue-500 ml-2"></i>${new Date(ev.event_date).toLocaleDateString('ar-EG')}</div>
+                                <div><i class="fas fa-users text-green-500 ml-2"></i>${ev.expected_attendees} متوقع</div>
+                                <div><i class="fas fa-dollar-sign text-amber-500 ml-2"></i>${ev.budget.toLocaleString('ar-EG')} ريال</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>`;
     };
 
-    const renderSubscriptionManagement = () => {
+    const renderSubscriptionManagement = async () => {
+        const [courses, skills, kpis] = await Promise.all([
+            fetchAPI('/api/training-courses'),
+            fetchAPI('/api/skills'),
+            fetchAPI('/api/executive-kpis')
+        ]);
+        
+        const avgKPI = kpis.length > 0 ? (kpis.reduce((sum, k) => sum + parseFloat(k.metric_value), 0) / kpis.length).toFixed(1) : 0;
+        
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl p-6 text-white">
@@ -5532,20 +5735,99 @@ subItems: [
                 <p class="mt-2 opacity-90">الإدار والتقييم KPI، الدورات، المهارات</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">الإدار والتقييم KPI</h3>
-                    <div class="text-3xl font-black text-amber-600">87%</div>
-                    <p class="text-sm text-slate-500 mt-2">معدل الأداء</p>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-line text-amber-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">الإدار والتقييم KPI</h3>
+                    </div>
+                    <div class="text-3xl font-black text-amber-600">${avgKPI}%</div>
+                    <p class="text-sm text-slate-500 mt-2">متوسط الأداء</p>
+                    <p class="text-xs text-slate-400 mt-1">${kpis.length} مؤشر أداء نشط</p>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">الدورات</h3>
-                    <div class="text-3xl font-black text-orange-600">42</div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-book text-orange-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">الدورات</h3>
+                    </div>
+                    <div class="text-3xl font-black text-orange-600">${courses.length}</div>
                     <p class="text-sm text-slate-500 mt-2">دورة متاحة</p>
+                    <p class="text-xs text-slate-400 mt-1">${courses.filter(c => c.status === 'open').length} دورة مفتوحة للتسجيل</p>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-sm border">
-                    <h3 class="font-bold text-lg mb-4">المهارات</h3>
-                    <div class="text-3xl font-black text-red-600">156</div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border hover:shadow-lg transition">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-award text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">المهارات</h3>
+                    </div>
+                    <div class="text-3xl font-black text-red-600">${skills.length}</div>
                     <p class="text-sm text-slate-500 mt-2">مهارة مسجلة</p>
+                    <p class="text-xs text-slate-400 mt-1">في قاعدة البيانات</p>
+                </div>
+            </div>
+            
+            <!-- Courses List -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-graduation-cap text-orange-600"></i>
+                    الدورات التدريبية المتاحة
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${courses.slice(0, 6).map(course => `
+                        <div class="border border-slate-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-bold text-slate-800">${course.course_name}</h4>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold ${
+                                    course.status === 'open' ? 'bg-green-100 text-green-700' :
+                                    course.status === 'full' ? 'bg-red-100 text-red-700' :
+                                    'bg-gray-100 text-gray-700'
+                                }">
+                                    ${course.status === 'open' ? 'متاح' : course.status === 'full' ? 'مكتمل' : course.status}
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-sm text-slate-600">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-clock text-amber-500"></i>
+                                    <span>${course.duration_hours} ساعة تدريبية</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user text-blue-500"></i>
+                                    <span>${course.instructor_name}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-users text-green-500"></i>
+                                    <span>${course.current_participants}/${course.max_participants} مشارك</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-dollar-sign text-purple-500"></i>
+                                    <span>${course.price.toLocaleString('ar-EG')} ريال</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Skills Categories -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-star text-amber-600"></i>
+                    المهارات حسب الفئة
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    ${[...new Set(skills.map(s => s.skill_category))].map(cat => {
+                        const count = skills.filter(s => s.skill_category === cat).length;
+                        return `
+                        <div class="border border-slate-200 rounded-lg p-3 text-center hover:shadow-md transition">
+                            <div class="text-2xl font-black text-amber-600">${count}</div>
+                            <div class="text-sm text-slate-600 mt-1">${cat}</div>
+                        </div>
+                        `;
+                    }).join('')}
                 </div>
             </div>
         </div>`;

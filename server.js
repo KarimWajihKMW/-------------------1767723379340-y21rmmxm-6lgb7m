@@ -4165,6 +4165,197 @@ process.on('unhandledRejection', (reason, promise) => {
   // Don't exit - let the process continue
 });
 
+// ========================================
+// Strategic Management API Routes
+// ========================================
+
+// Executive Management KPIs
+app.get('/api/executive-kpis', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM executive_kpis WHERE status = $1 ORDER BY created_at DESC', ['active']);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching executive KPIs:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Executive Goals
+app.get('/api/executive-goals', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM executive_goals ORDER BY target_date ASC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching executive goals:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Executive Operations
+app.get('/api/executive-operations', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM executive_operations ORDER BY start_date DESC LIMIT 10');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching executive operations:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Digital Marketing Campaigns
+app.get('/api/digital-marketing', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM digital_marketing_campaigns ORDER BY start_date DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching digital marketing campaigns:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Community Marketing
+app.get('/api/community-marketing', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM community_marketing ORDER BY event_date DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching community marketing:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Event Marketing
+app.get('/api/event-marketing', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM event_marketing ORDER BY event_date ASC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching event marketing:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Training Courses
+app.get('/api/training-courses', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM training_courses ORDER BY start_date DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching training courses:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Skills Registry
+app.get('/api/skills', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM skills_registry ORDER BY skill_category, skill_name');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching skills:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Financial Policies
+app.get('/api/financial-policies', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM financial_policies WHERE status = $1 ORDER BY effective_date DESC', ['active']);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching financial policies:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Financial Operating Manual
+app.get('/api/financial-manual', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM financial_operating_manual ORDER BY section_number');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching financial manual:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Financial News
+app.get('/api/financial-news', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM financial_news WHERE status = $1 ORDER BY published_date DESC LIMIT 10', ['published']);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching financial news:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Development Programs
+app.get('/api/development-programs', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM development_programs ORDER BY start_date DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching development programs:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Quality Standards
+app.get('/api/quality-standards', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM quality_standards WHERE status = $1 ORDER BY standard_code', ['active']);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching quality standards:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Quality Audits
+app.get('/api/quality-audits', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM quality_audits ORDER BY audit_date DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching quality audits:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// General Evaluations
+app.get('/api/evaluations', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM general_evaluations ORDER BY evaluation_date DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching evaluations:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Information Repository
+app.get('/api/information-repository', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM information_repository WHERE status = $1 ORDER BY views_count DESC', ['active']);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching information repository:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Knowledge Base
+app.get('/api/knowledge-base', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM knowledge_base ORDER BY helpful_count DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching knowledge base:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 نظام نايوش يعمل على ${HOST}:${PORT}`);
   console.log(`📊 API متاح على: http://localhost:${PORT}/api`);
