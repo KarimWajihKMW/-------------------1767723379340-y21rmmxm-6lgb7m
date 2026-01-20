@@ -1183,18 +1183,39 @@ const app = (() => {
             console.log('🔄 Routing to: smart-systems');
             content = await renderSmartSystems();
         }
-        else if (route === 'subscription-management') content = await renderSubscriptionManagement();
-        else if (route === 'operations-management') content = renderOperationsManagement();
-        else if (route === 'financial-approvals') content = await renderFinancialApprovals();
+        else if (route === 'subscription-management') {
+            console.log('🔄 Routing to: subscription-management');
+            content = await renderSubscriptionManagement();
+        }
+        else if (route === 'operations-management') {
+            console.log('🔄 Routing to: operations-management');
+            content = renderOperationsManagement();
+        }
+        else if (route === 'financial-approvals') {
+            console.log('🔄 Routing to: financial-approvals');
+            content = await renderFinancialApprovals();
+        }
         else if (route === 'tenants') content = renderTenants();
         else if (route === 'collections-strategic') content = renderCollectionsStrategic();
         else if (route === 'marketing') content = renderMarketing();
         else if (route === 'advertisers-center') content = renderAdvertisersCenter();
-        else if (route === 'training-development') content = await renderTrainingDevelopment();
-        else if (route === 'quality-audit') content = await renderQualityAudit();
-        else if (route === 'evaluation') content = await renderEvaluation();
+        else if (route === 'training-development') {
+            console.log('🔄 Routing to: training-development');
+            content = await renderTrainingDevelopment();
+        }
+        else if (route === 'quality-audit') {
+            console.log('🔄 Routing to: quality-audit');
+            content = await renderQualityAudit();
+        }
+        else if (route === 'evaluation') {
+            console.log('🔄 Routing to: evaluation');
+            content = await renderEvaluation();
+        }
         else if (route === 'tasks-strategic') content = renderTasksStrategic();
-        else if (route === 'information-center') content = await renderInformationCenter();
+        else if (route === 'information-center') {
+            console.log('🔄 Routing to: information-center');
+            content = await renderInformationCenter();
+        }
         else if (route === 'identity-settings') content = renderIdentitySettings();
         else if (route === 'system-log') content = renderSystemLog();
         else if (route === 'reports') content = renderReports();
@@ -5666,6 +5687,7 @@ subItems: [
     };
 
     const renderSmartSystems = async () => {
+        console.log('🤖 تم استدعاء renderSmartSystems - الأنظمة الذكية');
         const [digital, community, events] = await Promise.all([
             fetchAPI('/api/digital-marketing'),
             fetchAPI('/api/community-marketing'),
@@ -5790,6 +5812,7 @@ subItems: [
     };
 
     const renderSubscriptionManagement = async () => {
+        console.log('📦 تم استدعاء renderSubscriptionManagement - إدارة الاشتراكات');
         const [courses, skills, kpis] = await Promise.all([
             fetchAPI('/api/training-courses'),
             fetchAPI('/api/skills'),
@@ -5907,6 +5930,7 @@ subItems: [
     };
 
     const renderOperationsManagement = () => {
+        console.log('⚙️ تم استدعاء renderOperationsManagement - إدارة العمليات');
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white">
@@ -5927,6 +5951,7 @@ subItems: [
     };
 
     const renderFinancialApprovals = async () => {
+        console.log('💰 تم استدعاء renderFinancialApprovals - الموافقات المالية');
         const [policies, manual, news] = await Promise.all([
             fetchAPI('/api/financial-policies'),
             fetchAPI('/api/financial-manual'),
@@ -6080,6 +6105,7 @@ subItems: [
     };
 
     const renderTrainingDevelopment = async () => {
+        console.log('🎓 تم استدعاء renderTrainingDevelopment - التدريب والتطوير');
         const programs = await fetchAPI('/api/development-programs');
         
         return `
@@ -6143,6 +6169,7 @@ subItems: [
     };
 
     const renderQualityAudit = async () => {
+        console.log('✅ تم استدعاء renderQualityAudit - الجودة والتدقيق');
         const [standards, audits] = await Promise.all([
             fetchAPI('/api/quality-standards'),
             fetchAPI('/api/quality-audits')
@@ -6235,6 +6262,7 @@ subItems: [
     };
 
     const renderEvaluation = async () => {
+        console.log('⭐ تم استدعاء renderEvaluation - التقييم');
         const evaluations = await fetchAPI('/api/evaluations');
         
         return `
@@ -6305,6 +6333,7 @@ subItems: [
     };
 
     const renderInformationCenter = async () => {
+        console.log('ℹ️ تم استدعاء renderInformationCenter - مركز المعلومات');
         const [repository, knowledgeBase] = await Promise.all([
             fetchAPI('/api/information-repository'),
             fetchAPI('/api/knowledge-base')
