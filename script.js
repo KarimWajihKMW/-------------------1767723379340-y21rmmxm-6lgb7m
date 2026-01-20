@@ -1171,9 +1171,18 @@ const app = (() => {
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
         // Strategic Management Routes
-        else if (route === 'executive-management') content = await renderExecutiveManagement();
-        else if (route === 'employee-management') content = renderEmployeeManagement();
-        else if (route === 'smart-systems') content = await renderSmartSystems();
+        else if (route === 'executive-management') {
+            console.log('🔄 Routing to: executive-management');
+            content = await renderExecutiveManagement();
+        }
+        else if (route === 'employee-management') {
+            console.log('🔄 Routing to: employee-management');
+            content = renderEmployeeManagement();
+        }
+        else if (route === 'smart-systems') {
+            console.log('🔄 Routing to: smart-systems');
+            content = await renderSmartSystems();
+        }
         else if (route === 'subscription-management') content = await renderSubscriptionManagement();
         else if (route === 'operations-management') content = renderOperationsManagement();
         else if (route === 'financial-approvals') content = await renderFinancialApprovals();
@@ -5451,6 +5460,7 @@ subItems: [
 
     // Strategic Management Render Functions
     const renderExecutiveManagement = async () => {
+        console.log('🎯 تم استدعاء renderExecutiveManagement - الإدارة التنفيذية');
         const [kpis, goals, operations] = await Promise.all([
             fetchAPI('/api/executive-kpis'),
             fetchAPI('/api/executive-goals'),
@@ -5459,6 +5469,8 @@ subItems: [
         
         const activeGoals = goals.filter(g => g.status === 'in_progress');
         const completedGoals = goals.filter(g => g.completion_percentage >= 100);
+        
+        console.log('📊 البيانات:', { kpis: kpis.length, goals: goals.length, operations: operations.length });
         
         return `
         <div class="space-y-6 animate-fade-in">
@@ -5576,6 +5588,7 @@ subItems: [
     };
 
     const renderEmployeeManagement = () => {
+        console.log('👥 تم استدعاء renderEmployeeManagement - إدارة الموظفين');
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 text-white">
