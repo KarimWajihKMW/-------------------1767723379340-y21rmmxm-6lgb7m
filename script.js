@@ -5461,11 +5461,18 @@ subItems: [
     // Strategic Management Render Functions
     const renderExecutiveManagement = async () => {
         console.log('🎯 تم استدعاء renderExecutiveManagement - الإدارة التنفيذية');
-        const [kpis, goals, operations] = await Promise.all([
-            fetchAPI('/api/executive-kpis'),
-            fetchAPI('/api/executive-goals'),
-            fetchAPI('/api/executive-operations')
-        ]);
+        
+        let kpis = [], goals = [], operations = [];
+        
+        try {
+            [kpis, goals, operations] = await Promise.all([
+                fetchAPI('/api/executive-kpis').catch(e => { console.error('Error loading KPIs:', e); return []; }),
+                fetchAPI('/api/executive-goals').catch(e => { console.error('Error loading goals:', e); return []; }),
+                fetchAPI('/api/executive-operations').catch(e => { console.error('Error loading operations:', e); return []; })
+            ]);
+        } catch (error) {
+            console.error('❌ خطأ في تحميل بيانات الإدارة التنفيذية:', error);
+        }
         
         const activeGoals = goals.filter(g => g.status === 'in_progress');
         const completedGoals = goals.filter(g => g.completion_percentage >= 100);
@@ -5482,7 +5489,17 @@ subItems: [
                 <p class="mt-2 opacity-90">مؤشرات الأداء، الأهداف، العمليات</p>
             </div>
             
+            ${kpis.length === 0 && goals.length === 0 && operations.length === 0 ? `
+                <div class="bg-white rounded-xl p-12 shadow-sm border text-center">
+                    <i class="fas fa-database text-6xl text-slate-300 mb-4"></i>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">لا توجد بيانات حالياً</h3>
+                    <p class="text-slate-600">يرجى التأكد من تشغيل السيرفر والاتصال بقاعدة البيانات</p>
+                    <p class="text-sm text-slate-500 mt-2">الصفحة: الإدارة التنفيذية</p>
+                </div>
+            ` : ''}
+            
             <!-- KPI Cards -->
+            ${kpis.length > 0 ? `
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${kpis.slice(0, 6).map((kpi, idx) => {
                     const colors = ['blue', 'green', 'purple', 'orange', 'red', 'teal'];
@@ -5513,8 +5530,10 @@ subItems: [
                     </div>`;
                 }).join('')}
             </div>
+            ` : ''}
 
             <!-- Goals Section -->
+            ${goals.length > 0 ? `
             <div class="bg-white rounded-xl p-6 shadow-sm border">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="font-bold text-xl text-slate-800 flex items-center gap-2">
@@ -5551,8 +5570,10 @@ subItems: [
                     `).join('')}
                 </div>
             </div>
+            ` : ''}
 
             <!-- Operations Section -->
+            ${operations.length > 0 ? `
             <div class="bg-white rounded-xl p-6 shadow-sm border">
                 <h3 class="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
                     <i class="fas fa-tasks text-purple-600"></i>
@@ -5584,6 +5605,7 @@ subItems: [
                     `).join('')}
                 </div>
             </div>
+            ` : ''}
         </div>`;
     };
 
