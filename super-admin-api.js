@@ -448,50 +448,66 @@ router.post('/users/:userId/role', verifySuperAdmin, async (req, res) => {
             return res.status(400).json({ success: false, message: 'role_code مطلوب' });
         }
 
-        // التحقق من وجود الدور
-        const roleCheck = await pool.query('SELECT code FROM roles WHERE code = $1', [role_code]);
+        // التحقق من وجود المستخدم
+        const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'المستخدم غير موجود' });
+        }
+
+        // التحقق من وجود الدور والحصول على role_id
+        const roleCheck = await pool.query('SELECT id, name, job_title_ar FROM roles WHERE name = $1', [role_code]);
         if (roleCheck.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'الدور غير موجود' });
         }
 
-        // إلغاء تفعيل الدور القديم
+        const roleId = roleCheck.rows[0].id;
+        const roleName = roleCheck.rows[0].job_title_ar;
+
+        // إلغاء تفعيل الأدوار القديمة
         await pool.query(`
             UPDATE user_roles 
             SET is_active = false 
             WHERE user_id = $1
         `, [userId]);
 
-        // إضافة الدور الجديد
+        // إضافة الدور الجديد أو تفعيله
         const result = await pool.query(`
-            INSERT INTO user_roles (user_id, role_code, is_active, assigned_at)
+            INSERT INTO user_roles (user_id, role_id, is_active, granted_at)
             VALUES ($1, $2, true, NOW())
-            ON CONFLICT (user_id, role_code) 
-            DO UPDATE SET is_active = true, assigned_at = NOW()
+            ON CONFLICT (user_id, role_id, entity_id) 
+            DO UPDATE SET is_active = true, granted_at = NOW()
             RETURNING *
-        `, [userId, role_code]);
+        `, [userId, roleId]);
 
-        // سجل في audit log
-        await pool.query(`
-            INSERT INTO audit_log (
-                entity_type, entity_id, action, 
-                performed_by, details
-            ) VALUES ($1, $2, $3, $4, $5)
-        `, [
-            'user_roles',
-            userId,
-            'ASSIGN_ROLE',
-            req.userId || 'super-admin',
-            JSON.stringify({ role_code, user_id: userId })
-        ]);
+        // سجل في audit log (إذا كان الجدول موجوداً)
+        try {
+            await pool.query(`
+                INSERT INTO audit_log (
+                    entity_type, entity_id, action, 
+                    performed_by, details
+                ) VALUES ($1, $2, $3, $4, $5)
+            `, [
+                'user_roles',
+                userId,
+                'ASSIGN_ROLE',
+                req.userId || req.headers['x-user-id'] || 'super-admin',
+                JSON.stringify({ role_code, role_name: roleName, user_id: userId })
+            ]);
+        } catch (auditError) {
+            console.log('⚠️  لم يتم تسجيل في audit log:', auditError.message);
+        }
 
         res.json({
             success: true,
-            message: 'تم تعيين الدور بنجاح',
+            message: `تم تعيين الدور "${roleName}" بنجاح`,
             user_role: result.rows[0]
         });
     } catch (error) {
         console.error('خطأ في تعيين الدور:', error);
-        res.status(500).json({ success: false, message: 'خطأ في تعيين الدور' });
+        res.status(500).json({ 
+            success: false, 
+            message: 'خطأ في تعيين الدور: ' + error.message 
+        });
     }
 });
 
@@ -500,33 +516,52 @@ router.delete('/users/:userId/role', verifySuperAdmin, async (req, res) => {
     try {
         const { userId } = req.params;
 
-        await pool.query(`
+        // التحقق من وجود المستخدم
+        const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'المستخدم غير موجود' });
+        }
+
+        // إلغاء تفعيل جميع الأدوار
+        const result = await pool.query(`
             UPDATE user_roles 
             SET is_active = false 
             WHERE user_id = $1
+            RETURNING *
         `, [userId]);
 
-        // سجل في audit log
-        await pool.query(`
-            INSERT INTO audit_log (
-                entity_type, entity_id, action, 
-                performed_by, details
-            ) VALUES ($1, $2, $3, $4, $5)
-        `, [
-            'user_roles',
-            userId,
-            'REVOKE_ROLE',
-            req.userId || 'super-admin',
-            JSON.stringify({ user_id: userId })
-        ]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'لا توجد أدوار مُعينة لهذا المستخدم' });
+        }
+
+        // سجل في audit log (إذا كان الجدول موجوداً)
+        try {
+            await pool.query(`
+                INSERT INTO audit_log (
+                    entity_type, entity_id, action, 
+                    performed_by, details
+                ) VALUES ($1, $2, $3, $4, $5)
+            `, [
+                'user_roles',
+                userId,
+                'REVOKE_ROLE',
+                req.userId || req.headers['x-user-id'] || 'super-admin',
+                JSON.stringify({ user_id: userId, revoked_count: result.rows.length })
+            ]);
+        } catch (auditError) {
+            console.log('⚠️  لم يتم تسجيل في audit log:', auditError.message);
+        }
 
         res.json({
             success: true,
-            message: 'تم إلغاء الدور بنجاح'
+            message: `تم إلغاء ${result.rows.length} دور بنجاح`
         });
     } catch (error) {
         console.error('خطأ في إلغاء الدور:', error);
-        res.status(500).json({ success: false, message: 'خطأ في إلغاء الدور' });
+        res.status(500).json({ 
+            success: false, 
+            message: 'خطأ في إلغاء الدور: ' + error.message 
+        });
     }
 });
 
