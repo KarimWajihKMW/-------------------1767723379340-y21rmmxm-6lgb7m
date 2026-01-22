@@ -666,6 +666,14 @@
             "approve": true,
             "matchCommandLine": true
         },
-        "npm run build": true
+        "npm run build": true,
+        "/^node apply-keep-only-33-roles\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-roles-backend\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }
