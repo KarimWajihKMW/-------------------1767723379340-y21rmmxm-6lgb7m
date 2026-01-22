@@ -1134,6 +1134,11 @@ const app = (() => {
             view.innerHTML = '<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div></div>';
             content = await renderDashboard();
         }
+        else if (route === 'super-admin') {
+            // توجيه لصفحة Super Admin
+            window.location.href = '/super-admin-page.html';
+            return;
+        }
         else if (route === 'hierarchy') {
             content = await renderHierarchy();
             // Load branch relationships after rendering
@@ -1498,8 +1503,12 @@ const app = (() => {
         const currentEntity = db.entities.find(e => e.id === currentUser.entityId);
         const isIncubator = currentEntity?.type === 'INCUBATOR';
         
+        // التحقق من صلاحية Super Admin (HQ001 فقط)
+        const isSuperAdmin = currentUser.entityId === 1 || currentUser.code === 'HQ001';
+        
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
+            { id: 'super-admin', icon: 'fa-shield-alt', label: 'إدارة الأدوار والصلاحيات', show: isSuperAdmin },
             {
                 id: 'strategic-management',
                 icon: 'fa-chess',
