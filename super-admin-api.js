@@ -470,14 +470,31 @@ router.post('/users/:userId/role', verifySuperAdmin, async (req, res) => {
             WHERE user_id = $1
         `, [userId]);
 
-        // إضافة الدور الجديد أو تفعيله
-        const result = await pool.query(`
-            INSERT INTO user_roles (user_id, role_id, is_active, granted_at)
-            VALUES ($1, $2, true, NOW())
-            ON CONFLICT (user_id, role_id, entity_id) 
-            DO UPDATE SET is_active = true, granted_at = NOW()
-            RETURNING *
+        // البحث عن سجل موجود لنفس user_id و role_id
+        const existingRole = await pool.query(`
+            SELECT id FROM user_roles 
+            WHERE user_id = $1 AND role_id = $2 
+            AND (entity_id IS NULL OR entity_id = '')
+            LIMIT 1
         `, [userId, roleId]);
+
+        let result;
+        if (existingRole.rows.length > 0) {
+            // تحديث السجل الموجود
+            result = await pool.query(`
+                UPDATE user_roles 
+                SET is_active = true, granted_at = NOW()
+                WHERE id = $1
+                RETURNING *
+            `, [existingRole.rows[0].id]);
+        } else {
+            // إنشاء سجل جديد
+            result = await pool.query(`
+                INSERT INTO user_roles (user_id, role_id, entity_id, is_active, granted_at)
+                VALUES ($1, $2, NULL, true, NOW())
+                RETURNING *
+            `, [userId, roleId]);
+        }
 
         // سجل في audit log (إذا كان الجدول موجوداً)
         try {
