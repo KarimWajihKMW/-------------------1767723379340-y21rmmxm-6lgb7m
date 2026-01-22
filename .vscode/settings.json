@@ -674,6 +674,18 @@
         "/^node test-roles-backend\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^python3 -c \"import sys; print\\(sys\\.executable\\)\" && python3 -m pip list \\| grep -i \"openpyxl\\\\\\|xlrd\\\\\\|pandas\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^pip install openpyxl pandas --quiet$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && python3 read-excel\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
