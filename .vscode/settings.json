@@ -686,6 +686,18 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && python3 read-excel\\.py$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-super-admin-system\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-schema\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-super-admin-fixed\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
