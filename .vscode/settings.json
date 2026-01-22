@@ -641,6 +641,31 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-services-system\\.js$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "/^cat > check-all-tables-structure\\.js << 'EOF'\nconst \\{ Pool \\} = require\\('pg'\\);\n\nconst pool = new Pool\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\nasync function checkAllTables\\(\\) \\{\n  try \\{\n    console\\.log\\('🔍 فحص هيكل الجداول الرئيسية\\.\\.\\.\\\\n'\\);\n\n    const mainTables = \\[\n      'employee_requests',\n      'invoices',\n      'ads',\n      'transactions',\n      'approvals',\n      'employees',\n      'entities',\n      'ledger',\n      'payment_methods',\n      'installment_plan_types',\n      'tax_settings',\n      'request_types'\n    \\];\n\n    for \\(const tableName of mainTables\\) \\{\n      const result = await pool\\.query\\(`\n        SELECT column_name, data_type\n        FROM information_schema\\.columns\n        WHERE table_schema = 'public' AND table_name = \\$1\n        ORDER BY ordinal_position\n      `, \\[tableName\\]\\);\n\n      console\\.log\\(`\\\\n📋 جدول: \\$\\{tableName\\}`\\);\n      console\\.log\\('الأعمدة:'\\);\n      \n      const columns = result\\.rows\\.map\\(r => r\\.column_name\\);\n      \n      // فحص الحقول المطلوبة\n      const requiredFields = \\['branch_id', 'incubator_id', 'platform_id', 'office_id'\\];\n      const missingFields = requiredFields\\.filter\\(f => !columns\\.includes\\(f\\)\\);\n      const existingFields = requiredFields\\.filter\\(f => columns\\.includes\\(f\\)\\);\n      \n      if \\(existingFields\\.length > 0\\) \\{\n        console\\.log\\('✅ الحقول الموجودة:', existingFields\\.join\\(', '\\)\\);\n      \\}\n      \n      if \\(missingFields\\.length > 0\\) \\{\n        console\\.log\\('❌ الحقول الناقصة:', missingFields\\.join\\(', '\\)\\);\n      \\}\n      \n      console\\.log\\('   جميع الأعمدة:', columns\\.join\\(', '\\)\\);\n    \\}\n\n  \\} catch \\(error\\) \\{\n    console\\.error\\('❌ خطأ:', error\\.message\\);\n  \\} finally \\{\n    await pool\\.end\\(\\);\n  \\}\n\\}\n\ncheckAllTables\\(\\);\nEOF\nnode check-all-tables-structure\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-all-tables-structure\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node apply-hierarchy-fields\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cat > check-existing-tables\\.js << 'EOF'\nconst \\{ Pool \\} = require\\('pg'\\);\n\nconst pool = new Pool\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\nasync function checkTables\\(\\) \\{\n  try \\{\n    const result = await pool\\.query\\(`\n      SELECT tablename \n      FROM pg_tables \n      WHERE schemaname = 'public'\n      ORDER BY tablename\n    `\\);\n    \n    console\\.log\\('📋 الجداول الموجودة:'\\);\n    result\\.rows\\.forEach\\(row => console\\.log\\('  - ' \\+ row\\.tablename\\)\\);\n    \n  \\} catch \\(error\\) \\{\n    console\\.error\\('❌ خطأ:', error\\.message\\);\n  \\} finally \\{\n    await pool\\.end\\(\\);\n  \\}\n\\}\n\ncheckTables\\(\\);\nEOF\nnode check-existing-tables\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-existing-tables\\.js 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-hierarchy-fields-backend\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "npm run build": true
     }
 }
