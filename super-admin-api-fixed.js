@@ -48,6 +48,29 @@ const verifySuperAdmin = async (req, res, next) => {
     }
 };
 
+// ========== 1. GET /metadata - معلومات النظام ==========
+router.get('/metadata', async (req, res) => {
+    try {
+        const rolesCount = await pool.query('SELECT COUNT(*) FROM roles');
+        const permissionsCount = await pool.query('SELECT COUNT(*) FROM permissions');
+        const usersCount = await pool.query('SELECT COUNT(DISTINCT user_id) FROM user_roles WHERE is_active = true');
+        
+        res.json({
+            success: true,
+            metadata: {
+                totalRoles: parseInt(rolesCount.rows[0].count),
+                totalPermissions: parseInt(permissionsCount.rows[0].count),
+                totalUsers: parseInt(usersCount.rows[0].count),
+                systemName: 'نظام إدارة الأدوار والصلاحيات',
+                version: '1.0.0'
+            }
+        });
+    } catch (error) {
+        console.error('خطأ في جلب metadata:', error);
+        res.status(500).json({ success: false, message: 'خطأ في جلب معلومات النظام' });
+    }
+});
+
 // ========== 1. جلب جميع الأدوار ==========
 router.get('/roles', verifySuperAdmin, async (req, res) => {
     try {

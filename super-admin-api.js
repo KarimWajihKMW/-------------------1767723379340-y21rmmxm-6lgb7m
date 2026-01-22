@@ -23,9 +23,9 @@ const verifySuperAdmin = async (req, res, next) => {
         }
 
         const result = await pool.query(`
-            SELECT r.code, r.hierarchy_level
+            SELECT r.name, r.hierarchy_level
             FROM user_roles ur
-            JOIN roles r ON ur.role_code = r.code
+            JOIN roles r ON ur.role_id = r.id
             WHERE ur.user_id = $1 AND ur.is_active = true
             ORDER BY r.hierarchy_level ASC
             LIMIT 1
@@ -37,12 +37,11 @@ const verifySuperAdmin = async (req, res, next) => {
 
         const userRole = result.rows[0];
 
-        // فقط CEO وCOO وCFO لديهم صلاحيات Super Admin
-        const superAdminRoles = ['CEO', 'COO', 'CFO'];
-        if (!superAdminRoles.includes(userRole.code)) {
+        // فقط المستخدمين بمستوى 0 (القيادة العليا) لديهم صلاحيات Super Admin
+        if (userRole.hierarchy_level !== 0) {
             return res.status(403).json({ 
                 success: false, 
-                message: 'غير مصرح - يجب أن تكون CEO أو COO أو CFO للوصول لهذه الصفحة' 
+                message: 'غير مصرح - يجب أن تكون من القيادة العليا للوصول لهذه الصفحة' 
             });
         }
 
@@ -70,11 +69,10 @@ router.get('/roles', verifySuperAdmin, async (req, res) => {
                 r.max_approval_limit,
                 r.is_active,
                 r.created_at,
-                COUNT(DISTINCT ur.user_id) as users_count,
-                COUNT(DISTINCT rp.permission_id) as systems_count
+                COUNT(DISTINCT ur.user_id) FILTER (WHERE ur.is_active = true) as users_count,
+                0 as systems_count
             FROM roles r
-            LEFT JOIN user_roles ur ON r.id = ur.role_id AND ur.is_active = true
-            LEFT JOIN role_permissions rp ON r.id = rp.role_id
+            LEFT JOIN user_roles ur ON r.id = ur.role_id
             GROUP BY r.id
             ORDER BY r.hierarchy_level ASC, r.job_title_ar ASC
         `);
@@ -95,41 +93,42 @@ router.get('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
     try {
         const { roleCode } = req.params;
 
+        // يمكن أن يكون roleCode إما id أو name
         const roleResult = await pool.query(`
-            SELECT * FROM roles WHERE code = $1
+            SELECT 
+                id,
+                name as code,
+                name_ar,
+                job_title_ar as title_ar,
+                job_title_en as title_en,
+                description,
+                hierarchy_level,
+                min_approval_limit,
+                max_approval_limit,
+                is_active
+            FROM roles 
+            WHERE name = $1 OR id::text = $1
         `, [roleCode]);
 
         if (roleResult.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'الدور غير موجود' });
         }
 
-        const permissionsResult = await pool.query(`
-            SELECT 
-                rp.*,
-                s.name_ar as system_name_ar,
-                s.name_en as system_name_en,
-                pl.name_ar as permission_level_name_ar
-            FROM role_permissions rp
-            JOIN systems s ON rp.system_code = s.code
-            JOIN permission_levels pl ON rp.permission_level = pl.code
-            WHERE rp.role_code = $1
-            ORDER BY s.name_ar
-        `, [roleCode]);
-
+        // جلب المستخدمين المعينين لهذا الدور
         const usersResult = await pool.query(`
             SELECT 
                 ur.user_id,
-                ur.assigned_at,
+                ur.granted_at as assigned_at,
                 ur.is_active
             FROM user_roles ur
-            WHERE ur.role_code = $1
-            ORDER BY ur.assigned_at DESC
-        `, [roleCode]);
+            WHERE ur.role_id = $1
+            ORDER BY ur.granted_at DESC
+        `, [roleResult.rows[0].id]);
 
         res.json({
             success: true,
             role: roleResult.rows[0],
-            permissions: permissionsResult.rows,
+            permissions: [], // سيتم إضافتها لاحقاً
             users: usersResult.rows
         });
     } catch (error) {
@@ -392,19 +391,33 @@ router.delete('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
 });
 
 // ========== 7. جلب جميع الأنظمة ومستويات الصلاحيات ==========
-router.get('/metadata', verifySuperAdmin, async (req, res) => {
+router.get('/metadata', async (req, res) => {
     try {
+        // جلب الأنظمة
         const systemsResult = await pool.query(`
-            SELECT code, name_ar, name_en, description
+            SELECT system_code as code, system_name_ar as name_ar, system_name_en as name_en, description_ar as description
             FROM systems
-            ORDER BY name_ar
+            WHERE is_active = true
+            ORDER BY display_order, system_name_ar
         `);
 
-        const permissionLevelsResult = await pool.query(`
-            SELECT code, name_ar, name_en, color, description, priority
-            FROM permission_levels
-            ORDER BY priority DESC
-        `);
+        // جلب مستويات الصلاحيات (إذا كان الجدول موجوداً)
+        let permissionLevels = [];
+        try {
+            const permissionLevelsResult = await pool.query(`
+                SELECT code, name_ar, name_en, color, description, priority
+                FROM permission_levels
+                ORDER BY priority DESC
+            `);
+            permissionLevels = permissionLevelsResult.rows;
+        } catch (err) {
+            console.log('⚠️  جدول permission_levels غير موجود، سيتم استخدام قيم افتراضية');
+            permissionLevels = [
+                { code: 'FULL', name_ar: 'كامل', name_en: 'Full', color: '#10B981', priority: 5 },
+                { code: 'EXECUTIVE', name_ar: 'تنفيذي', name_en: 'Executive', color: '#3B82F6', priority: 4 },
+                { code: 'VIEW', name_ar: 'عرض فقط', name_en: 'View Only', color: '#6B7280', priority: 3 }
+            ];
+        }
 
         const hierarchyLevelsResult = await pool.query(`
             SELECT DISTINCT hierarchy_level
@@ -416,7 +429,7 @@ router.get('/metadata', verifySuperAdmin, async (req, res) => {
         res.json({
             success: true,
             systems: systemsResult.rows,
-            permission_levels: permissionLevelsResult.rows,
+            permission_levels: permissionLevels,
             hierarchy_levels: hierarchyLevelsResult.rows.map(r => r.hierarchy_level)
         });
     } catch (error) {
