@@ -340,8 +340,9 @@ router.delete('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
         // التحقق من عدم وجود مستخدمين نشطين بهذا الدور
         const usersCheck = await client.query(`
             SELECT COUNT(*) as count 
-            FROM user_roles 
-            WHERE role_code = $1 AND is_active = true
+            FROM user_roles ur
+            JOIN roles r ON ur.role_id = r.id
+            WHERE r.name = $1 AND ur.is_active = true
         `, [roleCode]);
 
         if (parseInt(usersCheck.rows[0].count) > 0) {
@@ -353,11 +354,11 @@ router.delete('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
 
         await client.query('BEGIN');
 
-        // حذف الصلاحيات
+        // حذف الصلاحيات (إذا كانت موجودة)
         await client.query('DELETE FROM role_permissions WHERE role_code = $1', [roleCode]);
 
         // حذف الدور
-        const result = await client.query('DELETE FROM roles WHERE code = $1 RETURNING *', [roleCode]);
+        const result = await client.query('DELETE FROM roles WHERE name = $1 RETURNING *', [roleCode]);
 
         if (result.rows.length === 0) {
             await client.query('ROLLBACK');
