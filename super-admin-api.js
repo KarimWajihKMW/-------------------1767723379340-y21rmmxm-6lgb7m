@@ -171,11 +171,11 @@ router.put('/roles/:roleCode/permissions', verifySuperAdmin, async (req, res) =>
         // سجل في audit log
         await pool.query(`
             INSERT INTO audit_log (
-                entity_type, entity_id, action, 
-                performed_by, details
+                entity_type, entity_reference_id, action_type, 
+                user_name, description
             ) VALUES ($1, $2, $3, $4, $5)
         `, [
-            'role_permissions',
+            'role',
             roleCode,
             'UPDATE',
             req.userId || 'super-admin',
@@ -239,8 +239,8 @@ router.put('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
         // سجل في audit log
         await pool.query(`
             INSERT INTO audit_log (
-                entity_type, entity_id, action, 
-                performed_by, details
+                entity_type, entity_reference_id, action_type, 
+                user_name, description
             ) VALUES ($1, $2, $3, $4, $5)
         `, [
             'roles',
@@ -302,8 +302,8 @@ router.post('/roles', verifySuperAdmin, async (req, res) => {
         // سجل في audit log
         await pool.query(`
             INSERT INTO audit_log (
-                entity_type, entity_id, action, 
-                performed_by, details
+                entity_type, entity_reference_id, action_type, 
+                user_name, description
             ) VALUES ($1, $2, $3, $4, $5)
         `, [
             'roles',
@@ -366,8 +366,8 @@ router.delete('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
         // سجل في audit log
         await pool.query(`
             INSERT INTO audit_log (
-                entity_type, entity_id, action, 
-                performed_by, details
+                entity_type, entity_reference_id, action_type, 
+                user_name, description
             ) VALUES ($1, $2, $3, $4, $5)
         `, [
             'roles',
@@ -405,9 +405,10 @@ router.get('/metadata', async (req, res) => {
         let permissionLevels = [];
         try {
             const permissionLevelsResult = await pool.query(`
-                SELECT code, name_ar, name_en, color, description, priority
+                SELECT level_code as code, level_name_ar as name_ar, level_name_en as name_en, 
+                       color_code as color, description_ar as description, priority_order as priority
                 FROM permission_levels
-                ORDER BY priority DESC
+                ORDER BY priority_order DESC
             `);
             permissionLevels = permissionLevelsResult.rows;
         } catch (err) {
@@ -500,8 +501,8 @@ router.post('/users/:userId/role', verifySuperAdmin, async (req, res) => {
         try {
             await pool.query(`
                 INSERT INTO audit_log (
-                    entity_type, entity_id, action, 
-                    performed_by, details
+                    entity_type, entity_reference_id, action_type, 
+                    user_name, description
                 ) VALUES ($1, $2, $3, $4, $5)
             `, [
                 'user_roles',
@@ -555,8 +556,8 @@ router.delete('/users/:userId/role', verifySuperAdmin, async (req, res) => {
         try {
             await pool.query(`
                 INSERT INTO audit_log (
-                    entity_type, entity_id, action, 
-                    performed_by, details
+                    entity_type, entity_reference_id, action_type, 
+                    user_name, description
                 ) VALUES ($1, $2, $3, $4, $5)
             `, [
                 'user_roles',
