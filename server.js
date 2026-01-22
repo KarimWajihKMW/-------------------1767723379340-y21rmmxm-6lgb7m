@@ -4347,6 +4347,316 @@ app.use((err, req, res, next) => {
 const HOST = process.env.HOST || '0.0.0.0';
 
 // Handle uncaught errors
+// ========================================
+// PERMISSIONS TESTING API ENDPOINTS
+// ========================================
+
+// Get all roles with hierarchy levels
+app.get('/api/permissions/roles', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        name,
+        name_ar,
+        job_title_ar,
+        hierarchy_level,
+        max_approval_limit,
+        approval_notes_ar,
+        description
+      FROM roles
+      ORDER BY hierarchy_level, job_title_ar
+    `);
+    
+    res.json({
+      success: true,
+      roles: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get permissions for specific role
+app.get('/api/permissions/role/:roleId', async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    
+    const result = await db.query(`
+      SELECT 
+        rsp.role_id,
+        r.name as role_name,
+        r.name_ar as role_name_ar,
+        r.job_title_ar,
+        s.name as system_name,
+        s.name_ar as system_name_ar,
+        s.description as system_description,
+        pl.code as level_code,
+        pl.name_ar as level_name_ar,
+        pl.allowed_actions,
+        pl.restrictions,
+        rsp.notes
+      FROM role_system_permissions rsp
+      JOIN roles r ON r.id = rsp.role_id
+      JOIN systems s ON s.id = rsp.system_id
+      JOIN permission_levels pl ON pl.id = rsp.permission_level_id
+      WHERE rsp.role_id = $1
+      ORDER BY s.name
+    `, [roleId]);
+    
+    res.json({
+      success: true,
+      permissions: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching role permissions:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get system statistics
+app.get('/api/permissions/stats', async (req, res) => {
+  try {
+    const rolesCount = await db.query('SELECT COUNT(*) as count FROM roles');
+    const systemsCount = await db.query('SELECT COUNT(*) as count FROM systems');
+    const levelsCount = await db.query('SELECT COUNT(*) as count FROM permission_levels');
+    const permissionsCount = await db.query('SELECT COUNT(*) as count FROM role_system_permissions');
+    
+    // Roles by hierarchy level
+    const rolesByLevel = await db.query(`
+      SELECT 
+        hierarchy_level,
+        COUNT(*) as count
+      FROM roles
+      GROUP BY hierarchy_level
+      ORDER BY hierarchy_level
+    `);
+    
+    res.json({
+      success: true,
+      stats: {
+        total_roles: parseInt(rolesCount.rows[0].count),
+        total_systems: parseInt(systemsCount.rows[0].count),
+        total_permission_levels: parseInt(levelsCount.rows[0].count),
+        total_permissions: parseInt(permissionsCount.rows[0].count),
+        roles_by_level: rolesByLevel.rows
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get full permissions matrix
+app.get('/api/permissions/matrix', async (req, res) => {
+  try {
+    // Get all systems
+    const systems = await db.query(`
+      SELECT id, name, name_ar, description
+      FROM systems
+      ORDER BY name
+    `);
+    
+    // Get all roles with their permissions
+    const roles = await db.query(`
+      SELECT 
+        r.id,
+        r.name,
+        r.name_ar,
+        r.job_title_ar,
+        r.hierarchy_level
+      FROM roles r
+      ORDER BY r.hierarchy_level, r.job_title_ar
+    `);
+    
+    // Get all permissions
+    const matrix = [];
+    
+    for (const role of roles.rows) {
+      const permissions = await db.query(`
+        SELECT 
+          s.id as system_id,
+          s.name as system_name,
+          s.name_ar as system_name_ar,
+          pl.code as level_code,
+          pl.name_ar as level_name_ar
+        FROM systems s
+        LEFT JOIN role_system_permissions rsp ON rsp.system_id = s.id AND rsp.role_id = $1
+        LEFT JOIN permission_levels pl ON pl.id = rsp.permission_level_id
+        ORDER BY s.name
+      `, [role.id]);
+      
+      matrix.push({
+        role_id: role.id,
+        role_name: role.name,
+        role_name_ar: role.job_title_ar || role.name_ar,
+        hierarchy_level: role.hierarchy_level,
+        permissions: permissions.rows
+      });
+    }
+    
+    res.json({
+      success: true,
+      systems: systems.rows,
+      matrix: matrix
+    });
+  } catch (error) {
+    console.error('Error fetching matrix:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get permission levels
+app.get('/api/permissions/levels', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        code,
+        name_ar,
+        color_code,
+        allowed_actions,
+        restrictions,
+        description
+      FROM permission_levels
+      ORDER BY 
+        CASE code
+          WHEN 'FULL' THEN 1
+          WHEN 'VIEW_APPROVE' THEN 2
+          WHEN 'EXECUTIVE' THEN 3
+          WHEN 'VIEW' THEN 4
+          WHEN 'LIMITED' THEN 5
+          WHEN 'NONE' THEN 6
+        END
+    `);
+    
+    res.json({
+      success: true,
+      levels: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching permission levels:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all systems
+app.get('/api/permissions/systems', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        name,
+        name_ar,
+        description,
+        color_code,
+        icon
+      FROM systems
+      ORDER BY name
+    `);
+    
+    res.json({
+      success: true,
+      systems: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching systems:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Check user permission for specific action
+app.post('/api/permissions/check', async (req, res) => {
+  try {
+    const { roleId, systemName, action } = req.body;
+    
+    if (!roleId || !systemName || !action) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: roleId, systemName, action' 
+      });
+    }
+    
+    const result = await db.query(`
+      SELECT 
+        r.name as role_name,
+        r.name_ar as role_name_ar,
+        s.name as system_name,
+        s.name_ar as system_name_ar,
+        pl.code as permission_level,
+        pl.name_ar as permission_name_ar,
+        pl.allowed_actions,
+        pl.restrictions,
+        r.max_approval_limit
+      FROM role_system_permissions rsp
+      JOIN roles r ON r.id = rsp.role_id
+      JOIN systems s ON s.id = rsp.system_id
+      JOIN permission_levels pl ON pl.id = rsp.permission_level_id
+      WHERE rsp.role_id = $1 AND s.name = $2
+    `, [roleId, systemName]);
+    
+    if (result.rows.length === 0) {
+      return res.json({
+        success: false,
+        allowed: false,
+        message: 'لا توجد صلاحيات لهذا الدور في هذا النظام'
+      });
+    }
+    
+    const permission = result.rows[0];
+    const allowedActions = permission.allowed_actions || '';
+    const isAllowed = permission.permission_level !== 'NONE' && 
+                     (permission.permission_level === 'FULL' || allowedActions.includes(action));
+    
+    res.json({
+      success: true,
+      allowed: isAllowed,
+      permission_level: permission.permission_level,
+      permission_name_ar: permission.permission_name_ar,
+      allowed_actions: permission.allowed_actions,
+      restrictions: permission.restrictions,
+      max_approval_limit: permission.max_approval_limit,
+      message: isAllowed ? `مسموح: ${action}` : `غير مسموح: ${action}`
+    });
+  } catch (error) {
+    console.error('Error checking permission:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get security policies
+app.get('/api/permissions/security-policies', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        policy_number,
+        policy_name_ar,
+        description_ar,
+        applies_to_levels,
+        is_active
+      FROM security_policies
+      WHERE is_active = true
+      ORDER BY policy_number
+    `);
+    
+    res.json({
+      success: true,
+      policies: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching security policies:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 process.on('uncaughtException', (error) => {
   console.error('💥 Uncaught Exception:', error);
   // Don't exit - let the process continue
