@@ -1504,7 +1504,7 @@ const app = (() => {
         const isIncubator = currentEntity?.type === 'INCUBATOR';
         
         // التحقق من صلاحية Super Admin (HQ001 فقط)
-        const isSuperAdmin = currentUser.entityId === 1 || currentUser.code === 'HQ001';
+        const isSuperAdmin = currentUser.entityId === 'HQ001' || currentUser.entityId === 1;
         
         const items = [
             { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
