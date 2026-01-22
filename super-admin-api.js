@@ -439,6 +439,60 @@ router.get('/metadata', async (req, res) => {
     }
 });
 
+// ========== 7.5. جلب معلومات مستخدم ==========
+router.get('/users/:userId', verifySuperAdmin, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // جلب معلومات المستخدم
+        const userResult = await pool.query(`
+            SELECT id, name, email, entity_id, entity_name, is_active
+            FROM users
+            WHERE id = $1
+        `, [userId]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'المستخدم غير موجود' 
+            });
+        }
+
+        const user = userResult.rows[0];
+
+        // جلب الدور الحالي للمستخدم
+        const roleResult = await pool.query(`
+            SELECT r.id as role_id, r.name_ar as role_name, ur.is_active
+            FROM user_roles ur
+            JOIN roles r ON ur.role_id = r.id
+            WHERE ur.user_id = $1 AND ur.is_active = true
+            LIMIT 1
+        `, [userId]);
+
+        const currentRole = roleResult.rows.length > 0 ? roleResult.rows[0] : null;
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                entity_id: user.entity_id,
+                entity_name: user.entity_name,
+                is_active: user.is_active,
+                current_role: currentRole
+            }
+        });
+    } catch (error) {
+        console.error('خطأ في جلب معلومات المستخدم:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'حدث خطأ في جلب معلومات المستخدم',
+            error: error.message 
+        });
+    }
+});
+
 // ========== 8. تعيين دور لمستخدم ==========
 router.post('/users/:userId/role', verifySuperAdmin, async (req, res) => {
     try {
