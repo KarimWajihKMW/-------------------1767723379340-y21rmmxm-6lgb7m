@@ -337,13 +337,22 @@ router.delete('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
     try {
         const { roleCode } = req.params;
 
+        // جلب معلومات الدور أولاً
+        const roleCheck = await client.query('SELECT id, name, job_title_ar FROM roles WHERE name = $1', [roleCode]);
+        
+        if (roleCheck.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'الدور غير موجود' });
+        }
+        
+        const roleId = roleCheck.rows[0].id;
+        const roleInfo = roleCheck.rows[0];
+
         // التحقق من عدم وجود مستخدمين نشطين بهذا الدور
         const usersCheck = await client.query(`
             SELECT COUNT(*) as count 
             FROM user_roles ur
-            JOIN roles r ON ur.role_id = r.id
-            WHERE r.name = $1 AND ur.is_active = true
-        `, [roleCode]);
+            WHERE ur.role_id = $1 AND ur.is_active = true
+        `, [roleId]);
 
         if (parseInt(usersCheck.rows[0].count) > 0) {
             return res.status(400).json({ 
@@ -354,11 +363,11 @@ router.delete('/roles/:roleCode', verifySuperAdmin, async (req, res) => {
 
         await client.query('BEGIN');
 
-        // حذف الصلاحيات (إذا كانت موجودة)
-        await client.query('DELETE FROM role_permissions WHERE role_code = $1', [roleCode]);
+        // حذف الصلاحيات (إذا كانت موجودة) - استخدام role_id
+        await client.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
 
-        // حذف الدور
-        const result = await client.query('DELETE FROM roles WHERE name = $1 RETURNING *', [roleCode]);
+        // حذف الدور - استخدام id أفضل من name
+        const result = await client.query('DELETE FROM roles WHERE id = $1 RETURNING *', [roleId]);
 
         if (result.rows.length === 0) {
             await client.query('ROLLBACK');
