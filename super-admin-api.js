@@ -271,32 +271,35 @@ router.post('/roles', verifySuperAdmin, async (req, res) => {
             description,
             hierarchy_level,
             min_approval_limit,
-            max_approval_limit
+            max_approval_limit,
+            level
         } = req.body;
 
         // التحقق من البيانات المطلوبة
-        if (!code || !title_ar || !title_en || hierarchy_level === undefined) {
+        if (!code || !title_ar || hierarchy_level === undefined) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'البيانات المطلوبة: code, title_ar, title_en, hierarchy_level' 
+                message: 'البيانات المطلوبة: code, title_ar, hierarchy_level' 
             });
         }
 
         const result = await pool.query(`
             INSERT INTO roles (
-                code, title_ar, title_en, description,
-                hierarchy_level, min_approval_limit, max_approval_limit,
+                name, name_ar, job_title_ar, job_title_en, description,
+                level, hierarchy_level, min_approval_limit, max_approval_limit,
                 is_active
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
             RETURNING *
         `, [
-            code,
-            title_ar,
-            title_en,
+            code,                           // name
+            code,                           // name_ar (نفس الكود)
+            title_ar,                       // job_title_ar
+            title_en || title_ar,          // job_title_en
             description || null,
+            level || 'OPERATIONAL',        // level
             hierarchy_level,
             min_approval_limit || 0,
-            max_approval_limit || 0
+            max_approval_limit || null
         ]);
 
         // سجل في audit log
