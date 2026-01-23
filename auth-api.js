@@ -17,16 +17,16 @@ router.post('/login', async (req, res) => {
     const client = await pool.connect();
     
     try {
-        const { username, password } = req.body;
+        const { email, password } = req.body;
         
-        if (!username || !password) {
+        if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: 'يرجى إدخال اسم المستخدم وكلمة المرور'
+                message: 'يرجى إدخال البريد الإلكتروني وكلمة المرور'
             });
         }
         
-        // 1. جلب بيانات الاعتماد
+        // 1. جلب بيانات الاعتماد من خلال البريد الإلكتروني
         const credQuery = `
             SELECT uc.id as cred_id, uc.user_id, uc.password_hash, 
                    uc.is_active, uc.failed_attempts, uc.locked_until,
@@ -34,15 +34,15 @@ router.post('/login', async (req, res) => {
                    u.role, u.tenant_type, u.is_active as user_active
             FROM user_credentials uc
             JOIN users u ON uc.user_id = u.id
-            WHERE uc.username = $1
+            WHERE u.email = $1
         `;
         
-        const credResult = await client.query(credQuery, [username]);
+        const credResult = await client.query(credQuery, [email]);
         
         if (credResult.rows.length === 0) {
             return res.status(401).json({
                 success: false,
-                message: 'اسم المستخدم أو كلمة المرور غير صحيحة'
+                message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
             });
         }
         
@@ -93,7 +93,7 @@ router.post('/login', async (req, res) => {
                 
                 return res.status(401).json({
                     success: false,
-                    message: 'اسم المستخدم أو كلمة المرور غير صحيحة'
+                    message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
                 });
             }
         }

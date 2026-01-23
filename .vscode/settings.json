@@ -750,6 +750,27 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && pkill -f \"node\\.\\*server\\.js\" \\|\\| true$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "mv": true,
+        "/^node check-super-admin\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-users-table\\.js 2>&1 \\| head -50$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{\n    connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n    ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\n\\(async \\(\\) => \\{\n    const result = await pool\\.query\\('SELECT column_name, data_type FROM information_schema\\.columns WHERE table_name = \\\\\\\\'user_credentials\\\\\\\\' ORDER BY ordinal_position'\\);\n    console\\.log\\('📋 جدول user_credentials:'\\);\n    result\\.rows\\.forEach\\(r => console\\.log\\(\\\\`  - \\\\\\$\\{r\\.column_name\\} \\(\\\\\\$\\{r\\.data_type\\}\\)\\\\`\\)\\);\n    await pool\\.end\\(\\);\n\\}\\)\\(\\);\n\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node update-auth-to-personal\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-personal-auth\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

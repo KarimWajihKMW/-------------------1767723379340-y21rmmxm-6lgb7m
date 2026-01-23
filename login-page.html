@@ -282,7 +282,7 @@
     <div class="login-container">
         <div class="login-header">
             <h1>🔐 نظام نيوش</h1>
-            <p>مرحباً بك في نظام إدارة المشاريع</p>
+            <p>مرحباً بك - سجل دخول بحسابك الشخصي</p>
         </div>
 
         <div class="login-body">
@@ -290,17 +290,17 @@
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="username">اسم المستخدم</label>
+                    <label for="email">البريد الإلكتروني</label>
                     <div class="input-wrapper">
-                        <span class="input-icon">👤</span>
+                        <span class="input-icon">✉️</span>
                         <input 
-                            type="text" 
-                            id="username" 
-                            name="username" 
+                            type="email" 
+                            id="email" 
+                            name="email" 
                             class="form-control" 
-                            placeholder="أدخل اسم المستخدم (مثل: HQ001)"
+                            placeholder="أدخل بريدك الإلكتروني (مثل: ahmed@nayosh.com)"
                             required
-                            autocomplete="username"
+                            autocomplete="email"
                         >
                     </div>
                 </div>
@@ -340,20 +340,20 @@
             </div>
 
             <div class="demo-accounts">
-                <h3>الحسابات المتاحة</h3>
+                <h3>الحسابات المتاحة للتجربة</h3>
                 
-                <div class="demo-account" onclick="fillLogin('HQ001', 'Admin@123')">
-                    <strong>🔐 Super Admin - HQ001</strong>
+                <div class="demo-account" onclick="fillLogin('ahmed@nayosh.com', 'Admin@123')">
+                    <strong>🔐 Super Admin</strong>
                     <small>م. أحمد العلي - المكتب الرئيسي (صلاحيات كاملة)</small>
                 </div>
 
-                <div class="demo-account" onclick="fillLogin('BR015', 'User@123')">
-                    <strong>👤 مستخدم فرع - BR015</strong>
+                <div class="demo-account" onclick="fillLogin('sara@nayosh.com', 'User@123')">
+                    <strong>👤 مستخدمة فرع</strong>
                     <small>سارة محمد - فرع العليا مول</small>
                 </div>
 
-                <div class="demo-account" onclick="fillLogin('BR016', 'User@123')">
-                    <strong>👤 مستخدم فرع - BR016</strong>
+                <div class="demo-account" onclick="fillLogin('fahad@nayosh.com', 'User@123')">
+                    <strong>👤 مستخدم فرع</strong>
                     <small>فهد السبيعي - فرع مول الرياض</small>
                 </div>
             </div>
@@ -366,10 +366,10 @@
         const loginBtn = document.querySelector('.btn-login');
 
         // ملء بيانات الدخول من الحسابات التجريبية
-        function fillLogin(username, password) {
-            document.getElementById('username').value = username;
+        function fillLogin(email, password) {
+            document.getElementById('email').value = email;
             document.getElementById('password').value = password;
-            document.getElementById('username').focus();
+            document.getElementById('email').focus();
         }
 
         // عرض رسالة
@@ -386,12 +386,12 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
 
-            if (!username || !password) {
-                showAlert('يرجى إدخال اسم المستخدم وكلمة المرور');
+            if (!email || !password) {
+                showAlert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
                 return;
             }
 
@@ -405,7 +405,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ email, password })
                 });
 
                 const result = await response.json();
