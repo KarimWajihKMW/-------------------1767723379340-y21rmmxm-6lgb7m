@@ -15,6 +15,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Serve static files
 app.use(express.static('.'));
 
+// Authentication API Routes
+const authRoutes = require('./auth-api');
+app.use('/api/auth', authRoutes);
+
 // Super Admin API Routes
 const superAdminRoutes = require('./super-admin-api');
 app.use('/api/admin', superAdminRoutes);

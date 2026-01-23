@@ -771,6 +771,14 @@
         "/^node test-personal-auth\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node test-full-login-flow\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-server\\.js &$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
