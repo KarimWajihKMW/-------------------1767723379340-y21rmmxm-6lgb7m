@@ -43,9 +43,11 @@ const app = (() => {
             // استخدم currentUser أو fallback على window.currentUserData
             const user = currentUser || window.currentUserData;
             if (user) {
-                headers['x-entity-type'] = user.tenantType;
-                headers['x-entity-id'] = user.entityId;
-                console.log('📤 [fetchAPI] Sending headers:', { endpoint, entityType: user.tenantType, entityId: user.entityId });
+                const tenantType = user.tenantType || user.tenant_type || 'HQ';
+                const entityId = user.entityId || user.entity_id || 'HQ001';
+                headers['x-entity-type'] = tenantType;
+                headers['x-entity-id'] = entityId;
+                console.log('📤 [fetchAPI] Sending headers:', { endpoint, entityType: tenantType, entityId: entityId });
             } else {
                 console.warn('⚠️ [fetchAPI] No user data available for:', endpoint);
             }
@@ -188,24 +190,36 @@ const app = (() => {
 
     // --- ISOLATION & PERMISSIONS LAYER ---
     const perms = {
-        isHQ: () => currentUser.tenantType === 'HQ',
-        isAdmin: () => currentUser.role === ROLES.ADMIN,
-        isFinance: () => currentUser.role === ROLES.FINANCE || currentUser.role === ROLES.ADMIN,
-        isSupport: () => currentUser.role === ROLES.SUPPORT,
-        isHR: () => currentUser.role === ROLES.HR || currentUser.role === ROLES.ADMIN,
-        canManageAds: () => perms.isAdmin() || currentUser.role === ROLES.ADVERTISER,
+        isHQ: () => {
+            const tenantType = currentUser?.tenantType || currentUser?.tenant_type;
+            return tenantType === 'HQ';
+        },
+        isAdmin: () => currentUser?.role === ROLES.ADMIN,
+        isFinance: () => currentUser?.role === ROLES.FINANCE || currentUser?.role === ROLES.ADMIN,
+        isSupport: () => currentUser?.role === ROLES.SUPPORT,
+        isHR: () => currentUser?.role === ROLES.HR || currentUser?.role === ROLES.ADMIN,
+        canManageAds: () => perms.isAdmin() || currentUser?.role === ROLES.ADVERTISER,
         canViewAuditLogs: () => perms.isAdmin(),
 
         getVisibleEntities: () => {
             if (perms.isHQ()) return db.entities;
-            return db.entities.filter(e => e.id === currentUser.entityId);
+            const entityId = currentUser?.entityId || currentUser?.entity_id;
+            return db.entities.filter(e => e.id === entityId);
         },
 
-        getVisibleTasks: () => db.tasks.filter(t => t.entityId === currentUser.entityId),
-        getVisibleTickets: () => (perms.isHQ() && perms.isSupport()) ? db.tickets : db.tickets.filter(t => t.entityId === currentUser.entityId),
+        getVisibleTasks: () => {
+            const entityId = currentUser?.entityId || currentUser?.entity_id;
+            return db.tasks.filter(t => t.entityId === entityId);
+        },
+        getVisibleTickets: () => {
+            const entityId = currentUser?.entityId || currentUser?.entity_id;
+            return (perms.isHQ() && perms.isSupport()) ? db.tickets : db.tickets.filter(t => t.entityId === entityId);
+        },
         
         getVisibleAds: () => {
-          console.log(`🔍 [getVisibleAds] Called for user: ${currentUser.entityId} (${currentUser.tenantType})`);
+          const entityId = currentUser?.entityId || currentUser?.entity_id;
+          const tenantType = currentUser?.tenantType || currentUser?.tenant_type;
+          console.log(`🔍 [getVisibleAds] Called for user: ${entityId} (${tenantType})`);
           console.log(`📊 [getVisibleAds] Total ads in db.ads: ${db.ads.length}`);
           console.log(`📋 [getVisibleAds] Ads:`, db.ads.map(a => `${a.title} (${a.sourceType})`));
           const filtered = db.ads.filter(ad => {
@@ -873,7 +887,14 @@ const app = (() => {
             
             // محاولة استرجاع بيانات المستخدم
             try {
-                currentUser = JSON.parse(savedUser);
+                const userData = JSON.parse(savedUser);
+                // تحويل من snake_case إلى camelCase للتوافق مع الكود القديم
+                currentUser = {
+                    ...userData,
+                    tenantType: userData.tenant_type || userData.tenantType || 'HQ',
+                    entityId: userData.entity_id || userData.entityId,
+                    entityName: userData.entity_name || userData.entityName
+                };
                 window.currentUserData = currentUser;
                 console.log('✅ تم استرجاع بيانات المستخدم:', currentUser);
             } catch (e) {
@@ -1121,11 +1142,16 @@ const app = (() => {
     const updateHeader = () => {
         if (!currentUser) return;
         
+        // تحويل البيانات من snake_case إلى camelCase إذا لزم الأمر
+        const tenantType = currentUser.tenantType || currentUser.tenant_type || 'HQ';
+        const entityId = currentUser.entityId || currentUser.entity_id || 'Unknown';
+        
         document.getElementById('user-name').innerText = currentUser.name;
-        document.getElementById('user-role').innerText = TENANT_TYPES[currentUser.tenantType].label;
+        const tenantInfo = TENANT_TYPES[tenantType] || TENANT_TYPES.HQ;
+        document.getElementById('user-role').innerText = tenantInfo.label;
         document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
-        document.getElementById('tenant-id-display').innerText = currentUser.entityId;
-        document.getElementById('tenant-badge').className = `hidden md:flex items-center gap-2 border px-3 py-1 rounded-full animate-fade-in ${TENANT_TYPES[currentUser.tenantType].bg} ${TENANT_TYPES[currentUser.tenantType].color} border-current border-opacity-20`;
+        document.getElementById('tenant-id-display').innerText = entityId;
+        document.getElementById('tenant-badge').className = `hidden md:flex items-center gap-2 border px-3 py-1 rounded-full animate-fade-in ${tenantInfo.bg} ${tenantInfo.color} border-current border-opacity-20`;
         
         // Update notification bell
         const unreadCount = db.notifications.filter(n => !n.isRead).length;
