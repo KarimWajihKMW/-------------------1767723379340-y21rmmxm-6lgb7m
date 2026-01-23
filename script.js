@@ -858,30 +858,54 @@ const app = (() => {
         console.log('🔄 بدء التهيئة...');
         
         try {
-            // Check if user already selected entity before
-            const savedEntity = localStorage.getItem('nayosh_selected_entity');
-            if (savedEntity) {
-                try {
-                    currentUser = JSON.parse(savedEntity);
-                    window.currentUserData = currentUser;
-                    console.log('✅ استرجاع الكيان المحفوظ:', currentUser);
-                } catch (e) {
-                    console.warn('⚠️ خطأ في استرجاع الكيان المحفوظ:', e);
-                    localStorage.removeItem('nayosh_selected_entity');
+            // ========================================
+            // 1. التحقق من تسجيل الدخول أولاً
+            // ========================================
+            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+            
+            // إذا لم يكن هناك توكن، أعد التوجيه لصفحة تسجيل الدخول
+            if (!authToken || !savedUser) {
+                console.log('❌ لا يوجد توكن مصادقة - إعادة توجيه لصفحة تسجيل الدخول');
+                window.location.href = '/login-page.html';
+                return;
+            }
+            
+            // محاولة استرجاع بيانات المستخدم
+            try {
+                currentUser = JSON.parse(savedUser);
+                window.currentUserData = currentUser;
+                console.log('✅ تم استرجاع بيانات المستخدم:', currentUser);
+            } catch (e) {
+                console.error('❌ خطأ في استرجاع بيانات المستخدم:', e);
+                // مسح البيانات الفاسدة وإعادة التوجيه
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/login-page.html';
+                return;
+            }
+            
+            // التحقق من صلاحية التوكن مع السيرفر (اختياري)
+            try {
+                const verifyResponse = await fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!verifyResponse.ok) {
+                    console.log('❌ التوكن غير صالح - إعادة توجيه لصفحة تسجيل الدخول');
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = '/login-page.html';
+                    return;
                 }
+            } catch (verifyError) {
+                console.warn('⚠️ تعذر التحقق من التوكن:', verifyError);
+                // الاستمرار بحذر - قد يكون السيرفر غير متاح
             }
             
             const view = document.getElementById('main-view');
-            
-            // Show tenant selector only if no saved entity
-            if (!currentUser) {
-                view.innerHTML = `<div class="flex h-full items-center justify-center"></div>`;
-                await showTenantSelector();
-                console.log('✅ تم اختيار الكيان:', currentUser);
-            }
-            
-            // 🔑 تأكد من حفظ currentUser في window
-            window.currentUserData = currentUser;
             
             // Show loading
             view.innerHTML = `
@@ -890,7 +914,7 @@ const app = (() => {
                         <div class="w-24 h-24 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin"></div>
                         <i class="fas fa-database absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-600"></i>
                     </div>
-                    <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات للكيان: <strong>${currentUser.entityName}</strong></p>
+                    <p class="text-slate-600 font-bold text-lg animate-pulse">جاري تحميل البيانات للمستخدم: <strong>${currentUser.name}</strong></p>
                 </div>`;
             
             // Load data from API (now with proper entity headers)
@@ -908,7 +932,7 @@ const app = (() => {
             
             renderSidebar();
             updateHeader();
-            const tenant = db.entities.find(e => e.id === currentUser?.entityId);
+            const tenant = db.entities.find(e => e.id === currentUser?.entity_id);
             if(tenant && tenant.theme) updateThemeVariables(tenant.theme);
             
             // Handle browser back/forward buttons
@@ -923,7 +947,7 @@ const app = (() => {
             const initialRoute = pathToRoute[currentPath] || 'dashboard';
             loadRoute(initialRoute, true);
             
-            showToast(`تم تسجيل الدخول: ${currentUser?.entityName || 'نظام نايوش'}`, 'success');
+            showToast(`مرحباً ${currentUser?.name || 'بك'}`, 'success');
             console.log('✅ اكتملت التهيئة');
         } catch (error) {
             console.error('❌ خطأ فادح في التهيئة:', error);
