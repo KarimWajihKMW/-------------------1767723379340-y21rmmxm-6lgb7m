@@ -1329,7 +1329,7 @@ const app = (() => {
         else if (route === 'risk-management') content = renderRiskManagement();
         else if (route === 'consulting') content = renderConsulting();
         else if (route === 'specialized-courses') content = renderSpecializedCourses();
-        else if (route === 'evaluation') content = renderOHSEvaluation();
+        else if (route === 'ohs-evaluation') content = renderOHSEvaluation();
         else if (route === 'data-analysis') content = renderDataAnalysis();
         // Services Routes
         else if (route === 'project-management-office') content = renderProjectManagementOffice();
