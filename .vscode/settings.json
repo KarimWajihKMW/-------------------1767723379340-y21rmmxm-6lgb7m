@@ -795,6 +795,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-full-permissions-system\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-permissions-detailed\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
