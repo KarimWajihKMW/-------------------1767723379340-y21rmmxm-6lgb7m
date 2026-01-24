@@ -1437,7 +1437,7 @@ const app = (() => {
             'risk-management': 'إدارة المخاطر',
             'consulting': 'الإستشارات',
             'specialized-courses': 'الدورات التخصصية',
-            'evaluation': 'التقييم - شركات، مصانع، مشاريع',
+            'ohs-evaluation': 'التقييم - شركات، مصانع، مشاريع',
             'data-analysis': 'تحليل البيانات',
             // Services subitems
             'project-management-office': 'مكتب إدارة المشاريع',
@@ -1697,7 +1697,7 @@ subItems: [
                     { id: 'risk-management', icon: 'fa-exclamation-triangle', label: 'إدارة المخاطر' },
                     { id: 'consulting', icon: 'fa-user-tie', label: 'الإستشارات' },
                     { id: 'specialized-courses', icon: 'fa-graduation-cap', label: 'الدورات التخصصية' },
-                    { id: 'evaluation', icon: 'fa-clipboard-check', label: 'التقييم - شركات، مصانع، مشاريع' },
+                    { id: 'ohs-evaluation', icon: 'fa-clipboard-check', label: 'التقييم - شركات، مصانع، مشاريع' },
                     { id: 'data-analysis', icon: 'fa-chart-bar', label: 'تحليل البيانات' }
                 ]
             },
