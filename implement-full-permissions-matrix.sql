@@ -244,113 +244,113 @@ VALUES
 ('SUPER_ADMIN', 'سوبر آدمن', 'Super Administrator - Full System Access', 0, 'HQ', 
     'سوبر آدمن', 'Super Admin', 0, NULL, 'صلاحيات مطلقة', 'Absolute authority', TRUE),
 
-('FINANCIAL_MANAGER_HQ', 'Financial Manager - Headquarters', 0, 'HQ',
+('FINANCIAL_MANAGER_HQ', 'مدير مالي - المكتب الرئيسي', 'Financial Manager - Headquarters', 0, 'HQ',
     'مدير مالي - المكتب الرئيسي', 'Financial Manager - HQ', 0, NULL, 'يخضع لسياسات مجلس الإدارة', 'Subject to Board policies', TRUE),
 
-('EXECUTIVE_MANAGER_HQ', 'Executive Manager - Headquarters', 0, 'HQ',
+('EXECUTIVE_MANAGER_HQ', 'مدير تنفيذي - المكتب الرئيسي', 'Executive Manager - Headquarters', 0, 'HQ',
     'مدير تنفيذي - المكتب الرئيسي', 'Executive Manager - HQ', 0, 5000000, 'للموافقات الاستراتيجية', 'For strategic approvals', TRUE),
 
-('HR_MANAGER_HQ', 'HR Manager - Headquarters', 0, 'HQ',
+('HR_MANAGER_HQ', 'مدير موارد بشرية - المكتب الرئيسي', 'HR Manager - Headquarters', 0, 'HQ',
     'مدير موارد بشرية - المكتب الرئيسي', 'HR Manager - HQ', 0, NULL, 'إدارة كاملة للموارد البشرية', 'Full HR management', TRUE),
 
-('PROCUREMENT_MANAGER_HQ', 'Procurement Manager - Headquarters', 0, 'HQ',
+('PROCUREMENT_MANAGER_HQ', 'مدير مشتريات - المكتب الرئيسي', 'Procurement Manager - Headquarters', 0, 'HQ',
     'مدير مشتريات - المكتب الرئيسي', 'Procurement Manager - HQ', 0, NULL, 'إدارة المشتريات والموردين', 'Procurement & supplier management', TRUE),
 
-('SALES_MANAGER_HQ', 'Sales Manager - Headquarters', 0, 'HQ',
+('SALES_MANAGER_HQ', 'مدير مبيعات - المكتب الرئيسي', 'Sales Manager - Headquarters', 0, 'HQ',
     'مدير مبيعات - المكتب الرئيسي', 'Sales Manager - HQ', 0, NULL, 'إدارة المبيعات والعملاء', 'Sales & customer management', TRUE),
 
-('MARKETING_MANAGER_HQ', 'Marketing Manager - Headquarters', 0, 'HQ',
+('MARKETING_MANAGER_HQ', 'مدير تسويق - المكتب الرئيسي', 'Marketing Manager - Headquarters', 0, 'HQ',
     'مدير تسويق - المكتب الرئيسي', 'Marketing Manager - HQ', 0, NULL, 'إدارة التسويق والحملات', 'Marketing & campaigns management', TRUE),
 
-('SUPPLY_CHAIN_MANAGER_HQ', 'Supply Chain Manager - Headquarters', 0, 'HQ',
+('SUPPLY_CHAIN_MANAGER_HQ', 'مدير سلاسل الإمداد - المكتب الرئيسي', 'Supply Chain Manager - Headquarters', 0, 'HQ',
     'مدير سلاسل الإمداد - المكتب الرئيسي', 'Supply Chain Manager - HQ', 0, NULL, 'إدارة سلاسل الإمداد', 'Supply chain management', TRUE),
 
-('SAFETY_MANAGER_HQ', 'Safety Manager - Headquarters', 0, 'HQ',
+('SAFETY_MANAGER_HQ', 'مدير السلامة - المكتب الرئيسي', 'Safety Manager - Headquarters', 0, 'HQ',
     'مدير السلامة - المكتب الرئيسي', 'Safety Manager - HQ', 0, NULL, 'إدارة السلامة المهنية', 'Occupational safety management', TRUE),
 
-('WAREHOUSE_MANAGER_HQ', 'Warehouse Manager - Headquarters', 0, 'HQ',
+('WAREHOUSE_MANAGER_HQ', 'مدير المخازن - المكتب الرئيسي', 'Warehouse Manager - Headquarters', 0, 'HQ',
     'مدير المخازن - المكتب الرئيسي', 'Warehouse Manager - HQ', 0, NULL, 'إدارة المخازن والمخزون', 'Warehouse & inventory management', TRUE),
 
-('ACCOUNTANT_HQ', 'Accountant - Headquarters', 0, 'HQ',
+('ACCOUNTANT_HQ', 'محاسب - المكتب الرئيسي', 'Accountant - Headquarters', 0, 'HQ',
     'محاسب - المكتب الرئيسي', 'Accountant - HQ', 0, 50000, 'القيود المحاسبية اليومية', 'Daily accounting entries', TRUE),
 
 -- المستوى 1: فرع الدولة (BRANCH)
-('BRANCH_MANAGER', 'Branch Manager', 1, 'BRANCH',
+('BRANCH_MANAGER', 'مدير فرع', 'Branch Manager', 1, 'BRANCH',
     'مدير فرع', 'Branch Manager', 0, 2000000, 'ضمن ميزانية الفرع المعتمدة', 'Within approved branch budget', TRUE),
 
-('ASSISTANT_BRANCH_MANAGER', 'Assistant Branch Manager', 1, 'BRANCH',
+('ASSISTANT_BRANCH_MANAGER', 'مساعد مدير فرع', 'Assistant Branch Manager', 1, 'BRANCH',
     'مساعد مدير فرع', 'Assistant Branch Manager', 0, 50000, 'بالنيابة عن مدير الفرع', 'On behalf of branch manager', TRUE),
 
-('HR_OFFICER_BRANCH', 'HR Officer - Branch', 1, 'BRANCH',
+('HR_OFFICER_BRANCH', 'مسؤول موارد بشرية - فرع', 'HR Officer - Branch', 1, 'BRANCH',
     'مسؤول موارد بشرية - فرع', 'HR Officer - Branch', 0, 20000, 'عمليات الموارد البشرية', 'HR operations', TRUE),
 
-('FINANCE_OFFICER_BRANCH', 'Finance Officer - Branch', 1, 'BRANCH',
+('FINANCE_OFFICER_BRANCH', 'مسؤول مالي - فرع', 'Finance Officer - Branch', 1, 'BRANCH',
     'مسؤول مالي - فرع', 'Finance Officer - Branch', 0, 30000, 'العمليات المالية اليومية', 'Daily financial operations', TRUE),
 
-('SALES_OFFICER_BRANCH', 'Sales Officer - Branch', 1, 'BRANCH',
+('SALES_OFFICER_BRANCH', 'مسؤول مبيعات - فرع', 'Sales Officer - Branch', 1, 'BRANCH',
     'مسؤول مبيعات - فرع', 'Sales Officer - Branch', 0, 15000, 'عمليات المبيعات', 'Sales operations', TRUE),
 
 -- المستوى 2: حاضنة قطاع الأعمال (INCUBATOR)
-('INCUBATOR_MANAGER', 'Incubator Manager', 2, 'INCUBATOR',
+('INCUBATOR_MANAGER', 'مدير حاضنة', 'Incubator Manager', 2, 'INCUBATOR',
     'مدير حاضنة', 'Incubator Manager', 0, 500000, 'ضمن ميزانية الحاضنة', 'Within incubator budget', TRUE),
 
-('ASSISTANT_INCUBATOR_MANAGER', 'Assistant Incubator Manager', 2, 'INCUBATOR',
+('ASSISTANT_INCUBATOR_MANAGER', 'مساعد مدير حاضنة', 'Assistant Incubator Manager', 2, 'INCUBATOR',
     'مساعد مدير حاضنة', 'Assistant Incubator Manager', 0, 30000, 'للعمليات اليومية', 'For daily operations', TRUE),
 
-('HR_SPECIALIST_INCUBATOR', 'HR Specialist - Incubator', 2, 'INCUBATOR',
+('HR_SPECIALIST_INCUBATOR', 'أخصائي موارد بشرية - حاضنة', 'HR Specialist - Incubator', 2, 'INCUBATOR',
     'أخصائي موارد بشرية - حاضنة', 'HR Specialist - Incubator', 0, 10000, 'شؤون الموظفين', 'Employee affairs', TRUE),
 
-('FINANCE_SPECIALIST_INCUBATOR', 'Finance Specialist - Incubator', 2, 'INCUBATOR',
+('FINANCE_SPECIALIST_INCUBATOR', 'أخصائي مالي - حاضنة', 'Finance Specialist - Incubator', 2, 'INCUBATOR',
     'أخصائي مالي - حاضنة', 'Finance Specialist - Incubator', 0, 15000, 'العمليات المالية', 'Financial operations', TRUE),
 
 -- المستوى 3: المنصة التشغيلية (PLATFORM)
-('PLATFORM_MANAGER', 'Platform Manager', 3, 'PLATFORM',
+('PLATFORM_MANAGER', 'مدير منصة', 'Platform Manager', 3, 'PLATFORM',
     'مدير منصة', 'Platform Manager', 0, 100000, 'ضمن ميزانية المنصة', 'Within platform budget', TRUE),
 
-('ASSISTANT_PLATFORM_MANAGER', 'Assistant Platform Manager', 3, 'PLATFORM',
+('ASSISTANT_PLATFORM_MANAGER', 'مساعد مدير منصة', 'Assistant Platform Manager', 3, 'PLATFORM',
     'مساعد مدير منصة', 'Assistant Platform Manager', 0, 20000, 'للعمليات اليومية', 'For daily operations', TRUE),
 
-('PLATFORM_COORDINATOR', 'Platform Coordinator', 3, 'PLATFORM',
+('PLATFORM_COORDINATOR', 'منسق منصة', 'Platform Coordinator', 3, 'PLATFORM',
     'منسق منصة', 'Platform Coordinator', 0, 5000, 'التنسيق اليومي', 'Daily coordination', TRUE),
 
 -- المستوى 4: المكتب الإداري التنفيذي (EXECUTIVE_OFFICE)
-('EXECUTIVE_OFFICE_MANAGER', 'Executive Office Manager', 4, 'EXECUTIVE_OFFICE',
+('EXECUTIVE_OFFICE_MANAGER', 'مسؤول تنفيذي مكاتب', 'Executive Office Manager', 4, 'EXECUTIVE_OFFICE',
     'مسؤول تنفيذي مكاتب', 'Executive Office Manager', 0, 10000, 'للمصروفات التشغيلية', 'For operational expenses', TRUE),
 
-('ADMINISTRATIVE_EXECUTIVE', 'Administrative Executive', 4, 'EXECUTIVE_OFFICE',
+('ADMINISTRATIVE_EXECUTIVE', 'إداري تنفيذي', 'Administrative Executive', 4, 'EXECUTIVE_OFFICE',
     'إداري تنفيذي', 'Administrative Executive', 0, 5000, 'للمصروفات الصغيرة', 'For small expenses', TRUE),
 
-('HR_EXECUTIVE', 'HR Executive', 4, 'EXECUTIVE_OFFICE',
+('HR_EXECUTIVE', 'تنفيذي موارد بشرية', 'HR Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي موارد بشرية', 'HR Executive', 0, 3000, 'العمليات اليومية', 'Daily operations', TRUE),
 
-('FINANCE_EXECUTIVE', 'Finance Executive', 4, 'EXECUTIVE_OFFICE',
+('FINANCE_EXECUTIVE', 'تنفيذي مالي', 'Finance Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي مالي', 'Finance Executive', 0, 3000, 'المعاملات المالية', 'Financial transactions', TRUE),
 
-('PROCUREMENT_EXECUTIVE', 'Procurement Executive', 4, 'EXECUTIVE_OFFICE',
+('PROCUREMENT_EXECUTIVE', 'تنفيذي مشتريات', 'Procurement Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي مشتريات', 'Procurement Executive', 0, 2000, 'طلبات الشراء', 'Purchase requests', TRUE),
 
-('SALES_EXECUTIVE', 'Sales Executive', 4, 'EXECUTIVE_OFFICE',
+('SALES_EXECUTIVE', 'تنفيذي مبيعات', 'Sales Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي مبيعات', 'Sales Executive', 0, 2000, 'عمليات البيع', 'Sales operations', TRUE),
 
-('MARKETING_EXECUTIVE', 'Marketing Executive', 4, 'EXECUTIVE_OFFICE',
+('MARKETING_EXECUTIVE', 'تنفيذي تسويق', 'Marketing Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي تسويق', 'Marketing Executive', 0, 2000, 'الحملات التسويقية', 'Marketing campaigns', TRUE),
 
-('LOGISTICS_EXECUTIVE', 'Logistics Executive', 4, 'EXECUTIVE_OFFICE',
+('LOGISTICS_EXECUTIVE', 'تنفيذي لوجستيات', 'Logistics Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي لوجستيات', 'Logistics Executive', 0, 1000, 'عمليات الشحن', 'Shipping operations', TRUE),
 
-('SAFETY_EXECUTIVE', 'Safety Executive', 4, 'EXECUTIVE_OFFICE',
+('SAFETY_EXECUTIVE', 'تنفيذي سلامة', 'Safety Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي سلامة', 'Safety Executive', 0, 1000, 'تسجيل الحوادث', 'Incident reporting', TRUE),
 
-('WAREHOUSE_EXECUTIVE', 'Warehouse Executive', 4, 'EXECUTIVE_OFFICE',
+('WAREHOUSE_EXECUTIVE', 'تنفيذي مخازن', 'Warehouse Executive', 4, 'EXECUTIVE_OFFICE',
     'تنفيذي مخازن', 'Warehouse Executive', 0, 1000, 'عمليات المخزون', 'Inventory operations', TRUE),
 
-('EMPLOYEE', 'Regular Employee', 4, 'EXECUTIVE_OFFICE',
+('EMPLOYEE', 'موظف', 'Regular Employee', 4, 'EXECUTIVE_OFFICE',
     'موظف', 'Employee', 0, 0, 'لا توجد صلاحيات موافقة مالية', 'No financial approval authority', TRUE)
 
 ON CONFLICT (name) DO UPDATE SET
     description = EXCLUDED.description,
     hierarchy_level = EXCLUDED.hierarchy_level,
-    scope = EXCLUDED.scope,
+    level = EXCLUDED.level,
     job_title_ar = EXCLUDED.job_title_ar,
     job_title_en = EXCLUDED.job_title_en,
     min_approval_limit = EXCLUDED.min_approval_limit,
@@ -379,7 +379,8 @@ COMMENT ON TABLE role_system_permissions IS 'مصفوفة الصلاحيات: ر
 -- ============================================================================
 -- 7. إنشاء جدول سياسات الأمان والامتثال
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS security_policies (
+DROP TABLE IF EXISTS security_policies CASCADE;
+CREATE TABLE security_policies (
     id SERIAL PRIMARY KEY,
     policy_code VARCHAR(50) UNIQUE NOT NULL,
     policy_name_ar VARCHAR(200) NOT NULL,
@@ -460,7 +461,7 @@ CREATE INDEX IF NOT EXISTS idx_role_system_permissions_role ON role_system_permi
 CREATE INDEX IF NOT EXISTS idx_role_system_permissions_system ON role_system_permissions(system_id);
 CREATE INDEX IF NOT EXISTS idx_role_system_permissions_level ON role_system_permissions(permission_level_id);
 CREATE INDEX IF NOT EXISTS idx_roles_hierarchy ON roles(hierarchy_level);
-CREATE INDEX IF NOT EXISTS idx_roles_scope ON roles(scope);
+CREATE INDEX IF NOT EXISTS idx_roles_level ON roles(level);
 CREATE INDEX IF NOT EXISTS idx_system_permissions_system ON system_permissions(system_id);
 CREATE INDEX IF NOT EXISTS idx_system_permissions_level ON system_permissions(permission_level_id);
 
