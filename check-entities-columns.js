@@ -7,32 +7,25 @@ const client = new Client({
 async function checkColumns() {
     try {
         await client.connect();
-        console.log('✅ Connected to database');
-
-        // Check entities table structure
-        const columnsQuery = `
-            SELECT column_name, data_type, is_nullable, column_default
-            FROM information_schema.columns
-            WHERE table_name = 'entities'
-            ORDER BY ordinal_position;
-        `;
         
-        const result = await client.query(columnsQuery);
-        console.log('\n📋 Entities Table Columns:');
-        console.log('==========================');
-        result.rows.forEach(col => {
-            console.log(`${col.column_name} (${col.data_type}) - Nullable: ${col.is_nullable}`);
-        });
-
-        // Sample data to see what we have
-        const sampleQuery = `SELECT * FROM entities LIMIT 5`;
-        const sampleResult = await client.query(sampleQuery);
-        console.log('\n📊 Sample Data:');
-        console.log('==========================');
-        console.log(sampleResult.rows);
-
+        const query = `
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'entities'
+            ORDER BY ordinal_position
+        `;
+        const result = await client.query(query);
+        console.log('Entities table columns:');
+        console.table(result.rows);
+        
+        // Also check current data
+        const dataQuery = `SELECT * FROM entities WHERE code = 'HQ-001' OR name ILIKE '%nayosh%' LIMIT 5`;
+        const dataResult = await client.query(dataQuery);
+        console.log('\nCurrent data:');
+        console.table(dataResult.rows);
+        
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error('Error:', error.message);
     } finally {
         await client.end();
     }
