@@ -4208,7 +4208,7 @@ subItems: [
                             <div class="logo">N</div>
                             <div class="company-name">
                                 نايوش لأنظمة الأعمال<br>
-                                Nayosh Business Systems
+                                NAIOSH Business Systems
                             </div>
                             <div class="company-details">
                                 Building No. ${entity?.location || 'المكتب الرئيسي'}<br>
@@ -9202,8 +9202,8 @@ subItems: [
                     <h3 class="font-bold text-lg mb-4">العلامات التجارية</h3>
                     <div class="space-y-3">
                         ${[
-                            { trademark: 'Nayosh® - العلامة الرئيسية', status: 'نشطة', expiry: '2028-12-31', class: 'خدمات تقنية' },
-                            { trademark: 'Nayosh ERP™', status: 'نشطة', expiry: '2027-08-15', class: 'برمجيات' },
+                            { trademark: 'NAIOSH® - العلامة الرئيسية', status: 'نشطة', expiry: '2028-12-31', class: 'خدمات تقنية' },
+                            { trademark: 'NAIOSH ERP™', status: 'نشطة', expiry: '2027-08-15', class: 'برمجيات' },
                             { trademark: 'Smart Management©', status: 'قيد التجديد', expiry: '2026-06-30', class: 'استشارات' },
                             { trademark: 'Digital Solutions®', status: 'نشطة', expiry: '2029-03-20', class: 'خدمات رقمية' },
                             { trademark: 'Innovation Hub™', status: 'نشطة', expiry: '2027-11-10', class: 'تدريب' }

@@ -1,7 +1,7 @@
 {
   "name": "nayosh-erp-backend",
   "version": "1.0.0",
-  "description": "Nayosh ERP Multi-Tenant Backend",
+  "description": "NAIOSH ERP Multi-Tenant Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

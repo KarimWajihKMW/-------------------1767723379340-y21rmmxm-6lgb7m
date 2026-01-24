@@ -108,4 +108,4 @@ node test-incubator.js
 
 **السرعة. البساطة. الفعالية.**
 
-© 2024 Nayosh ERP
+© 2024 NAIOSH ERP

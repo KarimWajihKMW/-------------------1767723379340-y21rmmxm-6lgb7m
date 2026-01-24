@@ -32,7 +32,7 @@ Railway will auto-deploy from GitHub in 2-3 minutes.
 
 Expected behavior on Railway URL:
 1. ✅ Server starts and stays running (no SIGTERM)
-2. ✅ Root URL shows the Nayosh ERP interface
+2. ✅ Root URL shows the NAIOSH ERP interface
 3. ✅ Side menu displays with all items
 4. ✅ "تبديل المستأجر" button shows user list
 5. ✅ API endpoints respond at /api/*

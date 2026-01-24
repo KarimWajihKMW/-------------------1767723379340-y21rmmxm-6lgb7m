@@ -1,5 +1,5 @@
 # نظام نايوش ERP - تقرير المشروع النهائي
-## Nayosh ERP System - Final Project Report
+## NAIOSH ERP System - Final Project Report
 
 **تاريخ الإكمال:** 2024  
 **الإصدار:** 2.0.0  
@@ -183,4 +183,4 @@ Documentation:          2400+ lines
 
 **تم بحمد الله ✨**
 
-© 2024 Nayosh ERP System
+© 2024 NAIOSH ERP System

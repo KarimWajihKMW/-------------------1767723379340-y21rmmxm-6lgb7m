@@ -199,7 +199,7 @@ CREATE TRIGGER update_offices_updated_at BEFORE UPDATE ON offices
 -- المقر الرئيسي
 INSERT INTO headquarters (name, code, description, country, contact_email)
 VALUES 
-  ('Nayosh Global HQ', 'HQ-001', 'المقر الرئيسي العالمي لنيوش', 'International', 'hq@nayosh.com')
+  ('NAIOSH Global HQ', 'HQ-001', 'المقر الرئيسي العالمي لنيوش', 'International', 'hq@nayosh.com')
 ON CONFLICT (code) DO NOTHING;
 
 -- الفروع
