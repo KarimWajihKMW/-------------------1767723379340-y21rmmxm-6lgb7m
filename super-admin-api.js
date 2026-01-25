@@ -565,13 +565,14 @@ router.get('/office-page-access', verifySuperAdmin, async (req, res) => {
 
 // ========== 7.7. حفظ صلاحيات صفحات المكاتب ==========
 router.post('/office-page-access', verifySuperAdmin, async (req, res) => {
-    const client = await pool.connect();
+    let client;
     try {
         const { office_id, pages } = req.body;
         if (!office_id || !Array.isArray(pages)) {
             return res.status(400).json({ success: false, message: 'office_id و pages مطلوبين' });
         }
 
+        client = await pool.connect();
         await ensureOfficePageAccessTable();
 
         const officeResult = await client.query(`
@@ -582,6 +583,7 @@ router.post('/office-page-access', verifySuperAdmin, async (req, res) => {
         `, [office_id]);
 
         if (officeResult.rows.length === 0) {
+            client.release();
             return res.status(404).json({ success: false, message: 'المكتب غير موجود' });
         }
 
@@ -629,11 +631,15 @@ router.post('/office-page-access', verifySuperAdmin, async (req, res) => {
             pages: cleanPages
         });
     } catch (error) {
-        await client.query('ROLLBACK');
+        if (client) {
+            await client.query('ROLLBACK');
+        }
         console.error('خطأ في حفظ صلاحيات صفحات المكتب:', error);
         res.status(500).json({ success: false, message: 'خطأ في حفظ صلاحيات المكتب' });
     } finally {
-        client.release();
+        if (client) {
+            client.release();
+        }
     }
 });
 
