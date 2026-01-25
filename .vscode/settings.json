@@ -851,6 +851,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-office-lookup-fix\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node get-demo-accounts-info\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
