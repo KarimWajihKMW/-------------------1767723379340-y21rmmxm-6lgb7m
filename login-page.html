@@ -142,15 +142,16 @@
                     <div class="w-full border-t border-gray-200"></div>
                 </div>
                 <div class="relative flex justify-center text-sm">
-                    <span class="px-4 bg-white text-gray-500 font-medium">أو جرب حساب تجريبي</span>
+                    <span class="px-4 bg-white text-gray-500 font-medium">أو اختر مكتب للاختبار</span>
                 </div>
             </div>
 
-            <!-- Demo Accounts -->
+            <!-- Real Offices from Database -->
             <div class="space-y-3">
-                <h3 class="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">الحسابات المتاحة</h3>
+                <h3 class="text-center text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">المكاتب المتاحة (40 مكتب)</h3>
                 
                 <div class="grid grid-cols-1 gap-3">
+                    <!-- Super Admin Account -->
                     <button onclick="fillLogin('ahmed@nayosh.com', 'Admin@123')" class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-right w-full">
                         <div class="flex-shrink-0 bg-primary/10 text-primary w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                             <i class="fa-solid fa-user-shield"></i>
@@ -161,52 +162,71 @@
                         </div>
                     </button>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="fillLogin('branch@nayosh.com', 'demo123')" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-center w-full">
-                            <div class="bg-blue-50 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-100">
-                                <i class="fa-solid fa-store"></i>
+                    <!-- Real Offices Grid - Password: test123 -->
+                    <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-100 rounded-lg">
+                        <!-- Office 39 -->
+                        <button onclick="fillLogin('OFF-5657-FIN@naiosh.com', 'test123')" class="flex flex-col items-center p-2 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200 group text-center w-full" title="مكتب الاستشارات المالية - التعليم والتعلم">
+                            <div class="bg-green-50 text-green-600 w-8 h-8 rounded-full flex items-center justify-center mb-1 group-hover:bg-green-100">
+                                <i class="fa-solid fa-handshake text-xs"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800">مدير فرع</span>
+                            <span class="text-[10px] font-bold text-gray-800">مالية</span>
+                            <span class="text-[9px] text-gray-500">OFF-5657-FIN</span>
                         </button>
-
-                        <!-- Office ID: 39, Code: OFF-5657-FIN, Incubator: 5657 -->
-                        <button onclick="fillLogin('OFF-5657-FIN@nayosh.com', 'demo123')" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-center w-full">
-                            <div class="bg-green-50 text-green-600 w-8 h-8 rounded-full flex items-center justify-center mb-2 group-hover:bg-green-100">
-                                <i class="fa-solid fa-building"></i>
+                        
+                        <!-- Office 40 -->
+                        <button onclick="fillLogin('OFF-5657-MKT@naiosh.com', 'test123')" class="flex flex-col items-center p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 group text-center w-full" title="مكتب التسويق الرقمي - التعليم والتعلم">
+                            <div class="bg-blue-50 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center mb-1 group-hover:bg-blue-100">
+                                <i class="fa-solid fa-users text-xs"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800">مكتب مالية</span>
+                            <span class="text-[10px] font-bold text-gray-800">تسويق</span>
+                            <span class="text-[9px] text-gray-500">OFF-5657-MKT</span>
                         </button>
-
-                        <!-- Office ID: 40, Code: OFF-5657-MKT, Incubator: 5657 -->
-                        <button onclick="fillLogin('OFF-5657-MKT@nayosh.com', 'demo123')" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-center w-full">
-                            <div class="bg-teal-50 text-teal-600 w-8 h-8 rounded-full flex items-center justify-center mb-2 group-hover:bg-teal-100">
-                                <i class="fa-solid fa-building"></i>
+                        
+                        <!-- Office 41 -->
+                        <button onclick="fillLogin('OFF-5657-DEV@naiosh.com', 'test123')" class="flex flex-col items-center p-2 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 group text-center w-full" title="مكتب تطوير البرمجيات - التعليم والتعلم">
+                            <div class="bg-purple-50 text-purple-600 w-8 h-8 rounded-full flex items-center justify-center mb-1 group-hover:bg-purple-100">
+                                <i class="fa-solid fa-lock text-xs"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800">مكتب تسويق</span>
+                            <span class="text-[10px] font-bold text-gray-800">برمجة</span>
+                            <span class="text-[9px] text-gray-500">OFF-5657-DEV</span>
                         </button>
-
-                        <!-- Office ID: 41, Code: OFF-5657-DEV, Incubator: 5657 -->
-                        <button onclick="fillLogin('OFF-5657-DEV@nayosh.com', 'demo123')" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-center w-full">
-                            <div class="bg-cyan-50 text-cyan-600 w-8 h-8 rounded-full flex items-center justify-center mb-2 group-hover:bg-cyan-100">
-                                <i class="fa-solid fa-building"></i>
+                        
+                        <!-- Office 42 -->
+                        <button onclick="fillLogin('OFF-5657-ENT@naiosh.com', 'test123')" class="flex flex-col items-center p-2 border border-gray-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all duration-200 group text-center w-full" title="مكتب ريادة الأعمال - التعليم والتعلم">
+                            <div class="bg-teal-50 text-teal-600 w-8 h-8 rounded-full flex items-center justify-center mb-1 group-hover:bg-teal-100">
+                                <i class="fa-solid fa-share-nodes text-xs"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800">مكتب برمجة</span>
+                            <span class="text-[10px] font-bold text-gray-800">ريادة</span>
+                            <span class="text-[9px] text-gray-500">OFF-5657-ENT</span>
                         </button>
-
-                        <button onclick="fillLogin('incubator@nayosh.com', 'demo123')" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-center w-full">
-                            <div class="bg-purple-50 text-purple-600 w-8 h-8 rounded-full flex items-center justify-center mb-2 group-hover:bg-purple-100">
-                                <i class="fa-solid fa-rocket"></i>
+                        
+                        <!-- Office 43 -->
+                        <button onclick="fillLogin('OFF-5658-FIN@naiosh.com', 'test123')" class="flex flex-col items-center p-2 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200 group text-center w-full" title="مكتب الاستشارات المالية - التدريب والشهادات الإحترافية">
+                            <div class="bg-green-50 text-green-600 w-8 h-8 rounded-full flex items-center justify-center mb-1 group-hover:bg-green-100">
+                                <i class="fa-solid fa-handshake text-xs"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800">مدير حاضنة</span>
+                            <span class="text-[10px] font-bold text-gray-800">مالية</span>
+                            <span class="text-[9px] text-gray-500">OFF-5658-FIN</span>
                         </button>
-
-                        <button onclick="fillLogin('platform@nayosh.com', 'demo123')" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-all duration-200 group text-center w-full">
-                            <div class="bg-orange-50 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center mb-2 group-hover:bg-orange-100">
-                                <i class="fa-solid fa-bullseye"></i>
+                        
+                        <!-- Office 44 -->
+                        <button onclick="fillLogin('OFF-5658-MKT@naiosh.com', 'test123')" class="flex flex-col items-center p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 group text-center w-full" title="مكتب التسويق الرقمي - التدريب والشهادات الإحترافية">
+                            <div class="bg-blue-50 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center mb-1 group-hover:bg-blue-100">
+                                <i class="fa-solid fa-users text-xs"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800">مدير منصة</span>
+                            <span class="text-[10px] font-bold text-gray-800">تسويق</span>
+                            <span class="text-[9px] text-gray-500">OFF-5658-MKT</span>
                         </button>
+                        
+                        <!-- More offices (showing 6 of 40) -->
+                        <div class="col-span-2 text-center py-2 text-xs text-gray-500">
+                            ... و34 مكتب آخر (جميع المكاتب تستخدم كلمة المرور: test123)
+                        </div>
                     </div>
+                    
+                    <p class="text-center text-xs text-green-600 font-semibold mt-2">
+                        <i class="fa-solid fa-check-circle"></i> كلمة المرور لجميع المكاتب: test123
+                    </p>
                 </div>
             </div>
             

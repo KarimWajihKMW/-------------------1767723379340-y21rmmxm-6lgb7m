@@ -887,6 +887,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node unlock-all-offices-and-users\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node setup-real-offices-credentials\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-office-logins\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
