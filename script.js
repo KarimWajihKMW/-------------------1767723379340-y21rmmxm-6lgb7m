@@ -1261,6 +1261,7 @@ const app = (() => {
         else if (route === 'customers') content = await renderCustomers();
         else if (route === 'delegations') content = await renderDelegations();
         else if (route === 'task-reports') content = await renderTaskReports();
+        else if (route === 'task-settings') content = renderTaskSettings();
         else if (route === 'facilities') content = renderFacilities();
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
@@ -1419,6 +1420,7 @@ const app = (() => {
             'customers': 'العملاء',
             'delegations': 'التفويضات',
             'task-reports': 'التقارير',
+            'task-settings': 'الإعدادات',
             'facilities': 'إدارة المرافق',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية',
@@ -1520,6 +1522,7 @@ const app = (() => {
         'customers': '/tasks/customers',
         'delegations': '/tasks/delegations',
         'task-reports': '/tasks/reports',
+        'task-settings': '/tasks/settings',
         'facilities': '/facilities',
         'audit-logs': '/audit-logs',
         'settings': '/settings',
@@ -1571,6 +1574,7 @@ const app = (() => {
         '/tasks/customers': 'customers',
         '/tasks/delegations': 'delegations',
         '/tasks/reports': 'task-reports',
+        '/tasks/settings': 'task-settings',
         '/facilities': 'facilities',
         '/audit-logs': 'audit-logs',
         '/settings': 'settings',
@@ -1797,7 +1801,8 @@ subItems: [
                     { id: 'general-tasks', icon: 'fa-clipboard-list', label: 'المهام العامة' },
                     { id: 'customers', icon: 'fa-users', label: 'العملاء' },
                     { id: 'delegations', icon: 'fa-user-friends', label: 'التفويضات' },
-                    { id: 'task-reports', icon: 'fa-chart-bar', label: 'التقارير' }
+                    { id: 'task-reports', icon: 'fa-chart-bar', label: 'التقارير' },
+                    { id: 'task-settings', icon: 'fa-cog', label: 'الإعدادات' }
                 ]
             },
             { id: 'facilities', icon: 'fa-building-gear', label: 'إدارة المرافق', show: true },
@@ -6632,6 +6637,219 @@ subItems: [
                     <button class="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition">
                         <i class="fas fa-print"></i> طباعة
                     </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderTaskSettings = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">إعدادات المهام</h2>
+                <p class="text-slate-500">تخصيص وإدارة إعدادات نظام المهام</p>
+            </div>
+
+            <!-- Settings Categories -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- General Settings -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-cog text-2xl text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">الإعدادات العامة</h3>
+                            <p class="text-sm text-slate-500">إعدادات النظام الأساسية</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div>
+                                <div class="font-semibold text-slate-800">تفعيل الإشعارات</div>
+                                <div class="text-sm text-slate-500">استقبال إشعارات المهام الجديدة</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div>
+                                <div class="font-semibold text-slate-800">الترتيب التلقائي</div>
+                                <div class="text-sm text-slate-500">ترتيب المهام حسب الأولوية</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div>
+                                <div class="font-semibold text-slate-800">إظهار المهام المكتملة</div>
+                                <div class="text-sm text-slate-500">عرض المهام المنجزة في القائمة</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Settings -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                            <i class="fas fa-exclamation-circle text-2xl text-red-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">إعدادات الأولوية</h3>
+                            <p class="text-sm text-slate-500">تحديد أولويات المهام</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fas fa-circle text-red-600"></i>
+                                <span class="font-bold text-red-800">أولوية عالية</span>
+                            </div>
+                            <input type="number" value="1" min="1" max="30" class="w-full px-3 py-2 border border-red-300 rounded-lg bg-white text-sm">
+                            <p class="text-xs text-red-600 mt-1">عدد الأيام للتنبيه</p>
+                        </div>
+
+                        <div class="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fas fa-circle-half-stroke text-orange-600"></i>
+                                <span class="font-bold text-orange-800">أولوية متوسطة</span>
+                            </div>
+                            <input type="number" value="3" min="1" max="30" class="w-full px-3 py-2 border border-orange-300 rounded-lg bg-white text-sm">
+                            <p class="text-xs text-orange-600 mt-1">عدد الأيام للتنبيه</p>
+                        </div>
+
+                        <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fas fa-circle text-green-600"></i>
+                                <span class="font-bold text-green-800">أولوية منخفضة</span>
+                            </div>
+                            <input type="number" value="7" min="1" max="30" class="w-full px-3 py-2 border border-green-300 rounded-lg bg-white text-sm">
+                            <p class="text-xs text-green-600 mt-1">عدد الأيام للتنبيه</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                            <i class="fas fa-bell text-2xl text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">إعدادات الإشعارات</h3>
+                            <p class="text-sm text-slate-500">تخصيص التنبيهات والإشعارات</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                            <input type="checkbox" checked class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500">
+                            <div>
+                                <div class="font-semibold text-slate-800">إشعارات المهام الجديدة</div>
+                                <div class="text-xs text-slate-500">عند إضافة مهمة جديدة</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                            <input type="checkbox" checked class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500">
+                            <div>
+                                <div class="font-semibold text-slate-800">تذكير المواعيد النهائية</div>
+                                <div class="text-xs text-slate-500">قبل انتهاء موعد المهمة</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                            <input type="checkbox" class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500">
+                            <div>
+                                <div class="font-semibold text-slate-800">إشعارات التفويض</div>
+                                <div class="text-xs text-slate-500">عند تفويض مهمة لك</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                            <input type="checkbox" checked class="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500">
+                            <div>
+                                <div class="font-semibold text-slate-800">ملخص يومي</div>
+                                <div class="text-xs text-slate-500">تقرير يومي بالمهام</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Display Settings -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-palette text-2xl text-green-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">إعدادات العرض</h3>
+                            <p class="text-sm text-slate-500">تخصيص واجهة المهام</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">نوع العرض الافتراضي</label>
+                            <select class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                <option>عرض القائمة</option>
+                                <option>عرض الكروت</option>
+                                <option>عرض الجدول</option>
+                                <option>عرض الكانبان</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">عدد المهام لكل صفحة</label>
+                            <select class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                <option>10 مهام</option>
+                                <option selected>20 مهمة</option>
+                                <option>50 مهمة</option>
+                                <option>100 مهمة</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">ترتيب المهام</label>
+                            <select class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                <option>الأحدث أولاً</option>
+                                <option>الأقدم أولاً</option>
+                                <option selected>حسب الأولوية</option>
+                                <option>حسب الموعد النهائي</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800">حفظ الإعدادات</h3>
+                        <p class="text-sm text-slate-500">سيتم تطبيق التغييرات فوراً</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="px-6 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition">
+                            <i class="fas fa-redo ml-2"></i> إعادة تعيين
+                        </button>
+                        <button class="px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition">
+                            <i class="fas fa-save ml-2"></i> حفظ التغييرات
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>`;
