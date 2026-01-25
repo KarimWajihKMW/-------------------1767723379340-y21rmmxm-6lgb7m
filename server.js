@@ -1516,17 +1516,12 @@ app.get('/api/branches/:branchId/incubators', async (req, res) => {
     
     const query = `
       SELECT 
-        i.id,
-        i.name,
-        i.type,
-        i.status,
-        i.location,
-        bi.relationship_status,
-        bi.assigned_date,
-        bi.notes
-      FROM branch_incubators bi
-      JOIN entities i ON bi.incubator_id = i.id
-      WHERE bi.branch_id = $1
+        i.*,
+        b.name as branch_name,
+        b.code as branch_code
+      FROM incubators i
+      LEFT JOIN branches b ON i.branch_id = b.id
+      WHERE i.branch_id = $1 AND i.is_active = true
       ORDER BY i.name
     `;
     
@@ -2405,25 +2400,6 @@ app.delete('/api/branches/:id', async (req, res) => {
       return res.status(404).json({ error: 'الفرع غير موجود' });
     }
     res.json({ message: 'تم حذف الفرع بنجاح', data: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get incubators for a specific branch
-app.get('/api/branches/:id/incubators', async (req, res) => {
-  try {
-    const { id } = req.params;
-    // Get incubators for the specific branch
-    const result = await db.query(`
-      SELECT i.*, 
-             b.name as branch_name, b.code as branch_code
-      FROM incubators i
-      LEFT JOIN branches b ON i.branch_id = b.id
-      WHERE i.branch_id = $1 AND i.is_active = true
-      ORDER BY i.name
-    `, [id]);
-    res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
