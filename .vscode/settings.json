@@ -831,6 +831,18 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && npm run$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node verify-offices\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node create-demo-office-accounts\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-users-table-structure\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
