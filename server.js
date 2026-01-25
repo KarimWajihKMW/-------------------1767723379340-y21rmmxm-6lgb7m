@@ -19,6 +19,10 @@ app.use(express.static('.'));
 const authRoutes = require('./auth-api');
 app.use('/api/auth', authRoutes);
 
+// Sidebar Menu API Routes
+const menuRoutes = require('./sidebar-menu-api');
+app.use('/api/menu', menuRoutes);
+
 // Super Admin API Routes
 const superAdminRoutes = require('./super-admin-api');
 app.use('/api/admin', superAdminRoutes);

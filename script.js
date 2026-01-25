@@ -52,6 +52,7 @@ const app = (() => {
                 const entityId = user.entityId || user.entity_id || 'HQ001';
                 headers['x-entity-type'] = tenantType;
                 headers['x-entity-id'] = entityId;
+                headers['x-user-id'] = user.id;
                 console.log('📤 [fetchAPI] Sending headers:', { endpoint, entityType: tenantType, entityId: entityId });
             } else {
                 console.warn('⚠️ [fetchAPI] No user data available for:', endpoint);
@@ -279,6 +280,131 @@ const app = (() => {
             return db.invoices.filter(i => i.entityId === currentUser.entityId);
         },
         getVisibleLedger: () => db.ledger.filter(l => l.entityId === currentUser.entityId)
+    };
+
+    const officeRouteParents = {
+        'executive-management': 'strategic-management',
+        'employee-management': 'strategic-management',
+        'smart-systems': 'strategic-management',
+        'subscription-management': 'strategic-management',
+        'operations-management': 'strategic-management',
+        'financial-approvals': 'strategic-management',
+        'tenants': 'strategic-management',
+        'collections-strategic': 'strategic-management',
+        'marketing': 'strategic-management',
+        'advertisers-center': 'strategic-management',
+        'training-development': 'strategic-management',
+        'quality-audit': 'strategic-management',
+        'evaluation': 'strategic-management',
+        'tasks-strategic': 'strategic-management',
+        'information-center': 'strategic-management',
+        'identity-settings': 'strategic-management',
+        'system-log': 'strategic-management',
+        'reports': 'strategic-management',
+        'invoices-enhanced': 'payment-menu',
+        'payment-methods': 'payment-menu',
+        'installment-plans': 'payment-menu',
+        'payment-tracking': 'payment-menu',
+        'tax-settings': 'payment-menu',
+        'collection-rules': 'payment-menu',
+        'payment-reminders': 'payment-menu',
+        'overdue-management': 'payment-menu',
+        'payment-analytics': 'payment-menu',
+        'attendance-departure': 'employee-menu',
+        'emp-requests': 'employee-menu',
+        'emp-leaves': 'employee-menu',
+        'leave-balance': 'employee-menu',
+        'notifications-warnings': 'employee-menu',
+        'emp-decisions': 'employee-menu',
+        'company-violations': 'employee-menu',
+        'evaluation-forms': 'employee-menu',
+        'circulars': 'employee-menu',
+        'advances-receivables': 'employee-menu',
+        'surveys': 'employee-menu',
+        'business-activities': 'employee-menu',
+        'emp-letters': 'employee-menu',
+        'custodies': 'employee-menu',
+        'salary-slips': 'employee-menu',
+        'attendance-register': 'employee-menu',
+        'attendance-table': 'employee-menu',
+        'purchases': 'supply-chain',
+        'logistics': 'supply-chain',
+        'inventory': 'supply-chain',
+        'suppliers': 'supply-chain',
+        'orders-delivery': 'supply-chain',
+        'smart-procurement': 'supply-chain',
+        'manufacturing': 'supply-chain',
+        'product-lifecycle': 'supply-chain',
+        'maintenance': 'supply-chain',
+        'quality-control': 'supply-chain',
+        'safety': 'supply-chain',
+        'crm': 'sales',
+        'sales-operations': 'sales',
+        'pos': 'sales',
+        'quotes-contracts': 'sales',
+        'commissions': 'sales',
+        'order-tracking': 'sales',
+        'ai-integration': 'internet-automation',
+        'governance': 'internet-automation',
+        'compliance': 'internet-automation',
+        'iot': 'internet-automation',
+        'elearning': 'internet-automation',
+        'forum': 'internet-automation',
+        'etiquette': 'internet-automation',
+        'knowledge': 'internet-automation',
+        'intellectual-property': 'internet-automation',
+        'visitor-chat': 'internet-automation',
+        'occupational-safety': 'occupational-health',
+        'international-standards': 'occupational-health',
+        'iso-standards': 'occupational-health',
+        'risk-management': 'occupational-health',
+        'consulting': 'occupational-health',
+        'specialized-courses': 'occupational-health',
+        'ohs-evaluation': 'occupational-health',
+        'data-analysis': 'occupational-health',
+        'project-management-office': 'services',
+        'institutional-performance': 'services',
+        'operations-monitoring': 'services',
+        'ai-market-research': 'services',
+        'customer-service': 'services',
+        'client-admin-services': 'services',
+        'virtual-halls': 'services',
+        'feasibility-studies': 'services',
+        'research': 'services',
+        'consulting-training': 'services',
+        'main-menu': 'tasks-management',
+        'control-panel': 'tasks-management',
+        'my-tasks': 'tasks-management',
+        'procedures': 'tasks-management',
+        'all-procedures': 'tasks-management',
+        'general-tasks': 'tasks-management',
+        'customers': 'tasks-management',
+        'delegations': 'tasks-management',
+        'task-reports': 'tasks-management',
+        'task-settings': 'tasks-management'
+    };
+
+    const getOfficeAllowedPages = () => {
+        const tenantType = currentUser?.tenantType || currentUser?.tenant_type;
+        if (tenantType !== 'OFFICE') return null;
+        const pages = currentUser?.allowedPages || currentUser?.allowed_pages || [];
+        return Array.isArray(pages) ? pages : [];
+    };
+
+    const getOfficeFallbackRoute = () => {
+        const allowedPages = getOfficeAllowedPages();
+        if (!allowedPages || allowedPages.length === 0) return null;
+        const allowedRoutes = allowedPages.filter(route => routeToPath[route]);
+        return allowedRoutes[0] || null;
+    };
+
+    const isOfficeRouteAllowed = (route) => {
+        const allowedPages = getOfficeAllowedPages();
+        if (!allowedPages || allowedPages.length === 0) return true;
+        if (allowedPages.includes(route)) return true;
+        const parent = officeRouteParents[route];
+        if (parent && allowedPages.includes(parent)) return true;
+        return allowedPages.some(page => officeRouteParents[page] === route);
     };
 
     // --- UTILS ---
@@ -899,12 +1025,15 @@ const app = (() => {
             // محاولة استرجاع بيانات المستخدم
             try {
                 const userData = JSON.parse(savedUser);
+                const menuData = JSON.parse(localStorage.getItem('menu') || sessionStorage.getItem('menu') || 'null');
                 // تحويل من snake_case إلى camelCase للتوافق مع الكود القديم
                 currentUser = {
                     ...userData,
                     tenantType: userData.tenant_type || userData.tenantType || 'HQ',
                     entityId: userData.entity_id || userData.entityId,
-                    entityName: userData.entity_name || userData.entityName
+                    entityName: userData.entity_name || userData.entityName,
+                    allowedPages: userData.allowed_pages || userData.allowedPages || [],
+                    menu: Array.isArray(menuData) ? menuData : []
                 };
                 window.currentUserData = currentUser;
                 console.log('✅ تم استرجاع بيانات المستخدم:', currentUser);
@@ -931,6 +1060,10 @@ const app = (() => {
                     sessionStorage.clear();
                     window.location.href = '/login-page.html';
                     return;
+                }
+                const verifyResult = await verifyResponse.json();
+                if (verifyResult?.user) {
+                    currentUser.allowedPages = verifyResult.user.allowed_pages || verifyResult.user.allowedPages || currentUser.allowedPages;
                 }
             } catch (verifyError) {
                 console.warn('⚠️ تعذر التحقق من التوكن:', verifyError);
@@ -1068,8 +1201,9 @@ const app = (() => {
             // Group users by tenant type
             const grouped = {};
             db.users.forEach(u => {
-                if (!grouped[u.tenantType]) grouped[u.tenantType] = [];
-                grouped[u.tenantType].push(u);
+                const type = u.tenantType || u.tenant_type || 'BRANCH';
+                if (!grouped[type]) grouped[type] = [];
+                grouped[type].push(u);
             });
             
             let menuHTML = '<div class="p-4">';
@@ -1178,6 +1312,14 @@ const app = (() => {
     const loadRoute = async (route, skipHistory = false) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
+
+        if (!isOfficeRouteAllowed(route)) {
+            const fallbackRoute = getOfficeFallbackRoute();
+            if (fallbackRoute) {
+                showToast('لا توجد صلاحية لعرض هذه الصفحة', 'info');
+                route = fallbackRoute;
+            }
+        }
 
         // Clear cache when navigating to strategic pages to ensure fresh data
         if (route.includes('executive') || route.includes('smart') || route.includes('subscription') || 
@@ -1604,10 +1746,10 @@ const app = (() => {
         console.log('🔄 رسم القائمة الجانبية...', { currentUser });
         const menu = document.getElementById('nav-menu');
         if (!currentUser) {
-            menu.innerHTML = '<li class="px-4 py-2 text-slate-400">جاري التحميل...</li>';
-            console.warn('⚠️ لا يوجد مستخدم حالي!');
-            return;
-        }
+                menu.innerHTML = '<li class="px-4 py-2 text-slate-400">جاري التحميل...</li>';
+                console.warn('⚠️ لا يوجد مستخدم حالي!');
+                return;
+            }
         
         const unreadCount = db.notifications.filter(n => !n.isRead).length;
         const pendingApprovals = db.approvals.filter(a => 
@@ -1621,49 +1763,49 @@ const app = (() => {
         // التحقق من صلاحية Super Admin (HQ001 فقط)
         const isSuperAdmin = currentUser.entityId === 'HQ001' || currentUser.entityId === 1;
         
-        const items = [
-            { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: true },
-            { id: 'super-admin', icon: 'fa-shield-alt', label: 'إدارة الأدوار والصلاحيات', show: isSuperAdmin },
-            {
-                id: 'strategic-management',
-                icon: 'fa-chess',
-                label: 'الإدارة الاستراتيجية',
-                show: true,
-subItems: [
-                    { id: 'executive-management', icon: 'fa-user-tie', label: 'الإدارة التنفيذية' },
-                    { id: 'employee-management', icon: 'fa-users-cog', label: 'إدارة الموظفين' },
-                    { id: 'smart-systems', icon: 'fa-microchip', label: 'الأنظمة الذكية' },
-                    { id: 'subscription-management', icon: 'fa-tags', label: 'إدارة الاشتراكات' },
-                    { id: 'operations-management', icon: 'fa-cogs', label: 'إدارة العمليات' },
-                    { id: 'financial-approvals', icon: 'fa-file-signature', label: 'الموافقات المالية' },
-                    { id: 'tenants', icon: 'fa-building', label: 'المستأجرين' },
-                    { id: 'collections-strategic', icon: 'fa-coins', label: 'التحصيل' },
-                    { id: 'marketing', icon: 'fa-bullhorn', label: 'التسويق' },
-                    { id: 'advertisers-center', icon: 'fa-ad', label: 'مركز المعلنين' },
-                    { id: 'training-development', icon: 'fa-chalkboard-teacher', label: 'التدريب والتطوير' },
-                    { id: 'quality-audit', icon: 'fa-clipboard-check', label: 'الجودة والتدقيق' },
-                    { id: 'evaluation', icon: 'fa-star', label: 'التقييم' },
-                    { id: 'tasks-strategic', icon: 'fa-tasks', label: 'المهام' },
-                    { id: 'information-center', icon: 'fa-info-circle', label: 'مركز المعلومات' },
-                    { id: 'identity-settings', icon: 'fa-palette', label: 'إعدادات الهوية' },
-                    { id: 'system-log', icon: 'fa-file-alt', label: 'سجل النظام' },
-                    { id: 'reports', icon: 'fa-chart-line', label: 'التقارير' }
-                ]
-            },
-            { id: 'hierarchy', icon: 'fa-sitemap', label: 'الهيكل الهرمي', show: true },
-            { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: true },
-            { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: isIncubator || perms.isHQ() },
-            { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: true },
-            { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: true },
-            { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance(), badge: pendingApprovals },
-            { id: 'requests', icon: 'fa-clipboard-list', label: 'الطلبات', show: true },
-            {
-                id: 'payment-menu',
-                icon: 'fa-credit-card',
-                label: 'نظام الدفع',
-                show: true,
-                subItems: [
-                    { id: 'invoices-enhanced', icon: 'fa-file-invoice-dollar', label: 'الفواتير الذكية' },
+            const items = [
+                { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: isOfficeRouteAllowed('dashboard') },
+                { id: 'super-admin', icon: 'fa-shield-alt', label: 'إدارة الأدوار والصلاحيات', show: isSuperAdmin },
+                {
+                    id: 'strategic-management',
+                    icon: 'fa-chess',
+                    label: 'الإدارة الاستراتيجية',
+                    show: isOfficeRouteAllowed('strategic-management'),
+ subItems: [
+                        { id: 'executive-management', icon: 'fa-user-tie', label: 'الإدارة التنفيذية' },
+                        { id: 'employee-management', icon: 'fa-users-cog', label: 'إدارة الموظفين' },
+                        { id: 'smart-systems', icon: 'fa-microchip', label: 'الأنظمة الذكية' },
+                        { id: 'subscription-management', icon: 'fa-tags', label: 'إدارة الاشتراكات' },
+                        { id: 'operations-management', icon: 'fa-cogs', label: 'إدارة العمليات' },
+                        { id: 'financial-approvals', icon: 'fa-file-signature', label: 'الموافقات المالية' },
+                        { id: 'tenants', icon: 'fa-building', label: 'المستأجرين' },
+                        { id: 'collections-strategic', icon: 'fa-coins', label: 'التحصيل' },
+                        { id: 'marketing', icon: 'fa-bullhorn', label: 'التسويق' },
+                        { id: 'advertisers-center', icon: 'fa-ad', label: 'مركز المعلنين' },
+                        { id: 'training-development', icon: 'fa-chalkboard-teacher', label: 'التدريب والتطوير' },
+                        { id: 'quality-audit', icon: 'fa-clipboard-check', label: 'الجودة والتدقيق' },
+                        { id: 'evaluation', icon: 'fa-star', label: 'التقييم' },
+                        { id: 'tasks-strategic', icon: 'fa-tasks', label: 'المهام' },
+                        { id: 'information-center', icon: 'fa-info-circle', label: 'مركز المعلومات' },
+                        { id: 'identity-settings', icon: 'fa-palette', label: 'إعدادات الهوية' },
+                        { id: 'system-log', icon: 'fa-file-alt', label: 'سجل النظام' },
+                        { id: 'reports', icon: 'fa-chart-line', label: 'التقارير' }
+                    ]
+                },
+                { id: 'hierarchy', icon: 'fa-sitemap', label: 'الهيكل الهرمي', show: isOfficeRouteAllowed('hierarchy') },
+                { id: 'saas', icon: 'fa-cubes', label: perms.isHQ() ? 'إدارة الاشتراكات' : 'اشتراكي (SaaS)', show: isOfficeRouteAllowed('saas') },
+                { id: 'incubator', icon: 'fa-graduation-cap', label: 'حاضنة السلامة', show: (isIncubator || perms.isHQ()) && isOfficeRouteAllowed('incubator') },
+                { id: 'finance', icon: 'fa-dollar-sign', label: 'المالية', show: isOfficeRouteAllowed('finance') },
+                { id: 'collections', icon: 'fa-money-bill-wave', label: 'التحصيل', show: isOfficeRouteAllowed('collections') },
+                { id: 'approvals', icon: 'fa-check-circle', label: 'الموافقات المالية', show: perms.isFinance() && isOfficeRouteAllowed('approvals'), badge: pendingApprovals },
+                { id: 'requests', icon: 'fa-clipboard-list', label: 'الطلبات', show: isOfficeRouteAllowed('requests') },
+                {
+                    id: 'payment-menu',
+                    icon: 'fa-credit-card',
+                    label: 'نظام الدفع',
+                    show: isOfficeRouteAllowed('payment-menu'),
+                    subItems: [
+                        { id: 'invoices-enhanced', icon: 'fa-file-invoice-dollar', label: 'الفواتير الذكية' },
                     { id: 'payment-methods', icon: 'fa-wallet', label: 'طرق الدفع' },
                     { id: 'installment-plans', icon: 'fa-calendar-days', label: 'خطط الأقساط' },
                     { id: 'payment-tracking', icon: 'fa-chart-line', label: 'تتبع الدفعات' },
@@ -1674,13 +1816,13 @@ subItems: [
                     { id: 'payment-analytics', icon: 'fa-chart-bar', label: 'تحليلات الدفع' }
                 ]
             },
-            { 
-                id: 'employee-menu', 
-                icon: 'fa-user-tie', 
-                label: 'الموظف', 
-                show: true,
-                subItems: [
-                    { id: 'attendance-departure', icon: 'fa-clock', label: 'الحضور والانصراف' },
+                { 
+                    id: 'employee-menu', 
+                    icon: 'fa-user-tie', 
+                    label: 'الموظف', 
+                    show: isOfficeRouteAllowed('employee-menu'),
+                    subItems: [
+                        { id: 'attendance-departure', icon: 'fa-clock', label: 'الحضور والانصراف' },
                     { id: 'emp-requests', icon: 'fa-clipboard-list', label: 'الطلبات' },
                     { id: 'emp-leaves', icon: 'fa-umbrella-beach', label: 'الإجازات' },
                     { id: 'leave-balance', icon: 'fa-calendar-check', label: 'رصيد الإجازات' },
@@ -1699,13 +1841,13 @@ subItems: [
                     { id: 'attendance-table', icon: 'fa-table', label: 'جدول الحضور' }
                 ]
             },
-            {
-                id: 'supply-chain',
-                icon: 'fa-truck-loading',
-                label: 'سلاسل التوريد',
-                show: true,
-                subItems: [
-                    { id: 'purchases', icon: 'fa-shopping-cart', label: 'المشتريات' },
+                {
+                    id: 'supply-chain',
+                    icon: 'fa-truck-loading',
+                    label: 'سلاسل التوريد',
+                    show: isOfficeRouteAllowed('supply-chain'),
+                    subItems: [
+                        { id: 'purchases', icon: 'fa-shopping-cart', label: 'المشتريات' },
                     { id: 'logistics', icon: 'fa-truck', label: 'اللوجستيات والنقل والتوصيل' },
                     { id: 'inventory', icon: 'fa-boxes', label: 'المخزون' },
                     { id: 'suppliers', icon: 'fa-handshake', label: 'التعامل مع الموردين' },
@@ -1718,13 +1860,13 @@ subItems: [
                     { id: 'safety', icon: 'fa-hard-hat', label: 'السلامة' }
                 ]
             },
-            {
-                id: 'sales',
-                icon: 'fa-chart-line',
-                label: 'البيع',
-                show: true,
-                subItems: [
-                    { id: 'crm', icon: 'fa-users-cog', label: 'نظام إدارة علاقات العملاء CRM' },
+                {
+                    id: 'sales',
+                    icon: 'fa-chart-line',
+                    label: 'البيع',
+                    show: isOfficeRouteAllowed('sales'),
+                    subItems: [
+                        { id: 'crm', icon: 'fa-users-cog', label: 'نظام إدارة علاقات العملاء CRM' },
                     { id: 'sales-operations', icon: 'fa-handshake', label: 'إدارة عمليات البيع' },
                     { id: 'pos', icon: 'fa-cash-register', label: 'نظام نقاط البيع التشابكي' },
                     { id: 'quotes-contracts', icon: 'fa-file-contract', label: 'العروض والعقود' },
@@ -1732,13 +1874,13 @@ subItems: [
                     { id: 'order-tracking', icon: 'fa-shipping-fast', label: 'تتبع الطلبات والشحنات' }
                 ]
             },
-            {
-                id: 'internet-automation',
-                icon: 'fa-robot',
-                label: 'الإنترنت والأتمتة',
-                show: true,
-                subItems: [
-                    { id: 'ai-integration', icon: 'fa-brain', label: 'الذكاء الإصطناعي' },
+                {
+                    id: 'internet-automation',
+                    icon: 'fa-robot',
+                    label: 'الإنترنت والأتمتة',
+                    show: isOfficeRouteAllowed('internet-automation'),
+                    subItems: [
+                        { id: 'ai-integration', icon: 'fa-brain', label: 'الذكاء الإصطناعي' },
                     { id: 'governance', icon: 'fa-gavel', label: 'الحوكمة' },
                     { id: 'compliance', icon: 'fa-balance-scale', label: 'الموائمة' },
                     { id: 'iot', icon: 'fa-network-wired', label: 'انترنت الأشياء' },
@@ -1750,13 +1892,13 @@ subItems: [
                     { id: 'visitor-chat', icon: 'fa-comment-dots', label: 'الدردشة مع الزوار' }
                 ]
             },
-            {
-                id: 'occupational-health',
-                icon: 'fa-hard-hat',
-                label: 'السلامة والصحة المهنية',
-                show: true,
-                subItems: [
-                    { id: 'occupational-safety', icon: 'fa-shield-alt', label: 'السلامة المهنية' },
+                {
+                    id: 'occupational-health',
+                    icon: 'fa-hard-hat',
+                    label: 'السلامة والصحة المهنية',
+                    show: isOfficeRouteAllowed('occupational-health'),
+                    subItems: [
+                        { id: 'occupational-safety', icon: 'fa-shield-alt', label: 'السلامة المهنية' },
                     { id: 'international-standards', icon: 'fa-globe', label: 'المعايير الدولية' },
                     { id: 'iso-standards', icon: 'fa-certificate', label: 'الايزو' },
                     { id: 'risk-management', icon: 'fa-exclamation-triangle', label: 'إدارة المخاطر' },
@@ -1766,13 +1908,13 @@ subItems: [
                     { id: 'data-analysis', icon: 'fa-chart-bar', label: 'تحليل البيانات' }
                 ]
             },
-            {
-                id: 'services',
-                icon: 'fa-concierge-bell',
-                label: 'الخدمات',
-                show: true,
-                subItems: [
-                    { id: 'project-management-office', icon: 'fa-project-diagram', label: 'مكتب إدارة المشاريع' },
+                {
+                    id: 'services',
+                    icon: 'fa-concierge-bell',
+                    label: 'الخدمات',
+                    show: isOfficeRouteAllowed('services'),
+                    subItems: [
+                        { id: 'project-management-office', icon: 'fa-project-diagram', label: 'مكتب إدارة المشاريع' },
                     { id: 'institutional-performance', icon: 'fa-chart-line', label: 'إدارة الأداء المؤسسي' },
                     { id: 'operations-monitoring', icon: 'fa-eye', label: 'متابعة العمليات' },
                     { id: 'ai-market-research', icon: 'fa-brain', label: 'دراسة السوق عبر الذكاء الاصطناعي' },
@@ -1784,16 +1926,16 @@ subItems: [
                     { id: 'consulting-training', icon: 'fa-chalkboard-teacher', label: 'الاستشارات والتدريب' }
                 ]
             },
-            { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
-            { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
-            { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
-            {
-                id: 'tasks-management',
-                icon: 'fa-tasks',
-                label: 'المهام',
-                show: true,
-                subItems: [
-                    { id: 'main-menu', icon: 'fa-home', label: 'القائمة الرئيسية' },
+                { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: isOfficeRouteAllowed('entities') },
+                { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: (perms.isHR() || perms.isAdmin()) && isOfficeRouteAllowed('employees') },
+                { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: isOfficeRouteAllowed('ads') },
+                {
+                    id: 'tasks-management',
+                    icon: 'fa-tasks',
+                    label: 'المهام',
+                    show: isOfficeRouteAllowed('tasks-management'),
+                    subItems: [
+                        { id: 'main-menu', icon: 'fa-home', label: 'القائمة الرئيسية' },
                     { id: 'control-panel', icon: 'fa-sliders-h', label: 'لوحة التحكم' },
                     { id: 'my-tasks', icon: 'fa-check-square', label: 'مهامي' },
                     { id: 'procedures', icon: 'fa-file-alt', label: 'الإجراءات' },
@@ -1805,10 +1947,19 @@ subItems: [
                     { id: 'task-settings', icon: 'fa-cog', label: 'الإعدادات' }
                 ]
             },
-            { id: 'facilities', icon: 'fa-building-gear', label: 'إدارة المرافق', show: true },
-            { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() },
-            { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() }
-        ];
+                { id: 'facilities', icon: 'fa-building-gear', label: 'إدارة المرافق', show: isOfficeRouteAllowed('facilities') },
+                { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() && isOfficeRouteAllowed('settings') },
+                { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() && isOfficeRouteAllowed('audit-logs') }
+            ];
+
+            items.forEach(item => {
+                if (item.subItems) {
+                    item.subItems = item.subItems.filter(subItem => isOfficeRouteAllowed(subItem.id));
+                    if (item.subItems.length === 0) {
+                        item.show = false;
+                    }
+                }
+            });
 
         menu.innerHTML = items.filter(i => i.show).map(item => {
             const path = routeToPath[item.id] || '/';
@@ -17726,6 +17877,7 @@ window.fetchAPI = async function(endpoint, options = {}) {
             const entityId = user.entityId || user.entity_id;
             headers['x-entity-type'] = tenantType;
             headers['x-entity-id'] = entityId;
+            headers['x-user-id'] = user.id;
             console.log('📤 Sending isolation headers:', { entityType: tenantType, entityId });
         }
         
