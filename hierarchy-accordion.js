@@ -23,8 +23,8 @@ window.toggleBranchAccordion = async function(branchId) {
             
             try {
                 // تحميل الحاضنات والمنصات لهذا الفرع فقط
-                const incubators = await fetchAPI(`/branches/${branchId}/incubators`);
-                const platforms = await fetchAPI(`/branches/${branchId}/platforms`);
+                const incubators = await fetchAPI(`/api/branches/${branchId}/incubators`);
+                const platforms = await fetchAPI(`/api/branches/${branchId}/platforms`);
                 
                 // عرض الحاضنات والمنصات
                 contentDiv.innerHTML = `
