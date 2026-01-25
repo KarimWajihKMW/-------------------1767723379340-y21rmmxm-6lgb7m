@@ -1251,6 +1251,14 @@ const app = (() => {
         else if (route === 'entities') content = renderEntitiesManager();
         else if (route === 'register-tenant') content = renderTenantRegistration();
         else if (route === 'tasks') content = renderTasksManager();
+        // Task Management Routes
+        else if (route === 'all-procedures') content = await renderAllProcedures();
+        else if (route === 'completed-procedures') content = await renderCompletedProcedures();
+        else if (route === 'active-procedures') content = await renderActiveProcedures();
+        else if (route === 'urgent-procedures') content = await renderUrgentProcedures();
+        else if (route === 'general-tasks') content = await renderGeneralTasks();
+        else if (route === 'task-filters') content = renderTaskFilters();
+        else if (route === 'task-reports') content = await renderTaskReports();
         else if (route === 'facilities') content = renderFacilities();
         else if (route === 'audit-logs') content = renderAuditLogs();
         else if (route === 'settings') content = renderSettings();
@@ -1399,6 +1407,14 @@ const app = (() => {
             'register-tenant': 'تسجيل مستأجر جديد',
             'ads': perms.canManageAds() ? 'لوحة المعلن المركزية' : 'منصة الإعلانات',
             'tasks': 'المهام الداخلية',
+            // Task Management subitems
+            'all-procedures': 'جميع الإجراءات',
+            'completed-procedures': 'الإجراءات المكتملة',
+            'active-procedures': 'الإجراءات البسيطة',
+            'urgent-procedures': 'الإجراءات الصاعدة',
+            'general-tasks': 'المهام العامة',
+            'task-filters': 'المصفات',
+            'task-reports': 'التقارير',
             'facilities': 'إدارة المرافق',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية',
@@ -1490,6 +1506,14 @@ const app = (() => {
         'register-tenant': '/register-tenant',
         'ads': '/ads',
         'tasks': '/tasks',
+        // Task Management Routes
+        'all-procedures': '/tasks/all-procedures',
+        'completed-procedures': '/tasks/completed-procedures',
+        'active-procedures': '/tasks/active-procedures',
+        'urgent-procedures': '/tasks/urgent-procedures',
+        'general-tasks': '/tasks/general-tasks',
+        'task-filters': '/tasks/filters',
+        'task-reports': '/tasks/reports',
         'facilities': '/facilities',
         'audit-logs': '/audit-logs',
         'settings': '/settings',
@@ -1531,6 +1555,14 @@ const app = (() => {
         '/register-tenant': 'register-tenant',
         '/ads': 'ads',
         '/tasks': 'tasks',
+        // Task Management Routes
+        '/tasks/all-procedures': 'all-procedures',
+        '/tasks/completed-procedures': 'completed-procedures',
+        '/tasks/active-procedures': 'active-procedures',
+        '/tasks/urgent-procedures': 'urgent-procedures',
+        '/tasks/general-tasks': 'general-tasks',
+        '/tasks/filters': 'task-filters',
+        '/tasks/reports': 'task-reports',
         '/facilities': 'facilities',
         '/audit-logs': 'audit-logs',
         '/settings': 'settings',
@@ -1743,7 +1775,21 @@ subItems: [
             { id: 'entities', icon: 'fa-sitemap', label: perms.isHQ() ? 'المستأجرين' : 'فرعي/كياني', show: true },
             { id: 'employees', icon: 'fa-users', label: 'إدارة الموظفين', show: perms.isHR() || perms.isAdmin() },
             { id: 'ads', icon: 'fa-bullhorn', label: perms.canManageAds() ? 'مركز المعلنين' : 'الإعلانات', show: true },
-            { id: 'tasks', icon: 'fa-tasks', label: 'المهام', show: true },
+            {
+                id: 'tasks-management',
+                icon: 'fa-tasks',
+                label: 'المهام',
+                show: true,
+                subItems: [
+                    { id: 'all-procedures', icon: 'fa-list-check', label: 'جميع الإجراءات' },
+                    { id: 'completed-procedures', icon: 'fa-check-circle', label: 'الإجراءات المكتملة' },
+                    { id: 'active-procedures', icon: 'fa-clock', label: 'الإجراءات البسيطة' },
+                    { id: 'urgent-procedures', icon: 'fa-exclamation-triangle', label: 'الإجراءات الصاعدة' },
+                    { id: 'general-tasks', icon: 'fa-clipboard-list', label: 'المهام العامة' },
+                    { id: 'task-filters', icon: 'fa-filter', label: 'المصفات' },
+                    { id: 'task-reports', icon: 'fa-chart-bar', label: 'التقارير' }
+                ]
+            },
             { id: 'facilities', icon: 'fa-building-gear', label: 'إدارة المرافق', show: true },
             { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() },
             { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() }
@@ -5416,6 +5462,647 @@ subItems: [
                         </div>
                     </div>`;
                 }).join('')}
+            </div>
+        </div>`;
+    };
+
+    // ===== TASK MANAGEMENT PAGES =====
+
+    const renderAllProcedures = async () => {
+        const procedures = db.tasks || [];
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">جميع الإجراءات</h2>
+                    <p class="text-slate-500">عرض وإدارة جميع الإجراءات والمهام</p>
+                </div>
+                <button onclick="window.openCreateTaskModal()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
+                    <i class="fas fa-plus"></i> إضافة إجراء جديد
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-blue-100 text-sm">إجمالي الإجراءات</p>
+                            <h3 class="text-3xl font-bold mt-1">${procedures.length}</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fas fa-list-check text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-green-100 text-sm">المكتملة</p>
+                            <h3 class="text-3xl font-bold mt-1">${procedures.filter(p => p.status === 'Done').length}</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fas fa-check-circle text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-orange-100 text-sm">قيد التنفيذ</p>
+                            <h3 class="text-3xl font-bold mt-1">${procedures.filter(p => p.status === 'In Progress').length}</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-red-100 text-sm">عالية الأولوية</p>
+                            <h3 class="text-3xl font-bold mt-1">${procedures.filter(p => p.priority === 'High').length}</h3>
+                        </div>
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fas fa-exclamation-triangle text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="relative">
+                        <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchProcedures" placeholder="بحث في الإجراءات..." 
+                            class="w-full pr-10 pl-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                    
+                    <select id="filterStatus" class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                        <option value="">جميع الحالات</option>
+                        <option value="Pending">قيد الانتظار</option>
+                        <option value="In Progress">قيد التنفيذ</option>
+                        <option value="Done">مكتملة</option>
+                        <option value="Cancelled">ملغية</option>
+                    </select>
+
+                    <select id="filterPriority" class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                        <option value="">جميع الأولويات</option>
+                        <option value="High">عالية</option>
+                        <option value="Medium">متوسطة</option>
+                        <option value="Low">منخفضة</option>
+                    </select>
+
+                    <button class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition">
+                        <i class="fas fa-filter ml-2"></i> تطبيق الفلاتر
+                    </button>
+                </div>
+            </div>
+
+            <!-- Procedures Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-slate-700">الإجراء</th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-slate-700">المسؤول</th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-slate-700">الحالة</th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-slate-700">الأولوية</th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-slate-700">الموعد النهائي</th>
+                                <th class="px-6 py-4 text-right text-sm font-bold text-slate-700">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${procedures.length === 0 ? `
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                                        <div class="text-4xl mb-3">📋</div>
+                                        <p>لا توجد إجراءات مسجلة</p>
+                                    </td>
+                                </tr>
+                            ` : procedures.map(p => {
+                                const statusColors = {
+                                    'Pending': 'bg-yellow-100 text-yellow-700',
+                                    'In Progress': 'bg-orange-100 text-orange-700',
+                                    'Done': 'bg-green-100 text-green-700',
+                                    'Cancelled': 'bg-red-100 text-red-700'
+                                };
+                                const priorityColors = {
+                                    'High': 'bg-red-100 text-red-700',
+                                    'Medium': 'bg-orange-100 text-orange-700',
+                                    'Low': 'bg-green-100 text-green-700'
+                                };
+                                return `
+                                <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="window.viewTaskDetails(${p.id})">
+                                    <td class="px-6 py-4">
+                                        <div class="font-semibold text-slate-800">${p.title}</div>
+                                        ${p.description ? `<div class="text-sm text-slate-500 mt-1">${p.description.substring(0, 50)}${p.description.length > 50 ? '...' : ''}</div>` : ''}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fas fa-user text-red-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm text-slate-700">${p.assignee || 'غير محدد'}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[p.status] || 'bg-slate-100 text-slate-700'}">
+                                            ${p.status}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold ${priorityColors[p.priority] || 'bg-slate-100 text-slate-700'}">
+                                            ${p.priority}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">
+                                        ${p.dueDate || 'غير محدد'}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <button onclick="event.stopPropagation(); window.editTask(${p.id})" 
+                                                class="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="event.stopPropagation(); window.deleteTask(${p.id})" 
+                                                class="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderCompletedProcedures = async () => {
+        const completed = (db.tasks || []).filter(t => t.status === 'Done');
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">الإجراءات المكتملة</h2>
+                    <p class="text-slate-500">عرض جميع الإجراءات التي تم إكمالها بنجاح</p>
+                </div>
+                <div class="bg-green-100 text-green-700 px-6 py-3 rounded-xl font-bold">
+                    <i class="fas fa-check-circle ml-2"></i> ${completed.length} إجراء مكتمل
+                </div>
+            </div>
+
+            <div class="grid gap-4">
+                ${completed.length === 0 ? `
+                    <div class="bg-white rounded-xl shadow-sm border-2 border-dashed border-slate-300 p-12 text-center">
+                        <div class="text-6xl mb-4">✅</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">لا توجد إجراءات مكتملة</h3>
+                        <p class="text-slate-600">سيتم عرض الإجراءات المكتملة هنا</p>
+                    </div>
+                ` : completed.map(t => `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-green-200 hover:shadow-lg transition-all">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-lg text-slate-800">${t.title}</h4>
+                                        <p class="text-sm text-slate-500">مكتمل في ${t.completedDate || t.dueDate}</p>
+                                    </div>
+                                </div>
+                                ${t.description ? `<p class="text-slate-600 mt-3">${t.description}</p>` : ''}
+                                ${t.assignee ? `<p class="text-sm text-blue-600 mt-2"><i class="fas fa-user ml-1"></i> ${t.assignee}</p>` : ''}
+                            </div>
+                            <span class="px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-700">
+                                <i class="fas fa-check-circle ml-1"></i> مكتمل
+                            </span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+    };
+
+    const renderActiveProcedures = async () => {
+        const active = (db.tasks || []).filter(t => t.status === 'In Progress' || t.status === 'Pending');
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">الإجراءات النشطة</h2>
+                    <p class="text-slate-500">الإجراءات قيد التنفيذ أو الانتظار</p>
+                </div>
+                <div class="bg-orange-100 text-orange-700 px-6 py-3 rounded-xl font-bold">
+                    <i class="fas fa-clock ml-2"></i> ${active.length} إجراء نشط
+                </div>
+            </div>
+
+            <div class="grid gap-4">
+                ${active.length === 0 ? `
+                    <div class="bg-white rounded-xl shadow-sm border-2 border-dashed border-slate-300 p-12 text-center">
+                        <div class="text-6xl mb-4">⏳</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">لا توجد إجراءات نشطة</h3>
+                        <p class="text-slate-600">جميع الإجراءات إما مكتملة أو ملغاة</p>
+                    </div>
+                ` : active.map(t => {
+                    const statusColors = {
+                        'Pending': 'bg-yellow-100 text-yellow-700',
+                        'In Progress': 'bg-orange-100 text-orange-700'
+                    };
+                    return `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-200 hover:shadow-lg transition-all cursor-pointer" onclick="window.viewTaskDetails(${t.id})">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h4 class="font-bold text-lg text-slate-800 mb-2">${t.title}</h4>
+                                ${t.description ? `<p class="text-slate-600 mb-3">${t.description}</p>` : ''}
+                                <div class="flex items-center gap-4 text-sm">
+                                    ${t.assignee ? `<span class="text-blue-600"><i class="fas fa-user ml-1"></i> ${t.assignee}</span>` : ''}
+                                    ${t.dueDate ? `<span class="text-slate-500"><i class="fas fa-calendar ml-1"></i> ${t.dueDate}</span>` : ''}
+                                    ${t.priority ? `<span class="text-red-600"><i class="fas fa-exclamation-circle ml-1"></i> ${t.priority}</span>` : ''}
+                                </div>
+                            </div>
+                            <span class="px-4 py-2 rounded-full text-sm font-bold ${statusColors[t.status]}">
+                                ${t.status}
+                            </span>
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>`;
+    };
+
+    const renderUrgentProcedures = async () => {
+        const urgent = (db.tasks || []).filter(t => t.priority === 'High' && t.status !== 'Done' && t.status !== 'Cancelled');
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">الإجراءات العاجلة</h2>
+                    <p class="text-slate-500">الإجراءات ذات الأولوية العالية التي تحتاج متابعة فورية</p>
+                </div>
+                <div class="bg-red-100 text-red-700 px-6 py-3 rounded-xl font-bold animate-pulse">
+                    <i class="fas fa-exclamation-triangle ml-2"></i> ${urgent.length} إجراء عاجل
+                </div>
+            </div>
+
+            <div class="grid gap-4">
+                ${urgent.length === 0 ? `
+                    <div class="bg-white rounded-xl shadow-sm border-2 border-dashed border-slate-300 p-12 text-center">
+                        <div class="text-6xl mb-4">🎯</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">لا توجد إجراءات عاجلة</h3>
+                        <p class="text-slate-600">جميع الإجراءات العاجلة تحت السيطرة</p>
+                    </div>
+                ` : urgent.map(t => `
+                    <div class="bg-gradient-to-r from-red-50 to-orange-50 p-6 rounded-xl shadow-sm border-2 border-red-300 hover:shadow-lg transition-all cursor-pointer" onclick="window.viewTaskDetails(${t.id})">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0 animate-pulse">
+                                <i class="fas fa-exclamation text-white text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-bold text-lg text-slate-800">${t.title}</h4>
+                                    <span class="px-4 py-2 rounded-full text-sm font-bold bg-red-600 text-white">
+                                        عاجل
+                                    </span>
+                                </div>
+                                ${t.description ? `<p class="text-slate-600 mb-3">${t.description}</p>` : ''}
+                                <div class="flex items-center gap-4 text-sm">
+                                    ${t.assignee ? `<span class="text-blue-600"><i class="fas fa-user ml-1"></i> ${t.assignee}</span>` : ''}
+                                    ${t.dueDate ? `<span class="text-red-600 font-bold"><i class="fas fa-calendar-times ml-1"></i> ${t.dueDate}</span>` : ''}
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${t.status === 'In Progress' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'}">
+                                        ${t.status}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+    };
+
+    const renderGeneralTasks = async () => {
+        const generalTasks = (db.tasks || []).filter(t => !t.priority || t.priority === 'Low' || t.priority === 'Medium');
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">المهام العامة</h2>
+                    <p class="text-slate-500">المهام الروتينية والإجراءات العامة</p>
+                </div>
+                <button onclick="window.openCreateTaskModal()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-red-700 transition flex items-center gap-2">
+                    <i class="fas fa-plus"></i> إضافة مهمة
+                </button>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${generalTasks.length === 0 ? `
+                    <div class="col-span-full bg-white rounded-xl shadow-sm border-2 border-dashed border-slate-300 p-12 text-center">
+                        <div class="text-6xl mb-4">📝</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">لا توجد مهام عامة</h3>
+                        <p class="text-slate-600 mb-6">ابدأ بإضافة مهمة عامة جديدة</p>
+                        <button onclick="window.openCreateTaskModal()" class="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition inline-flex items-center gap-2">
+                            <i class="fas fa-plus-circle"></i> إضافة أول مهمة
+                        </button>
+                    </div>
+                ` : generalTasks.map(t => {
+                    const priorityColors = {
+                        'Medium': 'border-orange-200 bg-orange-50',
+                        'Low': 'border-green-200 bg-green-50'
+                    };
+                    const priorityIcons = {
+                        'Medium': 'fa-circle-half-stroke text-orange-600',
+                        'Low': 'fa-circle text-green-600'
+                    };
+                    return `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border ${priorityColors[t.priority] || 'border-slate-200'} hover:shadow-lg transition-all cursor-pointer" onclick="window.viewTaskDetails(${t.id})">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas ${priorityIcons[t.priority] || 'fa-circle text-slate-400'}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-slate-800 mb-1">${t.title}</h4>
+                                <span class="text-xs px-2 py-1 rounded-full ${t.status === 'Done' ? 'bg-green-100 text-green-700' : t.status === 'In Progress' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}">
+                                    ${t.status}
+                                </span>
+                            </div>
+                        </div>
+                        ${t.description ? `<p class="text-sm text-slate-600 mb-3 line-clamp-2">${t.description}</p>` : ''}
+                        <div class="flex items-center justify-between text-xs text-slate-500">
+                            ${t.assignee ? `<span><i class="fas fa-user ml-1"></i> ${t.assignee}</span>` : '<span></span>'}
+                            ${t.dueDate ? `<span><i class="fas fa-calendar ml-1"></i> ${t.dueDate}</span>` : ''}
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>`;
+    };
+
+    const renderTaskFilters = () => {
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">المصفات والبحث المتقدم</h2>
+                <p class="text-slate-500">استخدم الفلاتر المتقدمة للبحث عن المهام والإجراءات</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Search -->
+                    <div class="lg:col-span-3">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">البحث</label>
+                        <div class="relative">
+                            <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="ابحث عن إجراء أو مهمة..." 
+                                class="w-full pr-10 pl-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الحالة</label>
+                        <select class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            <option value="">الكل</option>
+                            <option value="Pending">قيد الانتظار</option>
+                            <option value="In Progress">قيد التنفيذ</option>
+                            <option value="Done">مكتملة</option>
+                            <option value="Cancelled">ملغية</option>
+                        </select>
+                    </div>
+
+                    <!-- Priority Filter -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الأولوية</label>
+                        <select class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            <option value="">الكل</option>
+                            <option value="High">عالية</option>
+                            <option value="Medium">متوسطة</option>
+                            <option value="Low">منخفضة</option>
+                        </select>
+                    </div>
+
+                    <!-- Assignee Filter -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">المسؤول</label>
+                        <select class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                            <option value="">الكل</option>
+                            ${[...new Set((db.tasks || []).map(t => t.assignee).filter(Boolean))].map(a => 
+                                `<option value="${a}">${a}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+
+                    <!-- Date Range -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">من تاريخ</label>
+                        <input type="date" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">إلى تاريخ</label>
+                        <input type="date" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="lg:col-span-3 flex gap-3">
+                        <button class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition">
+                            <i class="fas fa-search ml-2"></i> بحث
+                        </button>
+                        <button class="px-6 py-3 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition">
+                            <i class="fas fa-redo ml-2"></i> إعادة تعيين
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Filters -->
+            <div>
+                <h3 class="text-lg font-bold text-slate-800 mb-4">فلاتر سريعة</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <button class="bg-white border-2 border-slate-200 p-4 rounded-xl hover:border-red-500 hover:bg-red-50 transition text-right group">
+                        <div class="text-2xl mb-2">📋</div>
+                        <div class="font-bold text-slate-800 group-hover:text-red-600">جميع المهام</div>
+                        <div class="text-sm text-slate-500">${(db.tasks || []).length} مهمة</div>
+                    </button>
+
+                    <button class="bg-white border-2 border-slate-200 p-4 rounded-xl hover:border-green-500 hover:bg-green-50 transition text-right group">
+                        <div class="text-2xl mb-2">✅</div>
+                        <div class="font-bold text-slate-800 group-hover:text-green-600">المكتملة</div>
+                        <div class="text-sm text-slate-500">${(db.tasks || []).filter(t => t.status === 'Done').length} مهمة</div>
+                    </button>
+
+                    <button class="bg-white border-2 border-slate-200 p-4 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition text-right group">
+                        <div class="text-2xl mb-2">⏳</div>
+                        <div class="font-bold text-slate-800 group-hover:text-orange-600">قيد التنفيذ</div>
+                        <div class="text-sm text-slate-500">${(db.tasks || []).filter(t => t.status === 'In Progress').length} مهمة</div>
+                    </button>
+
+                    <button class="bg-white border-2 border-slate-200 p-4 rounded-xl hover:border-red-500 hover:bg-red-50 transition text-right group">
+                        <div class="text-2xl mb-2">🚨</div>
+                        <div class="font-bold text-slate-800 group-hover:text-red-600">عاجلة</div>
+                        <div class="text-sm text-slate-500">${(db.tasks || []).filter(t => t.priority === 'High').length} مهمة</div>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderTaskReports = async () => {
+        const allTasks = db.tasks || [];
+        const completed = allTasks.filter(t => t.status === 'Done').length;
+        const inProgress = allTasks.filter(t => t.status === 'In Progress').length;
+        const pending = allTasks.filter(t => t.status === 'Pending').length;
+        const highPriority = allTasks.filter(t => t.priority === 'High').length;
+        
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">التقارير والإحصائيات</h2>
+                <p class="text-slate-500">تحليلات شاملة عن أداء المهام والإجراءات</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                    <div class="text-3xl font-bold mb-2">${allTasks.length}</div>
+                    <div class="text-blue-100">إجمالي المهام</div>
+                    <div class="mt-4 text-sm opacity-90">
+                        <i class="fas fa-chart-line ml-1"></i> جميع الإجراءات
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+                    <div class="text-3xl font-bold mb-2">${completed}</div>
+                    <div class="text-green-100">مكتملة</div>
+                    <div class="mt-4 text-sm opacity-90">
+                        ${allTasks.length > 0 ? `${Math.round((completed / allTasks.length) * 100)}%` : '0%'} من الإجمالي
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+                    <div class="text-3xl font-bold mb-2">${inProgress}</div>
+                    <div class="text-orange-100">قيد التنفيذ</div>
+                    <div class="mt-4 text-sm opacity-90">
+                        ${allTasks.length > 0 ? `${Math.round((inProgress / allTasks.length) * 100)}%` : '0%'} من الإجمالي
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white">
+                    <div class="text-3xl font-bold mb-2">${highPriority}</div>
+                    <div class="text-red-100">عالية الأولوية</div>
+                    <div class="mt-4 text-sm opacity-90">
+                        تحتاج متابعة عاجلة
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Status Distribution -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">توزيع الحالات</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-600">مكتملة</span>
+                                <span class="text-sm font-bold text-green-600">${completed}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: ${allTasks.length > 0 ? (completed / allTasks.length) * 100 : 0}%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-600">قيد التنفيذ</span>
+                                <span class="text-sm font-bold text-orange-600">${inProgress}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-orange-500 h-2 rounded-full" style="width: ${allTasks.length > 0 ? (inProgress / allTasks.length) * 100 : 0}%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-600">قيد الانتظار</span>
+                                <span class="text-sm font-bold text-yellow-600">${pending}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-yellow-500 h-2 rounded-full" style="width: ${allTasks.length > 0 ? (pending / allTasks.length) * 100 : 0}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Distribution -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">توزيع الأولويات</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-600">عالية</span>
+                                <span class="text-sm font-bold text-red-600">${allTasks.filter(t => t.priority === 'High').length}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: ${allTasks.length > 0 ? (allTasks.filter(t => t.priority === 'High').length / allTasks.length) * 100 : 0}%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-600">متوسطة</span>
+                                <span class="text-sm font-bold text-orange-600">${allTasks.filter(t => t.priority === 'Medium').length}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-orange-500 h-2 rounded-full" style="width: ${allTasks.length > 0 ? (allTasks.filter(t => t.priority === 'Medium').length / allTasks.length) * 100 : 0}%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm text-slate-600">منخفضة</span>
+                                <span class="text-sm font-bold text-green-600">${allTasks.filter(t => t.priority === 'Low').length}</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: ${allTasks.length > 0 ? (allTasks.filter(t => t.priority === 'Low').length / allTasks.length) * 100 : 0}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">تصدير التقارير</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button class="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition">
+                        <i class="fas fa-file-excel"></i> تصدير Excel
+                    </button>
+                    <button class="flex items-center justify-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition">
+                        <i class="fas fa-file-pdf"></i> تصدير PDF
+                    </button>
+                    <button class="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                </div>
             </div>
         </div>`;
     };
