@@ -13,6 +13,18 @@ const pool = new Pool({
     ssl: false
 });
 
+const ensureOfficePageAccessTable = async () => {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS office_page_access (
+            id SERIAL PRIMARY KEY,
+            office_id INTEGER NOT NULL REFERENCES offices(id) ON DELETE CASCADE,
+            page_key VARCHAR(120) NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(office_id, page_key)
+        )
+    `);
+};
+
 // ========== Middleware للتحقق من Super Admin ==========
 const verifySuperAdmin = async (req, res, next) => {
     try {
@@ -503,6 +515,125 @@ router.get('/users/:userId', verifySuperAdmin, async (req, res) => {
             message: 'حدث خطأ في جلب معلومات المستخدم',
             error: error.message 
         });
+    }
+});
+
+// ========== 7.6. جلب صلاحيات صفحات المكاتب ==========
+router.get('/office-page-access', verifySuperAdmin, async (req, res) => {
+    try {
+        const { office_id } = req.query;
+        if (!office_id) {
+            return res.status(400).json({ success: false, message: 'office_id مطلوب' });
+        }
+
+        await ensureOfficePageAccessTable();
+
+        const officeResult = await pool.query(`
+            SELECT id, name, code, entity_id
+            FROM offices
+            WHERE id::text = $1 OR code = $1 OR entity_id = $1
+            LIMIT 1
+        `, [office_id]);
+
+        if (officeResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'المكتب غير موجود' });
+        }
+
+        const office = officeResult.rows[0];
+        const pagesResult = await pool.query(`
+            SELECT page_key
+            FROM office_page_access
+            WHERE office_id = $1
+            ORDER BY page_key
+        `, [office.id]);
+
+        res.json({
+            success: true,
+            office: {
+                id: office.id,
+                name: office.name,
+                code: office.code,
+                entity_id: office.entity_id
+            },
+            pages: pagesResult.rows.map(row => row.page_key)
+        });
+    } catch (error) {
+        console.error('خطأ في جلب صلاحيات صفحات المكتب:', error);
+        res.status(500).json({ success: false, message: 'خطأ في جلب صلاحيات المكتب' });
+    }
+});
+
+// ========== 7.7. حفظ صلاحيات صفحات المكاتب ==========
+router.post('/office-page-access', verifySuperAdmin, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { office_id, pages } = req.body;
+        if (!office_id || !Array.isArray(pages)) {
+            return res.status(400).json({ success: false, message: 'office_id و pages مطلوبين' });
+        }
+
+        await ensureOfficePageAccessTable();
+
+        const officeResult = await client.query(`
+            SELECT id, name, code, entity_id
+            FROM offices
+            WHERE id::text = $1 OR code = $1 OR entity_id = $1
+            LIMIT 1
+        `, [office_id]);
+
+        if (officeResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'المكتب غير موجود' });
+        }
+
+        const office = officeResult.rows[0];
+        const cleanPages = [...new Set(pages.filter(Boolean))];
+
+        await client.query('BEGIN');
+        await client.query('DELETE FROM office_page_access WHERE office_id = $1', [office.id]);
+
+        for (const pageKey of cleanPages) {
+            await client.query(`
+                INSERT INTO office_page_access (office_id, page_key)
+                VALUES ($1, $2)
+                ON CONFLICT (office_id, page_key) DO NOTHING
+            `, [office.id, pageKey]);
+        }
+        await client.query('COMMIT');
+
+        try {
+            await pool.query(`
+                INSERT INTO audit_log (
+                    entity_type, entity_reference_id, action_type,
+                    user_name, description
+                ) VALUES ($1, $2, $3, $4, $5)
+            `, [
+                'office_page_access',
+                office.entity_id || office.id,
+                'UPDATE',
+                req.userId || req.headers['x-user-id'] || 'super-admin',
+                JSON.stringify({ office_id: office.id, pages: cleanPages })
+            ]);
+        } catch (auditError) {
+            console.log('⚠️  لم يتم تسجيل صلاحيات المكتب في audit log:', auditError.message);
+        }
+
+        res.json({
+            success: true,
+            message: 'تم حفظ صلاحيات صفحات المكتب بنجاح',
+            office: {
+                id: office.id,
+                name: office.name,
+                code: office.code,
+                entity_id: office.entity_id
+            },
+            pages: cleanPages
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('خطأ في حفظ صلاحيات صفحات المكتب:', error);
+        res.status(500).json({ success: false, message: 'خطأ في حفظ صلاحيات المكتب' });
+    } finally {
+        client.release();
     }
 });
 

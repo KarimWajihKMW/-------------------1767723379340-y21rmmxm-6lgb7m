@@ -31,7 +31,8 @@ router.post('/login', async (req, res) => {
             SELECT uc.id as cred_id, uc.user_id, uc.password_hash, 
                    uc.is_active, uc.failed_attempts, uc.locked_until,
                    u.id, u.name, u.email, u.entity_id, u.entity_name,
-                   u.role, u.tenant_type, u.is_active as user_active
+                   u.role, u.tenant_type, u.is_active as user_active,
+                   u.office_id
             FROM user_credentials uc
             JOIN users u ON uc.user_id = u.id
             WHERE u.email = $1
@@ -127,6 +128,40 @@ router.post('/login', async (req, res) => {
             WHERE ur.user_id = $1 AND ur.is_active = true
         `;
         const rolesResult = await client.query(rolesQuery, [credential.user_id]);
+
+        let allowedOfficePages = [];
+        if (credential.tenant_type === 'OFFICE') {
+            try {
+                const officeResult = await client.query(`
+                    SELECT id, entity_id
+                    FROM offices
+                    WHERE entity_id = $1 OR id::text = $1
+                    LIMIT 1
+                `, [credential.entity_id]);
+
+                if (officeResult.rows.length > 0) {
+                    const officeId = officeResult.rows[0].id;
+                    await client.query(`
+                        CREATE TABLE IF NOT EXISTS office_page_access (
+                            id SERIAL PRIMARY KEY,
+                            office_id INTEGER NOT NULL REFERENCES offices(id) ON DELETE CASCADE,
+                            page_key VARCHAR(120) NOT NULL,
+                            created_at TIMESTAMP DEFAULT NOW(),
+                            UNIQUE(office_id, page_key)
+                        )
+                    `);
+                    const pagesResult = await client.query(`
+                        SELECT page_key
+                        FROM office_page_access
+                        WHERE office_id = $1
+                        ORDER BY page_key
+                    `, [officeId]);
+                    allowedOfficePages = pagesResult.rows.map(row => row.page_key);
+                }
+            } catch (error) {
+                console.log('⚠️  لم يتم تحميل صلاحيات صفحات المكتب:', error.message);
+            }
+        }
         
         // 8. جلب القائمة الجانبية للمستخدم
         const menuQuery = `
@@ -150,7 +185,9 @@ router.post('/login', async (req, res) => {
                     entity_id: credential.entity_id,
                     entity_name: credential.entity_name,
                     role: credential.role,
-                    tenant_type: credential.tenant_type
+                    tenant_type: credential.tenant_type,
+                    office_id: credential.office_id,
+                    allowed_pages: allowedOfficePages
                 },
                 roles: rolesResult.rows,
                 menu: menuResult.rows.map(item => ({
@@ -198,7 +235,8 @@ router.get('/verify', async (req, res) => {
         // التحقق من الجلسة
         const sessionQuery = `
             SELECT s.user_id, s.expires_at,
-                   u.name, u.email, u.entity_id, u.entity_name, u.role, u.tenant_type
+                   u.name, u.email, u.entity_id, u.entity_name, u.role, u.tenant_type,
+                   u.office_id
             FROM user_sessions s
             JOIN users u ON s.user_id = u.id
             WHERE s.session_token = $1 AND s.expires_at > NOW()
@@ -221,6 +259,40 @@ router.get('/verify', async (req, res) => {
             [token]
         );
         
+        let allowedOfficePages = [];
+        if (session.tenant_type === 'OFFICE') {
+            try {
+                const officeResult = await client.query(`
+                    SELECT id, entity_id
+                    FROM offices
+                    WHERE entity_id = $1 OR id::text = $1 OR id = $2
+                    LIMIT 1
+                `, [session.entity_id, session.office_id]);
+
+                if (officeResult.rows.length > 0) {
+                    const officeId = officeResult.rows[0].id;
+                    await client.query(`
+                        CREATE TABLE IF NOT EXISTS office_page_access (
+                            id SERIAL PRIMARY KEY,
+                            office_id INTEGER NOT NULL REFERENCES offices(id) ON DELETE CASCADE,
+                            page_key VARCHAR(120) NOT NULL,
+                            created_at TIMESTAMP DEFAULT NOW(),
+                            UNIQUE(office_id, page_key)
+                        )
+                    `);
+                    const pagesResult = await client.query(`
+                        SELECT page_key
+                        FROM office_page_access
+                        WHERE office_id = $1
+                        ORDER BY page_key
+                    `, [officeId]);
+                    allowedOfficePages = pagesResult.rows.map(row => row.page_key);
+                }
+            } catch (error) {
+                console.log('⚠️  لم يتم تحميل صلاحيات صفحات المكتب:', error.message);
+            }
+        }
+
         res.json({
             success: true,
             user: {
@@ -230,7 +302,9 @@ router.get('/verify', async (req, res) => {
                 entity_id: session.entity_id,
                 entity_name: session.entity_name,
                 role: session.role,
-                tenant_type: session.tenant_type
+                tenant_type: session.tenant_type,
+                office_id: session.office_id,
+                allowed_pages: allowedOfficePages
             }
         });
         
