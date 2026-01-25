@@ -391,6 +391,13 @@ const app = (() => {
         return Array.isArray(pages) ? pages : [];
     };
 
+    const getOfficeFallbackRoute = () => {
+        const allowedPages = getOfficeAllowedPages();
+        if (!allowedPages || allowedPages.length === 0) return null;
+        const allowedRoutes = allowedPages.filter(route => routeToPath[route]);
+        return allowedRoutes[0] || null;
+    };
+
     const isOfficeRouteAllowed = (route) => {
         const allowedPages = getOfficeAllowedPages();
         if (!allowedPages || allowedPages.length === 0) return true;
@@ -1307,8 +1314,11 @@ const app = (() => {
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
 
         if (!isOfficeRouteAllowed(route)) {
-            showToast('لا توجد صلاحية لعرض هذه الصفحة', 'info');
-            route = 'dashboard';
+            const fallbackRoute = getOfficeFallbackRoute();
+            if (fallbackRoute) {
+                showToast('لا توجد صلاحية لعرض هذه الصفحة', 'info');
+                route = fallbackRoute;
+            }
         }
 
         // Clear cache when navigating to strategic pages to ensure fresh data
