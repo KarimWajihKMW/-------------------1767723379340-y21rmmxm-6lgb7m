@@ -871,6 +871,22 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-office-login\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node activate-all-offices\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-and-unlock-offices\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-all-tables\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node unlock-all-offices-and-users\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
