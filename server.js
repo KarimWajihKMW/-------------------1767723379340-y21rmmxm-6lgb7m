@@ -247,18 +247,20 @@ app.delete('/api/entities/:id', async (req, res) => {
 // Get all users with data isolation
 app.get('/api/users', async (req, res) => {
   try {
-    const entityFilter = getEntityFilter(req.userEntity);
-    
+    const isHQ = req.userEntity.type === 'HQ';
+    const whereClause = isHQ ? '1=1' : 'u.entity_id = $1';
+    const params = isHQ ? [] : [req.userEntity.id];
+
     const query = `
       SELECT u.*, 
         COALESCE(e.name, 'غير محدد') as entity_name
       FROM users u
       LEFT JOIN entities e ON u.entity_id = e.id
-      WHERE ${entityFilter}
+      WHERE ${whereClause}
       ORDER BY u.created_at DESC
     `;
     
-    const result = await db.query(query);
+    const result = await db.query(query, params);
     res.json(result.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });

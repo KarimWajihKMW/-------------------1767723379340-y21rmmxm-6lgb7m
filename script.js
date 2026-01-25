@@ -38,6 +38,11 @@ const app = (() => {
                 'Content-Type': 'application/json',
                 ...options.headers
             };
+
+            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            if (authToken && !headers.Authorization) {
+                headers.Authorization = `Bearer ${authToken}`;
+            }
             
             // إضافة headers عزل البيانات إذا كان المستخدم مسجل دخول
             // استخدم currentUser أو fallback على window.currentUserData
@@ -52,7 +57,13 @@ const app = (() => {
                 console.warn('⚠️ [fetchAPI] No user data available for:', endpoint);
             }
             
-            const url = `${API_BASE_URL}${endpoint}`;
+            const normalizedEndpoint = endpoint.startsWith('/api/')
+                ? endpoint.substring(4)
+                : endpoint;
+            const finalEndpoint = normalizedEndpoint.startsWith('/')
+                ? normalizedEndpoint
+                : `/${normalizedEndpoint}`;
+            const url = `${API_BASE_URL}${finalEndpoint}`;
             console.log(`🌐 [fetchAPI] Requesting: ${url}`);
             
             // Show global loading indicator for write operations
@@ -940,7 +951,7 @@ const app = (() => {
             
             // Load data from API (now with proper entity headers)
             try {
-                await loadAllData();
+                await loadDataFromAPI();
                 console.log('📊 تم تحميل البيانات:', { entities: db.entities.length, users: db.users.length, invoices: db.invoices.length });
             } catch (apiError) {
                 console.error('❌ خطأ في تحميل البيانات من API:', apiError);
@@ -1167,6 +1178,16 @@ const app = (() => {
     const loadRoute = async (route, skipHistory = false) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('translate-x-0') && window.innerWidth < 768) toggleMobileMenu();
+
+        // Clear cache when navigating to strategic pages to ensure fresh data
+        if (route.includes('executive') || route.includes('smart') || route.includes('subscription') || 
+            route.includes('training') || route.includes('quality') || route.includes('evaluation') || 
+            route.includes('information')) {
+            console.log('🔄 مسح الـ cache للصفحة الاستراتيجية:', route);
+            if (window.apiCache) {
+                window.apiCache.clear();
+            }
+        }
 
         // Update browser URL
         if (!skipHistory) {
@@ -5548,7 +5569,9 @@ subItems: [
 
     // Strategic Management Render Functions
     const renderExecutiveManagement = async () => {
+        console.log('🎯 ============================================');
         console.log('🎯 تم استدعاء renderExecutiveManagement - الإدارة التنفيذية');
+        console.log('🎯 ============================================');
         
         let kpis = [], goals = [], operations = [];
         
@@ -5558,6 +5581,7 @@ subItems: [
                 fetchAPI('/api/executive-goals').catch(e => { console.error('Error loading goals:', e); return []; }),
                 fetchAPI('/api/executive-operations').catch(e => { console.error('Error loading operations:', e); return []; })
             ]);
+            console.log('📊 البيانات المُحمَّلة:', { kpis: kpis.length, goals: goals.length, operations: operations.length });
         } catch (error) {
             console.error('❌ خطأ في تحميل بيانات الإدارة التنفيذية:', error);
         }
@@ -5754,12 +5778,15 @@ subItems: [
     };
 
     const renderSmartSystems = async () => {
+        console.log('🤖 ============================================');
         console.log('🤖 تم استدعاء renderSmartSystems - الأنظمة الذكية');
+        console.log('🤖 ============================================');
         const [digital, community, events] = await Promise.all([
             fetchAPI('/api/digital-marketing'),
             fetchAPI('/api/community-marketing'),
             fetchAPI('/api/event-marketing')
         ]);
+        console.log('📊 البيانات المُحمَّلة:', { digital: digital.length, community: community.length, events: events.length });
         
         return `
         <div class="space-y-6 animate-fade-in">
@@ -16253,20 +16280,34 @@ window.fetchAPI = async function(endpoint, options = {}) {
             ...options.headers
         };
         
-        // Get currentUser from the app closure
-        // Note: This is a bit of a workaround - ideally currentUser would be global or in sessionStorage
-        if (window.currentUserData) {
-            headers['x-entity-type'] = window.currentUserData.tenantType;
-            headers['x-entity-id'] = window.currentUserData.entityId;
-            console.log('📤 Sending isolation headers:', { entityType: window.currentUserData.tenantType, entityId: window.currentUserData.entityId });
+        const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (authToken && !headers.Authorization) {
+            headers.Authorization = `Bearer ${authToken}`;
+        }
+
+        const user = window.currentUserData || window.currentUser;
+        if (user) {
+            const tenantType = user.tenantType || user.tenant_type;
+            const entityId = user.entityId || user.entity_id;
+            headers['x-entity-type'] = tenantType;
+            headers['x-entity-id'] = entityId;
+            console.log('📤 Sending isolation headers:', { entityType: tenantType, entityId });
         }
         
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const normalizedEndpoint = endpoint.startsWith('/api/')
+            ? endpoint.substring(4)
+            : endpoint;
+        const finalEndpoint = normalizedEndpoint.startsWith('/')
+            ? normalizedEndpoint
+            : `/${normalizedEndpoint}`;
+        
+        const response = await fetch(`${API_BASE_URL}${finalEndpoint}`, {
             ...options,
             headers
         });
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const body = await response.text();
+            throw new Error(`HTTP error! status: ${response.status} for ${endpoint} - ${body}`);
         }
         return await response.json();
     } catch (error) {

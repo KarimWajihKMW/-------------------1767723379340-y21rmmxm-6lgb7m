@@ -799,6 +799,22 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-permissions-detailed\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && source \\.env && psql \"\\$DATABASE_URL\" -c \"SELECT relname AS table, reltuples::bigint AS est_rows FROM pg_class c JOIN pg_namespace n ON n\\.oid = c\\.relnamespace WHERE n\\.nspname = 'public' AND relname = ANY\\(ARRAY\\['executive_kpis','executive_goals','executive_operations','digital_marketing_campaigns','community_marketing','event_marketing','training_courses','skills_registry','financial_policies','financial_manual','financial_news','development_programs','quality_standards','quality_audits','evaluations','information_repository','knowledge_base'\\]\\) ORDER BY relname;\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sudo apt-get update$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sudo mv /etc/apt/sources\\.list\\.d/yarn\\.list /etc/apt/sources\\.list\\.d/yarn\\.list\\.disabled$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sudo apt-get install -y postgresql-client$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

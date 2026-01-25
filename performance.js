@@ -86,22 +86,36 @@
             'Content-Type': 'application/json',
             ...options.headers
         };
+
+        const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (authToken && !headers.Authorization) {
+            headers.Authorization = `Bearer ${authToken}`;
+        }
         
         // إضافة headers عزل البيانات
         const user = window.currentUser || window.currentUserData;
         if (user) {
-            headers['x-entity-type'] = user.tenantType;
-            headers['x-entity-id'] = user.entityId;
+            const tenantType = user.tenantType || user.tenant_type;
+            const entityId = user.entityId || user.entity_id;
+            headers['x-entity-type'] = tenantType;
+            headers['x-entity-id'] = entityId;
         }
         
-        const url = `${API_BASE_URL}${endpoint}`;
+        const normalizedEndpoint = endpoint.startsWith('/api/')
+            ? endpoint.substring(4)
+            : endpoint;
+        const finalEndpoint = normalizedEndpoint.startsWith('/')
+            ? normalizedEndpoint
+            : `/${normalizedEndpoint}`;
+        const url = `${API_BASE_URL}${finalEndpoint}`;
         const response = await fetch(url, {
             ...options,
             headers
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const body = await response.text();
+            throw new Error(`HTTP error! status: ${response.status} for ${endpoint} - ${body}`);
         }
         
         const data = await response.json();
