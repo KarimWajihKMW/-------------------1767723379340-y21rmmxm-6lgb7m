@@ -368,14 +368,15 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">رقم المكتب</label>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">رقم أو كود المكتب</label>
                             <div class="flex gap-2">
-                                <input type="text" id="officeIdInput" placeholder="مثل OFF01 أو 1" onblur="loadOfficePageAccess()"
+                                <input type="text" id="officeIdInput" placeholder="مثال: 39 أو OFF-5657-FIN" onblur="loadOfficePageAccess()"
                                     class="w-full p-3 rounded-lg border border-slate-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                                 <button onclick="loadOfficePageAccess()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 rounded-lg transition-colors">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
+                            <p class="text-xs text-slate-500 mt-1">يمكنك إدخال: رقم المكتب (39) أو كود المكتب (OFF-5657-FIN)</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2">صفحات المكتب</label>

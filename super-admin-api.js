@@ -528,15 +528,22 @@ router.get('/office-page-access', verifySuperAdmin, async (req, res) => {
 
         await ensureOfficePageAccessTable();
 
+        // تحسين البحث ليدعم ID, code, entity_id, أو اسم المكتب
         const officeResult = await pool.query(`
             SELECT id, name, code, entity_id
             FROM offices
-            WHERE id::text = $1 OR code = $1 OR entity_id = $1
+            WHERE id::text = $1 
+               OR UPPER(code) = UPPER($1)
+               OR entity_id = $1
+               OR UPPER(name) LIKE UPPER($1 || '%')
             LIMIT 1
         `, [office_id]);
 
         if (officeResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'المكتب غير موجود' });
+            return res.status(404).json({ 
+                success: false, 
+                message: 'المكتب غير موجود. تأكد من إدخال رقم المكتب (ID) أو كود المكتب (مثل: OFF-5657-FIN)' 
+            });
         }
 
         const office = officeResult.rows[0];
