@@ -31,6 +31,10 @@ app.use('/api/admin', superAdminRoutes);
 const financeRoutes = require('./finance/api/finance-routes');
 app.use('/finance', financeRoutes);
 
+// Finance Cashflow API Routes (Page 1: Operating, Investing, Financing + AI Forecasting)
+const cashflowRoutes = require('./finance/api/cashflow-routes');
+app.use('/finance/cashflow', cashflowRoutes);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
