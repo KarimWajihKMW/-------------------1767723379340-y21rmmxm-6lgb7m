@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏗️ الأصول الثابتة والإهلاك - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0f766e 0%, #22c55e 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+        .table-scroll {
+            max-height: 520px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">🏗️ الأصول الثابتة والإهلاك</h1>
+            <p class="text-lg opacity-90">عرض تفصيلي للأصول الثابتة مع حركات الإهلاك</p>
+        </div>
+
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-emerald-700 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printReport()" class="bg-slate-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-warehouse text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">عدد الأصول</span>
+                </div>
+                <div id="totalAssets" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-sack-dollar text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي التكلفة</span>
+                </div>
+                <div id="totalCost" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-chart-line text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الإهلاك</span>
+                </div>
+                <div id="totalDep" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-wallet text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">القيمة الدفترية</span>
+                </div>
+                <div id="totalNet" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">من تاريخ الشراء</label>
+                    <input id="fromDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" onchange="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">إلى تاريخ الشراء</label>
+                    <input id="toDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" onchange="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">فئة الأصل</label>
+                    <input id="assetCategory" type="text" placeholder="مثال: fixed" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">نوع الأصل</label>
+                    <input id="assetType" type="text" placeholder="مثال: equipment" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+                    <input id="status" type="text" placeholder="active" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none" oninput="applyFilters()">
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📊 توزيع التكلفة حسب الفئة</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📉 الإهلاك حسب السنة</h3>
+                <div class="chart-container">
+                    <canvas id="depreciationChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden mb-8">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">📋 جدول الأصول الثابتة</h3>
+                    <span id="assetsCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-emerald-50 text-emerald-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">asset_id</th>
+                                <th class="px-3 py-2 text-right">asset_code</th>
+                                <th class="px-3 py-2 text-right">asset_name_ar</th>
+                                <th class="px-3 py-2 text-right">asset_name_en</th>
+                                <th class="px-3 py-2 text-right">asset_category</th>
+                                <th class="px-3 py-2 text-right">asset_type</th>
+                                <th class="px-3 py-2 text-right">purchase_date</th>
+                                <th class="px-3 py-2 text-right">purchase_cost</th>
+                                <th class="px-3 py-2 text-right">salvage_value</th>
+                                <th class="px-3 py-2 text-right">depreciable_value</th>
+                                <th class="px-3 py-2 text-right">depreciation_method</th>
+                                <th class="px-3 py-2 text-right">useful_life_years</th>
+                                <th class="px-3 py-2 text-right">useful_life_months</th>
+                                <th class="px-3 py-2 text-right">accumulated_depreciation</th>
+                                <th class="px-3 py-2 text-right">net_book_value</th>
+                                <th class="px-3 py-2 text-right">status</th>
+                                <th class="px-3 py-2 text-right">disposal_date</th>
+                                <th class="px-3 py-2 text-right">disposal_value</th>
+                                <th class="px-3 py-2 text-right">location</th>
+                                <th class="px-3 py-2 text-right">custodian_employee_id</th>
+                                <th class="px-3 py-2 text-right">entity_type</th>
+                                <th class="px-3 py-2 text-right">entity_id</th>
+                                <th class="px-3 py-2 text-right">branch_id</th>
+                                <th class="px-3 py-2 text-right">incubator_id</th>
+                                <th class="px-3 py-2 text-right">office_id</th>
+                                <th class="px-3 py-2 text-right">asset_account_id</th>
+                                <th class="px-3 py-2 text-right">depreciation_account_id</th>
+                                <th class="px-3 py-2 text-right">accumulated_depreciation_account_id</th>
+                                <th class="px-3 py-2 text-right">serial_number</th>
+                                <th class="px-3 py-2 text-right">warranty_expiry_date</th>
+                                <th class="px-3 py-2 text-right">maintenance_schedule</th>
+                                <th class="px-3 py-2 text-right">notes</th>
+                                <th class="px-3 py-2 text-right">created_at</th>
+                                <th class="px-3 py-2 text-right">updated_at</th>
+                                <th class="px-3 py-2 text-right">created_by</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetsTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="35" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">📉 جدول الإهلاك</h3>
+                    <span id="depreciationCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 text-slate-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">depreciation_id</th>
+                                <th class="px-3 py-2 text-right">asset_id</th>
+                                <th class="px-3 py-2 text-right">asset_code</th>
+                                <th class="px-3 py-2 text-right">asset_name_ar</th>
+                                <th class="px-3 py-2 text-right">asset_name_en</th>
+                                <th class="px-3 py-2 text-right">depreciation_date</th>
+                                <th class="px-3 py-2 text-right">fiscal_year</th>
+                                <th class="px-3 py-2 text-right">fiscal_period</th>
+                                <th class="px-3 py-2 text-right">depreciation_amount</th>
+                                <th class="px-3 py-2 text-right">accumulated_depreciation</th>
+                                <th class="px-3 py-2 text-right">net_book_value</th>
+                                <th class="px-3 py-2 text-right">journal_entry_id</th>
+                                <th class="px-3 py-2 text-right">notes</th>
+                                <th class="px-3 py-2 text-right">created_at</th>
+                            </tr>
+                        </thead>
+                        <tbody id="depreciationTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="14" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let assets = [];
+        let depreciation = [];
+        let categoryChartInstance = null;
+        let depreciationChartInstance = null;
+
+        async function loadReport() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/fixed-assets?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.error || 'Failed to load report');
+
+                assets = data.assets || [];
+                depreciation = data.depreciation || [];
+
+                renderSummary(data.summary || {});
+                renderAssetsTable(assets);
+                renderDepreciationTable(depreciation);
+                renderCharts(data.summary || {});
+            } catch (error) {
+                console.error('❌ خطأ في تحميل التقرير:', error);
+                document.getElementById('assetsTable').innerHTML = `
+                    <tr>
+                        <td colspan="35" class="px-4 py-12 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                            <div>فشل تحميل بيانات الأصول</div>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('depreciationTable').innerHTML = `
+                    <tr>
+                        <td colspan="14" class="px-4 py-12 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                            <div>فشل تحميل بيانات الإهلاك</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function applyFilters() {
+            const params = new URLSearchParams({ entity_id: ENTITY_ID });
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const assetCategory = document.getElementById('assetCategory').value;
+            const assetType = document.getElementById('assetType').value;
+            const status = document.getElementById('status').value;
+
+            if (fromDate) params.append('from_date', fromDate);
+            if (toDate) params.append('to_date', toDate);
+            if (assetCategory) params.append('asset_category', assetCategory);
+            if (assetType) params.append('asset_type', assetType);
+            if (status) params.append('status', status);
+
+            fetch(`${API_BASE}/finance/fixed-assets?${params.toString()}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) throw new Error(data.error || 'Failed to load report');
+                    assets = data.assets || [];
+                    depreciation = data.depreciation || [];
+                    renderSummary(data.summary || {});
+                    renderAssetsTable(assets);
+                    renderDepreciationTable(depreciation);
+                    renderCharts(data.summary || {});
+                })
+                .catch(err => console.error('❌', err));
+        }
+
+        function renderSummary(summary) {
+            document.getElementById('totalAssets').textContent = summary.total_assets ?? 0;
+            document.getElementById('totalCost').textContent = formatMoney(summary.total_cost || 0);
+            document.getElementById('totalDep').textContent = formatMoney(summary.total_accumulated || 0);
+            document.getElementById('totalNet').textContent = formatMoney(summary.total_net || 0);
+        }
+
+        function renderAssetsTable(rows) {
+            const body = rows.map(r => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${r.asset_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_name_en ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_category ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_type ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.purchase_date)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.purchase_cost)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.salvage_value)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.depreciable_value)}</td>
+                    <td class="px-3 py-2">${r.depreciation_method ?? '-'}</td>
+                    <td class="px-3 py-2">${r.useful_life_years ?? '-'}</td>
+                    <td class="px-3 py-2">${r.useful_life_months ?? '-'}</td>
+                    <td class="px-3 py-2">${formatMoney(r.accumulated_depreciation)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.net_book_value)}</td>
+                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.disposal_date)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.disposal_value)}</td>
+                    <td class="px-3 py-2">${r.location ?? '-'}</td>
+                    <td class="px-3 py-2">${r.custodian_employee_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.office_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_account_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.depreciation_account_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.accumulated_depreciation_account_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.serial_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.warranty_expiry_date)}</td>
+                    <td class="px-3 py-2">${r.maintenance_schedule ?? '-'}</td>
+                    <td class="px-3 py-2">${r.notes ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.updated_at)}</td>
+                    <td class="px-3 py-2">${r.created_by ?? '-'}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('assetsTable').innerHTML = body.length ? body : `
+                <tr>
+                    <td colspan="35" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                </tr>
+            `;
+            document.getElementById('assetsCount').textContent = `عدد الصفوف: ${rows.length}`;
+        }
+
+        function renderDepreciationTable(rows) {
+            const body = rows.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-3 py-2">${r.depreciation_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.asset_name_en ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.depreciation_date)}</td>
+                    <td class="px-3 py-2">${r.fiscal_year ?? '-'}</td>
+                    <td class="px-3 py-2">${r.fiscal_period ?? '-'}</td>
+                    <td class="px-3 py-2 font-semibold text-indigo-700">${formatMoney(r.depreciation_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.accumulated_depreciation)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.net_book_value)}</td>
+                    <td class="px-3 py-2">${r.journal_entry_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.notes ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('depreciationTable').innerHTML = body.length ? body : `
+                <tr>
+                    <td colspan="14" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                </tr>
+            `;
+            document.getElementById('depreciationCount').textContent = `عدد الصفوف: ${rows.length}`;
+        }
+
+        function renderCharts(summary) {
+            const categoryData = summary.by_category || {};
+            const categoryLabels = Object.keys(categoryData);
+            const categoryValues = categoryLabels.map(k => categoryData[k]);
+
+            const ctx1 = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: categoryLabels.length ? categoryLabels : ['لا يوجد'],
+                    datasets: [{
+                        label: 'تكلفة الأصول',
+                        data: categoryValues.length ? categoryValues : [0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const depByYear = summary.depreciation?.by_year || {};
+            const yearLabels = Object.keys(depByYear);
+            const yearValues = yearLabels.map(k => depByYear[k]);
+
+            const ctx2 = document.getElementById('depreciationChart').getContext('2d');
+            if (depreciationChartInstance) depreciationChartInstance.destroy();
+            depreciationChartInstance = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: yearLabels.length ? yearLabels : ['لا يوجد'],
+                    datasets: [{
+                        label: 'الإهلاك',
+                        data: yearValues.length ? yearValues : [0],
+                        borderColor: '#1f2937',
+                        backgroundColor: 'rgba(31, 41, 55, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function downloadCSV() {
+            const rows = [
+                ['ASSETS TABLE'],
+                ['asset_id','asset_code','asset_name_ar','asset_name_en','asset_category','asset_type','purchase_date','purchase_cost','salvage_value','depreciable_value','depreciation_method','useful_life_years','useful_life_months','accumulated_depreciation','net_book_value','status','disposal_date','disposal_value','location','custodian_employee_id','entity_type','entity_id','branch_id','incubator_id','office_id','asset_account_id','depreciation_account_id','accumulated_depreciation_account_id','serial_number','warranty_expiry_date','maintenance_schedule','notes','created_at','updated_at','created_by']
+            ];
+            assets.forEach(a => rows.push([
+                a.asset_id, a.asset_code, a.asset_name_ar, a.asset_name_en, a.asset_category, a.asset_type,
+                a.purchase_date, a.purchase_cost, a.salvage_value, a.depreciable_value, a.depreciation_method,
+                a.useful_life_years, a.useful_life_months, a.accumulated_depreciation, a.net_book_value, a.status,
+                a.disposal_date, a.disposal_value, a.location, a.custodian_employee_id, a.entity_type, a.entity_id,
+                a.branch_id, a.incubator_id, a.office_id, a.asset_account_id, a.depreciation_account_id,
+                a.accumulated_depreciation_account_id, a.serial_number, a.warranty_expiry_date,
+                a.maintenance_schedule, a.notes, a.created_at, a.updated_at, a.created_by
+            ]));
+
+            rows.push([]);
+            rows.push(['DEPRECIATION TABLE']);
+            rows.push(['depreciation_id','asset_id','asset_code','asset_name_ar','asset_name_en','depreciation_date','fiscal_year','fiscal_period','depreciation_amount','accumulated_depreciation','net_book_value','journal_entry_id','notes','created_at']);
+            depreciation.forEach(d => rows.push([
+                d.depreciation_id, d.asset_id, d.asset_code, d.asset_name_ar, d.asset_name_en, d.depreciation_date,
+                d.fiscal_year, d.fiscal_period, d.depreciation_amount, d.accumulated_depreciation,
+                d.net_book_value, d.journal_entry_id, d.notes, d.created_at
+            ]));
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'fixed-assets-report.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            const payload = { assets, depreciation };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'fixed-assets-report.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+</body>
+</html>

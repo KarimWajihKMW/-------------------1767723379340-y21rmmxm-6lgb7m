@@ -103,6 +103,11 @@ const aiRiskScoresAPI = require('./finance/api/ai-risk-scores');
 app.get('/finance/ai-risk-scores/test', aiRiskScoresAPI.testConnection);
 app.get('/finance/ai-risk-scores', aiRiskScoresAPI.getRiskScores);
 
+// Finance Fixed Assets API Routes (Page 14: Fixed Assets & Depreciation)
+const fixedAssetsAPI = require('./finance/api/fixed-assets');
+app.get('/finance/fixed-assets/test', fixedAssetsAPI.testConnection);
+app.get('/finance/fixed-assets', fixedAssetsAPI.getFixedAssets);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
