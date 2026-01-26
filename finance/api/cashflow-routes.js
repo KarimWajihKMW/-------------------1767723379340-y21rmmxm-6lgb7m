@@ -81,15 +81,23 @@ router.get('/operating', async (req, res) => {
     
     const netOperatingCashFlow = totalIn - totalOut;
     
+    // Format flows with separate inflow/outflow
+    const formattedFlows = result.rows.map(row => ({
+      ...row,
+      flow_date: row.transaction_date,
+      inflow_amount: row.flow_direction === 'IN' ? parseFloat(row.amount) : 0,
+      outflow_amount: row.flow_direction === 'OUT' ? parseFloat(row.amount) : 0
+    }));
+    
     res.json({
       success: true,
       count: result.rows.length,
       summary: {
-        total_inflow: totalIn,
-        total_outflow: totalOut,
-        net_operating_cashflow: netOperatingCashFlow
+        inflow: totalIn,
+        outflow: totalOut,
+        net_flow: netOperatingCashFlow
       },
-      flows: result.rows
+      flows: formattedFlows
     });
   } catch (error) {
     console.error('Error fetching operating cashflow:', error);
@@ -102,6 +110,8 @@ router.post('/operating', async (req, res) => {
   try {
     const {
       transaction_date,
+      flow_date, // Accept flow_date from frontend
+      flow_type, // Accept flow_type from frontend
       flow_category, // 'CUSTOMER_COLLECTIONS', 'VENDOR_PAYMENTS', 'SALARIES', 'OPERATING_EXPENSES'
       amount,
       flow_direction, // 'IN' or 'OUT'
@@ -116,6 +126,28 @@ router.post('/operating', async (req, res) => {
       fiscal_period
     } = req.body;
     
+    // Use flow_date if transaction_date not provided
+    const dateToUse = transaction_date || flow_date || new Date().toISOString().split('T')[0];
+    
+    // Map flow_type from frontend to flow_category
+    const categoryMap = {
+      'customer_collection': 'CUSTOMER_COLLECTIONS',
+      'vendor_payment': 'VENDOR_PAYMENTS',
+      'salary_payment': 'SALARIES',
+      'rent_payment': 'OPERATING_EXPENSES',
+      'utilities_payment': 'OPERATING_EXPENSES'
+    };
+    
+    const categoryToUse = flow_category || categoryMap[flow_type] || 'OPERATING_EXPENSES';
+    
+    // Determine direction based on flow_type
+    let directionToUse = flow_direction;
+    if (!directionToUse && flow_type) {
+      directionToUse = flow_type.includes('collection') ? 'IN' : 'OUT';
+    } else if (!directionToUse) {
+      directionToUse = 'OUT'; // default
+    }
+    
     const result = await db.query(
       `INSERT INTO finance_cashflow 
        (transaction_date, flow_type, flow_category, amount, flow_direction, description,
@@ -123,7 +155,7 @@ router.post('/operating', async (req, res) => {
         fiscal_year, fiscal_period)
        VALUES ($1, 'OPERATING', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [transaction_date, flow_category, amount, flow_direction, description,
+      [dateToUse, categoryToUse, amount, directionToUse, description,
        reference_type, reference_id, entity_type, entity_id, branch_id, incubator_id,
        fiscal_year, fiscal_period]
     );
@@ -191,15 +223,22 @@ router.get('/investing', async (req, res) => {
     
     const netInvestingCashFlow = totalIn - totalOut;
     
+    const formattedFlows = result.rows.map(row => ({
+      ...row,
+      flow_date: row.transaction_date,
+      inflow_amount: row.flow_direction === 'IN' ? parseFloat(row.amount) : 0,
+      outflow_amount: row.flow_direction === 'OUT' ? parseFloat(row.amount) : 0
+    }));
+    
     res.json({
       success: true,
       count: result.rows.length,
       summary: {
-        total_inflow: totalIn,
-        total_outflow: totalOut,
-        net_investing_cashflow: netInvestingCashFlow
+        inflow: totalIn,
+        outflow: totalOut,
+        net_flow: netInvestingCashFlow
       },
-      flows: result.rows
+      flows: formattedFlows
     });
   } catch (error) {
     console.error('Error fetching investing cashflow:', error);
@@ -212,6 +251,8 @@ router.post('/investing', async (req, res) => {
   try {
     const {
       transaction_date,
+      flow_date,
+      flow_type,
       flow_category, // 'ASSET_PURCHASE', 'ASSET_SALE', 'PLATFORM_INVESTMENT'
       amount,
       flow_direction,
@@ -226,6 +267,18 @@ router.post('/investing', async (req, res) => {
       fiscal_period
     } = req.body;
     
+    const dateToUse = transaction_date || flow_date || new Date().toISOString().split('T')[0];
+    
+    const categoryMap = {
+      'asset_purchase': 'ASSET_PURCHASE',
+      'asset_sale': 'ASSET_SALE',
+      'platform_investment': 'PLATFORM_INVESTMENT',
+      'equipment_purchase': 'ASSET_PURCHASE'
+    };
+    
+    const categoryToUse = flow_category || categoryMap[flow_type] || 'ASSET_PURCHASE';
+    const directionToUse = flow_direction || (flow_type === 'asset_sale' ? 'IN' : 'OUT');
+    
     const result = await db.query(
       `INSERT INTO finance_cashflow 
        (transaction_date, flow_type, flow_category, amount, flow_direction, description,
@@ -233,7 +286,7 @@ router.post('/investing', async (req, res) => {
         fiscal_year, fiscal_period)
        VALUES ($1, 'INVESTING', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [transaction_date, flow_category, amount, flow_direction, description,
+      [dateToUse, categoryToUse, amount, directionToUse, description,
        reference_type, reference_id, entity_type, entity_id, branch_id, incubator_id,
        fiscal_year, fiscal_period]
     );
@@ -301,15 +354,22 @@ router.get('/financing', async (req, res) => {
     
     const netFinancingCashFlow = totalIn - totalOut;
     
+    const formattedFlows = result.rows.map(row => ({
+      ...row,
+      flow_date: row.transaction_date,
+      inflow_amount: row.flow_direction === 'IN' ? parseFloat(row.amount) : 0,
+      outflow_amount: row.flow_direction === 'OUT' ? parseFloat(row.amount) : 0
+    }));
+    
     res.json({
       success: true,
       count: result.rows.length,
       summary: {
-        total_inflow: totalIn,
-        total_outflow: totalOut,
-        net_financing_cashflow: netFinancingCashFlow
+        inflow: totalIn,
+        outflow: totalOut,
+        net_flow: netFinancingCashFlow
       },
-      flows: result.rows
+      flows: formattedFlows
     });
   } catch (error) {
     console.error('Error fetching financing cashflow:', error);
@@ -322,6 +382,8 @@ router.post('/financing', async (req, res) => {
   try {
     const {
       transaction_date,
+      flow_date,
+      flow_type,
       flow_category, // 'LOANS', 'LOAN_REPAYMENT', 'CAPITAL_INCREASE'
       amount,
       flow_direction,
@@ -336,6 +398,18 @@ router.post('/financing', async (req, res) => {
       fiscal_period
     } = req.body;
     
+    const dateToUse = transaction_date || flow_date || new Date().toISOString().split('T')[0];
+    
+    const categoryMap = {
+      'bank_loan': 'LOANS',
+      'loan_repayment': 'LOAN_REPAYMENT',
+      'capital_increase': 'CAPITAL_INCREASE',
+      'dividend_payment': 'DIVIDENDS'
+    };
+    
+    const categoryToUse = flow_category || categoryMap[flow_type] || 'LOANS';
+    const directionToUse = flow_direction || (flow_type?.includes('repayment') || flow_type?.includes('dividend') ? 'OUT' : 'IN');
+    
     const result = await db.query(
       `INSERT INTO finance_cashflow 
        (transaction_date, flow_type, flow_category, amount, flow_direction, description,
@@ -343,7 +417,7 @@ router.post('/financing', async (req, res) => {
         fiscal_year, fiscal_period)
        VALUES ($1, 'FINANCING', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [transaction_date, flow_category, amount, flow_direction, description,
+      [dateToUse, categoryToUse, amount, directionToUse, description,
        reference_type, reference_id, entity_type, entity_id, branch_id, incubator_id,
        fiscal_year, fiscal_period]
     );
@@ -411,15 +485,17 @@ router.get('/forecast', async (req, res) => {
 router.post('/forecast', async (req, res) => {
   try {
     const {
-      forecast_type, // 'CASHFLOW', 'DEFICIT', 'SURPLUS'
+      forecast_type, // 'surplus', 'deficit' from frontend OR 'CASHFLOW', 'DEFICIT', 'SURPLUS'
       forecast_period, // 'MONTHLY', 'QUARTERLY', 'ANNUAL'
       forecast_date,
       start_date,
       end_date,
-      forecasted_value,
+      predicted_amount, // from frontend
+      forecasted_value, // backend format
       confidence_level,
       lower_bound,
       upper_bound,
+      influencing_factors, // from frontend
       entity_type,
       entity_id,
       branch_id,
@@ -429,6 +505,14 @@ router.post('/forecast', async (req, res) => {
       model_parameters
     } = req.body;
     
+    // Convert frontend format to backend format
+    const typeToUse = forecast_type?.toUpperCase() || 'CASHFLOW';
+    const periodToUse = forecast_period || 'MONTHLY';
+    const valueToUse = forecasted_value || predicted_amount || 0;
+    const startDateToUse = start_date || forecast_date;
+    const endDateToUse = end_date || forecast_date;
+    const inputDataToUse = input_data || (influencing_factors ? JSON.stringify({ factors: influencing_factors }) : null);
+    
     const result = await db.query(
       `INSERT INTO finance_ai_forecasts 
        (forecast_type, forecast_period, forecast_date, start_date, end_date,
@@ -437,10 +521,10 @@ router.post('/forecast', async (req, res) => {
         model_version, input_data, model_parameters)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING *`,
-      [forecast_type, forecast_period, forecast_date, start_date, end_date,
-       forecasted_value, confidence_level, lower_bound, upper_bound,
+      [typeToUse, periodToUse, forecast_date, startDateToUse, endDateToUse,
+       valueToUse, confidence_level, lower_bound, upper_bound,
        entity_type, entity_id, branch_id, incubator_id,
-       model_version, input_data, model_parameters]
+       model_version, inputDataToUse, model_parameters]
     );
     
     res.status(201).json({
