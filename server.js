@@ -133,6 +133,11 @@ const planInstallmentsAPI = require('./finance/api/plan-installments');
 app.get('/finance/plan-installments/test', planInstallmentsAPI.testConnection);
 app.get('/finance/plan-installments', planInstallmentsAPI.getPlanInstallments);
 
+// Finance Account Balances API Routes (Page 20: Account Balances)
+const accountBalancesAPI = require('./finance/api/account-balances');
+app.get('/finance/account-balances/test', accountBalancesAPI.testConnection);
+app.get('/finance/account-balances', accountBalancesAPI.getAccountBalances);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
