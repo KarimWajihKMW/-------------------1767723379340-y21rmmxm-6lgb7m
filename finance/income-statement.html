@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 قائمة الدخل - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">📈 قائمة الدخل (Income Statement)</h1>
+            <p class="text-lg opacity-90">الإيرادات والمصروفات وصافي الربح</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printStatement()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-arrow-up text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الإيرادات</span>
+                </div>
+                <div id="totalRevenue" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-arrow-down text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي المصروفات</span>
+                </div>
+                <div id="totalExpenses" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-coins text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">صافي الربح</span>
+                </div>
+                <div id="netIncome" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-percentage text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">هامش الربح</span>
+                </div>
+                <div id="profitMargin" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📊 التوزيع المالي</h3>
+                <div class="chart-container">
+                    <canvas id="incomeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">ℹ️ معلومات التقرير</h3>
+                <div id="statementInfo" class="space-y-4">
+                    <div class="animate-pulse text-gray-500">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex border-b border-gray-200 bg-white">
+                <button onclick="switchTab('revenue')" id="tab-revenue" class="flex-1 px-6 py-4 font-bold text-purple-600 border-b-2 border-purple-600 bg-purple-50 transition">
+                    الإيرادات (Revenue)
+                </button>
+                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex-1 px-6 py-4 font-bold text-gray-600 hover:bg-gray-50 transition">
+                    المصروفات (Expenses)
+                </button>
+                <button onclick="switchTab('summary')" id="tab-summary" class="flex-1 px-6 py-4 font-bold text-gray-600 hover:bg-gray-50 transition">
+                    الملخص (Summary)
+                </button>
+            </div>
+
+            <div class="p-6">
+                <div id="content-revenue">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-green-50 text-green-700 text-sm">
+                                <tr>
+                                    <th class="px-4 py-3 text-right">رمز الحساب</th>
+                                    <th class="px-4 py-3 text-right">اسم الحساب</th>
+                                    <th class="px-4 py-3 text-right">إجمالي الدائن</th>
+                                    <th class="px-4 py-3 text-right">إجمالي المدين</th>
+                                    <th class="px-4 py-3 text-right">الرصيد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="revenueTable" class="text-sm divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                        <div>جاري التحميل...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-green-800">إجمالي الإيرادات</span>
+                            <span id="revenueSummary" class="text-2xl font-bold text-green-600">0 ر.س</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-expenses" class="hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-red-50 text-red-700 text-sm">
+                                <tr>
+                                    <th class="px-4 py-3 text-right">رمز الحساب</th>
+                                    <th class="px-4 py-3 text-right">اسم الحساب</th>
+                                    <th class="px-4 py-3 text-right">إجمالي المدين</th>
+                                    <th class="px-4 py-3 text-right">إجمالي الدائن</th>
+                                    <th class="px-4 py-3 text-right">الرصيد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTable" class="text-sm divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                        <div>جاري التحميل...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-red-800">إجمالي المصروفات</span>
+                            <span id="expensesSummary" class="text-2xl font-bold text-red-600">0 ر.س</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-summary" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-green-50 border-2 border-green-200 rounded-xl p-6">
+                            <h4 class="text-lg font-bold text-green-700 mb-4">الإيرادات</h4>
+                            <div class="text-3xl font-bold text-green-600" id="summaryRevenue">0 ر.س</div>
+                        </div>
+                        <div class="bg-red-50 border-2 border-red-200 rounded-xl p-6">
+                            <h4 class="text-lg font-bold text-red-700 mb-4">المصروفات</h4>
+                            <div class="text-3xl font-bold text-red-600" id="summaryExpenses">0 ر.س</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                        <h4 class="text-lg font-bold text-blue-700 mb-2">صافي الربح</h4>
+                        <div id="summaryNetIncome" class="text-4xl font-bold text-blue-600">0 ر.س</div>
+                        <div id="summaryMargin" class="text-sm text-blue-700 mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let chartInstance = null;
+        let statementData = null;
+
+        function switchTab(tabName) {
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600', 'bg-purple-50');
+                el.classList.add('text-gray-600');
+            });
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            const tab = document.getElementById('tab-' + tabName);
+            tab.classList.add('text-purple-600', 'border-b-2', 'border-purple-600', 'bg-purple-50');
+            tab.classList.remove('text-gray-600');
+        }
+
+        async function loadAllData() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/income-statement?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load income statement');
+                }
+
+                statementData = data;
+
+                renderInfo(data);
+                renderRevenue(data.revenue_accounts);
+                renderExpenses(data.expense_accounts);
+                renderSummary(data.totals);
+                renderChart(data.totals);
+
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+                document.getElementById('statementInfo').innerHTML = '<div class="text-red-500">فشل تحميل البيانات</div>';
+            }
+        }
+
+        function renderInfo(data) {
+            const today = new Date().toLocaleDateString('ar-SA');
+            document.getElementById('statementInfo').innerHTML = `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-calendar text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">تاريخ التقرير</div>
+                        <div class="font-bold">${today}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-database text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">مصدر البيانات</div>
+                        <div class="font-bold">Finance Account Balances</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-list text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">عدد الحسابات</div>
+                        <div class="font-bold">${data.revenue_accounts.length} إيراد + ${data.expense_accounts.length} مصروف</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRevenue(accounts) {
+            const rows = accounts.length > 0 ? accounts.map(acc => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-mono text-gray-600">${acc.account_code}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${acc.account_name_ar}</td>
+                    <td class="px-4 py-3 font-bold text-green-600">${formatMoney(acc.total_credit)}</td>
+                    <td class="px-4 py-3 font-bold text-gray-600">${formatMoney(acc.total_debit)}</td>
+                    <td class="px-4 py-3 font-bold text-green-700">${formatMoney(acc.balance)}</td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">لا توجد حسابات إيراد</td></tr>';
+
+            document.getElementById('revenueTable').innerHTML = rows;
+        }
+
+        function renderExpenses(accounts) {
+            const rows = accounts.length > 0 ? accounts.map(acc => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-mono text-gray-600">${acc.account_code}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${acc.account_name_ar}</td>
+                    <td class="px-4 py-3 font-bold text-red-600">${formatMoney(acc.total_debit)}</td>
+                    <td class="px-4 py-3 font-bold text-gray-600">${formatMoney(acc.total_credit)}</td>
+                    <td class="px-4 py-3 font-bold text-red-700">${formatMoney(acc.balance)}</td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">لا توجد حسابات مصروف</td></tr>';
+
+            document.getElementById('expensesTable').innerHTML = rows;
+        }
+
+        function renderSummary(totals) {
+            document.getElementById('totalRevenue').textContent = formatMoney(totals.total_revenue);
+            document.getElementById('totalExpenses').textContent = formatMoney(totals.total_expenses);
+            document.getElementById('netIncome').textContent = formatMoney(totals.net_income);
+            document.getElementById('profitMargin').textContent = totals.profit_margin.toFixed(1) + '%';
+
+            document.getElementById('revenueSummary').textContent = formatMoney(totals.total_revenue);
+            document.getElementById('expensesSummary').textContent = formatMoney(totals.total_expenses);
+            document.getElementById('summaryRevenue').textContent = formatMoney(totals.total_revenue);
+            document.getElementById('summaryExpenses').textContent = formatMoney(totals.total_expenses);
+            document.getElementById('summaryNetIncome').textContent = formatMoney(totals.net_income);
+            document.getElementById('summaryMargin').textContent = `هامش الربح: ${totals.profit_margin.toFixed(1)}%`;
+        }
+
+        function renderChart(totals) {
+            const ctx = document.getElementById('incomeChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['الإيرادات', 'المصروفات', 'صافي الربح'],
+                    datasets: [{
+                        label: 'القيمة (ر.س)',
+                        data: [totals.total_revenue, totals.total_expenses, totals.net_income],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString('ar-SA') + ' ر.س';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString('ar-SA') + ' ر.س';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function downloadCSV() {
+            if (!statementData) return;
+            const rows = [
+                ['نوع الحساب', 'رمز الحساب', 'اسم الحساب', 'إجمالي المدين', 'إجمالي الدائن', 'الرصيد']
+            ];
+
+            statementData.revenue_accounts.forEach(acc => {
+                rows.push(['إيراد', acc.account_code, acc.account_name_ar, acc.total_debit, acc.total_credit, acc.balance]);
+            });
+            statementData.expense_accounts.forEach(acc => {
+                rows.push(['مصروف', acc.account_code, acc.account_name_ar, acc.total_debit, acc.total_credit, acc.balance]);
+            });
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'income-statement.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            if (!statementData) return;
+            const blob = new Blob([JSON.stringify(statementData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'income-statement.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printStatement() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAllData);
+    </script>
+</body>
+</html>

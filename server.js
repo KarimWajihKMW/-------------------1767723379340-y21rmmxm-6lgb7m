@@ -53,6 +53,11 @@ app.get('/finance/balance-sheet/liabilities', balanceSheetAPI.getLiabilities);
 app.get('/finance/balance-sheet/equity', balanceSheetAPI.getEquity);
 app.get('/finance/balance-sheet/complete', balanceSheetAPI.getCompleteBalanceSheet);
 
+// Finance Income Statement API Routes (Page 4: Income Statement - Revenue & Expenses)
+const incomeStatementAPI = require('./finance/api/income-statement');
+app.get('/finance/income-statement/test', incomeStatementAPI.testConnection);
+app.get('/finance/income-statement', incomeStatementAPI.getIncomeStatement);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
