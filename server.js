@@ -123,6 +123,11 @@ const expensesAPI = require('./finance/api/expenses');
 app.get('/finance/expenses/test', expensesAPI.testConnection);
 app.get('/finance/expenses', expensesAPI.getExpenses);
 
+// Finance AR Aging API Routes (Page 18: Accounts Receivable Aging)
+const arAgingAPI = require('./finance/api/ar-aging');
+app.get('/finance/ar-aging/test', arAgingAPI.testConnection);
+app.get('/finance/ar-aging', arAgingAPI.getARAging);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================

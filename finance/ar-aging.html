@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 أعمار الذمم المدينة - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0b132b 0%, #1c2541 35%, #3a506b 70%, #5bc0be 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+        .table-scroll {
+            max-height: 520px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">🧮 أعمار الذمم المدينة</h1>
+            <p class="text-lg opacity-90">تحليل فئات الاستحقاق للأرصدة المدينة</p>
+        </div>
+
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-slate-800 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printReport()" class="bg-amber-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-sky-500 to-blue-700 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-file-invoice text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">عدد الفواتير</span>
+                </div>
+                <div id="totalInvoices" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-coins text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي المبلغ</span>
+                </div>
+                <div id="totalAmount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-hand-holding-dollar text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي المدفوع</span>
+                </div>
+                <div id="totalPaid" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-hourglass-half text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي المتبقي</span>
+                </div>
+                <div id="totalRemaining" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">حالة الفاتورة</label>
+                    <input id="status" type="text" placeholder="overdue" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">فئة العمر</label>
+                    <input id="agingCategory" type="text" placeholder="0-30" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">من تاريخ الفاتورة</label>
+                    <input id="fromDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" onchange="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">إلى تاريخ الفاتورة</label>
+                    <input id="toDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" onchange="applyFilters()">
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📊 توزيع الفئات</h3>
+                <div class="chart-container">
+                    <canvas id="bucketChart"></canvas>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📈 حالات الفواتير</h3>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">📋 جدول أعمار الذمم</h3>
+                    <span id="rowsCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 text-slate-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">invoice_id</th>
+                                <th class="px-3 py-2 text-right">invoice_number</th>
+                                <th class="px-3 py-2 text-right">invoice_date</th>
+                                <th class="px-3 py-2 text-right">due_date</th>
+                                <th class="px-3 py-2 text-right">customer_id</th>
+                                <th class="px-3 py-2 text-right">customer_code</th>
+                                <th class="px-3 py-2 text-right">customer_name_ar</th>
+                                <th class="px-3 py-2 text-right">total_amount</th>
+                                <th class="px-3 py-2 text-right">paid_amount</th>
+                                <th class="px-3 py-2 text-right">remaining_amount</th>
+                                <th class="px-3 py-2 text-right">status</th>
+                                <th class="px-3 py-2 text-right">days_overdue</th>
+                                <th class="px-3 py-2 text-right">aging_category</th>
+                                <th class="px-3 py-2 text-right">entity_type</th>
+                                <th class="px-3 py-2 text-right">entity_id</th>
+                                <th class="px-3 py-2 text-right">branch_id</th>
+                                <th class="px-3 py-2 text-right">incubator_id</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agingTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="17" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let rows = [];
+        let bucketChartInstance = null;
+        let statusChartInstance = null;
+
+        async function loadReport() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/ar-aging?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.error || 'Failed to load report');
+
+                rows = data.rows || [];
+                renderSummary(data.summary || {});
+                renderTable(rows);
+                renderCharts(data.summary || {});
+            } catch (error) {
+                console.error('❌ خطأ في تحميل التقرير:', error);
+                document.getElementById('agingTable').innerHTML = `
+                    <tr>
+                        <td colspan="17" class="px-4 py-12 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                            <div>فشل تحميل بيانات الذمم</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function applyFilters() {
+            const params = new URLSearchParams({ entity_id: ENTITY_ID });
+            const status = document.getElementById('status').value;
+            const agingCategory = document.getElementById('agingCategory').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            if (status) params.append('status', status);
+            if (agingCategory) params.append('aging_category', agingCategory);
+            if (fromDate) params.append('from_date', fromDate);
+            if (toDate) params.append('to_date', toDate);
+
+            fetch(`${API_BASE}/finance/ar-aging?${params.toString()}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) throw new Error(data.error || 'Failed to load report');
+                    rows = data.rows || [];
+                    renderSummary(data.summary || {});
+                    renderTable(rows);
+                    renderCharts(data.summary || {});
+                })
+                .catch(err => console.error('❌', err));
+        }
+
+        function renderSummary(summary) {
+            document.getElementById('totalInvoices').textContent = summary.total_invoices ?? 0;
+            document.getElementById('totalAmount').textContent = formatMoney(summary.total_amount || 0);
+            document.getElementById('totalPaid').textContent = formatMoney(summary.total_paid || 0);
+            document.getElementById('totalRemaining').textContent = formatMoney(summary.total_remaining || 0);
+        }
+
+        function renderTable(rowsData) {
+            const body = rowsData.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
+                    <td class="px-3 py-2">${formatDate(r.due_date)}</td>
+                    <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.total_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.paid_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.remaining_amount)}</td>
+                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.days_overdue ?? '-'}</td>
+                    <td class="px-3 py-2">${r.aging_category ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('agingTable').innerHTML = body.length ? body : `
+                <tr>
+                    <td colspan="17" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                </tr>
+            `;
+            document.getElementById('rowsCount').textContent = `عدد الصفوف: ${rowsData.length}`;
+        }
+
+        function renderCharts(summary) {
+            const bucketData = summary.by_bucket || {};
+            const bucketLabels = Object.keys(bucketData);
+            const bucketValues = bucketLabels.map(k => bucketData[k]);
+
+            const bucketCtx = document.getElementById('bucketChart').getContext('2d');
+            if (bucketChartInstance) bucketChartInstance.destroy();
+            bucketChartInstance = new Chart(bucketCtx, {
+                type: 'bar',
+                data: {
+                    labels: bucketLabels.length ? bucketLabels : ['لا يوجد'],
+                    datasets: [{
+                        label: 'المتبقي',
+                        data: bucketValues.length ? bucketValues : [0],
+                        backgroundColor: 'rgba(14, 165, 233, 0.7)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const statusData = summary.by_status || {};
+            const statusLabels = Object.keys(statusData);
+            const statusValues = statusLabels.map(k => statusData[k]);
+
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            if (statusChartInstance) statusChartInstance.destroy();
+            statusChartInstance = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels.length ? statusLabels : ['لا يوجد'],
+                    datasets: [{
+                        data: statusValues.length ? statusValues : [1],
+                        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444', '#8b5cf6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function downloadCSV() {
+            const csvRows = [
+                ['invoice_id','invoice_number','invoice_date','due_date','customer_id','customer_code','customer_name_ar','total_amount','paid_amount','remaining_amount','status','days_overdue','aging_category','entity_type','entity_id','branch_id','incubator_id']
+            ];
+            rows.forEach(r => csvRows.push([
+                r.invoice_id, r.invoice_number, r.invoice_date, r.due_date, r.customer_id, r.customer_code,
+                r.customer_name_ar, r.total_amount, r.paid_amount, r.remaining_amount, r.status, r.days_overdue,
+                r.aging_category, r.entity_type, r.entity_id, r.branch_id, r.incubator_id
+            ]));
+            const csvContent = csvRows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ar-aging-report.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ar-aging-report.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+</body>
+</html>
