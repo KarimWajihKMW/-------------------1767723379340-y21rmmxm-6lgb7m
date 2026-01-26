@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 التقرير الشامل للتدفقات النقدية - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .chart-container {
+            position: relative;
+            height: 320px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">📊 التقرير الشامل للتدفقات النقدية</h1>
+            <p class="text-lg opacity-90">تجميع التدفقات حسب النوع والفئة والاتجاه</p>
+        </div>
+
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printReport()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-arrow-down text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الداخل</span>
+                </div>
+                <div id="totalIn" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-arrow-up text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الخارج</span>
+                </div>
+                <div id="totalOut" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-wallet text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">صافي التدفق</span>
+                </div>
+                <div id="totalNet" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-list text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">عدد الصفوف</span>
+                </div>
+                <div id="rowCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">من تاريخ</label>
+                    <input id="fromDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">إلى تاريخ</label>
+                    <input id="toDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">السنة المالية</label>
+                    <input id="fiscalYear" type="number" placeholder="2024" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📊 صافي التدفق حسب النوع</h3>
+                <div class="chart-container">
+                    <canvas id="netChart"></canvas>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">ℹ️ ملخص سريع</h3>
+                <div id="infoPanel" class="space-y-4">
+                    <div class="animate-pulse text-gray-500">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100 text-gray-600 text-sm">
+                            <tr>
+                                <th class="px-4 py-3 text-right">نوع التدفق</th>
+                                <th class="px-4 py-3 text-right">الفئة</th>
+                                <th class="px-4 py-3 text-right">الاتجاه</th>
+                                <th class="px-4 py-3 text-right">إجمالي القيمة</th>
+                                <th class="px-4 py-3 text-right">عدد العمليات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTable" class="text-sm divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="5" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل التقرير...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-sm text-gray-600" id="tableCount"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let allRows = [];
+        let chartInstance = null;
+
+        async function loadReport() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/cashflow-comprehensive?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load report');
+                }
+
+                allRows = data.rows || [];
+                renderSummary(data.summary || {});
+                renderTable(allRows);
+                renderChart(data.summary || {});
+                renderInfo(data.summary || {});
+            } catch (error) {
+                console.error('❌ خطأ في تحميل التقرير:', error);
+                document.getElementById('reportTable').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-12 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                            <div>فشل تحميل التقرير</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function applyFilters() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const fiscalYear = document.getElementById('fiscalYear').value;
+
+            const params = new URLSearchParams({ entity_id: ENTITY_ID });
+            if (fromDate) params.append('from_date', fromDate);
+            if (toDate) params.append('to_date', toDate);
+            if (fiscalYear) params.append('fiscal_year', fiscalYear);
+
+            fetch(`${API_BASE}/finance/cashflow-comprehensive?${params.toString()}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) throw new Error(data.error || 'Failed to load report');
+                    allRows = data.rows || [];
+                    renderSummary(data.summary || {});
+                    renderTable(allRows);
+                    renderChart(data.summary || {});
+                    renderInfo(data.summary || {});
+                })
+                .catch(err => console.error('❌', err));
+        }
+
+        function renderSummary(summary) {
+            document.getElementById('totalIn').textContent = formatMoney(summary.total_in || 0);
+            document.getElementById('totalOut').textContent = formatMoney(summary.total_out || 0);
+            document.getElementById('totalNet').textContent = formatMoney(summary.total_net || 0);
+            document.getElementById('rowCount').textContent = summary.total_rows ?? '0';
+        }
+
+        function renderInfo(summary) {
+            document.getElementById('infoPanel').innerHTML = `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-database text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">مصدر البيانات</div>
+                        <div class="font-bold">finance_cashflow</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-wallet text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">صافي التدفق</div>
+                        <div class="font-bold">${formatMoney(summary.total_net || 0)}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-list text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">عدد الصفوف</div>
+                        <div class="font-bold">${summary.total_rows ?? 0}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTable(rows) {
+            const body = rows.map(r => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3">${translateType(r.flow_type)}</td>
+                    <td class="px-4 py-3">${r.flow_category || '-'}</td>
+                    <td class="px-4 py-3">${translateDirection(r.flow_direction)}</td>
+                    <td class="px-4 py-3 font-bold ${r.flow_direction === 'IN' ? 'text-green-600' : 'text-red-600'}">${formatMoney(r.total_amount)}</td>
+                    <td class="px-4 py-3 text-gray-600">${r.transaction_count || 0}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('reportTable').innerHTML = body.length ? body : `
+                <tr>
+                    <td colspan="5" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                </tr>
+            `;
+            document.getElementById('tableCount').textContent = `عدد الصفوف المعروضة: ${rows.length}`;
+        }
+
+        function renderChart(summary) {
+            const labels = ['تشغيلي', 'استثماري', 'تمويلي'];
+            const data = [
+                summary.operating?.net || 0,
+                summary.investing?.net || 0,
+                summary.financing?.net || 0
+            ];
+
+            const ctx = document.getElementById('netChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'صافي التدفق (ر.س)',
+                        data,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: value => value.toLocaleString('ar-SA') + ' ر.س'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function translateType(type) {
+            const map = {
+                'OPERATING': 'تشغيلي',
+                'INVESTING': 'استثماري',
+                'FINANCING': 'تمويلي'
+            };
+            return map[(type || '').toUpperCase()] || (type || '-');
+        }
+
+        function translateDirection(direction) {
+            const map = { 'IN': 'داخل', 'OUT': 'خارج' };
+            return map[(direction || '').toUpperCase()] || (direction || '-');
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function downloadCSV() {
+            if (!allRows.length) return;
+            const rows = [['نوع التدفق', 'الفئة', 'الاتجاه', 'إجمالي القيمة', 'عدد العمليات']];
+            allRows.forEach(r => {
+                rows.push([
+                    translateType(r.flow_type),
+                    r.flow_category,
+                    translateDirection(r.flow_direction),
+                    r.total_amount,
+                    r.transaction_count
+                ]);
+            });
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'cashflow-comprehensive.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            if (!allRows.length) return;
+            const blob = new Blob([JSON.stringify(allRows, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'cashflow-comprehensive.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+</body>
+</html>

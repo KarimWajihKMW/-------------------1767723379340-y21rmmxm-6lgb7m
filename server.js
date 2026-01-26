@@ -93,6 +93,11 @@ const cashflowTransactionsAPI = require('./finance/api/cashflow-transactions');
 app.get('/finance/cashflow-transactions/test', cashflowTransactionsAPI.testConnection);
 app.get('/finance/cashflow-transactions', cashflowTransactionsAPI.getCashflowTransactions);
 
+// Finance Cashflow Comprehensive API Routes (Page 12: Comprehensive Cashflow Report)
+const cashflowComprehensiveAPI = require('./finance/api/cashflow-comprehensive');
+app.get('/finance/cashflow-comprehensive/test', cashflowComprehensiveAPI.testConnection);
+app.get('/finance/cashflow-comprehensive', cashflowComprehensiveAPI.getCashflowComprehensive);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
