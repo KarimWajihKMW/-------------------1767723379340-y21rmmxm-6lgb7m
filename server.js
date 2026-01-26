@@ -68,6 +68,11 @@ const paymentsAPI = require('./finance/api/payments');
 app.get('/finance/payments/test', paymentsAPI.testConnection);
 app.get('/finance/payments', paymentsAPI.getPayments);
 
+// Finance Customers API Routes (Page 7: Customers)
+const customersAPI = require('./finance/api/customers');
+app.get('/finance/customers/test', customersAPI.testConnection);
+app.get('/finance/customers', customersAPI.getCustomers);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
