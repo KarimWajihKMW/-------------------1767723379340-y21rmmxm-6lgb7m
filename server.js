@@ -108,6 +108,11 @@ const fixedAssetsAPI = require('./finance/api/fixed-assets');
 app.get('/finance/fixed-assets/test', fixedAssetsAPI.testConnection);
 app.get('/finance/fixed-assets', fixedAssetsAPI.getFixedAssets);
 
+// Finance Budgets API Routes (Page 15: Budgets & Variances)
+const budgetsAPI = require('./finance/api/budgets');
+app.get('/finance/budgets/test', budgetsAPI.testConnection);
+app.get('/finance/budgets', budgetsAPI.getBudgets);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
