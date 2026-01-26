@@ -58,6 +58,11 @@ const incomeStatementAPI = require('./finance/api/income-statement');
 app.get('/finance/income-statement/test', incomeStatementAPI.testConnection);
 app.get('/finance/income-statement', incomeStatementAPI.getIncomeStatement);
 
+// Finance Chart of Accounts API Routes (Page 5: Chart of Accounts)
+const chartOfAccountsAPI = require('./finance/api/chart-of-accounts');
+app.get('/finance/chart-of-accounts/test', chartOfAccountsAPI.testConnection);
+app.get('/finance/chart-of-accounts', chartOfAccountsAPI.getChartOfAccounts);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================

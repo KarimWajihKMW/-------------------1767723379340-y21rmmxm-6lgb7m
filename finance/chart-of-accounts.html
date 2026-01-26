@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📘 دليل الحسابات - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">📘 دليل الحسابات (Chart of Accounts)</h1>
+            <p class="text-lg opacity-90">عرض جميع الحسابات المحاسبية وأرصدة الحسابات</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printAccounts()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-list text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الحسابات</span>
+                </div>
+                <div id="totalAccounts" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-building text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">الأصول</span>
+                </div>
+                <div id="assetCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-exclamation-triangle text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">الالتزامات</span>
+                </div>
+                <div id="liabilityCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-hand-holding-usd text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">حقوق الملكية</span>
+                </div>
+                <div id="equityCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-chart-line text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">الإيرادات/المصروفات</span>
+                </div>
+                <div id="incomeExpenseCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">بحث</label>
+                    <input id="searchInput" type="text" placeholder="ابحث بالكود أو الاسم" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">نوع الحساب</label>
+                    <select id="typeFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                        <option value="">كل الأنواع</option>
+                        <option value="ASSET">الأصول</option>
+                        <option value="LIABILITY">الالتزامات</option>
+                        <option value="EQUITY">حقوق الملكية</option>
+                        <option value="REVENUE">الإيرادات</option>
+                        <option value="EXPENSE">المصروفات</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+                    <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="active">نشط</option>
+                        <option value="inactive">غير نشط</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts Table -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100 text-gray-600 text-sm">
+                            <tr>
+                                <th class="px-4 py-3 text-right">رمز الحساب</th>
+                                <th class="px-4 py-3 text-right">اسم الحساب</th>
+                                <th class="px-4 py-3 text-right">نوع الحساب</th>
+                                <th class="px-4 py-3 text-right">مدين</th>
+                                <th class="px-4 py-3 text-right">دائن</th>
+                                <th class="px-4 py-3 text-right">الرصيد</th>
+                                <th class="px-4 py-3 text-right">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTable" class="text-sm divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل الحسابات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-sm text-gray-600" id="tableCount"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let allAccounts = [];
+
+        async function loadAccounts() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/chart-of-accounts?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load accounts');
+                }
+
+                allAccounts = data.accounts || [];
+                renderSummary(data.summary || {});
+                renderTable(allAccounts);
+            } catch (error) {
+                console.error('❌ خطأ في تحميل الحسابات:', error);
+                document.getElementById('accountsTable').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                            <div>فشل تحميل الحسابات</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderSummary(summary) {
+            document.getElementById('totalAccounts').textContent = summary.total_accounts ?? '0';
+            document.getElementById('assetCount').textContent = summary.asset_accounts ?? '0';
+            document.getElementById('liabilityCount').textContent = summary.liability_accounts ?? '0';
+            document.getElementById('equityCount').textContent = summary.equity_accounts ?? '0';
+            const incomeExpense = (summary.revenue_accounts || 0) + (summary.expense_accounts || 0);
+            document.getElementById('incomeExpenseCount').textContent = incomeExpense;
+        }
+
+        function renderTable(accounts) {
+            const rows = accounts.map(acc => {
+                const statusBadge = acc.is_active
+                    ? '<span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">نشط</span>'
+                    : '<span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">غير نشط</span>';
+
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-mono text-gray-600">${acc.account_code}</td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${acc.account_name_ar || '-'}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">${translateType(acc.account_type)}</span>
+                        </td>
+                        <td class="px-4 py-3 font-bold text-red-600">${formatMoney(acc.total_debit)}</td>
+                        <td class="px-4 py-3 font-bold text-green-600">${formatMoney(acc.total_credit)}</td>
+                        <td class="px-4 py-3 font-bold text-gray-800">${formatMoney(acc.balance)}</td>
+                        <td class="px-4 py-3">${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('accountsTable').innerHTML = rows.length ? rows : `
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                        لا توجد حسابات
+                    </td>
+                </tr>
+            `;
+            document.getElementById('tableCount').textContent = `عدد الصفوف المعروضة: ${accounts.length}`;
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.trim().toLowerCase();
+            const type = document.getElementById('typeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = allAccounts.filter(acc => {
+                const matchesSearch = !search ||
+                    (acc.account_code || '').toLowerCase().includes(search) ||
+                    (acc.account_name_ar || '').toLowerCase().includes(search);
+
+                const matchesType = !type || acc.account_type === type;
+                const matchesStatus = !status || (status === 'active' ? acc.is_active : !acc.is_active);
+
+                return matchesSearch && matchesType && matchesStatus;
+            });
+
+            renderTable(filtered);
+        }
+
+        function translateType(type) {
+            const types = {
+                'ASSET': 'أصول',
+                'LIABILITY': 'التزامات',
+                'EQUITY': 'حقوق ملكية',
+                'REVENUE': 'إيرادات',
+                'EXPENSE': 'مصروفات'
+            };
+            return types[type] || type;
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function downloadCSV() {
+            if (!allAccounts.length) return;
+            const rows = [
+                ['رمز الحساب', 'اسم الحساب', 'نوع الحساب', 'مدين', 'دائن', 'الرصيد', 'الحالة']
+            ];
+
+            allAccounts.forEach(acc => {
+                rows.push([
+                    acc.account_code,
+                    acc.account_name_ar,
+                    translateType(acc.account_type),
+                    acc.total_debit,
+                    acc.total_credit,
+                    acc.balance,
+                    acc.is_active ? 'نشط' : 'غير نشط'
+                ]);
+            });
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'chart-of-accounts.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            if (!allAccounts.length) return;
+            const blob = new Blob([JSON.stringify(allAccounts, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'chart-of-accounts.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printAccounts() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAccounts);
+    </script>
+</body>
+</html>
