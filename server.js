@@ -113,6 +113,11 @@ const budgetsAPI = require('./finance/api/budgets');
 app.get('/finance/budgets/test', budgetsAPI.testConnection);
 app.get('/finance/budgets', budgetsAPI.getBudgets);
 
+// Finance Payment Plans API Routes (Page 16: Payment Plans & Allocations)
+const paymentPlansAPI = require('./finance/api/payment-plans');
+app.get('/finance/payment-plans/test', paymentPlansAPI.testConnection);
+app.get('/finance/payment-plans', paymentPlansAPI.getPaymentPlans);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
