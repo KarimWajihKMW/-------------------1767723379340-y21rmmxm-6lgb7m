@@ -98,6 +98,11 @@ const cashflowComprehensiveAPI = require('./finance/api/cashflow-comprehensive')
 app.get('/finance/cashflow-comprehensive/test', cashflowComprehensiveAPI.testConnection);
 app.get('/finance/cashflow-comprehensive', cashflowComprehensiveAPI.getCashflowComprehensive);
 
+// Finance AI Risk Scores API Routes (Page 13: AI Risk Scores)
+const aiRiskScoresAPI = require('./finance/api/ai-risk-scores');
+app.get('/finance/ai-risk-scores/test', aiRiskScoresAPI.testConnection);
+app.get('/finance/ai-risk-scores', aiRiskScoresAPI.getRiskScores);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
