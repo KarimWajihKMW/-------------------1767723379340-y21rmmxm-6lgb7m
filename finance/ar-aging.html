@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0b132b 0%, #1c2541 35%, #3a506b 70%, #5bc0be 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
         .card-gradient {
@@ -43,22 +43,22 @@
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-slate-800 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="downloadCSV()" class="bg-white text-purple-700 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-csv"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-code"></i>
                 تنزيل JSON
             </button>
-            <button onclick="printReport()" class="bg-amber-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="printReport()" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print"></i>
                 طباعة
             </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-gradient-to-br from-sky-500 to-blue-700 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-xl">
                 <div class="flex items-center justify-between mb-4">
                     <i class="fas fa-file-invoice text-4xl opacity-70"></i>
                     <span class="text-sm opacity-90">عدد الفواتير</span>
@@ -67,7 +67,7 @@
                     <div class="animate-pulse">جاري التحميل...</div>
                 </div>
             </div>
-            <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl p-6 text-white shadow-xl">
                 <div class="flex items-center justify-between mb-4">
                     <i class="fas fa-coins text-4xl opacity-70"></i>
                     <span class="text-sm opacity-90">إجمالي المبلغ</span>
@@ -76,7 +76,7 @@
                     <div class="animate-pulse">جاري التحميل...</div>
                 </div>
             </div>
-            <div class="stat-card bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
                 <div class="flex items-center justify-between mb-4">
                     <i class="fas fa-hand-holding-dollar text-4xl opacity-70"></i>
                     <span class="text-sm opacity-90">إجمالي المدفوع</span>
@@ -85,7 +85,7 @@
                     <div class="animate-pulse">جاري التحميل...</div>
                 </div>
             </div>
-            <div class="stat-card bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-6 text-white shadow-xl">
                 <div class="flex items-center justify-between mb-4">
                     <i class="fas fa-hourglass-half text-4xl opacity-70"></i>
                     <span class="text-sm opacity-90">إجمالي المتبقي</span>
@@ -100,19 +100,19 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">حالة الفاتورة</label>
-                    <input id="status" type="text" placeholder="overdue" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" oninput="applyFilters()">
+                    <input id="status" type="text" placeholder="overdue" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">فئة العمر</label>
-                    <input id="agingCategory" type="text" placeholder="0-30" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" oninput="applyFilters()">
+                    <input id="agingCategory" type="text" placeholder="0-30" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">من تاريخ الفاتورة</label>
-                    <input id="fromDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" onchange="applyFilters()">
+                    <input id="fromDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">إلى تاريخ الفاتورة</label>
-                    <input id="toDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-teal-500 outline-none" onchange="applyFilters()">
+                    <input id="toDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
                 </div>
             </div>
         </div>
