@@ -83,6 +83,11 @@ const cashflowSummaryAPI = require('./finance/api/cashflow-summary');
 app.get('/finance/cashflow-summary/test', cashflowSummaryAPI.testConnection);
 app.get('/finance/cashflow-summary', cashflowSummaryAPI.getCashflowSummary);
 
+// Finance Journal Lines API Routes (Page 10: Journal Lines)
+const journalLinesAPI = require('./finance/api/journal-lines');
+app.get('/finance/journal-lines/test', journalLinesAPI.testConnection);
+app.get('/finance/journal-lines', journalLinesAPI.getJournalLines);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
