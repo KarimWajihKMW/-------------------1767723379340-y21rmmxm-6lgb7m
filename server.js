@@ -118,6 +118,11 @@ const paymentPlansAPI = require('./finance/api/payment-plans');
 app.get('/finance/payment-plans/test', paymentPlansAPI.testConnection);
 app.get('/finance/payment-plans', paymentPlansAPI.getPaymentPlans);
 
+// Finance Expenses API Routes (Page 17: Expenses & Vendors)
+const expensesAPI = require('./finance/api/expenses');
+app.get('/finance/expenses/test', expensesAPI.testConnection);
+app.get('/finance/expenses', expensesAPI.getExpenses);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
