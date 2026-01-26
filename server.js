@@ -128,6 +128,11 @@ const arAgingAPI = require('./finance/api/ar-aging');
 app.get('/finance/ar-aging/test', arAgingAPI.testConnection);
 app.get('/finance/ar-aging', arAgingAPI.getARAging);
 
+// Finance Plan Installments API Routes (Page 19: Plan Installments)
+const planInstallmentsAPI = require('./finance/api/plan-installments');
+app.get('/finance/plan-installments/test', planInstallmentsAPI.testConnection);
+app.get('/finance/plan-installments', planInstallmentsAPI.getPlanInstallments);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
