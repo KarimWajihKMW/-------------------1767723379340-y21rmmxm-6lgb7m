@@ -63,6 +63,11 @@ const chartOfAccountsAPI = require('./finance/api/chart-of-accounts');
 app.get('/finance/chart-of-accounts/test', chartOfAccountsAPI.testConnection);
 app.get('/finance/chart-of-accounts', chartOfAccountsAPI.getChartOfAccounts);
 
+// Finance Payments API Routes (Page 6: Payments)
+const paymentsAPI = require('./finance/api/payments');
+app.get('/finance/payments/test', paymentsAPI.testConnection);
+app.get('/finance/payments', paymentsAPI.getPayments);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================

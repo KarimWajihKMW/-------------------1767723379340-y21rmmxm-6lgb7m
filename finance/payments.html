@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💳 المدفوعات - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">💳 المدفوعات (Payments)</h1>
+            <p class="text-lg opacity-90">عرض جميع المدفوعات وربطها بالعملاء</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printPayments()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-coins text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي المدفوعات</span>
+                </div>
+                <div id="totalPayments" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-list text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">عدد العمليات</span>
+                </div>
+                <div id="paymentCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-user text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">عدد العملاء</span>
+                </div>
+                <div id="customerCount" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <div class="stat-card bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-check-circle text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">حالة العمليات</span>
+                </div>
+                <div id="statusSummary" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">بحث</label>
+                    <input id="searchInput" type="text" placeholder="ابحث برقم العملية أو العميل" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">طريقة الدفع</label>
+                    <select id="methodFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="CASH">نقدي</option>
+                        <option value="BANK">تحويل بنكي</option>
+                        <option value="CARD">بطاقة</option>
+                        <option value="CHECK">شيك</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+                    <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="COMPLETED">مكتملة</option>
+                        <option value="PENDING">معلقة</option>
+                        <option value="FAILED">فاشلة</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100 text-gray-600 text-sm">
+                            <tr>
+                                <th class="px-4 py-3 text-right">رقم العملية</th>
+                                <th class="px-4 py-3 text-right">التاريخ</th>
+                                <th class="px-4 py-3 text-right">العميل</th>
+                                <th class="px-4 py-3 text-right">المبلغ</th>
+                                <th class="px-4 py-3 text-right">طريقة الدفع</th>
+                                <th class="px-4 py-3 text-right">نوع الدفع</th>
+                                <th class="px-4 py-3 text-right">الحالة</th>
+                                <th class="px-4 py-3 text-right">ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTable" class="text-sm divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل المدفوعات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-sm text-gray-600" id="tableCount"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let allPayments = [];
+
+        async function loadPayments() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load payments');
+                }
+
+                allPayments = data.payments || [];
+                renderSummary(data.summary || {});
+                renderTable(allPayments);
+            } catch (error) {
+                console.error('❌ خطأ في تحميل المدفوعات:', error);
+                document.getElementById('paymentsTable').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-4 py-12 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                            <div>فشل تحميل المدفوعات</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderSummary(summary) {
+            document.getElementById('totalPayments').textContent = formatMoney(summary.total_amount || 0);
+            document.getElementById('paymentCount').textContent = summary.total_payments ?? '0';
+            document.getElementById('customerCount').textContent = summary.unique_customers ?? '0';
+            document.getElementById('statusSummary').textContent = summary.status_label || '—';
+        }
+
+        function renderTable(payments) {
+            const rows = payments.map(p => {
+                const statusBadge = getStatusBadge(p.status);
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-mono text-gray-600">${p.payment_number || '-'}</td>
+                        <td class="px-4 py-3 text-gray-600">${formatDate(p.payment_date)}</td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${p.customer_name || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-green-600">${formatMoney(p.payment_amount)}</td>
+                        <td class="px-4 py-3">${translateMethod(p.payment_method)}</td>
+                        <td class="px-4 py-3">${translateType(p.payment_type)}</td>
+                        <td class="px-4 py-3">${statusBadge}</td>
+                        <td class="px-4 py-3 text-gray-600">${p.notes || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('paymentsTable').innerHTML = rows.length ? rows : `
+                <tr>
+                    <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                        لا توجد مدفوعات
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById('tableCount').textContent = `عدد الصفوف المعروضة: ${payments.length}`;
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.trim().toLowerCase();
+            const method = document.getElementById('methodFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = allPayments.filter(p => {
+                const matchesSearch = !search ||
+                    (p.payment_number || '').toLowerCase().includes(search) ||
+                    (p.customer_name || '').toLowerCase().includes(search);
+
+                const matchesMethod = !method || (p.payment_method || '').toUpperCase() === method;
+                const matchesStatus = !status || (p.status || '').toUpperCase() === status;
+
+                return matchesSearch && matchesMethod && matchesStatus;
+            });
+
+            renderTable(filtered);
+        }
+
+        function translateMethod(method) {
+            const map = {
+                'CASH': 'نقدي',
+                'BANK': 'تحويل بنكي',
+                'CARD': 'بطاقة',
+                'CHECK': 'شيك'
+            };
+            return map[(method || '').toUpperCase()] || (method || '-');
+        }
+
+        function translateType(type) {
+            const map = {
+                'FULL': 'كامل',
+                'PARTIAL': 'جزئي',
+                'ADVANCE': 'دفعة مقدمة'
+            };
+            return map[(type || '').toUpperCase()] || (type || '-');
+        }
+
+        function getStatusBadge(status) {
+            const s = (status || '').toUpperCase();
+            if (s === 'COMPLETED' || s === 'PAID') {
+                return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">مكتملة</span>';
+            }
+            if (s === 'PENDING') {
+                return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">معلقة</span>';
+            }
+            if (s === 'FAILED') {
+                return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">فاشلة</span>';
+            }
+            return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">غير محدد</span>';
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            const d = new Date(value);
+            return d.toLocaleDateString('ar-SA');
+        }
+
+        function downloadCSV() {
+            if (!allPayments.length) return;
+            const rows = [
+                ['رقم العملية', 'التاريخ', 'العميل', 'المبلغ', 'طريقة الدفع', 'نوع الدفع', 'الحالة', 'ملاحظات']
+            ];
+
+            allPayments.forEach(p => {
+                rows.push([
+                    p.payment_number,
+                    p.payment_date,
+                    p.customer_name,
+                    p.payment_amount,
+                    translateMethod(p.payment_method),
+                    translateType(p.payment_type),
+                    p.status,
+                    p.notes
+                ]);
+            });
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'payments.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            if (!allPayments.length) return;
+            const blob = new Blob([JSON.stringify(allPayments, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'payments.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printPayments() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPayments);
+    </script>
+</body>
+</html>
