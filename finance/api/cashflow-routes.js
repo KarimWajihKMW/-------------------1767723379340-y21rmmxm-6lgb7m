@@ -29,75 +29,22 @@ const getEntityFilter = (userEntity, tableAlias = '') => {
 // Get Operating Cash Flow
 router.get('/operating', async (req, res) => {
   try {
-    const userEntity = req.userEntity || { type: 'HQ', id: 'HQ001' };
-    const { from_date, to_date, fiscal_year, fiscal_period } = req.query;
+    const { entity_id } = req.query;
     
-    let query = `
-      SELECT 
-        cf.*,
-        CASE 
-          WHEN cf.flow_direction = 'IN' THEN cf.amount
-          ELSE -cf.amount
-        END as net_amount
-      FROM finance_cashflow cf
-      WHERE ${getEntityFilter(userEntity, 'cf')}
-        AND cf.flow_type = 'OPERATING'
-    `;
+    const result = await db.query(`
+      SELECT * FROM finance_cashflow_operating 
+      WHERE entity_id = $1
+      ORDER BY flow_date DESC
+    `, [entity_id || '1']);
     
-    const params = [];
-    
-    if (from_date) {
-      params.push(from_date);
-      query += ` AND cf.transaction_date >= $${params.length}`;
-    }
-    
-    if (to_date) {
-      params.push(to_date);
-      query += ` AND cf.transaction_date <= $${params.length}`;
-    }
-    
-    if (fiscal_year) {
-      params.push(fiscal_year);
-      query += ` AND cf.fiscal_year = $${params.length}`;
-    }
-    
-    if (fiscal_period) {
-      params.push(fiscal_period);
-      query += ` AND cf.fiscal_period = $${params.length}`;
-    }
-    
-    query += ` ORDER BY cf.transaction_date DESC`;
-    
-    const result = await db.query(query, params);
-    
-    // حساب الإجماليات
-    const totalIn = result.rows
-      .filter(r => r.flow_direction === 'IN')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-    
-    const totalOut = result.rows
-      .filter(r => r.flow_direction === 'OUT')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-    
-    const netOperatingCashFlow = totalIn - totalOut;
-    
-    // Format flows with separate inflow/outflow
-    const formattedFlows = result.rows.map(row => ({
-      ...row,
-      flow_date: row.transaction_date,
-      inflow_amount: row.flow_direction === 'IN' ? parseFloat(row.amount) : 0,
-      outflow_amount: row.flow_direction === 'OUT' ? parseFloat(row.amount) : 0
-    }));
+    const totalIn = result.rows.filter(r => r.amount > 0).reduce((sum, r) => sum + parseFloat(r.amount), 0);
+    const totalOut = Math.abs(result.rows.filter(r => r.amount < 0).reduce((sum, r) => sum + parseFloat(r.amount), 0));
     
     res.json({
       success: true,
       count: result.rows.length,
-      summary: {
-        inflow: totalIn,
-        outflow: totalOut,
-        net_flow: netOperatingCashFlow
-      },
-      flows: formattedFlows
+      summary: { inflow: totalIn, outflow: totalOut, net_flow: totalIn - totalOut },
+      cashflows: result.rows
     });
   } catch (error) {
     console.error('Error fetching operating cashflow:', error);
@@ -177,68 +124,22 @@ router.post('/operating', async (req, res) => {
 // Get Investing Cash Flow
 router.get('/investing', async (req, res) => {
   try {
-    const userEntity = req.userEntity || { type: 'HQ', id: 'HQ001' };
-    const { from_date, to_date, fiscal_year } = req.query;
+    const { entity_id } = req.query;
     
-    let query = `
-      SELECT 
-        cf.*,
-        CASE 
-          WHEN cf.flow_direction = 'IN' THEN cf.amount
-          ELSE -cf.amount
-        END as net_amount
-      FROM finance_cashflow cf
-      WHERE ${getEntityFilter(userEntity, 'cf')}
-        AND cf.flow_type = 'INVESTING'
-    `;
+    const result = await db.query(`
+      SELECT * FROM finance_cashflow_investing 
+      WHERE entity_id = $1
+      ORDER BY flow_date DESC
+    `, [entity_id || '1']);
     
-    const params = [];
-    
-    if (from_date) {
-      params.push(from_date);
-      query += ` AND cf.transaction_date >= $${params.length}`;
-    }
-    
-    if (to_date) {
-      params.push(to_date);
-      query += ` AND cf.transaction_date <= $${params.length}`;
-    }
-    
-    if (fiscal_year) {
-      params.push(fiscal_year);
-      query += ` AND cf.fiscal_year = $${params.length}`;
-    }
-    
-    query += ` ORDER BY cf.transaction_date DESC`;
-    
-    const result = await db.query(query, params);
-    
-    const totalIn = result.rows
-      .filter(r => r.flow_direction === 'IN')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-    
-    const totalOut = result.rows
-      .filter(r => r.flow_direction === 'OUT')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-    
-    const netInvestingCashFlow = totalIn - totalOut;
-    
-    const formattedFlows = result.rows.map(row => ({
-      ...row,
-      flow_date: row.transaction_date,
-      inflow_amount: row.flow_direction === 'IN' ? parseFloat(row.amount) : 0,
-      outflow_amount: row.flow_direction === 'OUT' ? parseFloat(row.amount) : 0
-    }));
+    const totalIn = result.rows.filter(r => r.amount > 0).reduce((sum, r) => sum + parseFloat(r.amount), 0);
+    const totalOut = Math.abs(result.rows.filter(r => r.amount < 0).reduce((sum, r) => sum + parseFloat(r.amount), 0));
     
     res.json({
       success: true,
       count: result.rows.length,
-      summary: {
-        inflow: totalIn,
-        outflow: totalOut,
-        net_flow: netInvestingCashFlow
-      },
-      flows: formattedFlows
+      summary: { inflow: totalIn, outflow: totalOut, net_flow: totalIn - totalOut },
+      cashflows: result.rows
     });
   } catch (error) {
     console.error('Error fetching investing cashflow:', error);
@@ -308,68 +209,22 @@ router.post('/investing', async (req, res) => {
 // Get Financing Cash Flow
 router.get('/financing', async (req, res) => {
   try {
-    const userEntity = req.userEntity || { type: 'HQ', id: 'HQ001' };
-    const { from_date, to_date, fiscal_year } = req.query;
+    const { entity_id } = req.query;
     
-    let query = `
-      SELECT 
-        cf.*,
-        CASE 
-          WHEN cf.flow_direction = 'IN' THEN cf.amount
-          ELSE -cf.amount
-        END as net_amount
-      FROM finance_cashflow cf
-      WHERE ${getEntityFilter(userEntity, 'cf')}
-        AND cf.flow_type = 'FINANCING'
-    `;
+    const result = await db.query(`
+      SELECT * FROM finance_cashflow_financing 
+      WHERE entity_id = $1
+      ORDER BY flow_date DESC
+    `, [entity_id || '1']);
     
-    const params = [];
-    
-    if (from_date) {
-      params.push(from_date);
-      query += ` AND cf.transaction_date >= $${params.length}`;
-    }
-    
-    if (to_date) {
-      params.push(to_date);
-      query += ` AND cf.transaction_date <= $${params.length}`;
-    }
-    
-    if (fiscal_year) {
-      params.push(fiscal_year);
-      query += ` AND cf.fiscal_year = $${params.length}`;
-    }
-    
-    query += ` ORDER BY cf.transaction_date DESC`;
-    
-    const result = await db.query(query, params);
-    
-    const totalIn = result.rows
-      .filter(r => r.flow_direction === 'IN')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-    
-    const totalOut = result.rows
-      .filter(r => r.flow_direction === 'OUT')
-      .reduce((sum, r) => sum + parseFloat(r.amount), 0);
-    
-    const netFinancingCashFlow = totalIn - totalOut;
-    
-    const formattedFlows = result.rows.map(row => ({
-      ...row,
-      flow_date: row.transaction_date,
-      inflow_amount: row.flow_direction === 'IN' ? parseFloat(row.amount) : 0,
-      outflow_amount: row.flow_direction === 'OUT' ? parseFloat(row.amount) : 0
-    }));
+    const totalIn = result.rows.filter(r => r.amount > 0).reduce((sum, r) => sum + parseFloat(r.amount), 0);
+    const totalOut = Math.abs(result.rows.filter(r => r.amount < 0).reduce((sum, r) => sum + parseFloat(r.amount), 0));
     
     res.json({
       success: true,
       count: result.rows.length,
-      summary: {
-        inflow: totalIn,
-        outflow: totalOut,
-        net_flow: netFinancingCashFlow
-      },
-      flows: formattedFlows
+      summary: { inflow: totalIn, outflow: totalOut, net_flow: totalIn - totalOut },
+      cashflows: result.rows
     });
   } catch (error) {
     console.error('Error fetching financing cashflow:', error);
@@ -437,38 +292,36 @@ router.post('/financing', async (req, res) => {
 // ========================================
 
 // Get AI Cashflow Forecast
+router.get('/forecasts', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    
+    const result = await db.query(`
+      SELECT * FROM finance_ai_forecasts 
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+    `, [entity_id || '1']);
+    
+    res.json({
+      success: true,
+      count: result.rows.length,
+      forecasts: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching AI forecasts:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 router.get('/forecast', async (req, res) => {
   try {
-    const userEntity = req.userEntity || { type: 'HQ', id: 'HQ001' };
-    const { forecast_type, forecast_period } = req.query;
+    const { entity_id } = req.query;
     
-    let query = `
-      SELECT 
-        af.*,
-        CASE 
-          WHEN af.forecasted_value > 0 THEN 'SURPLUS'
-          WHEN af.forecasted_value < 0 THEN 'DEFICIT'
-          ELSE 'NEUTRAL'
-        END as forecast_status
-      FROM finance_ai_forecasts af
-      WHERE ${getEntityFilter(userEntity, 'af')}
-    `;
-    
-    const params = [];
-    
-    if (forecast_type) {
-      params.push(forecast_type);
-      query += ` AND af.forecast_type = $${params.length}`;
-    }
-    
-    if (forecast_period) {
-      params.push(forecast_period);
-      query += ` AND af.forecast_period = $${params.length}`;
-    }
-    
-    query += ` ORDER BY af.forecast_date DESC, af.start_date ASC`;
-    
-    const result = await db.query(query, params);
+    const result = await db.query(`
+      SELECT * FROM finance_ai_forecasts 
+      WHERE entity_id = $1
+      ORDER BY created_at DESC
+    `, [entity_id || '1']);
     
     res.json({
       success: true,
@@ -617,6 +470,39 @@ router.get('/comprehensive', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching comprehensive cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Overview endpoint
+router.get('/overview', async (req, res) => {
+  try {
+    const { entity_id } = req.query;
+    
+    // Operating
+    const operating = await db.query(`SELECT * FROM finance_cashflow_operating WHERE entity_id = $1`, [entity_id || '1']);
+    const opIn = operating.rows.filter(r => r.amount > 0).reduce((sum, r) => sum + parseFloat(r.amount), 0);
+    const opOut = Math.abs(operating.rows.filter(r => r.amount < 0).reduce((sum, r) => sum + parseFloat(r.amount), 0));
+    
+    // Investing
+    const investing = await db.query(`SELECT * FROM finance_cashflow_investing WHERE entity_id = $1`, [entity_id || '1']);
+    const invIn = investing.rows.filter(r => r.amount > 0).reduce((sum, r) => sum + parseFloat(r.amount), 0);
+    const invOut = Math.abs(investing.rows.filter(r => r.amount < 0).reduce((sum, r) => sum + parseFloat(r.amount), 0));
+    
+    // Financing
+    const financing = await db.query(`SELECT * FROM finance_cashflow_financing WHERE entity_id = $1`, [entity_id || '1']);
+    const finIn = financing.rows.filter(r => r.amount > 0).reduce((sum, r) => sum + parseFloat(r.amount), 0);
+    const finOut = Math.abs(financing.rows.filter(r => r.amount < 0).reduce((sum, r) => sum + parseFloat(r.amount), 0));
+    
+    res.json({
+      success: true,
+      operating: { inflow: opIn, outflow: opOut, net_cashflow: opIn - opOut },
+      investing: { inflow: invIn, outflow: invOut, net_cashflow: invIn - invOut },
+      financing: { inflow: finIn, outflow: finOut, net_cashflow: finIn - finOut },
+      total_net_cashflow: (opIn - opOut) + (invIn - invOut) + (finIn - finOut)
+    });
+  } catch (error) {
+    console.error('Error fetching overview:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
