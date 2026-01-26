@@ -73,6 +73,11 @@ const customersAPI = require('./finance/api/customers');
 app.get('/finance/customers/test', customersAPI.testConnection);
 app.get('/finance/customers', customersAPI.getCustomers);
 
+// Finance AI Forecasts API Routes (Page 8: AI Forecasts)
+const aiForecastsAPI = require('./finance/api/ai-forecasts');
+app.get('/finance/ai-forecasts/test', aiForecastsAPI.testConnection);
+app.get('/finance/ai-forecasts', aiForecastsAPI.getForecasts);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
