@@ -911,6 +911,28 @@
         "/^pip3 install python-pptx --quiet && python3 -c \"\nfrom pptx import Presentation\n\nprs = Presentation\\('/workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/نظام محاسبي\\.pptx'\\)\nprint\\(f'عدد الصفحات: \\{len\\(prs\\.slides\\)\\}'\\)\nprint\\('='\\*80\\)\n\nfor i, slide in enumerate\\(prs\\.slides, 1\\):\n    print\\(f'\\\\n--- صفحة \\{i\\} ---'\\)\n    for shape in slide\\.shapes:\n        if hasattr\\(shape, 'text'\\) and shape\\.text\\.strip\\(\\):\n            print\\(shape\\.text\\)\n    print\\('-'\\*80\\)\n\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node check-finance-tables\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "pkill": true,
+        "true": true,
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node server\\.js > server\\.log 2>&1 &$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sleep 3 && node test-journal-api\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^pkill -f \"node server\\.js\" && sleep 2 && cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node server\\.js > server\\.log 2>&1 &$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node check-account-balances-structure\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
