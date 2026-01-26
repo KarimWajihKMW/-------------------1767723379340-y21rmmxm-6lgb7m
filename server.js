@@ -78,6 +78,11 @@ const aiForecastsAPI = require('./finance/api/ai-forecasts');
 app.get('/finance/ai-forecasts/test', aiForecastsAPI.testConnection);
 app.get('/finance/ai-forecasts', aiForecastsAPI.getForecasts);
 
+// Finance Cashflow Summary API Routes (Page 9: Cashflow Summary)
+const cashflowSummaryAPI = require('./finance/api/cashflow-summary');
+app.get('/finance/cashflow-summary/test', cashflowSummaryAPI.testConnection);
+app.get('/finance/cashflow-summary', cashflowSummaryAPI.getCashflowSummary);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================
