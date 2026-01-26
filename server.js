@@ -27,6 +27,10 @@ app.use('/api/menu', menuRoutes);
 const superAdminRoutes = require('./super-admin-api');
 app.use('/api/admin', superAdminRoutes);
 
+// Finance System API Routes
+const financeRoutes = require('./finance/api/finance-routes');
+app.use('/finance', financeRoutes);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================

@@ -895,6 +895,22 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-office-logins\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && unzip -l \"نظام محاسبي\\.pptx\" \\| grep -E \"ppt/slides/slide\\[0-9\\]\\+\\\\\\.xml\" \\| wc -l$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && unzip -q -o \"نظام محاسبي\\.pptx\" -d temp_pptx$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^apt-get update && apt-get install -y python3-pptx > /dev/null 2>&1 && python3 -c \"\nfrom pptx import Presentation\nimport sys\n\nprs = Presentation\\('/workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/نظام محاسبي\\.pptx'\\)\nprint\\(f'عدد الصفحات: \\{len\\(prs\\.slides\\)\\}'\\)\nprint\\('='\\*80\\)\n\nfor i, slide in enumerate\\(prs\\.slides, 1\\):\n    print\\(f'\\\\n--- صفحة \\{i\\} ---'\\)\n    for shape in slide\\.shapes:\n        if hasattr\\(shape, 'text'\\) and shape\\.text\\.strip\\(\\):\n            print\\(shape\\.text\\)\n    print\\('-'\\*80\\)\n\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^pip3 install python-pptx --quiet && python3 -c \"\nfrom pptx import Presentation\n\nprs = Presentation\\('/workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/نظام محاسبي\\.pptx'\\)\nprint\\(f'عدد الصفحات: \\{len\\(prs\\.slides\\)\\}'\\)\nprint\\('='\\*80\\)\n\nfor i, slide in enumerate\\(prs\\.slides, 1\\):\n    print\\(f'\\\\n--- صفحة \\{i\\} ---'\\)\n    for shape in slide\\.shapes:\n        if hasattr\\(shape, 'text'\\) and shape\\.text\\.strip\\(\\):\n            print\\(shape\\.text\\)\n    print\\('-'\\*80\\)\n\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
