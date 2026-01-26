@@ -44,6 +44,15 @@ app.post('/finance/journal/entries', journalAPI.createJournalEntry);
 app.get('/finance/journal/balances', journalAPI.getAccountBalances);
 app.get('/finance/journal/ledger/:account_id', journalAPI.getAccountLedger);
 
+// Finance Balance Sheet API Routes (Page 3: Balance Sheet - Assets, Liabilities, Equity)
+const balanceSheetAPI = require('./finance/api/balance-sheet');
+app.get('/finance/balance-sheet/test', balanceSheetAPI.testConnection);
+app.get('/finance/balance-sheet', balanceSheetAPI.getBalanceSheet);
+app.get('/finance/balance-sheet/assets', balanceSheetAPI.getAssets);
+app.get('/finance/balance-sheet/liabilities', balanceSheetAPI.getLiabilities);
+app.get('/finance/balance-sheet/equity', balanceSheetAPI.getEquity);
+app.get('/finance/balance-sheet/complete', balanceSheetAPI.getCompleteBalanceSheet);
+
 // ========================================
 // DATA ISOLATION MIDDLEWARE
 // ========================================

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 الميزانية العمومية - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .balance-section {
+            transition: all 0.3s;
+        }
+        .balance-section:hover {
+            background-color: #f8fafc;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">📊 الميزانية العمومية (Balance Sheet)</h1>
+            <p class="text-lg opacity-90">قائمة المركز المالي - الأصول والالتزامات وحقوق الملكية</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mb-6 flex gap-3">
+            <button onclick="generatePDF()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-pdf"></i>
+                تصدير PDF
+            </button>
+            <button onclick="exportExcel()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-excel"></i>
+                تصدير Excel
+            </button>
+            <button onclick="printBalanceSheet()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- إجمالي الأصول -->
+            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-building text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الأصول</span>
+                </div>
+                <div id="totalAssets" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <!-- إجمالي الالتزامات -->
+            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-exclamation-triangle text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الالتزامات</span>
+                </div>
+                <div id="totalLiabilities" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <!-- إجمالي حقوق الملكية -->
+            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-hand-holding-usd text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">حقوق الملكية</span>
+                </div>
+                <div id="totalEquity" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <!-- نسبة المديونية -->
+            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-percentage text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">نسبة المديونية</span>
+                </div>
+                <div id="debtRatio" class="text-4xl font-bold">
+                    <div class="animate-pulse">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Chart -->
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📈 التوزيع المالي</h3>
+                <div class="chart-container">
+                    <canvas id="balanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Balance Sheet Info -->
+            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">ℹ️ معلومات الميزانية</h3>
+                <div id="sheetInfo" class="space-y-4">
+                    <div class="animate-pulse text-gray-500">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assets, Liabilities & Equity -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 bg-white">
+                <button onclick="switchTab('assets')" id="tab-assets" class="flex-1 px-6 py-4 font-bold text-purple-600 border-b-2 border-purple-600 bg-purple-50 transition">
+                    الأصول (Assets)
+                </button>
+                <button onclick="switchTab('liabilities')" id="tab-liabilities" class="flex-1 px-6 py-4 font-bold text-gray-600 hover:bg-gray-50 transition">
+                    الالتزامات (Liabilities)
+                </button>
+                <button onclick="switchTab('equity')" id="tab-equity" class="flex-1 px-6 py-4 font-bold text-gray-600 hover:bg-gray-50 transition">
+                    حقوق الملكية (Equity)
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Assets Tab -->
+                <div id="content-assets">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">🏢 الأصول</h3>
+                        <p class="text-gray-600">جميع الأصول المملوكة للمنشأة مقسمة حسب النوع</p>
+                    </div>
+
+                    <!-- Current Assets -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-blue-600 mb-3">الأصول المتداولة (Current Assets)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-blue-50 text-blue-700 text-sm">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right">النوع</th>
+                                        <th class="px-4 py-3 text-right">اسم الأصل</th>
+                                        <th class="px-4 py-3 text-right">القيمة</th>
+                                        <th class="px-4 py-3 text-right">الوصف</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="currentAssets" class="text-sm divide-y divide-gray-100">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                            <div>جاري التحميل...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Assets -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-blue-600 mb-3">الأصول الثابتة (Fixed Assets)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-blue-50 text-blue-700 text-sm">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right">النوع</th>
+                                        <th class="px-4 py-3 text-right">اسم الأصل</th>
+                                        <th class="px-4 py-3 text-right">القيمة</th>
+                                        <th class="px-4 py-3 text-right">الوصف</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fixedAssets" class="text-sm divide-y divide-gray-100">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                            <div>جاري التحميل...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Assets Summary -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-blue-800">إجمالي الأصول</span>
+                            <span id="assetsSummary" class="text-2xl font-bold text-blue-600">0 ر.س</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liabilities Tab -->
+                <div id="content-liabilities" class="hidden">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">⚠️ الالتزامات</h3>
+                        <p class="text-gray-600">جميع الالتزامات والديون على المنشأة</p>
+                    </div>
+
+                    <!-- Current Liabilities -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-red-600 mb-3">الالتزامات المتداولة (Current Liabilities)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-red-50 text-red-700 text-sm">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right">النوع</th>
+                                        <th class="px-4 py-3 text-right">اسم الالتزام</th>
+                                        <th class="px-4 py-3 text-right">القيمة</th>
+                                        <th class="px-4 py-3 text-right">الوصف</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="currentLiabilities" class="text-sm divide-y divide-gray-100">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                            <div>جاري التحميل...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Long-term Liabilities -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-red-600 mb-3">الالتزامات طويلة الأجل (Long-term Liabilities)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-red-50 text-red-700 text-sm">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right">النوع</th>
+                                        <th class="px-4 py-3 text-right">اسم الالتزام</th>
+                                        <th class="px-4 py-3 text-right">القيمة</th>
+                                        <th class="px-4 py-3 text-right">الوصف</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="longTermLiabilities" class="text-sm divide-y divide-gray-100">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                            <div>جاري التحميل...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Liabilities Summary -->
+                    <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-red-800">إجمالي الالتزامات</span>
+                            <span id="liabilitiesSummary" class="text-2xl font-bold text-red-600">0 ر.س</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equity Tab -->
+                <div id="content-equity" class="hidden">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">💰 حقوق الملكية</h3>
+                        <p class="text-gray-600">حقوق الملاك في المنشأة</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-green-50 text-green-700 text-sm">
+                                <tr>
+                                    <th class="px-4 py-3 text-right">النوع</th>
+                                    <th class="px-4 py-3 text-right">البند</th>
+                                    <th class="px-4 py-3 text-right">القيمة</th>
+                                    <th class="px-4 py-3 text-right">الوصف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="equityTable" class="text-sm divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin text-3xl mb-2 opacity-30"></i>
+                                        <div>جاري التحميل...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Equity Summary -->
+                    <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4 mt-6">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-green-800">إجمالي حقوق الملكية</span>
+                            <span id="equitySummary" class="text-2xl font-bold text-green-600">0 ر.س</span>
+                        </div>
+                    </div>
+
+                    <!-- Balance Equation -->
+                    <div class="mt-6 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-xl p-6">
+                        <h4 class="text-lg font-bold text-purple-800 mb-4">📐 المعادلة المحاسبية</h4>
+                        <div class="text-center text-xl font-bold text-gray-800">
+                            <div id="balanceEquation">
+                                الأصول = الالتزامات + حقوق الملكية
+                            </div>
+                            <div id="balanceCheck" class="mt-4 text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+        let chartInstance = null;
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            // Remove active from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600', 'bg-purple-50');
+                el.classList.add('text-gray-600');
+            });
+            // Show selected content
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            // Activate selected tab
+            const tab = document.getElementById('tab-' + tabName);
+            tab.classList.add('text-purple-600', 'border-b-2', 'border-purple-600', 'bg-purple-50');
+            tab.classList.remove('text-gray-600');
+        }
+
+        // Load all data
+        async function loadAllData() {
+            try {
+                console.log('🔄 جاري تحميل جميع بيانات الميزانية العمومية...');
+                
+                await Promise.all([
+                    loadBalanceSheet(),
+                    loadAssets(),
+                    loadLiabilities(),
+                    loadEquity()
+                ]);
+
+                console.log('✅ تم تحميل جميع البيانات');
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        // Load Balance Sheet Info
+        async function loadBalanceSheet() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/balance-sheet?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (data.success && data.sheet) {
+                    const sheet = data.sheet;
+                    const sheetDate = new Date(sheet.sheet_date).toLocaleDateString('ar-SA');
+                    
+                    document.getElementById('sheetInfo').innerHTML = `
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-calendar text-purple-600 text-xl"></i>
+                            <div>
+                                <div class="text-sm text-gray-600">تاريخ الميزانية</div>
+                                <div class="font-bold">${sheetDate}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-clock text-purple-600 text-xl"></i>
+                            <div>
+                                <div class="text-sm text-gray-600">نوع الفترة</div>
+                                <div class="font-bold">${sheet.period_type === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                            <div>
+                                <div class="text-sm text-gray-600">السنة المالية</div>
+                                <div class="font-bold">${sheet.fiscal_year}</div>
+                            </div>
+                        </div>
+                        ${sheet.notes ? `
+                        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <i class="fas fa-sticky-note text-purple-600 text-xl"></i>
+                            <div>
+                                <div class="text-sm text-gray-600">ملاحظات</div>
+                                <div class="font-bold">${sheet.notes}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل معلومات الميزانية:', error);
+            }
+        }
+
+        // Load Assets
+        async function loadAssets() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/balance-sheet/assets?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (data.success && data.assets) {
+                    console.log(`✅ تم تحميل ${data.assets.length} أصل`);
+
+                    const currentAssets = data.assets.filter(a => a.asset_category === 'current');
+                    const fixedAssets = data.assets.filter(a => a.asset_category === 'fixed');
+
+                    // Current Assets
+                    const currentAssetsHTML = currentAssets.length > 0 ? currentAssets.map(asset => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                                    ${translateAssetType(asset.asset_type)}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">${asset.asset_name}</td>
+                            <td class="px-4 py-3 font-bold text-blue-600">${parseFloat(asset.amount).toLocaleString('ar-SA')} ر.س</td>
+                            <td class="px-4 py-3 text-gray-600">${asset.description || '-'}</td>
+                        </tr>
+                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد أصول متداولة</td></tr>';
+
+                    document.getElementById('currentAssets').innerHTML = currentAssetsHTML;
+
+                    // Fixed Assets
+                    const fixedAssetsHTML = fixedAssets.length > 0 ? fixedAssets.map(asset => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                                    ${translateAssetType(asset.asset_type)}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">${asset.asset_name}</td>
+                            <td class="px-4 py-3 font-bold text-blue-600">${parseFloat(asset.amount).toLocaleString('ar-SA')} ر.س</td>
+                            <td class="px-4 py-3 text-gray-600">${asset.description || '-'}</td>
+                        </tr>
+                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد أصول ثابتة</td></tr>';
+
+                    document.getElementById('fixedAssets').innerHTML = fixedAssetsHTML;
+
+                    // Calculate total
+                    const totalAssets = data.assets.reduce((sum, asset) => sum + parseFloat(asset.amount), 0);
+                    document.getElementById('totalAssets').textContent = totalAssets.toLocaleString('ar-SA') + ' ر.س';
+                    document.getElementById('assetsSummary').textContent = totalAssets.toLocaleString('ar-SA') + ' ر.س';
+
+                    return totalAssets;
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل الأصول:', error);
+                return 0;
+            }
+        }
+
+        // Load Liabilities
+        async function loadLiabilities() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/balance-sheet/liabilities?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (data.success && data.liabilities) {
+                    console.log(`✅ تم تحميل ${data.liabilities.length} التزام`);
+
+                    const currentLiabilities = data.liabilities.filter(l => l.liability_category === 'current');
+                    const longTermLiabilities = data.liabilities.filter(l => l.liability_category === 'long-term');
+
+                    // Current Liabilities
+                    const currentLiabilitiesHTML = currentLiabilities.length > 0 ? currentLiabilities.map(liability => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
+                                    ${translateLiabilityType(liability.liability_type)}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">${liability.liability_name}</td>
+                            <td class="px-4 py-3 font-bold text-red-600">${parseFloat(liability.amount).toLocaleString('ar-SA')} ر.س</td>
+                            <td class="px-4 py-3 text-gray-600">${liability.description || '-'}</td>
+                        </tr>
+                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد التزامات متداولة</td></tr>';
+
+                    document.getElementById('currentLiabilities').innerHTML = currentLiabilitiesHTML;
+
+                    // Long-term Liabilities
+                    const longTermLiabilitiesHTML = longTermLiabilities.length > 0 ? longTermLiabilities.map(liability => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
+                                    ${translateLiabilityType(liability.liability_type)}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">${liability.liability_name}</td>
+                            <td class="px-4 py-3 font-bold text-red-600">${parseFloat(liability.amount).toLocaleString('ar-SA')} ر.س</td>
+                            <td class="px-4 py-3 text-gray-600">${liability.description || '-'}</td>
+                        </tr>
+                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد التزامات طويلة الأجل</td></tr>';
+
+                    document.getElementById('longTermLiabilities').innerHTML = longTermLiabilitiesHTML;
+
+                    // Calculate total
+                    const totalLiabilities = data.liabilities.reduce((sum, liability) => sum + parseFloat(liability.amount), 0);
+                    document.getElementById('totalLiabilities').textContent = totalLiabilities.toLocaleString('ar-SA') + ' ر.س';
+                    document.getElementById('liabilitiesSummary').textContent = totalLiabilities.toLocaleString('ar-SA') + ' ر.س';
+
+                    return totalLiabilities;
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل الالتزامات:', error);
+                return 0;
+            }
+        }
+
+        // Load Equity
+        async function loadEquity() {
+            try {
+                const response = await fetch(`${API_BASE}/finance/balance-sheet/equity?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+
+                if (data.success && data.equity) {
+                    console.log(`✅ تم تحميل ${data.equity.length} بند حقوق ملكية`);
+
+                    const equityHTML = data.equity.length > 0 ? data.equity.map(item => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">
+                                    ${translateEquityType(item.equity_type)}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">${item.equity_name}</td>
+                            <td class="px-4 py-3 font-bold text-green-600">${parseFloat(item.amount).toLocaleString('ar-SA')} ر.س</td>
+                            <td class="px-4 py-3 text-gray-600">${item.description || '-'}</td>
+                        </tr>
+                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد بنود حقوق ملكية</td></tr>';
+
+                    document.getElementById('equityTable').innerHTML = equityHTML;
+
+                    // Calculate total
+                    const totalEquity = data.equity.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+                    document.getElementById('totalEquity').textContent = totalEquity.toLocaleString('ar-SA') + ' ر.س';
+                    document.getElementById('equitySummary').textContent = totalEquity.toLocaleString('ar-SA') + ' ر.س';
+
+                    // Update balance equation and chart
+                    updateBalanceEquation();
+                    updateChart();
+
+                    return totalEquity;
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل حقوق الملكية:', error);
+                return 0;
+            }
+        }
+
+        // Update Balance Equation
+        function updateBalanceEquation() {
+            const assetsText = document.getElementById('totalAssets').textContent;
+            const liabilitiesText = document.getElementById('totalLiabilities').textContent;
+            const equityText = document.getElementById('totalEquity').textContent;
+
+            const assets = parseFloat(assetsText.replace(/[^\d.-]/g, ''));
+            const liabilities = parseFloat(liabilitiesText.replace(/[^\d.-]/g, ''));
+            const equity = parseFloat(equityText.replace(/[^\d.-]/g, ''));
+
+            const equation = `${assets.toLocaleString('ar-SA')} = ${liabilities.toLocaleString('ar-SA')} + ${equity.toLocaleString('ar-SA')}`;
+            document.getElementById('balanceEquation').textContent = equation;
+
+            // Check if balanced
+            const isBalanced = Math.abs(assets - (liabilities + equity)) < 0.01;
+            const checkHTML = isBalanced 
+                ? '<span class="text-green-600"><i class="fas fa-check-circle"></i> الميزانية متوازنة</span>'
+                : '<span class="text-red-600"><i class="fas fa-exclamation-triangle"></i> الميزانية غير متوازنة</span>';
+            document.getElementById('balanceCheck').innerHTML = checkHTML;
+
+            // Update debt ratio
+            const debtRatio = liabilities > 0 ? ((liabilities / assets) * 100).toFixed(1) : 0;
+            document.getElementById('debtRatio').textContent = debtRatio + '%';
+        }
+
+        // Update Chart
+        function updateChart() {
+            const assetsText = document.getElementById('totalAssets').textContent;
+            const liabilitiesText = document.getElementById('totalLiabilities').textContent;
+            const equityText = document.getElementById('totalEquity').textContent;
+
+            const assets = parseFloat(assetsText.replace(/[^\d.-]/g, ''));
+            const liabilities = parseFloat(liabilitiesText.replace(/[^\d.-]/g, ''));
+            const equity = parseFloat(equityText.replace(/[^\d.-]/g, ''));
+
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['الأصول', 'الالتزامات', 'حقوق الملكية'],
+                    datasets: [{
+                        data: [assets, liabilities, equity],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(34, 197, 94, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: 'Cairo',
+                                    size: 14
+                                },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return label + ': ' + value.toLocaleString('ar-SA') + ' ر.س';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Translation functions
+        function translateAssetType(type) {
+            const types = {
+                'cash': 'نقدية',
+                'bank': 'بنك',
+                'receivables': 'ذمم مدينة',
+                'inventory': 'مخزون',
+                'building': 'مباني',
+                'equipment': 'معدات',
+                'vehicle': 'مركبات',
+                'land': 'أراضي',
+                'investment': 'استثمارات',
+                'other': 'أخرى'
+            };
+            return types[type] || type;
+        }
+
+        function translateLiabilityType(type) {
+            const types = {
+                'payables': 'ذمم دائنة',
+                'loan': 'قروض',
+                'tax': 'ضرائب',
+                'salary': 'رواتب',
+                'bonds': 'سندات',
+                'mortgage': 'رهن عقاري',
+                'other': 'أخرى'
+            };
+            return types[type] || type;
+        }
+
+        function translateEquityType(type) {
+            const types = {
+                'capital': 'رأس المال',
+                'retained': 'أرباح محتجزة',
+                'reserves': 'احتياطيات',
+                'profit': 'أرباح العام',
+                'loss': 'خسائر',
+                'other': 'أخرى'
+            };
+            return types[type] || type;
+        }
+
+        // Export functions
+        function generatePDF() {
+            alert('سيتم إضافة ميزة تصدير PDF قريباً');
+        }
+
+        function exportExcel() {
+            alert('سيتم إضافة ميزة تصدير Excel قريباً');
+        }
+
+        function printBalanceSheet() {
+            window.print();
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadAllData);
+    </script>
+</body>
+</html>
