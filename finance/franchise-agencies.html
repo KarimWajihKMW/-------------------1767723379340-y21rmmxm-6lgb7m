@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏷️ وكالات فرنشايز - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 45%, #14b8a6 100%);
+            min-height: 100vh;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .stat-pill { border-radius: 999px; box-shadow: 0 18px 30px rgba(15, 23, 42, 0.15); }
+        .stat-angled { border-radius: 28px 6px 28px 6px; }
+        .stat-rounded { border-radius: 28px; }
+        .stat-cut { border-radius: 6px 28px 6px 28px; }
+        .table-scroll { max-height: 560px; overflow: auto; }
+        .section-accent-sky { border-top: 4px solid #0ea5e9; }
+        .section-accent-emerald { border-top: 4px solid #10b981; }
+        .section-accent-amber { border-top: 4px solid #f59e0b; }
+        .section-accent-violet { border-top: 4px solid #8b5cf6; }
+        .section-accent-rose { border-top: 4px solid #f43f5e; }
+        .section-accent-slate { border-top: 4px solid #0f172a; }
+        .chip { padding: 6px 12px; border-radius: 999px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">🏷️ وكالات فرنشايز</h1>
+            <p class="text-lg opacity-90">مركز إدارة الامتيازات والتقارير التشغيلية والمالية للوكالات</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-slate-800 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل ملف بيانات شامل
+            </button>
+            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل ملف جدولي شامل
+            </button>
+            <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة التقرير
+            </button>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="stat-pill bg-gradient-to-br from-slate-700 to-slate-900 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>عدد الوكالات</span><i class="fas fa-store text-2xl opacity-70"></i></div>
+                    <div id="agenciesCount" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-angled bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>إجمالي المبيعات</span><i class="fas fa-bag-shopping text-2xl opacity-70"></i></div>
+                    <div id="totalSales" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>معدل التحصيل</span><i class="fas fa-percent text-2xl opacity-70"></i></div>
+                    <div id="collectionRate" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-cut bg-gradient-to-br from-violet-500 to-indigo-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>الوكالات النشطة</span><i class="fas fa-circle-check text-2xl opacity-70"></i></div>
+                    <div id="activeAgencies" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">✨ خصائص حصرية لوكالات الفرنشايز</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div class="stat-pill bg-emerald-50 p-4">مؤشر نمو التوسع الذكي</div>
+                <div class="stat-angled bg-sky-50 p-4">خريطة التغطية الجغرافية الحية</div>
+                <div class="stat-rounded bg-indigo-50 p-4">تقييم جودة الخدمة اللحظي</div>
+                <div class="stat-cut bg-rose-50 p-4">مخزن أسرار التشغيل لكل وكالة</div>
+                <div class="stat-pill bg-amber-50 p-4">سجل التزام العلامة التجارية</div>
+                <div class="stat-angled bg-violet-50 p-4">مركز عقود امتياز موثّق</div>
+            </div>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">🧭 رحلة اعتماد الوكالة</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="stat-rounded bg-violet-50 p-4">تقييم الجدارة المالية</div>
+                <div class="stat-angled bg-emerald-50 p-4">تدقيق امتثال العلامة</div>
+                <div class="stat-pill bg-amber-50 p-4">تدريب وتشغيل تجريبي</div>
+                <div class="stat-cut bg-sky-50 p-4">اعتماد وتشغيل رسمي</div>
+            </div>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-amber">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🏪 جدول الوكالات</h3>
+                <span id="agenciesTableCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-amber-50 text-amber-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رمز الوكالة</th>
+                            <th class="px-3 py-2 text-right">اسم الوكالة</th>
+                            <th class="px-3 py-2 text-right">القيمة التعاقدية</th>
+                            <th class="px-3 py-2 text-right">المبيعات</th>
+                            <th class="px-3 py-2 text-right">التحصيل</th>
+                            <th class="px-3 py-2 text-right">التصنيف</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agenciesTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📝 سجل الاعتمادات والتجديد</h3>
+                <span id="approvalsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-rose-50 text-rose-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم السجل</th>
+                            <th class="px-3 py-2 text-right">رمز الوكالة</th>
+                            <th class="px-3 py-2 text-right">الإجراء</th>
+                            <th class="px-3 py-2 text-right">المسؤول</th>
+                            <th class="px-3 py-2 text-right">التاريخ</th>
+                            <th class="px-3 py-2 text-right">الملاحظة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalsTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const APPROVALS_STORAGE_KEY = 'سجل_اعتماد_الوكالات';
+
+        let customers = [];
+        let invoices = [];
+        let payments = [];
+        let approvals = [];
+
+        function loadApprovals() {
+            const saved = localStorage.getItem(APPROVALS_STORAGE_KEY);
+            approvals = saved ? JSON.parse(saved) : [];
+        }
+
+        function saveApprovals() {
+            localStorage.setItem(APPROVALS_STORAGE_KEY, JSON.stringify(approvals));
+        }
+
+        async function loadData() {
+            try {
+                const [customersRes, invoicesRes, paymentsRes] = await Promise.all([
+                    fetch(`${API_BASE}/finance/customers`),
+                    fetch(`${API_BASE}/finance/invoices`),
+                    fetch(`${API_BASE}/finance/payments`)
+                ]);
+
+                const [customersData, invoicesData, paymentsData] = await Promise.all([
+                    customersRes.json(),
+                    invoicesRes.json(),
+                    paymentsRes.json()
+                ]);
+
+                customers = customersData.customers || customersData.rows || [];
+                invoices = invoicesData.invoices || [];
+                payments = paymentsData.payments || [];
+
+                loadApprovals();
+                renderStats();
+                renderTables();
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+                customers = [];
+                invoices = [];
+                payments = [];
+                loadApprovals();
+                renderStats();
+                renderTables();
+            }
+        }
+
+        function renderStats() {
+            const agencies = buildAgencies();
+            const totalSales = agencies.reduce((sum, a) => sum + a.sales, 0);
+            const totalCollections = agencies.reduce((sum, a) => sum + a.collections, 0);
+            const collectionRate = totalSales ? (totalCollections / totalSales) * 100 : 0;
+            const activeCount = agencies.filter(a => a.status === 'نشطة').length;
+
+            document.getElementById('agenciesCount').textContent = agencies.length;
+            document.getElementById('totalSales').textContent = formatMoney(totalSales);
+            document.getElementById('collectionRate').textContent = `${collectionRate.toFixed(1)}%`;
+            document.getElementById('activeAgencies').textContent = activeCount;
+        }
+
+        function buildAgencies() {
+            const agencyMap = new Map();
+            customers.forEach(c => {
+                const key = c.customer_id || c.customer_code || c.id || Math.random().toString(36).slice(2, 8);
+                agencyMap.set(key, {
+                    id: key,
+                    name: c.customer_name_ar || c.customer_name || `وكالة ${key}`,
+                    contractValue: parseFloat(c.credit_limit || 0),
+                    sales: 0,
+                    collections: 0,
+                    status: 'نشطة'
+                });
+            });
+
+            invoices.forEach(inv => {
+                const key = inv.customer_id || inv.customer_code || inv.customer_name || inv.customer_id;
+                const agency = agencyMap.get(key) || createFallbackAgency(key);
+                agency.sales += parseFloat(inv.total_amount || inv.amount || 0);
+                agencyMap.set(agency.id, agency);
+            });
+
+            payments.forEach(pay => {
+                const key = pay.customer_id || pay.customer_code || pay.customer_name || pay.customer_id;
+                const agency = agencyMap.get(key) || createFallbackAgency(key);
+                agency.collections += parseFloat(pay.payment_amount || pay.amount || 0);
+                agencyMap.set(agency.id, agency);
+            });
+
+            return Array.from(agencyMap.values()).map(a => ({
+                ...a,
+                tier: getTier(a.sales, a.collections),
+                status: a.sales > 0 ? 'نشطة' : 'قيد التفعيل'
+            }));
+        }
+
+        function createFallbackAgency(key) {
+            return {
+                id: key || Math.random().toString(36).slice(2, 8),
+                name: `وكالة ${sanitizeText(key)}`,
+                contractValue: 0,
+                sales: 0,
+                collections: 0,
+                status: 'قيد التفعيل'
+            };
+        }
+
+        function getTier(sales, collections) {
+            const ratio = sales ? (collections / sales) : 0;
+            if (ratio >= 0.9) return 'ذهبية';
+            if (ratio >= 0.7) return 'فضية';
+            return 'برونزية';
+        }
+
+        function renderTables() {
+            const agencies = buildAgencies();
+            const agencyRows = agencies.map(a => {
+                const approvalStatus = approvals.find(l => l.agency_id === a.id)?.action || 'غير معتمدة';
+                return `
+                    <tr class="hover:bg-amber-50">
+                        <td class="px-3 py-2">${sanitizeText(a.id)}</td>
+                        <td class="px-3 py-2">${sanitizeText(a.name)}</td>
+                        <td class="px-3 py-2">${formatMoney(a.contractValue)}</td>
+                        <td class="px-3 py-2">${formatMoney(a.sales)}</td>
+                        <td class="px-3 py-2">${formatMoney(a.collections)}</td>
+                        <td class="px-3 py-2">${a.tier}</td>
+                        <td class="px-3 py-2">${approvalStatus}</td>
+                        <td class="px-3 py-2">
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="approveAgency('${a.id}')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-xs font-bold">اعتماد</button>
+                                <button onclick="renewAgency('${a.id}')" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تجديد</button>
+                                <button onclick="suspendAgency('${a.id}')" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تعليق</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('agenciesTable').innerHTML = agencyRows || `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('agenciesTableCount').textContent = `عدد الصفوف: ${agencies.length}`;
+
+            const approvalRows = approvals.map((a, idx) => `
+                <tr class="hover:bg-rose-50">
+                    <td class="px-3 py-2">${idx + 1}</td>
+                    <td class="px-3 py-2">${sanitizeText(a.agency_id)}</td>
+                    <td class="px-3 py-2">${a.action}</td>
+                    <td class="px-3 py-2">${a.user}</td>
+                    <td class="px-3 py-2">${formatDateTime(a.date)}</td>
+                    <td class="px-3 py-2">${a.note}</td>
+                </tr>
+            `).join('');
+            document.getElementById('approvalsTable').innerHTML = approvalRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td></tr>`;
+            document.getElementById('approvalsCount').textContent = `عدد السجلات: ${approvals.length}`;
+        }
+
+        function approveAgency(id) {
+            recordApproval(id, 'معتمدة', 'تم اعتماد الوكالة');
+        }
+
+        function renewAgency(id) {
+            recordApproval(id, 'تم التجديد', 'تم تجديد الامتياز');
+        }
+
+        function suspendAgency(id) {
+            recordApproval(id, 'معلقة', 'تم تعليق الوكالة مؤقتًا');
+        }
+
+        function recordApproval(id, action, note) {
+            approvals.unshift({
+                agency_id: id,
+                action,
+                note,
+                user: 'مسؤول الامتياز',
+                date: new Date().toISOString()
+            });
+            saveApprovals();
+            renderStats();
+            renderTables();
+        }
+
+        function downloadAllJSON() {
+            const payload = { customers, invoices, payments, approvals };
+            downloadBlob(JSON.stringify(payload, null, 2), 'وكالات-الفرنشايز.json', 'application/json');
+        }
+
+        function downloadAllCSV() {
+            const rows = [];
+            rows.push(['الوكالات']);
+            rows.push(['رمز الوكالة','اسم الوكالة','القيمة التعاقدية','المبيعات','التحصيل','التصنيف','الحالة']);
+            buildAgencies().forEach(a => rows.push([
+                a.id,
+                a.name,
+                a.contractValue,
+                a.sales,
+                a.collections,
+                a.tier,
+                a.status
+            ]));
+
+            rows.push([]);
+            rows.push(['سجل الاعتمادات']);
+            rows.push(['رقم السجل','رمز الوكالة','الإجراء','المسؤول','التاريخ','الملاحظة']);
+            approvals.forEach((a, idx) => rows.push([
+                idx + 1,
+                a.agency_id,
+                a.action,
+                a.user,
+                a.date,
+                a.note
+            ]));
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'وكالات-الفرنشايز.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || '-';
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
