@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧾 الدورة المحاسبية الكاملة - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(120deg, #0ea5e9 0%, #6366f1 50%, #10b981 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .stat-card { transition: transform 0.3s, box-shadow 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 14px 28px rgba(15,23,42,0.15); }
+        .shape-pill { border-radius: 999px; }
+        .shape-angle { border-radius: 28px 8px 28px 8px; }
+        .shape-wave { border-radius: 28px 28px 6px 28px; }
+        .shape-arc { border-radius: 18px 40px 18px 40px; }
+        .chart-container { position: relative; height: 280px; }
+        .table-scroll { max-height: 520px; overflow: auto; }
+        .section-accent-sky { border-top: 4px solid #0ea5e9; }
+        .section-accent-emerald { border-top: 4px solid #10b981; }
+        .section-accent-amber { border-top: 4px solid #f59e0b; }
+        .section-accent-indigo { border-top: 4px solid #6366f1; }
+        .section-accent-rose { border-top: 4px solid #f43f5e; }
+        .badge { padding: 6px 12px; border-radius: 999px; font-weight: 700; }
+        details > summary { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">🧾 الدورة المحاسبية الكاملة داخل نايوش</h1>
+            <p class="text-lg opacity-90">العمليات اليومية + إقفال الفترة + القوائم الختامية (الصفحة 29)</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="downloadCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+        </div>
+
+        <!-- Daily Operations -->
+        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">📌 إثبات العمليات المالية اليومية</h2>
+                <span class="text-sm text-slate-500">كل عملية تُسجل بقيد محاسبي تلقائي</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+                <div class="stat-card shape-pill bg-gradient-to-br from-sky-500 to-blue-600 text-white p-5">
+                    <div class="flex justify-between mb-3"><span>المبيعات</span><i class="fas fa-file-invoice-dollar text-2xl opacity-70"></i></div>
+                    <div id="salesKpi" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-card shape-angle bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-5">
+                    <div class="flex justify-between mb-3"><span>المصروفات</span><i class="fas fa-receipt text-2xl opacity-70"></i></div>
+                    <div id="expensesKpi" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-card shape-wave bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5">
+                    <div class="flex justify-between mb-3"><span>التحصيل</span><i class="fas fa-sack-dollar text-2xl opacity-70"></i></div>
+                    <div id="collectionsKpi" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-card shape-arc bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5">
+                    <div class="flex justify-between mb-3"><span>المدفوعات</span><i class="fas fa-credit-card text-2xl opacity-70"></i></div>
+                    <div id="paymentsKpi" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass rounded-2xl p-5 shadow-lg section-accent-emerald">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">📊 توزيع العمليات اليومية</h3>
+                    <div class="chart-container">
+                        <canvas id="dailyOpsChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">🧠 أمثلة قيود تلقائية</h3>
+                    <div id="autoEntries" class="space-y-3 text-sm text-slate-700">
+                        <div class="animate-pulse">جاري التحميل...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Period Closing -->
+        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🧾 إقفال الفترة المحاسبية (Period Closing)</h2>
+                <span class="text-sm text-slate-500">حالة الإقفال وفق البيانات الحالية</span>
+            </div>
+            <div id="closingChecklist" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Final Statements -->
+        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">📈 القوائم المالية الختامية</h2>
+                <span class="text-sm text-slate-500">Income Statement + Balance Sheet + Cash Flow</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+                <div class="stat-card shape-pill bg-white text-slate-800 p-5 shadow-lg">
+                    <div class="flex justify-between mb-3"><span>الإيرادات</span><i class="fas fa-arrow-up text-emerald-600"></i></div>
+                    <div id="totalRevenue" class="text-2xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-card shape-angle bg-white text-slate-800 p-5 shadow-lg">
+                    <div class="flex justify-between mb-3"><span>المصروفات</span><i class="fas fa-arrow-down text-rose-600"></i></div>
+                    <div id="totalExpenses" class="text-2xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-card shape-wave bg-white text-slate-800 p-5 shadow-lg">
+                    <div class="flex justify-between mb-3"><span>صافي الربح</span><i class="fas fa-chart-line text-indigo-600"></i></div>
+                    <div id="netIncome" class="text-2xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-card shape-arc bg-white text-slate-800 p-5 shadow-lg">
+                    <div class="flex justify-between mb-3"><span>إجمالي الأصول</span><i class="fas fa-building-columns text-sky-600"></i></div>
+                    <div id="totalAssets" class="text-2xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">💧 قائمة التدفقات النقدية</h3>
+                    <div class="chart-container">
+                        <canvas id="cashflowStatementChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass rounded-2xl p-5 shadow-lg section-accent-rose">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">⚖️ قائمة المركز المالي</h3>
+                    <div id="balanceSummary" class="space-y-3 text-sm text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables -->
+        <div class="space-y-6">
+            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-sky" open>
+                <summary class="text-xl font-bold text-slate-800">🧾 العمليات اليومية (فواتير + مصروفات + مدفوعات)</summary>
+                <div class="mt-4 space-y-6">
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">الفواتير (Sales)</h4><span id="invoicesCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="invoicesHead" class="bg-sky-50 text-sky-700"></thead><tbody id="invoicesTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">المصروفات</h4><span id="expensesCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="expensesHead" class="bg-rose-50 text-rose-700"></thead><tbody id="expensesTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">التحصيل (Payments)</h4><span id="paymentsCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="paymentsHead" class="bg-emerald-50 text-emerald-700"></thead><tbody id="paymentsTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-indigo">
+                <summary class="text-xl font-bold text-slate-800">📚 القيود المحاسبية الآلية</summary>
+                <div class="mt-4 space-y-6">
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">قيود اليومية</h4><span id="entriesCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="entriesHead" class="bg-indigo-50 text-indigo-700"></thead><tbody id="entriesTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">سطور القيود</h4><span id="linesCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="linesHead" class="bg-sky-50 text-sky-700"></thead><tbody id="linesTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+                <summary class="text-xl font-bold text-slate-800">📊 القوائم المالية</summary>
+                <div class="mt-4 space-y-6">
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">قائمة الدخل - الإيرادات</h4><span id="incomeRevenueCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="incomeRevenueHead" class="bg-emerald-50 text-emerald-700"></thead><tbody id="incomeRevenueTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">قائمة الدخل - المصروفات</h4><span id="incomeExpenseCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="incomeExpenseHead" class="bg-rose-50 text-rose-700"></thead><tbody id="incomeExpenseTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">الميزانية العمومية</h4><span id="balanceSheetCount" class="text-sm text-slate-500"></span></div>
+                        <div class="table-scroll"><table class="w-full text-xs"><thead id="balanceSheetHead" class="bg-amber-50 text-amber-700"></thead><tbody id="balanceSheetTable" class="divide-y divide-slate-100"></tbody></table></div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const PRIMARY_ENTITY_ID = '1';
+        const SECONDARY_ENTITY_ID = 'HQ001';
+
+        let dataStore = {
+            invoices: [],
+            expenses: [],
+            payments: [],
+            entries: [],
+            lines: [],
+            incomeRevenue: [],
+            incomeExpenses: [],
+            balanceSheet: null,
+            cashflowOverview: null,
+            cashflowOperating: [],
+            cashflowInvesting: [],
+            cashflowFinancing: []
+        };
+
+        let dailyOpsChartInstance = null;
+        let cashflowChartInstance = null;
+
+        async function fetchJson(url) {
+            const res = await fetch(url);
+            const data = await res.json();
+            return { ok: res.ok, status: res.status, data };
+        }
+
+        async function fetchWithFallback(primaryUrl, fallbackUrl) {
+            const primary = await fetchJson(primaryUrl);
+            if (primary.ok && hasRows(primary.data)) return primary;
+            if (!fallbackUrl) return primary;
+            const fallback = await fetchJson(fallbackUrl);
+            return fallback.ok ? fallback : primary;
+        }
+
+        function hasRows(data) {
+            const arrays = ['entries','lines','rows','invoices','payments','expenses','revenue_accounts','expense_accounts','assets','liabilities','equity'];
+            return arrays.some(key => Array.isArray(data[key]) && data[key].length > 0);
+        }
+
+        async function loadData() {
+            try {
+                const [invoicesRes, expensesRes, paymentsRes, entriesRes, linesRes, incomeRes, balanceRes, overviewRes, operatingRes, investingRes, financingRes] = await Promise.all([
+                    fetchJson(`${API_BASE}/finance/invoices`),
+                    fetchWithFallback(`${API_BASE}/finance/expenses?entity_id=${SECONDARY_ENTITY_ID}`, `${API_BASE}/finance/expenses?entity_id=${PRIMARY_ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/payments`),
+                    fetchWithFallback(`${API_BASE}/finance/journal/entries?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/journal/entries?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/journal-lines?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/journal-lines?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/income-statement?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/income-statement?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/balance-sheet/complete?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/balance-sheet/complete?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/cashflow/overview?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/overview?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/cashflow/operating?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/operating?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/cashflow/investing?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/investing?entity_id=${SECONDARY_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/cashflow/financing?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/financing?entity_id=${SECONDARY_ENTITY_ID}`)
+                ]);
+
+                dataStore.invoices = invoicesRes.data.invoices || [];
+                dataStore.expenses = expensesRes.data.expenses || [];
+                dataStore.payments = paymentsRes.data.payments || [];
+                dataStore.entries = entriesRes.data.entries || [];
+                dataStore.lines = linesRes.data.lines || [];
+                dataStore.incomeRevenue = incomeRes.data.revenue_accounts || [];
+                dataStore.incomeExpenses = incomeRes.data.expense_accounts || [];
+                dataStore.balanceSheet = balanceRes.ok ? balanceRes.data : null;
+                dataStore.cashflowOverview = overviewRes.data || null;
+                dataStore.cashflowOperating = operatingRes.data.cashflows || [];
+                dataStore.cashflowInvesting = investingRes.data.cashflows || [];
+                dataStore.cashflowFinancing = financingRes.data.cashflows || [];
+
+                renderKPIs();
+                renderDailyOpsChart();
+                renderAutoEntries();
+                renderClosingChecklist();
+                renderStatements();
+                renderTables();
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        function renderKPIs() {
+            const sales = sum(dataStore.invoices, 'total_amount');
+            const expenses = sum(dataStore.expenses, 'total_amount');
+            const collections = sum(dataStore.payments, 'payment_amount');
+
+            document.getElementById('salesKpi').textContent = formatMoney(sales);
+            document.getElementById('expensesKpi').textContent = formatMoney(expenses);
+            document.getElementById('collectionsKpi').textContent = formatMoney(collections);
+            document.getElementById('paymentsKpi').textContent = formatMoney(expenses);
+        }
+
+        function renderDailyOpsChart() {
+            const ctx = document.getElementById('dailyOpsChart').getContext('2d');
+            if (dailyOpsChartInstance) dailyOpsChartInstance.destroy();
+            dailyOpsChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['المبيعات', 'المصروفات', 'التحصيل'],
+                    datasets: [{
+                        data: [
+                            sum(dataStore.invoices, 'total_amount'),
+                            sum(dataStore.expenses, 'total_amount'),
+                            sum(dataStore.payments, 'payment_amount')
+                        ],
+                        backgroundColor: ['#0ea5e9', '#f43f5e', '#10b981']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderAutoEntries() {
+            const samplePayment = dataStore.payments[0];
+            const sampleExpense = dataStore.expenses[0];
+
+            const paymentText = samplePayment
+                ? `مثال: تحصيل فاتورة جزئيًا - من: النقدية إلى: حساب العميل (${samplePayment.customer_name || 'عميل'})`
+                : 'مثال: تحصيل فاتورة جزئيًا - من: النقدية إلى: حساب العميل';
+            const expenseText = sampleExpense
+                ? `مثال: مصروف تشغيل - من: مصروفات تشغيل إلى: البنك (${sampleExpense.vendor_name || 'مزود'})`
+                : 'مثال: مصروف تشغيل - من: مصروفات تشغيل إلى: البنك';
+
+            document.getElementById('autoEntries').innerHTML = `
+                <div class="bg-slate-50 p-3 rounded-xl">${paymentText}</div>
+                <div class="bg-slate-50 p-3 rounded-xl">${expenseText}</div>
+            `;
+        }
+
+        function renderClosingChecklist() {
+            const checklist = [
+                { label: 'إقفال الإيرادات في حساب الأرباح والخسائر', done: dataStore.incomeRevenue.length > 0 },
+                { label: 'إقفال المصروفات', done: dataStore.incomeExpenses.length > 0 },
+                { label: 'احتساب الإهلاك', done: dataStore.cashflowInvesting.length > 0 },
+                { label: 'تسوية العهد', done: dataStore.entries.length > 0 },
+                { label: 'تسوية المخزون', done: dataStore.entries.length > 0 },
+                { label: 'تسوية الذمم', done: dataStore.payments.length > 0 }
+            ];
+
+            document.getElementById('closingChecklist').innerHTML = checklist.map(item => `
+                <div class="flex items-center justify-between p-4 bg-white rounded-2xl shadow">
+                    <span>${item.label}</span>
+                    <span class="badge ${item.done ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                        ${item.done ? 'مكتمل' : 'قيد المتابعة'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderStatements() {
+            const totals = dataStore.cashflowOverview || { total_net_cashflow: 0 };
+            const incomeRevenue = sum(dataStore.incomeRevenue, 'balance');
+            const incomeExpenses = sum(dataStore.incomeExpenses, 'balance');
+            const netIncome = incomeRevenue - incomeExpenses;
+
+            document.getElementById('totalRevenue').textContent = formatMoney(incomeRevenue);
+            document.getElementById('totalExpenses').textContent = formatMoney(incomeExpenses);
+            document.getElementById('netIncome').textContent = formatMoney(netIncome);
+            document.getElementById('totalAssets').textContent = formatMoney(dataStore.balanceSheet?.totals?.total_assets || 0);
+
+            const ctx = document.getElementById('cashflowStatementChart').getContext('2d');
+            if (cashflowChartInstance) cashflowChartInstance.destroy();
+            cashflowChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['تشغيلي', 'استثماري', 'تمويلي'],
+                    datasets: [{
+                        data: [
+                            sum(dataStore.cashflowOperating, 'amount'),
+                            sum(dataStore.cashflowInvesting, 'amount'),
+                            sum(dataStore.cashflowFinancing, 'amount')
+                        ],
+                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#14b8a6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const bs = dataStore.balanceSheet?.totals;
+            document.getElementById('balanceSummary').innerHTML = bs ? `
+                <div class="bg-slate-50 p-3 rounded-xl">الأصول: ${formatMoney(bs.total_assets)}</div>
+                <div class="bg-slate-50 p-3 rounded-xl">الالتزامات: ${formatMoney(bs.total_liabilities)}</div>
+                <div class="bg-slate-50 p-3 rounded-xl">حقوق الملكية: ${formatMoney(bs.total_equity)}</div>
+                <div class="bg-slate-50 p-3 rounded-xl">متوازن: ${bs.is_balanced ? 'نعم' : 'لا'} (${formatMoney(bs.difference)})</div>
+            ` : '<div class="text-slate-500">لا توجد بيانات</div>';
+        }
+
+        function renderTables() {
+            renderDynamicTable('invoicesHead', 'invoicesTable', dataStore.invoices, 'invoicesCount');
+            renderDynamicTable('expensesHead', 'expensesTable', dataStore.expenses, 'expensesCount');
+            renderDynamicTable('paymentsHead', 'paymentsTable', dataStore.payments, 'paymentsCount');
+            renderDynamicTable('entriesHead', 'entriesTable', dataStore.entries, 'entriesCount');
+            renderDynamicTable('linesHead', 'linesTable', dataStore.lines, 'linesCount');
+
+            renderDynamicTable('incomeRevenueHead', 'incomeRevenueTable', dataStore.incomeRevenue, 'incomeRevenueCount');
+            renderDynamicTable('incomeExpenseHead', 'incomeExpenseTable', dataStore.incomeExpenses, 'incomeExpenseCount');
+
+            const bsRows = dataStore.balanceSheet ? [dataStore.balanceSheet.sheet] : [];
+            renderDynamicTable('balanceSheetHead', 'balanceSheetTable', bsRows, 'balanceSheetCount');
+        }
+
+        function renderDynamicTable(headId, bodyId, rows, countId) {
+            const head = document.getElementById(headId);
+            const body = document.getElementById(bodyId);
+            const count = document.getElementById(countId);
+
+            count.textContent = `عدد الصفوف: ${rows.length}`;
+            if (!rows.length) {
+                head.innerHTML = '';
+                body.innerHTML = `<tr><td class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+                return;
+            }
+
+            const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
+            head.innerHTML = `<tr>${columns.map(c => `<th class="px-3 py-2 text-right">${c}</th>`).join('')}</tr>`;
+            body.innerHTML = rows.map(row => `
+                <tr class="hover:bg-slate-50">
+                    ${columns.map(c => `<td class="px-3 py-2">${formatValue(row[c])}</td>`).join('')}
+                </tr>
+            `).join('');
+        }
+
+        function sum(rows, key) {
+            return rows.reduce((acc, r) => acc + parseFloat(r[key] || 0), 0);
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatValue(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            if (typeof value === 'number') return value.toLocaleString('ar-SA');
+            if (typeof value === 'boolean') return value ? 'true' : 'false';
+            if (typeof value === 'object') return JSON.stringify(value);
+            return String(value);
+        }
+
+        function downloadJSON() {
+            downloadBlob(JSON.stringify(dataStore, null, 2), 'accounting-cycle.json', 'application/json');
+        }
+
+        function downloadCSV() {
+            const sections = [
+                ['INVOICES', dataStore.invoices],
+                ['EXPENSES', dataStore.expenses],
+                ['PAYMENTS', dataStore.payments],
+                ['JOURNAL_ENTRIES', dataStore.entries],
+                ['JOURNAL_LINES', dataStore.lines],
+                ['INCOME_REVENUE', dataStore.incomeRevenue],
+                ['INCOME_EXPENSE', dataStore.incomeExpenses],
+                ['BALANCE_SHEET', dataStore.balanceSheet ? [dataStore.balanceSheet.sheet] : []]
+            ];
+            const rows = [];
+            sections.forEach(([title, data]) => {
+                rows.push([title]);
+                if (data.length) {
+                    const cols = Array.from(new Set(data.flatMap(row => Object.keys(row))));
+                    rows.push(cols);
+                    data.forEach(row => rows.push(cols.map(c => row[c])));
+                }
+                rows.push([]);
+            });
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'accounting-cycle.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
