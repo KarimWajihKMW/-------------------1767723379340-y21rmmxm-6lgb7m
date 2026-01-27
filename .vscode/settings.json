@@ -933,6 +933,22 @@
         "/^node check-account-balances-structure\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^python - <<'PY'\nimport sys\nfrom pathlib import Path\npptx_path = Path\\('/workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/نظام محاسبي\\.pptx'\\)\ntry:\n    from pptx import Presentation\nexcept Exception as e:\n    print\\('MISSING_PPTX', e\\)\n    sys\\.exit\\(0\\)\n\nprs = Presentation\\(str\\(pptx_path\\)\\)\nprint\\('slides', len\\(prs\\.slides\\)\\)\nfor i, slide in enumerate\\(prs\\.slides, start=1\\):\n    texts = \\[\\]\n    for shape in slide\\.shapes:\n        if hasattr\\(shape, 'text'\\):\n            t = shape\\.text\\.strip\\(\\)\n            if t:\n                texts\\.append\\(t\\)\n    title = texts\\[0\\] if texts else ''\n    print\\(i, title\\[:120\\]\\.replace\\('\\\\n',' \\| '\\)\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node - <<'NODE'\nconst \\{ Client \\} = require\\('pg'\\);\nconst client = new Client\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\\(async \\(\\) => \\{\n  try \\{\n    await client\\.connect\\(\\);\n    const plans = await client\\.query\\('SELECT COUNT\\(\\*\\) AS count, MIN\\(entity_id\\) AS min_entity, MAX\\(entity_id\\) AS max_entity FROM finance_payment_plans'\\);\n    const allocs = await client\\.query\\('SELECT COUNT\\(\\*\\) AS count FROM finance_payment_allocations'\\);\n    const entities = await client\\.query\\('SELECT entity_id, COUNT\\(\\*\\) AS count FROM finance_payment_plans GROUP BY entity_id ORDER BY count DESC NULLS LAST LIMIT 5'\\);\n    console\\.log\\('plans:', plans\\.rows\\);\n    console\\.log\\('allocs:', allocs\\.rows\\);\n    console\\.log\\('entities:', entities\\.rows\\);\n  \\} catch \\(e\\) \\{\n    console\\.error\\('DB error', e\\.message\\);\n  \\} finally \\{\n    await client\\.end\\(\\);\n  \\}\n\\}\\)\\(\\);\nNODE$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/server\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/test-payment-plans-api\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

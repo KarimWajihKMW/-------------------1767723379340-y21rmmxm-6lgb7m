@@ -1,6 +1,6 @@
 /**
  * 📆 Payment Plans API
- * Page 16 of Accounting System
+ * Page 21 of Accounting System
  */
 
 const { Pool } = require('pg');
@@ -15,7 +15,7 @@ const pool = new Pool({
 });
 
 async function getPaymentPlans(req, res) {
-    const { entity_id, status, from_date, to_date } = req.query;
+    const { entity_id, status, from_date, to_date, plan_number, customer_name, invoice_number } = req.query;
 
     if (!entity_id) {
         return res.status(400).json({
@@ -27,55 +27,81 @@ async function getPaymentPlans(req, res) {
     try {
         console.log(`📆 Fetching payment plans for entity ${entity_id}...`);
 
-        const planConditions = ['(entity_id = $1 OR entity_id IS NULL)'];
+        const planConditions = ['(p.entity_id = $1 OR p.entity_id IS NULL)'];
         const planValues = [entity_id];
         let pIndex = 2;
 
         if (status) {
-            planConditions.push(`LOWER(status) = LOWER($${pIndex})`);
+            planConditions.push(`LOWER(p.status) = LOWER($${pIndex})`);
             planValues.push(status);
             pIndex++;
         }
+        if (plan_number) {
+            planConditions.push(`p.plan_number ILIKE $${pIndex}`);
+            planValues.push(`%${plan_number}%`);
+            pIndex++;
+        }
+        if (customer_name) {
+            planConditions.push(`(c.customer_name_ar ILIKE $${pIndex} OR c.customer_name_en ILIKE $${pIndex})`);
+            planValues.push(`%${customer_name}%`);
+            pIndex++;
+        }
+        if (invoice_number) {
+            planConditions.push(`i.invoice_number ILIKE $${pIndex}`);
+            planValues.push(`%${invoice_number}%`);
+            pIndex++;
+        }
         if (from_date) {
-            planConditions.push(`start_date >= $${pIndex}`);
+            planConditions.push(`p.start_date >= $${pIndex}`);
             planValues.push(from_date);
             pIndex++;
         }
         if (to_date) {
-            planConditions.push(`end_date <= $${pIndex}`);
+            planConditions.push(`p.end_date <= $${pIndex}`);
             planValues.push(to_date);
             pIndex++;
         }
 
         const plansQuery = `
             SELECT
-                plan_id,
-                plan_number,
-                customer_id,
-                invoice_id,
-                start_date,
-                end_date,
-                total_amount,
-                paid_amount,
-                remaining_amount,
-                number_of_installments,
-                installment_amount,
-                installment_frequency,
-                status,
-                risk_score_at_creation,
-                risk_level_at_creation,
-                entity_type,
-                entity_id,
-                branch_id,
-                incubator_id,
-                created_at,
-                updated_at,
-                created_by,
-                approved_by,
-                approved_at
+                p.plan_id,
+                p.plan_number,
+                p.customer_id,
+                p.invoice_id,
+                p.start_date,
+                p.end_date,
+                p.total_amount,
+                p.paid_amount,
+                p.remaining_amount,
+                p.number_of_installments,
+                p.installment_amount,
+                p.installment_frequency,
+                p.status,
+                p.risk_score_at_creation,
+                p.risk_level_at_creation,
+                p.entity_type,
+                p.entity_id,
+                p.branch_id,
+                p.incubator_id,
+                p.created_at,
+                p.updated_at,
+                p.created_by,
+                p.approved_by,
+                p.approved_at,
+                c.customer_code,
+                c.customer_name_ar,
+                c.customer_name_en,
+                c.customer_type,
+                i.invoice_number,
+                i.invoice_date,
+                i.status AS invoice_status,
+                i.payment_status AS invoice_payment_status
             FROM finance_payment_plans
+            p
+            LEFT JOIN finance_customers c ON c.customer_id = p.customer_id
+            LEFT JOIN finance_invoices i ON i.invoice_id = p.invoice_id
             WHERE ${planConditions.join(' AND ')}
-            ORDER BY start_date DESC, plan_id DESC
+            ORDER BY p.start_date DESC, p.plan_id DESC
         `;
 
         const plansResult = await pool.query(plansQuery, planValues);
@@ -93,9 +119,17 @@ async function getPaymentPlans(req, res) {
                 p.payment_amount,
                 p.payment_method,
                 p.status AS payment_status,
-                p.entity_id AS payment_entity_id
+                p.entity_id AS payment_entity_id,
+                i.invoice_number,
+                i.invoice_date,
+                i.status AS invoice_status,
+                c.customer_id,
+                c.customer_name_ar,
+                c.customer_name_en
             FROM finance_payment_allocations a
             LEFT JOIN finance_payments p ON p.payment_id = a.payment_id
+            LEFT JOIN finance_invoices i ON i.invoice_id = a.invoice_id
+            LEFT JOIN finance_customers c ON c.customer_id = i.customer_id
             WHERE (p.entity_id = $1 OR p.entity_id IS NULL)
             ORDER BY a.created_at DESC, a.allocation_id DESC
         `;
@@ -121,6 +155,8 @@ async function getPaymentPlans(req, res) {
 
         summary.total_allocations = allocations.length;
         summary.total_allocated_amount = allocations.reduce((sum, a) => sum + parseFloat(a.allocated_amount || 0), 0);
+        summary.entity_id = entity_id;
+        summary.generated_at = new Date().toISOString();
 
         res.json({
             success: true,
