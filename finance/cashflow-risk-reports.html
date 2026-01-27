@@ -62,11 +62,11 @@
             </button>
             <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-code"></i>
-                تنزيل JSON شامل
+                تنزيل ملف بيانات شامل
             </button>
             <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-csv"></i>
-                تنزيل CSV شامل
+                تنزيل ملف جدولي شامل
             </button>
             <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print"></i>
@@ -466,14 +466,14 @@
             const topCustomers = [...riskScores].sort((a, b) => parseFloat(b.risk_score || 0) - parseFloat(a.risk_score || 0)).slice(0, 10);
             document.getElementById('topRiskCustomers').innerHTML = topCustomers.length ? topCustomers.map(c => `
                 <div class="flex items-center justify-between bg-amber-50 p-3 rounded-xl">
-                    <span>عميل ${c.customer_id}</span>
+                    <span>عميل ${sanitizeText(c.customer_id)}</span>
                     <span class="chip bg-amber-100 text-amber-700">${parseFloat(c.risk_score || 0).toFixed(1)}</span>
                 </div>
             `).join('') : '<div class="text-slate-500">لا توجد بيانات</div>';
 
             document.getElementById('riskInsights').innerHTML = `
                 <div class="bg-slate-50 p-3 rounded-xl">
-                    "${topCustomers[0] ? `العميل ${topCustomers[0].customer_id} لديه احتمال تعثر ${(parseFloat(topCustomers[0].risk_score || 0)).toFixed(1)}%` : 'لا توجد بيانات متاحة'}"
+                    "${topCustomers[0] ? `العميل ${sanitizeText(topCustomers[0].customer_id)} لديه احتمال تعثر ${(parseFloat(topCustomers[0].risk_score || 0)).toFixed(1)}%` : 'لا توجد بيانات متاحة'}"
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl">
                     "${highRiskPrograms ? 'تحسين مراقبة البرامج عالية المخاطر سيخفض مؤشر المخاطر العام.' : 'لا توجد تنبيهات إضافية'}"
@@ -504,12 +504,12 @@
                     <td class="px-3 py-2">${row.flow_id ?? '-'}</td>
                     <td class="px-3 py-2">${translateFlowType(row.flow_type)}</td>
                     <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(row.amount)}</td>
-                    <td class="px-3 py-2">${row.description ?? '-'}</td>
+                    <td class="px-3 py-2">${sanitizeText(row.description)}</td>
                     <td class="px-3 py-2">${formatDate(row.flow_date)}</td>
                     <td class="px-3 py-2">${row.entity_id ?? '-'}</td>
-                    <td class="px-3 py-2">${row.created_by ?? '-'}</td>
+                    <td class="px-3 py-2">${sanitizeText(row.created_by)}</td>
                     <td class="px-3 py-2">${formatDateTime(row.created_at)}</td>
-                    <td class="px-3 py-2">${row.source ?? '-'}</td>
+                    <td class="px-3 py-2">${sanitizeText(row.source)}</td>
                 </tr>
             `).join('');
             document.getElementById('cashflowTable').innerHTML = cashRows || `<tr><td colspan="9" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
