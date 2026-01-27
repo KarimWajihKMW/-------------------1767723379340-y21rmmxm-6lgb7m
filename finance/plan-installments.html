@@ -33,6 +33,15 @@
             max-height: 520px;
             overflow: auto;
         }
+        .section-accent-indigo {
+            border-top: 4px solid #6366f1;
+        }
+        .section-accent-teal {
+            border-top: 4px solid #14b8a6;
+        }
+        .section-accent-amber {
+            border-top: 4px solid #f59e0b;
+        }
     </style>
 </head>
 <body>
@@ -54,6 +63,10 @@
             <button onclick="printReport()" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print"></i>
                 طباعة
+            </button>
+            <button onclick="refreshData()" class="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
             </button>
         </div>
 
@@ -96,7 +109,11 @@
             </div>
         </div>
 
-        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8 section-accent-indigo">
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+                <h3 class="text-lg font-bold text-gray-800">🔎 فلاتر البحث</h3>
+                <button onclick="resetFilters()" class="text-sm text-indigo-700 hover:text-indigo-900 font-semibold">إعادة ضبط الفلاتر</button>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">حالة القسط</label>
@@ -105,6 +122,18 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">حالة الخطة</label>
                     <input id="planStatus" type="text" placeholder="active" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">رقم الخطة</label>
+                    <input id="planNumber" type="text" placeholder="PLAN-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">اسم العميل</label>
+                    <input id="customerName" type="text" placeholder="اسم العميل" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">رقم الفاتورة</label>
+                    <input id="invoiceNumber" type="text" placeholder="INV-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">من تاريخ الاستحقاق</label>
@@ -118,13 +147,13 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-teal">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">📊 توزيع الحالات</h3>
                 <div class="chart-container">
                     <canvas id="statusChart"></canvas>
                 </div>
             </div>
-            <div class="card-gradient rounded-2xl shadow-2xl p-6">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-amber">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">💡 ملخص سريع</h3>
                 <div id="infoPanel" class="space-y-4">
                     <div class="animate-pulse text-gray-500">جاري التحميل...</div>
@@ -132,7 +161,7 @@
             </div>
         </div>
 
-        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden section-accent-indigo">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-800">📋 جدول الأقساط</h3>
@@ -159,7 +188,15 @@
                                 <th class="px-3 py-2 text-right">payment_type</th>
                                 <th class="px-3 py-2 text-right">payment_status</th>
                                 <th class="px-3 py-2 text-right">customer_id</th>
+                                <th class="px-3 py-2 text-right">customer_name_ar</th>
+                                <th class="px-3 py-2 text-right">customer_name_en</th>
+                                <th class="px-3 py-2 text-right">customer_code</th>
+                                <th class="px-3 py-2 text-right">customer_type</th>
                                 <th class="px-3 py-2 text-right">invoice_id</th>
+                                <th class="px-3 py-2 text-right">invoice_number</th>
+                                <th class="px-3 py-2 text-right">invoice_date</th>
+                                <th class="px-3 py-2 text-right">invoice_status</th>
+                                <th class="px-3 py-2 text-right">invoice_payment_status</th>
                                 <th class="px-3 py-2 text-right">plan_status</th>
                                 <th class="px-3 py-2 text-right">plan_total_amount</th>
                                 <th class="px-3 py-2 text-right">plan_paid_amount</th>
@@ -184,7 +221,7 @@
                         </thead>
                         <tbody id="installmentsTable" class="text-xs divide-y divide-gray-100">
                             <tr>
-                                <td colspan="39" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="47" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -198,7 +235,7 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = 'HQ001';
         let rows = [];
         let statusChartInstance = null;
 
@@ -231,11 +268,17 @@
             const params = new URLSearchParams({ entity_id: ENTITY_ID });
             const status = document.getElementById('status').value;
             const planStatus = document.getElementById('planStatus').value;
+            const planNumber = document.getElementById('planNumber').value;
+            const customerName = document.getElementById('customerName').value;
+            const invoiceNumber = document.getElementById('invoiceNumber').value;
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
 
             if (status) params.append('status', status);
             if (planStatus) params.append('plan_status', planStatus);
+            if (planNumber) params.append('plan_number', planNumber);
+            if (customerName) params.append('customer_name', customerName);
+            if (invoiceNumber) params.append('invoice_number', invoiceNumber);
             if (fromDate) params.append('from_date', fromDate);
             if (toDate) params.append('to_date', toDate);
 
@@ -250,6 +293,17 @@
                     renderInfo(data.summary || {});
                 })
                 .catch(err => console.error('❌', err));
+        }
+
+        function resetFilters() {
+            document.getElementById('status').value = '';
+            document.getElementById('planStatus').value = '';
+            document.getElementById('planNumber').value = '';
+            document.getElementById('customerName').value = '';
+            document.getElementById('invoiceNumber').value = '';
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            applyFilters();
         }
 
         function renderSummary(summary) {
@@ -279,7 +333,15 @@
                     <td class="px-3 py-2">${r.payment_type ?? '-'}</td>
                     <td class="px-3 py-2">${r.payment_status ?? '-'}</td>
                     <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_en ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_type ?? '-'}</td>
                     <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
+                    <td class="px-3 py-2">${r.invoice_status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_payment_status ?? '-'}</td>
                     <td class="px-3 py-2">${r.plan_status ?? '-'}</td>
                     <td class="px-3 py-2">${formatMoney(r.plan_total_amount)}</td>
                     <td class="px-3 py-2">${formatMoney(r.plan_paid_amount)}</td>
@@ -305,7 +367,7 @@
 
             document.getElementById('installmentsTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="39" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                    <td colspan="47" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('rowsCount').textContent = `عدد الصفوف: ${rowsData.length}`;
@@ -347,6 +409,20 @@
                         <div class="font-bold">${formatMoney(summary.total_remaining || 0)}</div>
                     </div>
                 </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-database text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">الكيان</div>
+                        <div class="font-bold">${summary.entity_id ?? '-'}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-clock text-purple-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">آخر تحديث</div>
+                        <div class="font-bold">${summary.generated_at ? formatDateTime(summary.generated_at) : '-'}</div>
+                    </div>
+                </div>
             `;
         }
 
@@ -367,16 +443,17 @@
 
         function downloadCSV() {
             const csvRows = [[
-                'installment_id','plan_id','plan_number','installment_number','due_date','amount','paid_amount','status','paid_date','payment_id','payment_number','payment_date','payment_amount','payment_method','payment_type','payment_status','customer_id','invoice_id','plan_status','plan_total_amount','plan_paid_amount','plan_remaining_amount','number_of_installments','plan_installment_amount','installment_frequency','risk_score_at_creation','risk_level_at_creation','entity_type','entity_id','branch_id','incubator_id','plan_created_at','plan_updated_at','plan_created_by','plan_approved_by','plan_approved_at','created_at','updated_at'
+                'installment_id','plan_id','plan_number','installment_number','due_date','amount','paid_amount','status','paid_date','payment_id','payment_number','payment_date','payment_amount','payment_method','payment_type','payment_status','customer_id','customer_name_ar','customer_name_en','customer_code','customer_type','invoice_id','invoice_number','invoice_date','invoice_status','invoice_payment_status','plan_status','plan_total_amount','plan_paid_amount','plan_remaining_amount','number_of_installments','plan_installment_amount','installment_frequency','risk_score_at_creation','risk_level_at_creation','entity_type','entity_id','branch_id','incubator_id','plan_created_at','plan_updated_at','plan_created_by','plan_approved_by','plan_approved_at','created_at','updated_at'
             ]];
             rows.forEach(r => csvRows.push([
                 r.installment_id, r.plan_id, r.plan_number, r.installment_number, r.due_date, r.amount, r.paid_amount,
                 r.status, r.paid_date, r.payment_id, r.payment_number, r.payment_date, r.payment_amount, r.payment_method,
-                r.payment_type, r.payment_status, r.customer_id, r.invoice_id, r.plan_status, r.plan_total_amount,
-                r.plan_paid_amount, r.plan_remaining_amount, r.number_of_installments, r.plan_installment_amount,
-                r.installment_frequency, r.risk_score_at_creation, r.risk_level_at_creation, r.entity_type, r.entity_id,
-                r.branch_id, r.incubator_id, r.plan_created_at, r.plan_updated_at, r.plan_created_by, r.plan_approved_by,
-                r.plan_approved_at, r.created_at, r.updated_at
+                r.payment_type, r.payment_status, r.customer_id, r.customer_name_ar, r.customer_name_en, r.customer_code,
+                r.customer_type, r.invoice_id, r.invoice_number, r.invoice_date, r.invoice_status, r.invoice_payment_status,
+                r.plan_status, r.plan_total_amount, r.plan_paid_amount, r.plan_remaining_amount, r.number_of_installments,
+                r.plan_installment_amount, r.installment_frequency, r.risk_score_at_creation, r.risk_level_at_creation,
+                r.entity_type, r.entity_id, r.branch_id, r.incubator_id, r.plan_created_at, r.plan_updated_at,
+                r.plan_created_by, r.plan_approved_by, r.plan_approved_at, r.created_at, r.updated_at
             ]));
             const csvContent = csvRows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -400,6 +477,10 @@
 
         function printReport() {
             window.print();
+        }
+
+        function refreshData() {
+            loadReport();
         }
 
         document.addEventListener('DOMContentLoaded', loadReport);

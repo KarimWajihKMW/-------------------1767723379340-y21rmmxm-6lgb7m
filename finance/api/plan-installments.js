@@ -1,6 +1,6 @@
 /**
  * 📆 Plan Installments API
- * Page 19 of Accounting System
+ * Page 22 of Accounting System
  */
 
 const { Pool } = require('pg');
@@ -15,7 +15,7 @@ const pool = new Pool({
 });
 
 async function getPlanInstallments(req, res) {
-    const { entity_id, status, from_date, to_date, plan_status } = req.query;
+    const { entity_id, status, from_date, to_date, plan_status, plan_number, customer_name, invoice_number } = req.query;
 
     if (!entity_id) {
         return res.status(400).json({
@@ -39,6 +39,21 @@ async function getPlanInstallments(req, res) {
         if (plan_status) {
             conditions.push(`LOWER(p.status) = LOWER($${index})`);
             values.push(plan_status);
+            index++;
+        }
+        if (plan_number) {
+            conditions.push(`p.plan_number ILIKE $${index}`);
+            values.push(`%${plan_number}%`);
+            index++;
+        }
+        if (customer_name) {
+            conditions.push(`(c.customer_name_ar ILIKE $${index} OR c.customer_name_en ILIKE $${index})`);
+            values.push(`%${customer_name}%`);
+            index++;
+        }
+        if (invoice_number) {
+            conditions.push(`inv.invoice_number ILIKE $${index}`);
+            values.push(`%${invoice_number}%`);
             index++;
         }
         if (from_date) {
@@ -93,10 +108,20 @@ async function getPlanInstallments(req, res) {
                 pay.payment_amount,
                 pay.payment_method,
                 pay.payment_type,
-                pay.status AS payment_status
+                pay.status AS payment_status,
+                c.customer_code,
+                c.customer_name_ar,
+                c.customer_name_en,
+                c.customer_type,
+                inv.invoice_number,
+                inv.invoice_date,
+                inv.status AS invoice_status,
+                inv.payment_status AS invoice_payment_status
             FROM finance_plan_installments i
             LEFT JOIN finance_payment_plans p ON p.plan_id = i.plan_id
             LEFT JOIN finance_payments pay ON pay.payment_id = i.payment_id
+            LEFT JOIN finance_customers c ON c.customer_id = p.customer_id
+            LEFT JOIN finance_invoices inv ON inv.invoice_id = p.invoice_id
             WHERE ${conditions.join(' AND ')}
             ORDER BY i.due_date DESC, i.installment_id DESC
         `;
@@ -119,6 +144,9 @@ async function getPlanInstallments(req, res) {
             total_remaining: 0,
             by_status: {}
         });
+
+        summary.entity_id = entity_id;
+        summary.generated_at = new Date().toISOString();
 
         res.json({
             success: true,
