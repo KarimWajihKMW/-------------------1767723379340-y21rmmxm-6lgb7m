@@ -24,6 +24,21 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
+    
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -35,178 +50,222 @@
         </div>
 
         <!-- Add Transaction Button -->
-        <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="showAddForm()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-plus"></i>
-                إضافة معاملة مالية
+        <div class="mb-8">
+            <h3 class="text-white text-xl font-bold mb-4 opacity-90"><i class="fas fa-bars ml-2"></i>القائمة الرئيسية</h3>
+            <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pl-1">
+            <button onclick="showAddForm()" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-plus text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">إضافة معاملة مالية</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </button>
-            <a href="/finance/journal.html" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-book"></i>
-                دفتر اليومية والأستاذ
+            <a href="/finance/journal.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-book text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">دفتر اليومية والأستاذ</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/balance-sheet.html" class="bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-balance-scale"></i>
-                الميزانية العمومية
+            <a href="/finance/balance-sheet.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-balance-scale text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الميزانية العمومية</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/income-statement.html" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-chart-line"></i>
-                قائمة الدخل
+            <a href="/finance/income-statement.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-chart-line text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">قائمة الدخل</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/chart-of-accounts.html" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-list"></i>
-                دليل الحسابات
+            <a href="/finance/chart-of-accounts.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-list text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">دليل الحسابات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/payments.html" class="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-credit-card"></i>
-                المدفوعات
+            <a href="/finance/payments.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-credit-card text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">المدفوعات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/customers.html" class="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-user-friends"></i>
-                العملاء
+            <a href="/finance/customers.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-user-friends text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">العملاء</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/ai-forecasts.html" class="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-robot"></i>
-                التنبؤات الذكية
+            <a href="/finance/ai-forecasts.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-robot text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">التنبؤات الذكية</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/cashflow-summary.html" class="bg-gradient-to-r from-sky-600 to-blue-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-water"></i>
-                ملخص التدفقات
+            <a href="/finance/cashflow-summary.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-water text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">ملخص التدفقات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/journal-lines.html" class="bg-gradient-to-r from-rose-600 to-pink-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-receipt"></i>
-                تفاصيل القيود
+            <a href="/finance/journal-lines.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-receipt text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">تفاصيل القيود</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/cashflow-transactions.html" class="bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-exchange-alt"></i>
-                معاملات التدفق
+            <a href="/finance/cashflow-transactions.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-exchange-alt text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">معاملات التدفق</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/cashflow-comprehensive.html" class="bg-gradient-to-r from-violet-600 to-purple-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-layer-group"></i>
-                التقرير الشامل للتدفقات
+            <a href="/finance/cashflow-comprehensive.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-layer-group text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">التقرير الشامل للتدفقات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/ai-risk-scores.html" class="bg-gradient-to-r from-red-600 to-rose-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-shield-alt"></i>
-                تقييم المخاطر الذكي
+            <a href="/finance/ai-risk-scores.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-shield-alt text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">تقييم المخاطر الذكي</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/fixed-assets.html" class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-industry"></i>
-                الأصول الثابتة والإهلاك
+            <a href="/finance/fixed-assets.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-industry text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الأصول الثابتة والإهلاك</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/budgets.html" class="bg-gradient-to-r from-slate-700 to-gray-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-invoice-dollar"></i>
-                الميزانيات والانحرافات
+            <a href="/finance/budgets.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-file-invoice-dollar text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الميزانيات والانحرافات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/payment-plans.html" class="bg-gradient-to-r from-indigo-700 to-purple-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-calendar-alt"></i>
-                خطط السداد والتوزيعات
+            <a href="/finance/payment-plans.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-calendar-alt text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">خطط السداد والتوزيعات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/expenses.html" class="bg-gradient-to-r from-emerald-700 to-teal-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-receipt"></i>
-                المصروفات والموردون
+            <a href="/finance/expenses.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-receipt text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">المصروفات والموردون</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/ar-aging.html" class="bg-gradient-to-r from-sky-600 to-cyan-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-hourglass-start"></i>
-                أعمار الذمم المدينة
+            <a href="/finance/ar-aging.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-hourglass-start text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">أعمار الذمم المدينة</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/receivables-collections.html" class="bg-gradient-to-r from-fuchsia-600 to-pink-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-hand-holding-dollar"></i>
-                الذمم والتحصيل
+            <a href="/finance/receivables-collections.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-hand-holding-dollar text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الذمم والتحصيل</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/cashflow-risk-reports.html" class="bg-gradient-to-r from-sky-600 to-indigo-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-water"></i>
-                التدفقات والمخاطر والتقارير
+            <a href="/finance/cashflow-risk-reports.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-water text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">التدفقات والمخاطر والتقارير</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/unified-accounting-overview.html" class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-globe"></i>
-                النظام المحاسبي الشمولي
+            <a href="/finance/unified-accounting-overview.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-globe text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">النظام المحاسبي الشمولي</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/accounting-cycle.html" class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-rotate"></i>
-                الدورة المحاسبية
+            <a href="/finance/accounting-cycle.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-rotate text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الدورة المحاسبية</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/cashflow-budgets-engine.html" class="bg-gradient-to-r from-sky-700 to-emerald-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-water"></i>
-                التدفقات والميزانيات
+            <a href="/finance/cashflow-budgets-engine.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-water text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">التدفقات والميزانيات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/financial-reports-ai-journal.html" class="bg-gradient-to-r from-indigo-700 to-blue-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-chart-line"></i>
-                تقارير الوضع المالي
+            <a href="/finance/financial-reports-ai-journal.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-chart-line text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">تقارير الوضع المالي</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/accounting-cycle-impact.html" class="bg-gradient-to-r from-emerald-700 to-teal-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-sitemap"></i>
-                أثر النظام المحاسبي والدورة
+            <a href="/finance/accounting-cycle-impact.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-sitemap text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">أثر النظام المحاسبي والدورة</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/plan-installments.html" class="bg-gradient-to-r from-purple-700 to-indigo-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-calendar-check"></i>
-                أقساط خطط السداد
+            <a href="/finance/plan-installments.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-calendar-check text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">أقساط خطط السداد</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/account-balances.html" class="bg-gradient-to-r from-blue-700 to-indigo-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-book"></i>
-                أرصدة الحسابات
+            <a href="/finance/account-balances.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-book text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">أرصدة الحسابات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/chart-accounts-ui-design.html" class="bg-gradient-to-r from-teal-700 to-emerald-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-sitemap"></i>
-                تصميم شجرة الحسابات والواجهات
+            <a href="/finance/chart-accounts-ui-design.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-sitemap text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">تصميم شجرة الحسابات والواجهات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/invoices-budgets-master.html" class="bg-gradient-to-r from-amber-700 to-orange-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-invoice"></i>
-                الفواتير والتحصيل والميزانيات
+            <a href="/finance/invoices-budgets-master.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-file-invoice text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الفواتير والتحصيل والميزانيات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/system-blueprint-execution.html" class="bg-gradient-to-r from-slate-700 to-indigo-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-network-wired"></i>
-                المخطط التنفيذي للنظام
+            <a href="/finance/system-blueprint-execution.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-network-wired text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">المخطط التنفيذي للنظام</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/financial-governance-executive.html" class="bg-gradient-to-r from-sky-700 to-emerald-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-shield-halved"></i>
-                الحوكمة المالية والصلاحيات
+            <a href="/finance/financial-governance-executive.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-shield-halved text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الحوكمة المالية والصلاحيات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/strategic-financial-reports.html" class="bg-gradient-to-r from-indigo-700 to-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-chart-pie"></i>
-                التقارير الاستراتيجية والذكاء المالي
+            <a href="/finance/strategic-financial-reports.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-chart-pie text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">التقارير الاستراتيجية والذكاء المالي</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/ai-risk-payment-framework.html" class="bg-gradient-to-r from-sky-700 to-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-brain"></i>
-                نماذج المخاطر وخطط الدفع والحوكمة
+            <a href="/finance/ai-risk-payment-framework.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-brain text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">نماذج المخاطر وخطط الدفع والحوكمة</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/financial-policies-framework.html" class="bg-gradient-to-r from-indigo-700 to-emerald-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-clipboard-list"></i>
-                السياسات المالية الأساسية
+            <a href="/finance/financial-policies-framework.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-clipboard-list text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">السياسات المالية الأساسية</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/operations-sop-finance.html" class="bg-gradient-to-r from-sky-700 to-indigo-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-diagram-project"></i>
-                إجراءات التشغيل المالي
+            <a href="/finance/operations-sop-finance.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-diagram-project text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">إجراءات التشغيل المالي</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/approvals-roles-governance.html" class="bg-gradient-to-r from-violet-700 to-purple-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-shield-halved"></i>
-                الموافقات والصلاحيات والحوكمة
+            <a href="/finance/approvals-roles-governance.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-shield-halved text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">الموافقات والصلاحيات والحوكمة</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/admin-erp-hr.html" class="bg-gradient-to-r from-sky-700 to-emerald-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-sitemap"></i>
-                النظام الإداري والموارد البشرية
+            <a href="/finance/admin-erp-hr.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-sitemap text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">النظام الإداري والموارد البشرية</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/hr-portal-workflows.html" class="bg-gradient-to-r from-indigo-700 to-violet-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-clipboard-check"></i>
-                بوابة العمليات والطلبات
+            <a href="/finance/hr-portal-workflows.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-clipboard-check text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">بوابة العمليات والطلبات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/sales-accounts-operations-mobile.html" class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-store"></i>
-                منظومة المبيعات والحسابات
+            <a href="/finance/sales-accounts-operations-mobile.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-store text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">منظومة المبيعات والحسابات</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/electronic-signature.html" class="bg-gradient-to-r from-slate-700 to-indigo-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-signature"></i>
-                التوقيع الإلكتروني
+            <a href="/finance/electronic-signature.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-file-signature text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">التوقيع الإلكتروني</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/franchise-agencies.html" class="bg-gradient-to-r from-amber-700 to-orange-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-store"></i>
-                وكالات فرنشايز
+            <a href="/finance/franchise-agencies.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-store text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">وكالات فرنشايز</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
-            <a href="/finance/contracts.html" class="bg-gradient-to-r from-slate-700 to-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-contract"></i>
-                العقود
+            <a href="/finance/contracts.html" class="w-full bg-white text-gray-800 px-6 py-4 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-4 border border-indigo-100 group">
+                <i class="fas fa-file-contract text-xl w-8 text-center text-indigo-600 group-hover:text-indigo-700 transition"></i>
+                <span class="flex-1 text-right">العقود</span>
+                <i class="fas fa-chevron-left text-gray-300"></i>
             </a>
+            </div>
         </div>
-
-        <!-- Stats Cards -->
+<!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- إيرادات هذا الشهر -->
             <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
