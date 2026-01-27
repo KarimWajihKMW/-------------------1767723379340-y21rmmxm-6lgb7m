@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📘 السياسات المالية الأساسية - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 55%, #14b8a6 100%);
+            min-height: 100vh;
+        }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+        .shape-rounded { border-radius: 26px; }
+        .shape-angled { border-radius: 34px 10px 34px 10px; }
+        .shape-pill { border-radius: 999px; }
+        .shape-cut { border-radius: 18px 18px 42px 8px; }
+        .table-scroll { max-height: 520px; overflow: auto; }
+        .chart-box { position: relative; height: 260px; }
+        .accent-sky { border-top: 4px solid #0ea5e9; }
+        .accent-indigo { border-top: 4px solid #6366f1; }
+        .accent-emerald { border-top: 4px solid #10b981; }
+        .accent-rose { border-top: 4px solid #f43f5e; }
+        .accent-amber { border-top: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-white mb-8">
+            <h1 class="text-4xl font-bold mb-2">📘 السياسات المالية الأساسية</h1>
+            <p class="text-lg opacity-90">حوكمة الفوترة والتحصيل والمصروفات والأصول والإقفال (الصفحة 39)</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل ملف بيانات شامل
+            </button>
+            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل ملف جدولي شامل
+            </button>
+            <button onclick="printPage()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة الصفحة
+            </button>
+            <button onclick="copySummary()" class="bg-amber-500 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-copy"></i>
+                نسخ ملخص السياسات
+            </button>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🧾 سياسة الفوترة</h2>
+                <span class="text-sm text-slate-500">شروط إصدار الفواتير والتعديل</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-sky-100">
+                    <h3 class="font-bold text-slate-800 mb-2">شروط الإصدار</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>وجود عقد أو طلب خدمة</li>
+                        <li>تحديد البرنامج والحاضنة</li>
+                        <li>تسجيل العميل في النظام</li>
+                    </ul>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">محتوى الفاتورة</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>رقم فريد وتاريخ إصدار</li>
+                        <li>تاريخ الاستحقاق</li>
+                        <li>تفاصيل الخدمة وسياسة الدفع الجزئي</li>
+                    </ul>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">سياسة التعديل</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>لا تعديل بعد الإصدار إلا بإشعار دائن/مدين</li>
+                        <li>موافقة مدير المالية</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">💳 سياسة التحصيل</h2>
+                <span class="text-sm text-slate-500">قنوات الدفع وضوابط الإغلاق</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">قنوات التحصيل المعتمدة</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>بوابة الدفع</li>
+                        <li>التحويل البنكي</li>
+                        <li>نقاط البيع</li>
+                        <li>النقد ضمن حدود معتمدة</li>
+                    </ul>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-amber-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الدفع الجزئي</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>حسب نوع البرنامج</li>
+                        <li>حسب سياسة الحاضنة</li>
+                        <li>وفق درجة المخاطر</li>
+                    </ul>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">ضوابط الإغلاق</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>لا يُسمح بإغلاق فاتورة يدويًا</li>
+                        <li>كل دفعة تولّد قيدًا محاسبيًا تلقائيًا</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-amber">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🧾 سياسة المصروفات</h2>
+                <span class="text-sm text-slate-500">تصنيف المصروفات واعتمادها</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-amber-100">
+                    <h3 class="font-bold text-slate-800 mb-2">تصنيف المصروفات</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>تشغيلية</li>
+                        <li>إدارية</li>
+                        <li>برامج</li>
+                        <li>تقنية</li>
+                        <li>تسويق</li>
+                    </ul>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">متطلبات الاعتماد</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>طلب شراء</li>
+                        <li>عرض سعر</li>
+                        <li>فاتورة مورد</li>
+                    </ul>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">حدود الموافقة</h3>
+                    <p class="text-sm text-slate-600">المصروفات الكبيرة تحتاج موافقة مدير المالية والمدير المالي للمجموعة.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🏢 سياسة الأصول الثابتة</h2>
+                <span class="text-sm text-slate-500">إثبات الأصول والإهلاك</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-indigo-100">
+                    <h3 class="font-bold text-slate-800 mb-2">قواعد التسجيل</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>كل أصل برقم فريد</li>
+                        <li>توثيق موقع الأصل ومسؤول العهدة</li>
+                    </ul>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الإهلاك</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>احتساب شهري تلقائي</li>
+                        <li>تحديث القيمة الدفترية</li>
+                    </ul>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">التصرف بالأصل</h3>
+                    <p class="text-sm text-slate-600">بيع أو إتلاف أي أصل يحتاج موافقة الإدارة العليا.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-rose">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">📆 سياسة الإقفال المحاسبي</h2>
+                <span class="text-sm text-slate-500">انضباط الإقفال الشهري والسنوي</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الإقفال الشهري</h3>
+                    <p class="text-sm text-slate-600">يتم خلال 5 أيام عمل من نهاية الشهر.</p>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-amber-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الإقفال السنوي</h3>
+                    <p class="text-sm text-slate-600">يتم خلال 20 يومًا من نهاية السنة المالية.</p>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">ضوابط ما بعد الإقفال</h3>
+                    <p class="text-sm text-slate-600">لا قيود بعد الإقفال إلا بموافقة المدير المالي للمجموعة.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="glass shape-angled p-5 shadow-lg accent-sky">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">إجمالي الفواتير</span>
+                    <i class="fas fa-file-invoice text-sky-500 text-2xl"></i>
+                </div>
+                <div id="totalInvoices" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-cut p-5 shadow-lg accent-rose">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">فواتير متأخرة</span>
+                    <i class="fas fa-triangle-exclamation text-rose-500 text-2xl"></i>
+                </div>
+                <div id="overdueInvoices" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-rounded p-5 shadow-lg accent-emerald">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">إجمالي المدفوعات</span>
+                    <i class="fas fa-credit-card text-emerald-500 text-2xl"></i>
+                </div>
+                <div id="totalPayments" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-pill p-5 shadow-lg accent-amber">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">إجمالي المصروفات</span>
+                    <i class="fas fa-receipt text-amber-500 text-2xl"></i>
+                </div>
+                <div id="totalExpenses" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-angled p-5 shadow-lg accent-indigo">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">عدد الأصول</span>
+                    <i class="fas fa-industry text-indigo-500 text-2xl"></i>
+                </div>
+                <div id="totalAssets" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-cut p-5 shadow-lg accent-emerald">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">إجمالي الإهلاك</span>
+                    <i class="fas fa-chart-area text-emerald-500 text-2xl"></i>
+                </div>
+                <div id="totalDepreciation" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-rounded p-5 shadow-lg accent-rose">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">خطط السداد</span>
+                    <i class="fas fa-calendar-check text-rose-500 text-2xl"></i>
+                </div>
+                <div id="totalPlans" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+            <div class="glass shape-pill p-5 shadow-lg accent-sky">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-600">عدد القيود</span>
+                    <i class="fas fa-book text-sky-500 text-2xl"></i>
+                </div>
+                <div id="totalEntries" class="text-3xl font-bold text-slate-800">0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="glass shape-rounded shadow-2xl p-6 accent-sky">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">📊 توزيع حالات الفواتير</h3>
+                <div class="chart-box"><canvas id="invoiceStatusChart"></canvas></div>
+            </div>
+            <div class="glass shape-rounded shadow-2xl p-6 accent-emerald">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">💳 توزيع طرق التحصيل</h3>
+                <div class="chart-box"><canvas id="paymentMethodChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير</h3>
+                <span id="invoicesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-sky-50 text-sky-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الفاتورة</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإصدار</th>
+                            <th class="px-3 py-2 text-right">تاريخ الاستحقاق</th>
+                            <th class="px-3 py-2 text-right">العميل</th>
+                            <th class="px-3 py-2 text-right">الإجمالي</th>
+                            <th class="px-3 py-2 text-right">المتبقي</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">💳 جدول المدفوعات</h3>
+                <span id="paymentsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-emerald-50 text-emerald-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الدفعة</th>
+                            <th class="px-3 py-2 text-right">العميل</th>
+                            <th class="px-3 py-2 text-right">قيمة الدفعة</th>
+                            <th class="px-3 py-2 text-right">تاريخ الدفعة</th>
+                            <th class="px-3 py-2 text-right">طريقة التحصيل</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-amber">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🧾 جدول المصروفات</h3>
+                <span id="expensesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-amber-50 text-amber-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم المصروف</th>
+                            <th class="px-3 py-2 text-right">تاريخ المصروف</th>
+                            <th class="px-3 py-2 text-right">النوع</th>
+                            <th class="px-3 py-2 text-right">المورد</th>
+                            <th class="px-3 py-2 text-right">الإجمالي</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🏢 جدول الأصول الثابتة</h3>
+                <span id="assetsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-indigo-50 text-indigo-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الأصل</th>
+                            <th class="px-3 py-2 text-right">اسم الأصل</th>
+                            <th class="px-3 py-2 text-right">تاريخ الشراء</th>
+                            <th class="px-3 py-2 text-right">تكلفة الشراء</th>
+                            <th class="px-3 py-2 text-right">القيمة الدفترية</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetsTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+
+        let store = {
+            invoices: [],
+            payments: [],
+            expenses: [],
+            assets: [],
+            plans: [],
+            entries: []
+        };
+
+        let invoiceChartInstance = null;
+        let paymentChartInstance = null;
+
+        async function loadData() {
+            try {
+                const [invoiceRes, paymentRes, expenseRes, assetRes, planRes, entryRes] = await Promise.all([
+                    fetch(`${API_BASE}/finance/invoices`),
+                    fetch(`${API_BASE}/finance/payments`),
+                    fetch(`${API_BASE}/finance/expenses?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/fixed-assets?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`)
+                ]);
+
+                const [invoiceData, paymentData, expenseData, assetData, planData, entryData] = await Promise.all([
+                    invoiceRes.json(),
+                    paymentRes.json(),
+                    expenseRes.json(),
+                    assetRes.json(),
+                    planRes.json(),
+                    entryRes.json()
+                ]);
+
+                store.invoices = invoiceData.invoices || [];
+                store.payments = paymentData.payments || [];
+                store.expenses = expenseData.expenses || [];
+                store.assets = assetData.assets || [];
+                store.plans = planData.plans || [];
+                store.entries = entryData.entries || entryData.rows || [];
+
+                renderStats();
+                renderCharts();
+                renderTables();
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        function renderStats() {
+            const totalInvoices = store.invoices.length;
+            const overdueInvoices = store.invoices.filter(i => String(i.status || '').toUpperCase() === 'OVERDUE').length;
+            const totalPayments = sum(store.payments, 'payment_amount');
+            const totalExpenses = sum(store.expenses, 'total_amount');
+            const totalAssets = store.assets.length;
+            const totalDep = sum(store.assets, 'accumulated_depreciation');
+            const totalPlans = store.plans.length;
+            const totalEntries = store.entries.length;
+
+            document.getElementById('totalInvoices').textContent = totalInvoices.toLocaleString('ar-SA');
+            document.getElementById('overdueInvoices').textContent = overdueInvoices.toLocaleString('ar-SA');
+            document.getElementById('totalPayments').textContent = formatMoney(totalPayments);
+            document.getElementById('totalExpenses').textContent = formatMoney(totalExpenses);
+            document.getElementById('totalAssets').textContent = totalAssets.toLocaleString('ar-SA');
+            document.getElementById('totalDepreciation').textContent = formatMoney(totalDep);
+            document.getElementById('totalPlans').textContent = totalPlans.toLocaleString('ar-SA');
+            document.getElementById('totalEntries').textContent = totalEntries.toLocaleString('ar-SA');
+        }
+
+        function renderCharts() {
+            const statusCounts = store.invoices.reduce((acc, inv) => {
+                const status = translateStatus(inv.status);
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const invoiceCtx = document.getElementById('invoiceStatusChart').getContext('2d');
+            if (invoiceChartInstance) invoiceChartInstance.destroy();
+            invoiceChartInstance = new Chart(invoiceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts).length ? Object.keys(statusCounts) : ['لا توجد بيانات'],
+                    datasets: [{
+                        data: Object.values(statusCounts).length ? Object.values(statusCounts) : [0],
+                        backgroundColor: ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#6366f1']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const methodCounts = store.payments.reduce((acc, p) => {
+                const method = translatePaymentMethod(p.payment_method);
+                acc[method] = (acc[method] || 0) + 1;
+                return acc;
+            }, {});
+
+            const paymentCtx = document.getElementById('paymentMethodChart').getContext('2d');
+            if (paymentChartInstance) paymentChartInstance.destroy();
+            paymentChartInstance = new Chart(paymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(methodCounts).length ? Object.keys(methodCounts) : ['لا توجد بيانات'],
+                    datasets: [{
+                        data: Object.values(methodCounts).length ? Object.values(methodCounts) : [0],
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderTables() {
+            const invoiceRows = store.invoices.map(inv => `
+                <tr class="hover:bg-sky-50">
+                    <td class="px-3 py-2">${sanitizeText(inv.invoice_number)}</td>
+                    <td class="px-3 py-2">${formatDate(inv.invoice_date)}</td>
+                    <td class="px-3 py-2">${formatDate(inv.due_date)}</td>
+                    <td class="px-3 py-2">${sanitizeText(inv.customer_name_ar || inv.customer_name)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(inv.total_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(inv.remaining_amount)}</td>
+                    <td class="px-3 py-2">${translateStatus(inv.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('invoicesTable').innerHTML = invoiceRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${store.invoices.length}`;
+
+            const paymentRows = store.payments.map(p => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${sanitizeText(p.payment_number || p.payment_id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(p.customer_name_ar || p.customer_name || p.customer_id)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(p.payment_amount)}</td>
+                    <td class="px-3 py-2">${formatDate(p.payment_date)}</td>
+                    <td class="px-3 py-2">${translatePaymentMethod(p.payment_method)}</td>
+                    <td class="px-3 py-2">${translateStatus(p.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('paymentsTable').innerHTML = paymentRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('paymentsCount').textContent = `عدد الصفوف: ${store.payments.length}`;
+
+            const expenseRows = store.expenses.map(e => `
+                <tr class="hover:bg-amber-50">
+                    <td class="px-3 py-2">${sanitizeText(e.expense_number || e.expense_id)}</td>
+                    <td class="px-3 py-2">${formatDate(e.expense_date)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.expense_type || e.expense_category)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.vendor_name)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(e.total_amount || e.amount)}</td>
+                    <td class="px-3 py-2">${translateStatus(e.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('expensesTable').innerHTML = expenseRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('expensesCount').textContent = `عدد الصفوف: ${store.expenses.length}`;
+
+            const assetRows = store.assets.map(a => `
+                <tr class="hover:bg-indigo-50">
+                    <td class="px-3 py-2">${sanitizeText(a.asset_code || a.asset_id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(a.asset_name_ar || a.asset_name_en || a.asset_name)}</td>
+                    <td class="px-3 py-2">${formatDate(a.purchase_date)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(a.purchase_cost)}</td>
+                    <td class="px-3 py-2">${formatMoney(a.net_book_value)}</td>
+                    <td class="px-3 py-2">${translateStatus(a.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('assetsTable').innerHTML = assetRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('assetsCount').textContent = `عدد الصفوف: ${store.assets.length}`;
+        }
+
+        function translateStatus(value) {
+            const map = {
+                PAID: 'مدفوعة',
+                UNPAID: 'غير مدفوعة',
+                PARTIAL: 'مدفوعة جزئيًا',
+                OVERDUE: 'متأخرة',
+                ACTIVE: 'نشطة',
+                CLOSED: 'مغلقة',
+                PENDING: 'قيد المراجعة',
+                APPROVED: 'معتمدة',
+                REJECTED: 'مرفوضة'
+            };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function translatePaymentMethod(value) {
+            const map = {
+                BANK_TRANSFER: 'تحويل بنكي',
+                CARD: 'بطاقة',
+                POS: 'نقاط بيع',
+                CASH: 'نقد',
+                GATEWAY: 'بوابة الدفع',
+                CHEQUE: 'شيك'
+            };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return 'غير محدد';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || 'غير محدد';
+        }
+
+        function sum(rows, key) {
+            return rows.reduce((acc, row) => acc + parseFloat(row[key] || 0), 0);
+        }
+
+        function downloadAllJSON() {
+            const payload = {
+                invoices: store.invoices,
+                payments: store.payments,
+                expenses: store.expenses,
+                fixed_assets: store.assets,
+                payment_plans: store.plans,
+                journal_entries: store.entries
+            };
+            downloadBlob(JSON.stringify(payload, null, 2), 'السياسات-المالية-الأساسية.json', 'application/json');
+        }
+
+        function downloadAllCSV() {
+            const rows = [];
+            rows.push(['الفواتير']);
+            rows.push(['رقم الفاتورة','تاريخ الإصدار','تاريخ الاستحقاق','العميل','الإجمالي','المتبقي','الحالة']);
+            store.invoices.forEach(inv => rows.push([
+                sanitizeText(inv.invoice_number), inv.invoice_date, inv.due_date, sanitizeText(inv.customer_name_ar || inv.customer_name),
+                inv.total_amount, inv.remaining_amount, translateStatus(inv.status)
+            ]));
+
+            rows.push([]);
+            rows.push(['المدفوعات']);
+            rows.push(['رقم الدفعة','العميل','قيمة الدفعة','تاريخ الدفعة','طريقة التحصيل','الحالة']);
+            store.payments.forEach(p => rows.push([
+                p.payment_number || p.payment_id, sanitizeText(p.customer_name_ar || p.customer_name || p.customer_id), p.payment_amount,
+                p.payment_date, translatePaymentMethod(p.payment_method), translateStatus(p.status)
+            ]));
+
+            rows.push([]);
+            rows.push(['المصروفات']);
+            rows.push(['رقم المصروف','تاريخ المصروف','النوع','المورد','الإجمالي','الحالة']);
+            store.expenses.forEach(e => rows.push([
+                e.expense_number || e.expense_id, e.expense_date, sanitizeText(e.expense_type || e.expense_category), sanitizeText(e.vendor_name),
+                e.total_amount || e.amount, translateStatus(e.status)
+            ]));
+
+            rows.push([]);
+            rows.push(['الأصول الثابتة']);
+            rows.push(['رقم الأصل','اسم الأصل','تاريخ الشراء','تكلفة الشراء','القيمة الدفترية','الحالة']);
+            store.assets.forEach(a => rows.push([
+                a.asset_code || a.asset_id, sanitizeText(a.asset_name_ar || a.asset_name_en || a.asset_name), a.purchase_date,
+                a.purchase_cost, a.net_book_value, translateStatus(a.status)
+            ]));
+
+            const csv = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csv, 'السياسات-المالية-الأساسية.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function copySummary() {
+            const summary = `ملخص السياسات المالية\n` +
+                `إجمالي الفواتير: ${store.invoices.length}\n` +
+                `الفواتير المتأخرة: ${store.invoices.filter(i => String(i.status || '').toUpperCase() === 'OVERDUE').length}\n` +
+                `إجمالي المدفوعات: ${formatMoney(sum(store.payments, 'payment_amount'))}\n` +
+                `إجمالي المصروفات: ${formatMoney(sum(store.expenses, 'total_amount'))}\n` +
+                `عدد الأصول: ${store.assets.length}`;
+            navigator.clipboard.writeText(summary).catch(() => {});
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printPage() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
