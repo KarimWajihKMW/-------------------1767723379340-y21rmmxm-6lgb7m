@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧩 النظام الإداري ونظام الموارد البشرية - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #14b8a6 100%);
+            min-height: 100vh;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .stat-pill { border-radius: 999px; box-shadow: 0 18px 30px rgba(15, 23, 42, 0.15); }
+        .stat-angled { border-radius: 28px 6px 28px 6px; }
+        .stat-rounded { border-radius: 28px; }
+        .stat-cut { border-radius: 6px 28px 6px 28px; }
+        .table-scroll { max-height: 540px; overflow: auto; }
+        .section-accent-sky { border-top: 4px solid #0ea5e9; }
+        .section-accent-emerald { border-top: 4px solid #10b981; }
+        .section-accent-indigo { border-top: 4px solid #6366f1; }
+        .section-accent-violet { border-top: 4px solid #8b5cf6; }
+        .section-accent-rose { border-top: 4px solid #f43f5e; }
+        .chip { padding: 6px 12px; border-radius: 999px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">🧩 النظام الإداري ونظام الموارد البشرية</h1>
+            <p class="text-lg opacity-90">النظام الإداري والموارد البشرية الشامل (الصفحة 42)</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل ملف بيانات شامل
+            </button>
+            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل ملف جدولي شامل
+            </button>
+            <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة التقرير
+            </button>
+        </div>
+
+        <!-- Administrative Overview -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🏢 ملخص النظام الإداري والموارد البشرية</h2>
+                <div class="text-sm text-slate-500">مصدر البيانات: جداول الموظفين والطلبات والهيكل</div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+                <div class="stat-pill bg-gradient-to-br from-sky-500 to-blue-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>إجمالي الموظفين</span><i class="fas fa-users text-2xl opacity-70"></i></div>
+                    <div id="employeesTotal" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-angled bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>الموظفون النشطون</span><i class="fas fa-user-check text-2xl opacity-70"></i></div>
+                    <div id="employeesActive" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-rounded bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>إجمالي الطلبات</span><i class="fas fa-clipboard-list text-2xl opacity-70"></i></div>
+                    <div id="requestsTotal" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-cut bg-gradient-to-br from-amber-500 to-orange-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>طلبات قيد المعالجة</span><i class="fas fa-hourglass-half text-2xl opacity-70"></i></div>
+                    <div id="requestsPending" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-angled bg-gradient-to-br from-rose-500 to-pink-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>أنواع الطلبات</span><i class="fas fa-layer-group text-2xl opacity-70"></i></div>
+                    <div id="requestTypesTotal" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hierarchy Overview -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🧭 مؤشرات الهيكل الإداري</h3>
+                <span id="hierarchyNote" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="stat-rounded bg-gradient-to-br from-sky-50 to-blue-50 p-4">
+                    <div class="text-sm text-slate-500">المراكز الرئيسية</div>
+                    <div id="statHq" class="text-2xl font-bold text-slate-800">—</div>
+                </div>
+                <div class="stat-angled bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+                    <div class="text-sm text-slate-500">الفروع</div>
+                    <div id="statBranches" class="text-2xl font-bold text-slate-800">—</div>
+                </div>
+                <div class="stat-pill bg-gradient-to-br from-indigo-50 to-violet-50 p-4">
+                    <div class="text-sm text-slate-500">الحاضنات</div>
+                    <div id="statIncubators" class="text-2xl font-bold text-slate-800">—</div>
+                </div>
+                <div class="stat-cut bg-gradient-to-br from-rose-50 to-pink-50 p-4">
+                    <div class="text-sm text-slate-500">المنصات</div>
+                    <div id="statPlatforms" class="text-2xl font-bold text-slate-800">—</div>
+                </div>
+                <div class="stat-rounded bg-gradient-to-br from-amber-50 to-orange-50 p-4">
+                    <div class="text-sm text-slate-500">المكاتب</div>
+                    <div id="statOffices" class="text-2xl font-bold text-slate-800">—</div>
+                </div>
+                <div class="stat-angled bg-gradient-to-br from-slate-50 to-gray-50 p-4">
+                    <div class="text-sm text-slate-500">روابط المكاتب</div>
+                    <div id="statLinks" class="text-2xl font-bold text-slate-800">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees Table -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">👥 جدول الموظفين</h3>
+                <span id="employeesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-emerald-50 text-emerald-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الموظف</th>
+                            <th class="px-3 py-2 text-right">الاسم</th>
+                            <th class="px-3 py-2 text-right">البريد</th>
+                            <th class="px-3 py-2 text-right">المنصب</th>
+                            <th class="px-3 py-2 text-right">القسم</th>
+                            <th class="px-3 py-2 text-right">المنشأة</th>
+                            <th class="px-3 py-2 text-right">تاريخ التعيين</th>
+                            <th class="px-3 py-2 text-right">الراتب</th>
+                            <th class="px-3 py-2 text-right">نوع التوظيف</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📨 جدول طلبات الموظفين</h3>
+                <span id="requestsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-violet-50 text-violet-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الطلب</th>
+                            <th class="px-3 py-2 text-right">الموظف</th>
+                            <th class="px-3 py-2 text-right">نوع الطلب</th>
+                            <th class="px-3 py-2 text-right">العنوان</th>
+                            <th class="px-3 py-2 text-right">الأولوية</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">تاريخ الطلب</th>
+                            <th class="px-3 py-2 text-right">الموافقة مطلوبة</th>
+                            <th class="px-3 py-2 text-right">ملاحظات</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Request Types Table -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📌 جدول أنواع الطلبات</h3>
+                <span id="typesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-rose-50 text-rose-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم النوع</th>
+                            <th class="px-3 py-2 text-right">الاسم</th>
+                            <th class="px-3 py-2 text-right">الفئة</th>
+                            <th class="px-3 py-2 text-right">الوصف</th>
+                            <th class="px-3 py-2 text-right">يتطلب موافقة</th>
+                            <th class="px-3 py-2 text-right">يتطلب مدير</th>
+                            <th class="px-3 py-2 text-right">يتطلب موارد بشرية</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="typesTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        let employees = [];
+        let requests = [];
+        let requestTypes = [];
+        let hierarchyStats = null;
+
+        async function loadData() {
+            try {
+                const [employeesRes, requestsRes, typesRes, statsRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/employees`),
+                    fetch(`${API_BASE}/api/employee-requests`),
+                    fetch(`${API_BASE}/api/request-types`),
+                    fetch(`${API_BASE}/api/hierarchy/stats`)
+                ]);
+
+                const [employeesData, requestsData, typesData, statsData] = await Promise.all([
+                    employeesRes.json(),
+                    requestsRes.json(),
+                    typesRes.json(),
+                    statsRes.json()
+                ]);
+
+                employees = Array.isArray(employeesData) ? employeesData : [];
+                requests = Array.isArray(requestsData) ? requestsData : [];
+                requestTypes = Array.isArray(typesData) ? typesData : [];
+                hierarchyStats = statsData || null;
+
+                renderStats();
+                renderTables();
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                renderStats();
+                renderTables();
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('employeesTotal').textContent = employees.length;
+            document.getElementById('employeesActive').textContent = employees.filter(e => e.is_active).length;
+            document.getElementById('requestsTotal').textContent = requests.length;
+            document.getElementById('requestsPending').textContent = requests.filter(r => normalizeStatus(r.status) === 'قيد المعالجة').length;
+            document.getElementById('requestTypesTotal').textContent = requestTypes.length;
+
+            if (hierarchyStats && Object.keys(hierarchyStats).length) {
+                document.getElementById('statHq').textContent = hierarchyStats.active_hqs ?? '—';
+                document.getElementById('statBranches').textContent = hierarchyStats.active_branches ?? '—';
+                document.getElementById('statIncubators').textContent = hierarchyStats.active_incubators ?? '—';
+                document.getElementById('statPlatforms').textContent = hierarchyStats.active_platforms ?? '—';
+                document.getElementById('statOffices').textContent = hierarchyStats.active_offices ?? '—';
+                document.getElementById('statLinks').textContent = hierarchyStats.active_links ?? '—';
+                document.getElementById('hierarchyNote').textContent = 'بيانات الهيكل محدثة';
+            } else {
+                document.getElementById('hierarchyNote').textContent = 'لا توجد بيانات للهيكل';
+            }
+        }
+
+        function renderTables() {
+            const employeeRows = employees.map(e => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${sanitizeText(e.employee_number || e.id)}</td>
+                    <td class="px-3 py-2 font-semibold">${sanitizeText(e.full_name)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.email)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.position)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.department)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.entity_name || e.entity_id)}</td>
+                    <td class="px-3 py-2">${formatDate(e.hire_date)}</td>
+                    <td class="px-3 py-2">${formatMoney(e.salary)}</td>
+                    <td class="px-3 py-2">${translateEmploymentType(e.employment_type)}</td>
+                    <td class="px-3 py-2">${e.is_active ? 'نشط' : 'غير نشط'}</td>
+                </tr>
+            `).join('');
+            document.getElementById('employeesTable').innerHTML = employeeRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('employeesCount').textContent = `عدد الصفوف: ${employees.length}`;
+
+            const requestRows = requests.map(r => `
+                <tr class="hover:bg-violet-50">
+                    <td class="px-3 py-2">${sanitizeText(r.id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(r.employee_name || r.employee_id)}</td>
+                    <td class="px-3 py-2">${resolveRequestTypeName(r.request_type)}</td>
+                    <td class="px-3 py-2">${sanitizeText(r.request_title)}</td>
+                    <td class="px-3 py-2">${translatePriority(r.priority)}</td>
+                    <td class="px-3 py-2">${normalizeStatus(r.status)}</td>
+                    <td class="px-3 py-2">${formatDate(r.requested_date)}</td>
+                    <td class="px-3 py-2">${r.requires_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(r.notes))}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('requestsTable').innerHTML = requestRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('requestsCount').textContent = `عدد الصفوف: ${requests.length}`;
+
+            const typeRows = requestTypes.map(t => `
+                <tr class="hover:bg-rose-50">
+                    <td class="px-3 py-2">${sanitizeText(t.id)}</td>
+                    <td class="px-3 py-2 font-semibold">${sanitizeText(t.type_name_ar)}</td>
+                    <td class="px-3 py-2">${translateCategory(t.category)}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(t.description_ar))}</td>
+                    <td class="px-3 py-2">${t.requires_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${t.requires_manager_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${t.requires_hr_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${t.is_active ? 'نشط' : 'غير نشط'}</td>
+                </tr>
+            `).join('');
+            document.getElementById('typesTable').innerHTML = typeRows || `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('typesCount').textContent = `عدد الصفوف: ${requestTypes.length}`;
+        }
+
+        function resolveRequestTypeName(code) {
+            const match = requestTypes.find(t => t.type_code === code);
+            return sanitizeText(match?.type_name_ar || code || 'غير محدد');
+        }
+
+        function normalizeStatus(value) {
+            const map = {
+                PENDING: 'قيد المعالجة',
+                APPROVED: 'معتمد',
+                REJECTED: 'مرفوض',
+                COMPLETED: 'مكتمل',
+                IN_PROGRESS: 'قيد التنفيذ'
+            };
+            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function translatePriority(value) {
+            const map = {
+                HIGH: 'عاجل',
+                NORMAL: 'عادي',
+                LOW: 'منخفض'
+            };
+            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function translateEmploymentType(value) {
+            const map = {
+                FULL_TIME: 'دوام كامل',
+                PART_TIME: 'دوام جزئي',
+                CONTRACT: 'تعاقد',
+                TEMPORARY: 'مؤقت',
+                INTERN: 'تدريب'
+            };
+            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function translateCategory(value) {
+            const map = {
+                general: 'عام',
+                leave: 'إجازات',
+                payroll: 'رواتب',
+                attendance: 'حضور',
+                hr: 'موارد بشرية',
+                admin: 'إداري'
+            };
+            return map[String(value || '').toLowerCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function truncate(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            return text.length > 120 ? text.slice(0, 120) + '...' : text;
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || '-';
+        }
+
+        function downloadAllJSON() {
+            const payload = {
+                employees,
+                requests,
+                request_types: requestTypes,
+                hierarchy_stats: hierarchyStats
+            };
+            downloadBlob(JSON.stringify(payload, null, 2), 'النظام-الإداري-والموارد-البشرية.json', 'application/json');
+        }
+
+        function downloadAllCSV() {
+            const rows = [];
+            rows.push(['الموظفون']);
+            rows.push(['رقم الموظف','الاسم','البريد','المنصب','القسم','المنشأة','تاريخ التعيين','الراتب','نوع التوظيف','الحالة']);
+            employees.forEach(e => rows.push([
+                e.employee_number || e.id,
+                sanitizeText(e.full_name),
+                sanitizeText(e.email),
+                sanitizeText(e.position),
+                sanitizeText(e.department),
+                sanitizeText(e.entity_name || e.entity_id),
+                e.hire_date,
+                e.salary,
+                translateEmploymentType(e.employment_type),
+                e.is_active ? 'نشط' : 'غير نشط'
+            ]));
+
+            rows.push([]);
+            rows.push(['طلبات الموظفين']);
+            rows.push(['رقم الطلب','الموظف','نوع الطلب','العنوان','الأولوية','الحالة','تاريخ الطلب','الموافقة مطلوبة','ملاحظات','تاريخ الإنشاء']);
+            requests.forEach(r => rows.push([
+                r.id,
+                sanitizeText(r.employee_name || r.employee_id),
+                resolveRequestTypeName(r.request_type),
+                sanitizeText(r.request_title),
+                translatePriority(r.priority),
+                normalizeStatus(r.status),
+                r.requested_date,
+                r.requires_approval ? 'نعم' : 'لا',
+                sanitizeText(r.notes),
+                r.created_at
+            ]));
+
+            rows.push([]);
+            rows.push(['أنواع الطلبات']);
+            rows.push(['رقم النوع','الاسم','الفئة','الوصف','يتطلب موافقة','يتطلب مدير','يتطلب موارد بشرية','الحالة']);
+            requestTypes.forEach(t => rows.push([
+                t.id,
+                sanitizeText(t.type_name_ar),
+                translateCategory(t.category),
+                sanitizeText(t.description_ar),
+                t.requires_approval ? 'نعم' : 'لا',
+                t.requires_manager_approval ? 'نعم' : 'لا',
+                t.requires_hr_approval ? 'نعم' : 'لا',
+                t.is_active ? 'نشط' : 'غير نشط'
+            ]));
+
+            if (hierarchyStats) {
+                rows.push([]);
+                rows.push(['مؤشرات الهيكل الإداري']);
+                rows.push(['المراكز الرئيسية','الفروع','الحاضنات','المنصات','المكاتب','روابط المكاتب']);
+                rows.push([
+                    hierarchyStats.active_hqs,
+                    hierarchyStats.active_branches,
+                    hierarchyStats.active_incubators,
+                    hierarchyStats.active_platforms,
+                    hierarchyStats.active_offices,
+                    hierarchyStats.active_links
+                ]);
+            }
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'النظام-الإداري-والموارد-البشرية.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
