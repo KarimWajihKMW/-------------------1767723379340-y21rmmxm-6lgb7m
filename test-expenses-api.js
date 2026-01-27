@@ -3,7 +3,7 @@
  */
 
 const BASE_URL = 'http://localhost:3000';
-const ENTITY_ID = '1';
+const ENTITY_ID = 'HQ001';
 
 async function testAPI(name, url) {
     console.log(`\n🧪 Testing: ${name}`);

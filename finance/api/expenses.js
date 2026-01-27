@@ -1,6 +1,6 @@
 /**
  * 🧾 Expenses & Vendors API
- * Page 17 of Accounting System
+ * Page 23 of Accounting System
  */
 
 const { Pool } = require('pg');
@@ -15,7 +15,7 @@ const pool = new Pool({
 });
 
 async function getExpenses(req, res) {
-    const { entity_id, status, expense_category, expense_type, from_date, to_date } = req.query;
+    const { entity_id, status, expense_category, expense_type, from_date, to_date, expense_number, vendor_name, invoice_number } = req.query;
 
     if (!entity_id) {
         return res.status(400).json({
@@ -34,6 +34,21 @@ async function getExpenses(req, res) {
         if (status) {
             expenseConditions.push(`LOWER(status) = LOWER($${eIndex})`);
             expenseValues.push(status);
+            eIndex++;
+        }
+        if (expense_number) {
+            expenseConditions.push(`expense_number ILIKE $${eIndex}`);
+            expenseValues.push(`%${expense_number}%`);
+            eIndex++;
+        }
+        if (vendor_name) {
+            expenseConditions.push(`vendor_name ILIKE $${eIndex}`);
+            expenseValues.push(`%${vendor_name}%`);
+            eIndex++;
+        }
+        if (invoice_number) {
+            expenseConditions.push(`invoice_number ILIKE $${eIndex}`);
+            expenseValues.push(`%${invoice_number}%`);
             eIndex++;
         }
         if (expense_category) {
@@ -146,6 +161,8 @@ async function getExpenses(req, res) {
 
         summary.total_vendors = vendors.length;
         summary.active_vendors = vendors.filter(v => v.is_active === true).length;
+        summary.entity_id = entity_id;
+        summary.generated_at = new Date().toISOString();
 
         res.json({
             success: true,
