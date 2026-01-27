@@ -331,6 +331,19 @@
         const API_BASE = window.location.origin;
         const ENTITY_ID = '1';
         let chartInstance = null;
+        const balanceState = {
+            sheet: null,
+            assets: [],
+            liabilities: [],
+            equity: [],
+            totals: {
+                total_assets: 0,
+                total_liabilities: 0,
+                total_equity: 0,
+                is_balanced: false,
+                difference: 0
+            }
+        };
 
         // Tab Switching
         function switchTab(tabName) {
@@ -341,310 +354,276 @@
                 el.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600', 'bg-purple-50');
                 el.classList.add('text-gray-600');
             });
-            // Show selected content
-            document.getElementById('content-' + tabName).classList.remove('hidden');
-            // Activate selected tab
-            const tab = document.getElementById('tab-' + tabName);
-            tab.classList.add('text-purple-600', 'border-b-2', 'border-purple-600', 'bg-purple-50');
-            tab.classList.remove('text-gray-600');
-        }
-
-        // Load all data
-        async function loadAllData() {
-            try {
-                console.log('🔄 جاري تحميل جميع بيانات الميزانية العمومية...');
-                
-                await Promise.all([
-                    loadBalanceSheet(),
-                    loadAssets(),
-                    loadLiabilities(),
-                    loadEquity()
-                ]);
-
-                console.log('✅ تم تحميل جميع البيانات');
-            } catch (error) {
-                console.error('❌ خطأ في تحميل البيانات:', error);
+            // Load all data
+            async function loadAllData() {
+                try {
+                    console.log('🔄 جاري تحميل جميع بيانات الميزانية العمومية...');
+                    await loadCompleteBalanceSheet();
+                    console.log('✅ تم تحميل جميع البيانات');
+                } catch (error) {
+                    console.error('❌ خطأ في تحميل البيانات:', error);
+                }
             }
-        }
 
-        // Load Balance Sheet Info
-        async function loadBalanceSheet() {
-            try {
-                const response = await fetch(`${API_BASE}/finance/balance-sheet?entity_id=${ENTITY_ID}`);
-                const data = await response.json();
+            async function loadCompleteBalanceSheet() {
+                try {
+                    const response = await fetch(`${API_BASE}/finance/balance-sheet/complete?entity_id=${ENTITY_ID}`);
+                    const data = await response.json();
 
-                if (data.success && data.sheet) {
-                    const sheet = data.sheet;
-                    const sheetDate = new Date(sheet.sheet_date).toLocaleDateString('ar-SA');
-                    
+                    if (!data.success) {
+                        throw new Error(data.error || 'تعذر تحميل الميزانية');
+                    }
+
+                    balanceState.sheet = data.sheet || null;
+                    balanceState.assets = data.assets || [];
+                    balanceState.liabilities = data.liabilities || [];
+                    balanceState.equity = data.equity || [];
+                    balanceState.totals = data.totals || balanceState.totals;
+
+                    renderBalanceSheet();
+                } catch (error) {
+                    console.error('❌ خطأ في تحميل الميزانية العمومية:', error);
+                    balanceState.sheet = null;
+                    balanceState.assets = [];
+                    balanceState.liabilities = [];
+                    balanceState.equity = [];
+                    balanceState.totals = {
+                        total_assets: 0,
+                        total_liabilities: 0,
+                        total_equity: 0,
+                        is_balanced: false,
+                        difference: 0
+                    };
+                    renderBalanceSheet();
+                }
+            }
+
+            function renderBalanceSheet() {
+                renderSheetInfo();
+                renderAssets();
+                renderLiabilities();
+                renderEquity();
+                renderTotals();
+                updateBalanceEquation();
+                updateChart();
+            }
+
+            function renderSheetInfo() {
+                const sheet = balanceState.sheet;
+                if (!sheet) {
                     document.getElementById('sheetInfo').innerHTML = `
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-calendar text-purple-600 text-xl"></i>
-                            <div>
-                                <div class="text-sm text-gray-600">تاريخ الميزانية</div>
-                                <div class="font-bold">${sheetDate}</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-clock text-purple-600 text-xl"></i>
-                            <div>
-                                <div class="text-sm text-gray-600">نوع الفترة</div>
-                                <div class="font-bold">${sheet.period_type === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
-                            <div>
-                                <div class="text-sm text-gray-600">السنة المالية</div>
-                                <div class="font-bold">${sheet.fiscal_year}</div>
-                            </div>
-                        </div>
-                        ${sheet.notes ? `
-                        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-sticky-note text-purple-600 text-xl"></i>
-                            <div>
-                                <div class="text-sm text-gray-600">ملاحظات</div>
-                                <div class="font-bold">${sheet.notes}</div>
-                            </div>
-                        </div>
-                        ` : ''}
+                        <div class="text-center text-gray-500 py-6">لا توجد بيانات للميزانية</div>
                     `;
+                    return;
                 }
-            } catch (error) {
-                console.error('❌ خطأ في تحميل معلومات الميزانية:', error);
+
+                const sheetDate = sheet.sheet_date ? new Date(sheet.sheet_date).toLocaleDateString('ar-SA') : '-';
+                document.getElementById('sheetInfo').innerHTML = `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-calendar text-purple-600 text-xl"></i>
+                        <div>
+                            <div class="text-sm text-gray-600">تاريخ الميزانية</div>
+                            <div class="font-bold">${sheetDate}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-clock text-purple-600 text-xl"></i>
+                        <div>
+                            <div class="text-sm text-gray-600">نوع الفترة</div>
+                            <div class="font-bold">${sheet.period_type === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                        <div>
+                            <div class="text-sm text-gray-600">السنة المالية</div>
+                            <div class="font-bold">${sheet.fiscal_year || '-'}</div>
+                        </div>
+                    </div>
+                    ${sheet.notes ? `
+                    <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-sticky-note text-purple-600 text-xl"></i>
+                        <div>
+                            <div class="text-sm text-gray-600">ملاحظات</div>
+                            <div class="font-bold">${sheet.notes}</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
             }
-        }
 
-        // Load Assets
-        async function loadAssets() {
-            try {
-                const response = await fetch(`${API_BASE}/finance/balance-sheet/assets?entity_id=${ENTITY_ID}`);
-                const data = await response.json();
+            function renderAssets() {
+                const currentAssets = balanceState.assets.filter(a => a.asset_category === 'current');
+                const fixedAssets = balanceState.assets.filter(a => a.asset_category === 'fixed');
 
-                if (data.success && data.assets) {
-                    console.log(`✅ تم تحميل ${data.assets.length} أصل`);
+                const currentAssetsHTML = currentAssets.length > 0 ? currentAssets.map(asset => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                                ${translateAssetType(asset.asset_type)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${asset.asset_name || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-blue-600">${formatMoney(asset.amount)}</td>
+                        <td class="px-4 py-3 text-gray-600">${asset.description || '-'}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد أصول متداولة</td></tr>';
 
-                    const currentAssets = data.assets.filter(a => a.asset_category === 'current');
-                    const fixedAssets = data.assets.filter(a => a.asset_category === 'fixed');
+                document.getElementById('currentAssets').innerHTML = currentAssetsHTML;
 
-                    // Current Assets
-                    const currentAssetsHTML = currentAssets.length > 0 ? currentAssets.map(asset => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">
-                                    ${translateAssetType(asset.asset_type)}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 font-semibold text-gray-800">${asset.asset_name}</td>
-                            <td class="px-4 py-3 font-bold text-blue-600">${parseFloat(asset.amount).toLocaleString('ar-SA')} ر.س</td>
-                            <td class="px-4 py-3 text-gray-600">${asset.description || '-'}</td>
-                        </tr>
-                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد أصول متداولة</td></tr>';
+                const fixedAssetsHTML = fixedAssets.length > 0 ? fixedAssets.map(asset => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                                ${translateAssetType(asset.asset_type)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${asset.asset_name || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-blue-600">${formatMoney(asset.amount)}</td>
+                        <td class="px-4 py-3 text-gray-600">${asset.description || '-'}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد أصول ثابتة</td></tr>';
 
-                    document.getElementById('currentAssets').innerHTML = currentAssetsHTML;
+                document.getElementById('fixedAssets').innerHTML = fixedAssetsHTML;
+            }
 
-                    // Fixed Assets
-                    const fixedAssetsHTML = fixedAssets.length > 0 ? fixedAssets.map(asset => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">
-                                    ${translateAssetType(asset.asset_type)}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 font-semibold text-gray-800">${asset.asset_name}</td>
-                            <td class="px-4 py-3 font-bold text-blue-600">${parseFloat(asset.amount).toLocaleString('ar-SA')} ر.س</td>
-                            <td class="px-4 py-3 text-gray-600">${asset.description || '-'}</td>
-                        </tr>
-                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد أصول ثابتة</td></tr>';
+            function renderLiabilities() {
+                const currentLiabilities = balanceState.liabilities.filter(l => l.liability_category === 'current');
+                const longTermLiabilities = balanceState.liabilities.filter(l => l.liability_category === 'long-term');
 
-                    document.getElementById('fixedAssets').innerHTML = fixedAssetsHTML;
+                const currentLiabilitiesHTML = currentLiabilities.length > 0 ? currentLiabilities.map(liability => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
+                                ${translateLiabilityType(liability.liability_type)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${liability.liability_name || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-red-600">${formatMoney(liability.amount)}</td>
+                        <td class="px-4 py-3 text-gray-600">${liability.description || '-'}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد التزامات متداولة</td></tr>';
 
-                    // Calculate total
-                    const totalAssets = data.assets.reduce((sum, asset) => sum + parseFloat(asset.amount), 0);
-                    document.getElementById('totalAssets').textContent = totalAssets.toLocaleString('ar-SA') + ' ر.س';
-                    document.getElementById('assetsSummary').textContent = totalAssets.toLocaleString('ar-SA') + ' ر.س';
+                document.getElementById('currentLiabilities').innerHTML = currentLiabilitiesHTML;
 
-                    return totalAssets;
+                const longTermLiabilitiesHTML = longTermLiabilities.length > 0 ? longTermLiabilities.map(liability => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
+                                ${translateLiabilityType(liability.liability_type)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${liability.liability_name || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-red-600">${formatMoney(liability.amount)}</td>
+                        <td class="px-4 py-3 text-gray-600">${liability.description || '-'}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد التزامات طويلة الأجل</td></tr>';
+
+                document.getElementById('longTermLiabilities').innerHTML = longTermLiabilitiesHTML;
+            }
+
+            function renderEquity() {
+                const equityHTML = balanceState.equity.length > 0 ? balanceState.equity.map(item => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">
+                                ${translateEquityType(item.equity_type)}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-gray-800">${item.equity_name || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-green-600">${formatMoney(item.amount)}</td>
+                        <td class="px-4 py-3 text-gray-600">${item.description || '-'}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد بنود حقوق ملكية</td></tr>';
+
+                document.getElementById('equityTable').innerHTML = equityHTML;
+            }
+
+            function renderTotals() {
+                const totals = balanceState.totals;
+                const totalAssets = totals.total_assets ?? balanceState.assets.reduce((sum, asset) => sum + parseFloat(asset.amount || 0), 0);
+                const totalLiabilities = totals.total_liabilities ?? balanceState.liabilities.reduce((sum, liability) => sum + parseFloat(liability.amount || 0), 0);
+                const totalEquity = totals.total_equity ?? balanceState.equity.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+
+                document.getElementById('totalAssets').textContent = formatMoney(totalAssets);
+                document.getElementById('totalLiabilities').textContent = formatMoney(totalLiabilities);
+                document.getElementById('totalEquity').textContent = formatMoney(totalEquity);
+                document.getElementById('assetsSummary').textContent = formatMoney(totalAssets);
+                document.getElementById('liabilitiesSummary').textContent = formatMoney(totalLiabilities);
+                document.getElementById('equitySummary').textContent = formatMoney(totalEquity);
+            }
+
+            function updateBalanceEquation() {
+                const totalAssets = parseFloat((balanceState.totals.total_assets || 0));
+                const totalLiabilities = parseFloat((balanceState.totals.total_liabilities || 0));
+                const totalEquity = parseFloat((balanceState.totals.total_equity || 0));
+
+                const equation = `${totalAssets.toLocaleString('ar-SA')} = ${totalLiabilities.toLocaleString('ar-SA')} + ${totalEquity.toLocaleString('ar-SA')}`;
+                document.getElementById('balanceEquation').textContent = equation;
+
+                const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01;
+                const checkHTML = isBalanced
+                    ? '<span class="text-green-600"><i class="fas fa-check-circle"></i> الميزانية متوازنة</span>'
+                    : '<span class="text-red-600"><i class="fas fa-exclamation-triangle"></i> الميزانية غير متوازنة</span>';
+                document.getElementById('balanceCheck').innerHTML = checkHTML;
+
+                const debtRatio = totalAssets > 0 ? ((totalLiabilities / totalAssets) * 100).toFixed(1) : '0.0';
+                document.getElementById('debtRatio').textContent = debtRatio + '%';
+            }
+
+            function updateChart() {
+                const assets = parseFloat(balanceState.totals.total_assets || 0);
+                const liabilities = parseFloat(balanceState.totals.total_liabilities || 0);
+                const equity = parseFloat(balanceState.totals.total_equity || 0);
+
+                const ctx = document.getElementById('balanceChart').getContext('2d');
+
+                if (chartInstance) {
+                    chartInstance.destroy();
                 }
-            } catch (error) {
-                console.error('❌ خطأ في تحميل الأصول:', error);
-                return 0;
-            }
-        }
 
-        // Load Liabilities
-        async function loadLiabilities() {
-            try {
-                const response = await fetch(`${API_BASE}/finance/balance-sheet/liabilities?entity_id=${ENTITY_ID}`);
-                const data = await response.json();
-
-                if (data.success && data.liabilities) {
-                    console.log(`✅ تم تحميل ${data.liabilities.length} التزام`);
-
-                    const currentLiabilities = data.liabilities.filter(l => l.liability_category === 'current');
-                    const longTermLiabilities = data.liabilities.filter(l => l.liability_category === 'long-term');
-
-                    // Current Liabilities
-                    const currentLiabilitiesHTML = currentLiabilities.length > 0 ? currentLiabilities.map(liability => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
-                                    ${translateLiabilityType(liability.liability_type)}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 font-semibold text-gray-800">${liability.liability_name}</td>
-                            <td class="px-4 py-3 font-bold text-red-600">${parseFloat(liability.amount).toLocaleString('ar-SA')} ر.س</td>
-                            <td class="px-4 py-3 text-gray-600">${liability.description || '-'}</td>
-                        </tr>
-                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد التزامات متداولة</td></tr>';
-
-                    document.getElementById('currentLiabilities').innerHTML = currentLiabilitiesHTML;
-
-                    // Long-term Liabilities
-                    const longTermLiabilitiesHTML = longTermLiabilities.length > 0 ? longTermLiabilities.map(liability => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">
-                                    ${translateLiabilityType(liability.liability_type)}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 font-semibold text-gray-800">${liability.liability_name}</td>
-                            <td class="px-4 py-3 font-bold text-red-600">${parseFloat(liability.amount).toLocaleString('ar-SA')} ر.س</td>
-                            <td class="px-4 py-3 text-gray-600">${liability.description || '-'}</td>
-                        </tr>
-                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد التزامات طويلة الأجل</td></tr>';
-
-                    document.getElementById('longTermLiabilities').innerHTML = longTermLiabilitiesHTML;
-
-                    // Calculate total
-                    const totalLiabilities = data.liabilities.reduce((sum, liability) => sum + parseFloat(liability.amount), 0);
-                    document.getElementById('totalLiabilities').textContent = totalLiabilities.toLocaleString('ar-SA') + ' ر.س';
-                    document.getElementById('liabilitiesSummary').textContent = totalLiabilities.toLocaleString('ar-SA') + ' ر.س';
-
-                    return totalLiabilities;
-                }
-            } catch (error) {
-                console.error('❌ خطأ في تحميل الالتزامات:', error);
-                return 0;
-            }
-        }
-
-        // Load Equity
-        async function loadEquity() {
-            try {
-                const response = await fetch(`${API_BASE}/finance/balance-sheet/equity?entity_id=${ENTITY_ID}`);
-                const data = await response.json();
-
-                if (data.success && data.equity) {
-                    console.log(`✅ تم تحميل ${data.equity.length} بند حقوق ملكية`);
-
-                    const equityHTML = data.equity.length > 0 ? data.equity.map(item => `
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">
-                                    ${translateEquityType(item.equity_type)}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 font-semibold text-gray-800">${item.equity_name}</td>
-                            <td class="px-4 py-3 font-bold text-green-600">${parseFloat(item.amount).toLocaleString('ar-SA')} ر.س</td>
-                            <td class="px-4 py-3 text-gray-600">${item.description || '-'}</td>
-                        </tr>
-                    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">لا توجد بنود حقوق ملكية</td></tr>';
-
-                    document.getElementById('equityTable').innerHTML = equityHTML;
-
-                    // Calculate total
-                    const totalEquity = data.equity.reduce((sum, item) => sum + parseFloat(item.amount), 0);
-                    document.getElementById('totalEquity').textContent = totalEquity.toLocaleString('ar-SA') + ' ر.س';
-                    document.getElementById('equitySummary').textContent = totalEquity.toLocaleString('ar-SA') + ' ر.س';
-
-                    // Update balance equation and chart
-                    updateBalanceEquation();
-                    updateChart();
-
-                    return totalEquity;
-                }
-            } catch (error) {
-                console.error('❌ خطأ في تحميل حقوق الملكية:', error);
-                return 0;
-            }
-        }
-
-        // Update Balance Equation
-        function updateBalanceEquation() {
-            const assetsText = document.getElementById('totalAssets').textContent;
-            const liabilitiesText = document.getElementById('totalLiabilities').textContent;
-            const equityText = document.getElementById('totalEquity').textContent;
-
-            const assets = parseFloat(assetsText.replace(/[^\d.-]/g, ''));
-            const liabilities = parseFloat(liabilitiesText.replace(/[^\d.-]/g, ''));
-            const equity = parseFloat(equityText.replace(/[^\d.-]/g, ''));
-
-            const equation = `${assets.toLocaleString('ar-SA')} = ${liabilities.toLocaleString('ar-SA')} + ${equity.toLocaleString('ar-SA')}`;
-            document.getElementById('balanceEquation').textContent = equation;
-
-            // Check if balanced
-            const isBalanced = Math.abs(assets - (liabilities + equity)) < 0.01;
-            const checkHTML = isBalanced 
-                ? '<span class="text-green-600"><i class="fas fa-check-circle"></i> الميزانية متوازنة</span>'
-                : '<span class="text-red-600"><i class="fas fa-exclamation-triangle"></i> الميزانية غير متوازنة</span>';
-            document.getElementById('balanceCheck').innerHTML = checkHTML;
-
-            // Update debt ratio
-            const debtRatio = liabilities > 0 ? ((liabilities / assets) * 100).toFixed(1) : 0;
-            document.getElementById('debtRatio').textContent = debtRatio + '%';
-        }
-
-        // Update Chart
-        function updateChart() {
-            const assetsText = document.getElementById('totalAssets').textContent;
-            const liabilitiesText = document.getElementById('totalLiabilities').textContent;
-            const equityText = document.getElementById('totalEquity').textContent;
-
-            const assets = parseFloat(assetsText.replace(/[^\d.-]/g, ''));
-            const liabilities = parseFloat(liabilitiesText.replace(/[^\d.-]/g, ''));
-            const equity = parseFloat(equityText.replace(/[^\d.-]/g, ''));
-
-            const ctx = document.getElementById('balanceChart').getContext('2d');
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['الأصول', 'الالتزامات', 'حقوق الملكية'],
-                    datasets: [{
-                        data: [assets, liabilities, equity],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(34, 197, 94, 0.8)'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    family: 'Cairo',
-                                    size: 14
-                                },
-                                padding: 15
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['الأصول', 'الالتزامات', 'حقوق الملكية'],
+                        datasets: [{
+                            data: [assets, liabilities, equity],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(34, 197, 94, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        family: 'Cairo',
+                                        size: 14
+                                    },
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        return label + ': ' + value.toLocaleString('ar-SA') + ' ر.س';
+                                    }
+                                }
                             }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed || 0;
+                        }
+                    }
+                });
+            }
                                     return label + ': ' + value.toLocaleString('ar-SA') + ' ر.س';
                                 }
                             }
@@ -696,13 +675,91 @@
             return types[type] || type;
         }
 
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
         // Export functions
         function generatePDF() {
-            alert('سيتم إضافة ميزة تصدير PDF قريباً');
+            const payload = {
+                entity_id: ENTITY_ID,
+                generated_at: new Date().toISOString(),
+                sheet: balanceState.sheet,
+                assets: balanceState.assets,
+                liabilities: balanceState.liabilities,
+                equity: balanceState.equity,
+                totals: balanceState.totals
+            };
+            downloadBlob(JSON.stringify(payload, null, 2), 'الميزانية-العمومية.json', 'application/json');
         }
 
         function exportExcel() {
-            alert('سيتم إضافة ميزة تصدير Excel قريباً');
+            const rows = [];
+            rows.push(['الميزانية العمومية']);
+
+            if (balanceState.sheet) {
+                rows.push(['تاريخ الميزانية', balanceState.sheet.sheet_date || '']);
+                rows.push(['نوع الفترة', balanceState.sheet.period_type || '']);
+                rows.push(['السنة المالية', balanceState.sheet.fiscal_year || '']);
+                rows.push([]);
+            }
+
+            rows.push(['الأصول']);
+            rows.push(['التصنيف', 'النوع', 'اسم الأصل', 'القيمة', 'الوصف']);
+            balanceState.assets.forEach(asset => {
+                rows.push([
+                    asset.asset_category === 'current' ? 'متداولة' : (asset.asset_category === 'fixed' ? 'ثابتة' : 'أخرى'),
+                    translateAssetType(asset.asset_type),
+                    asset.asset_name,
+                    asset.amount,
+                    asset.description || ''
+                ]);
+            });
+
+            rows.push([]);
+            rows.push(['الالتزامات']);
+            rows.push(['التصنيف', 'النوع', 'اسم الالتزام', 'القيمة', 'الوصف']);
+            balanceState.liabilities.forEach(liability => {
+                rows.push([
+                    liability.liability_category === 'current' ? 'متداولة' : (liability.liability_category === 'long-term' ? 'طويلة الأجل' : 'أخرى'),
+                    translateLiabilityType(liability.liability_type),
+                    liability.liability_name,
+                    liability.amount,
+                    liability.description || ''
+                ]);
+            });
+
+            rows.push([]);
+            rows.push(['حقوق الملكية']);
+            rows.push(['النوع', 'البند', 'القيمة', 'الوصف']);
+            balanceState.equity.forEach(item => {
+                rows.push([
+                    translateEquityType(item.equity_type),
+                    item.equity_name,
+                    item.amount,
+                    item.description || ''
+                ]);
+            });
+
+            rows.push([]);
+            rows.push(['الإجماليات']);
+            rows.push(['إجمالي الأصول', balanceState.totals.total_assets || 0]);
+            rows.push(['إجمالي الالتزامات', balanceState.totals.total_liabilities || 0]);
+            rows.push(['إجمالي حقوق الملكية', balanceState.totals.total_equity || 0]);
+
+            const csvContent = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'الميزانية-العمومية.csv', 'text/csv;charset=utf-8;');
         }
 
         function printBalanceSheet() {
