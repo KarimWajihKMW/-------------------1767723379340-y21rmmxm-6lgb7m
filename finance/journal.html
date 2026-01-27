@@ -192,9 +192,108 @@
         </div>
     </div>
 
+    <!-- View Journal Entry Modal -->
+    <div id="entryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h3 class="text-lg font-bold text-gray-800">تفاصيل القيد المحاسبي</h3>
+                <button onclick="closeEntryModal()" class="text-gray-400 hover:text-gray-700">
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div id="entryModalContent" class="p-6 space-y-4">
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <div>جاري تحميل التفاصيل...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Journal Entry Modal -->
+    <div id="addEntryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h3 class="text-lg font-bold text-gray-800">إضافة قيد محاسبي</h3>
+                <button onclick="closeAddEntryModal()" class="text-gray-400 hover:text-gray-700">
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ القيد</label>
+                        <input id="newEntryDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع القيد</label>
+                        <select id="newEntryType" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="GENERAL">عام</option>
+                            <option value="ADJUSTMENT">تسوية</option>
+                            <option value="OPENING">افتتاحي</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">البيان</label>
+                        <input id="newEntryDescription" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="وصف القيد" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">رقم مرجعي</label>
+                        <input id="newEntryReference" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="مرجع اختياري" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">السنة المالية</label>
+                        <input id="newEntryFiscalYear" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="2026" />
+                    </div>
+                </div>
+
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
+                        <h4 class="font-bold text-gray-700">سطور القيد</h4>
+                        <button onclick="addEntryLine()" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                            <i class="fas fa-plus"></i> إضافة سطر
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100 text-gray-600">
+                                <tr>
+                                    <th class="px-3 py-2 text-right">الحساب</th>
+                                    <th class="px-3 py-2 text-right">الوصف</th>
+                                    <th class="px-3 py-2 text-right">مدين</th>
+                                    <th class="px-3 py-2 text-right">دائن</th>
+                                    <th class="px-3 py-2"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="newEntryLines" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-gray-500">أضف سطرين على الأقل</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
+                        <div class="text-sm text-gray-600">الإجمالي المدين: <span id="newEntryTotalDebit" class="font-bold">0</span></div>
+                        <div class="text-sm text-gray-600">الإجمالي الدائن: <span id="newEntryTotalCredit" class="font-bold">0</span></div>
+                        <div id="newEntryBalanceStatus" class="text-sm font-bold text-rose-600">القيد غير متزن</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button onclick="closeAddEntryModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-600">إلغاء</button>
+                    <button onclick="submitJournalEntry()" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">حفظ القيد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
         const ENTITY_ID = '1';
+
+        let journalEntries = [];
+        let chartAccounts = [];
+        let trialBalanceRows = [];
 
         // Tab Switching
         function switchTab(tabName) {
@@ -224,12 +323,13 @@
         async function loadAllData() {
             try {
                 console.log('🔄 جاري تحميل جميع البيانات...');
-                
+
                 await Promise.all([
                     loadJournalEntries(),
-                    loadStats(),
                     loadAccountsList()
                 ]);
+
+                await loadStats();
 
                 console.log('✅ تم تحميل جميع البيانات');
             } catch (error) {
@@ -240,36 +340,31 @@
         // Load Statistics
         async function loadStats() {
             try {
-                // This would be a custom endpoint - for now we'll calculate from journal entries
-                const response = await fetch(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`);
-                const data = await response.json();
-
-                if (data.success && data.entries) {
-                    document.getElementById('totalEntries').textContent = data.entries.length;
-
-                    // Calculate totals from lines
-                    let totalDebit = 0;
-                    let totalCredit = 0;
-
-                    data.entries.forEach(entry => {
-                        if (entry.lines) {
-                            entry.lines.forEach(line => {
-                                totalDebit += parseFloat(line.debit_amount || 0);
-                                totalCredit += parseFloat(line.credit_amount || 0);
-                            });
-                        }
-                    });
-
-                    document.getElementById('totalDebit').textContent = totalDebit.toLocaleString('ar-SA') + ' ر.س';
-                    document.getElementById('totalCredit').textContent = totalCredit.toLocaleString('ar-SA') + ' ر.س';
+                if (!journalEntries.length) {
+                    await loadJournalEntries();
                 }
 
-                // Load accounts count
-                const accountsResp = await fetch(`${API_BASE}/finance/accounts?entity_id=${ENTITY_ID}`);
-                const accountsData = await accountsResp.json();
-                if (accountsData.success) {
-                    document.getElementById('totalAccounts').textContent = accountsData.accounts.length;
+                if (!chartAccounts.length) {
+                    await loadAccountsList();
                 }
+
+                document.getElementById('totalEntries').textContent = journalEntries.length;
+
+                let totalDebit = 0;
+                let totalCredit = 0;
+
+                journalEntries.forEach(entry => {
+                    if (entry.lines) {
+                        entry.lines.forEach(line => {
+                            totalDebit += parseFloat(line.debit_amount || 0);
+                            totalCredit += parseFloat(line.credit_amount || 0);
+                        });
+                    }
+                });
+
+                document.getElementById('totalDebit').textContent = totalDebit.toLocaleString('ar-SA') + ' ر.س';
+                document.getElementById('totalCredit').textContent = totalCredit.toLocaleString('ar-SA') + ' ر.س';
+                document.getElementById('totalAccounts').textContent = chartAccounts.length.toLocaleString('ar-SA');
 
             } catch (error) {
                 console.error('❌ خطأ في تحميل الإحصائيات:', error);
@@ -292,6 +387,7 @@
 
                 if (data.success && data.entries && data.entries.length > 0) {
                     console.log(`✅ تم تحميل ${data.entries.length} قيد محاسبي`);
+                    journalEntries = data.entries;
 
                     tbody.innerHTML = data.entries.map(entry => {
                         // Calculate totals from lines
@@ -345,6 +441,7 @@
                         `;
                     }).join('');
                 } else {
+                    journalEntries = [];
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="8" class="px-4 py-12 text-center text-gray-500">
@@ -356,6 +453,7 @@
                 }
             } catch (error) {
                 console.error('❌ خطأ في تحميل القيود:', error);
+                journalEntries = [];
                 document.getElementById('journalTable').innerHTML = `
                     <tr>
                         <td colspan="8" class="px-4 py-12 text-center text-red-500">
@@ -370,10 +468,11 @@
         // Load Accounts List for dropdown
         async function loadAccountsList() {
             try {
-                const response = await fetch(`${API_BASE}/finance/accounts?entity_id=${ENTITY_ID}`);
+                const response = await fetch(`${API_BASE}/finance/chart-of-accounts?entity_id=${ENTITY_ID}`);
                 const data = await response.json();
 
                 if (data.success && data.accounts) {
+                    chartAccounts = data.accounts;
                     const select = document.getElementById('accountSelect');
                     select.innerHTML = '<option value="">-- اختر حساب --</option>' +
                         data.accounts.map(acc => `
@@ -384,6 +483,7 @@
                 }
             } catch (error) {
                 console.error('❌ خطأ في تحميل قائمة الحسابات:', error);
+                chartAccounts = [];
             }
         }
 
@@ -403,7 +503,6 @@
             }
 
             try {
-                // This would be a custom endpoint for account ledger
                 content.innerHTML = `
                     <div class="text-center text-gray-500 py-12">
                         <i class="fas fa-spinner fa-spin text-4xl mb-3"></i>
@@ -411,18 +510,57 @@
                     </div>
                 `;
 
-                // For now, show a message
-                setTimeout(() => {
-                    content.innerHTML = `
-                        <div class="text-center text-blue-500 py-12">
-                            <i class="fas fa-info-circle text-4xl mb-3"></i>
-                            <div>سيتم تفعيل هذه الميزة قريباً</div>
-                        </div>
-                    `;
-                }, 1000);
+                const response = await fetch(`${API_BASE}/finance/journal/ledger/${accountId}?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
 
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر تحميل دفتر الأستاذ');
+                }
+
+                const ledgerRows = data.ledger.map(row => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-gray-600">${formatDate(row.entry_date)}</td>
+                        <td class="px-4 py-3 font-mono text-purple-600">${row.entry_number}</td>
+                        <td class="px-4 py-3 text-gray-700">${sanitizeText(row.entry_description)}</td>
+                        <td class="px-4 py-3 text-gray-700">${sanitizeText(row.line_description)}</td>
+                        <td class="px-4 py-3 font-bold text-red-600">${formatMoneyPlain(row.debit_amount)}</td>
+                        <td class="px-4 py-3 font-bold text-green-600">${formatMoneyPlain(row.credit_amount)}</td>
+                        <td class="px-4 py-3 font-bold text-gray-800">${formatMoneyPlain(row.running_balance)}</td>
+                    </tr>
+                `).join('');
+
+                content.innerHTML = `
+                    <div class="mb-4 bg-gray-50 rounded-xl p-4">
+                        <div class="font-bold text-gray-800">${data.account.account_code} - ${data.account.account_name_ar}</div>
+                        <div class="text-sm text-gray-500">نوع الحساب: ${data.account.account_type}</div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100 text-gray-600">
+                                <tr>
+                                    <th class="px-4 py-3 text-right">التاريخ</th>
+                                    <th class="px-4 py-3 text-right">رقم القيد</th>
+                                    <th class="px-4 py-3 text-right">بيان القيد</th>
+                                    <th class="px-4 py-3 text-right">بيان السطر</th>
+                                    <th class="px-4 py-3 text-right">مدين</th>
+                                    <th class="px-4 py-3 text-right">دائن</th>
+                                    <th class="px-4 py-3 text-right">الرصيد التراكمي</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${ledgerRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-gray-500">لا توجد حركات</td></tr>`}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
             } catch (error) {
                 console.error('❌ خطأ في تحميل دفتر الأستاذ:', error);
+                content.innerHTML = `
+                    <div class="text-center text-red-500 py-12">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+                        <div>فشل تحميل دفتر الأستاذ</div>
+                    </div>
+                `;
             }
         }
 
@@ -439,6 +577,7 @@
 
                 if (data.success && data.balances && data.balances.length > 0) {
                     console.log(`✅ تم تحميل ${data.balances.length} رصيد`);
+                    trialBalanceRows = data.balances;
 
                     let totalDebit = 0;
                     let totalCredit = 0;
@@ -481,6 +620,7 @@
                         </tr>
                     `;
                 } else {
+                    trialBalanceRows = [];
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="6" class="px-4 py-12 text-center text-gray-500">
@@ -492,6 +632,7 @@
                 }
             } catch (error) {
                 console.error('❌ خطأ في تحميل ميزان المراجعة:', error);
+                trialBalanceRows = [];
                 document.getElementById('trialBalanceTable').innerHTML = `
                     <tr>
                         <td colspan="6" class="px-4 py-12 text-center text-red-500">
@@ -505,17 +646,315 @@
 
         // View Journal Entry Details
         function viewJournalEntry(entryId) {
-            alert(`عرض تفاصيل القيد رقم: ${entryId}\nسيتم تفعيل هذه الميزة قريباً`);
+            openEntryModal();
+            const content = document.getElementById('entryModalContent');
+            content.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <div>جاري تحميل التفاصيل...</div>
+                </div>
+            `;
+
+            fetch(`${API_BASE}/finance/journal/entries/${entryId}?entity_id=${ENTITY_ID}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.error || 'تعذر تحميل التفاصيل');
+                    }
+
+                    const entry = data.entry;
+                    const lines = entry.lines || [];
+
+                    const linesHtml = lines.map(line => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-2 text-gray-600">${line.line_number}</td>
+                            <td class="px-3 py-2 text-gray-700">${line.account_code || '-'} - ${sanitizeText(line.account_name)}</td>
+                            <td class="px-3 py-2 text-gray-700">${sanitizeText(line.description)}</td>
+                            <td class="px-3 py-2 font-bold text-red-600">${formatMoneyPlain(line.debit_amount)}</td>
+                            <td class="px-3 py-2 font-bold text-green-600">${formatMoneyPlain(line.credit_amount)}</td>
+                        </tr>
+                    `).join('');
+
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-sm text-gray-500">رقم القيد</div>
+                                <div class="font-bold text-gray-800">${entry.entry_number}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-sm text-gray-500">تاريخ القيد</div>
+                                <div class="font-bold text-gray-800">${formatDate(entry.entry_date)}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-sm text-gray-500">نوع القيد</div>
+                                <div class="font-bold text-gray-800">${sanitizeText(entry.entry_type)}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-sm text-gray-500">الحالة</div>
+                                <div class="font-bold text-gray-800">${sanitizeText(entry.status)}</div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="text-sm text-gray-500">البيان</div>
+                            <div class="font-bold text-gray-800">${sanitizeText(entry.description)}</div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-100 text-gray-600">
+                                    <tr>
+                                        <th class="px-3 py-2 text-right">#</th>
+                                        <th class="px-3 py-2 text-right">الحساب</th>
+                                        <th class="px-3 py-2 text-right">الوصف</th>
+                                        <th class="px-3 py-2 text-right">مدين</th>
+                                        <th class="px-3 py-2 text-right">دائن</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    ${linesHtml || `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">لا توجد سطور</td></tr>`}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('❌ خطأ في تحميل تفاصيل القيد:', error);
+                    content.innerHTML = `
+                        <div class="text-center text-red-500 py-8">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                            <div>فشل تحميل التفاصيل</div>
+                        </div>
+                    `;
+                });
         }
 
         // Show Add Journal Entry Form
-        function showAddJournalEntry() {
-            alert('سيتم إضافة نموذج إدخال القيود المحاسبية قريباً');
+        async function showAddJournalEntry() {
+            if (!chartAccounts.length) {
+                await loadAccountsList();
+            }
+            openAddEntryModal();
+            resetNewEntryForm();
         }
 
         // Generate Report
         function generateReport() {
-            alert('سيتم إضافة ميزة تصدير التقارير قريباً');
+            const payload = {
+                entity_id: ENTITY_ID,
+                generated_at: new Date().toISOString(),
+                journal_entries: journalEntries,
+                trial_balance: trialBalanceRows,
+                chart_of_accounts: chartAccounts
+            };
+            downloadBlob(JSON.stringify(payload, null, 2), 'دفتر-اليومية-والاستاذ.json', 'application/json');
+        }
+
+        function openEntryModal() {
+            const modal = document.getElementById('entryModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEntryModal() {
+            const modal = document.getElementById('entryModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function openAddEntryModal() {
+            const modal = document.getElementById('addEntryModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAddEntryModal() {
+            const modal = document.getElementById('addEntryModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function resetNewEntryForm() {
+            document.getElementById('newEntryDate').valueAsDate = new Date();
+            document.getElementById('newEntryType').value = 'GENERAL';
+            document.getElementById('newEntryDescription').value = '';
+            document.getElementById('newEntryReference').value = '';
+            document.getElementById('newEntryFiscalYear').value = new Date().getFullYear();
+            document.getElementById('newEntryLines').innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-500">أضف سطرين على الأقل</td>
+                </tr>
+            `;
+            updateEntryTotals();
+        }
+
+        function addEntryLine() {
+            const tbody = document.getElementById('newEntryLines');
+            if (tbody.children.length === 1 && tbody.children[0].querySelector('td[colspan="5"]')) {
+                tbody.innerHTML = '';
+            }
+
+            const options = chartAccounts.map(acc => `
+                <option value="${acc.account_id}" data-code="${acc.account_code}" data-name="${acc.account_name_ar}">
+                    ${acc.account_code} - ${acc.account_name_ar}
+                </option>
+            `).join('');
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-3 py-2">
+                    <select class="entry-account w-full border border-gray-200 rounded-lg px-3 py-2">
+                        <option value="">-- اختر حساب --</option>
+                        ${options}
+                    </select>
+                </td>
+                <td class="px-3 py-2">
+                    <input type="text" class="entry-desc w-full border border-gray-200 rounded-lg px-3 py-2" placeholder="الوصف" />
+                </td>
+                <td class="px-3 py-2">
+                    <input type="number" step="0.01" class="entry-debit w-full border border-gray-200 rounded-lg px-3 py-2" placeholder="0.00" />
+                </td>
+                <td class="px-3 py-2">
+                    <input type="number" step="0.01" class="entry-credit w-full border border-gray-200 rounded-lg px-3 py-2" placeholder="0.00" />
+                </td>
+                <td class="px-3 py-2 text-center">
+                    <button onclick="removeEntryLine(this)" class="text-rose-500 hover:text-rose-700">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            row.querySelectorAll('input, select').forEach(input => {
+                input.addEventListener('input', updateEntryTotals);
+                input.addEventListener('change', updateEntryTotals);
+            });
+
+            tbody.appendChild(row);
+            updateEntryTotals();
+        }
+
+        function removeEntryLine(button) {
+            const row = button.closest('tr');
+            if (row) row.remove();
+            const tbody = document.getElementById('newEntryLines');
+            if (!tbody.children.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">أضف سطرين على الأقل</td>
+                    </tr>
+                `;
+            }
+            updateEntryTotals();
+        }
+
+        function updateEntryTotals() {
+            const rows = Array.from(document.querySelectorAll('#newEntryLines tr'))
+                .filter(row => row.querySelector('.entry-account'));
+            let totalDebit = 0;
+            let totalCredit = 0;
+
+            rows.forEach(row => {
+                totalDebit += parseFloat(row.querySelector('.entry-debit').value || 0);
+                totalCredit += parseFloat(row.querySelector('.entry-credit').value || 0);
+            });
+
+            document.getElementById('newEntryTotalDebit').textContent = totalDebit.toLocaleString('ar-SA');
+            document.getElementById('newEntryTotalCredit').textContent = totalCredit.toLocaleString('ar-SA');
+
+            const status = document.getElementById('newEntryBalanceStatus');
+            if (Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0) {
+                status.textContent = 'القيد متزن';
+                status.classList.remove('text-rose-600');
+                status.classList.add('text-green-600');
+            } else {
+                status.textContent = 'القيد غير متزن';
+                status.classList.add('text-rose-600');
+                status.classList.remove('text-green-600');
+            }
+        }
+
+        async function submitJournalEntry() {
+            const entryDate = document.getElementById('newEntryDate').value;
+            const entryType = document.getElementById('newEntryType').value;
+            const description = document.getElementById('newEntryDescription').value;
+            const reference = document.getElementById('newEntryReference').value;
+            const fiscalYear = document.getElementById('newEntryFiscalYear').value;
+
+            const rows = Array.from(document.querySelectorAll('#newEntryLines tr'))
+                .filter(row => row.querySelector('.entry-account'));
+
+            const lines = rows.map((row, index) => {
+                const select = row.querySelector('.entry-account');
+                const accountId = select.value;
+                const selectedOption = select.options[select.selectedIndex];
+                return {
+                    line_number: index + 1,
+                    account_id: accountId,
+                    account_code: selectedOption?.dataset.code || '',
+                    account_name: selectedOption?.dataset.name || '',
+                    description: row.querySelector('.entry-desc').value,
+                    debit_amount: parseFloat(row.querySelector('.entry-debit').value || 0),
+                    credit_amount: parseFloat(row.querySelector('.entry-credit').value || 0)
+                };
+            }).filter(line => line.account_id);
+
+            if (!entryDate || lines.length < 2) {
+                alert('يرجى إدخال تاريخ القيد وإضافة سطرين على الأقل');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/journal/entries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        entity_id: ENTITY_ID,
+                        entry_date: entryDate,
+                        entry_type: entryType,
+                        description,
+                        reference_number: reference,
+                        fiscal_year: fiscalYear ? parseInt(fiscalYear, 10) : null,
+                        lines
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر إنشاء القيد');
+                }
+
+                closeAddEntryModal();
+                await loadJournalEntries();
+                await loadStats();
+                alert('تم إنشاء القيد بنجاح');
+            } catch (error) {
+                console.error('❌ خطأ في إنشاء القيد:', error);
+                alert('فشل إنشاء القيد، تحقق من توازن المدين والدائن');
+            }
+        }
+
+        function formatMoneyPlain(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA');
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            return text.trim() || '-';
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
         }
 
         // Load data on page load
