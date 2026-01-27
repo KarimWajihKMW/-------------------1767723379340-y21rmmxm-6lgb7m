@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧭 بوابة العمليات والطلبات الإدارية والموارد البشرية - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 55%, #14b8a6 100%);
+            min-height: 100vh;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .stat-pill { border-radius: 999px; box-shadow: 0 18px 30px rgba(15, 23, 42, 0.15); }
+        .stat-angled { border-radius: 28px 6px 28px 6px; }
+        .stat-rounded { border-radius: 28px; }
+        .stat-cut { border-radius: 6px 28px 6px 28px; }
+        .table-scroll { max-height: 560px; overflow: auto; }
+        .section-accent-sky { border-top: 4px solid #0ea5e9; }
+        .section-accent-emerald { border-top: 4px solid #10b981; }
+        .section-accent-amber { border-top: 4px solid #f59e0b; }
+        .section-accent-violet { border-top: 4px solid #8b5cf6; }
+        .section-accent-rose { border-top: 4px solid #f43f5e; }
+        .chip { padding: 6px 12px; border-radius: 999px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">🧭 بوابة العمليات والطلبات الإدارية والموارد البشرية</h1>
+            <p class="text-lg opacity-90">قائمة الطلبات والعمليات والقرارات والرواتب والخدمات (الصفحة 43)</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل ملف بيانات شامل
+            </button>
+            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل ملف جدولي شامل
+            </button>
+            <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة التقرير
+            </button>
+        </div>
+
+        <!-- Requests & Forms -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🧾 الطلبات والنماذج</h2>
+                <div class="text-sm text-slate-500">نموذج مباشر للطلبات الأساسية</div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div class="stat-pill bg-sky-50 p-4 text-slate-700">طلب مباشرة عمل</div>
+                <div class="stat-angled bg-emerald-50 p-4 text-slate-700">طلب عهدة</div>
+                <div class="stat-rounded bg-indigo-50 p-4 text-slate-700">طلب بدلات الإجازة</div>
+                <div class="stat-cut bg-rose-50 p-4 text-slate-700">طلب إجازة</div>
+                <div class="stat-pill bg-amber-50 p-4 text-slate-700">طلب تعريف بالراتب</div>
+                <div class="stat-angled bg-violet-50 p-4 text-slate-700">طلب فقدان بصمة</div>
+                <div class="stat-rounded bg-sky-50 p-4 text-slate-700">طلب استئذان</div>
+                <div class="stat-cut bg-emerald-50 p-4 text-slate-700">طلب تعديل فترة العمل</div>
+                <div class="stat-pill bg-indigo-50 p-4 text-slate-700">طلب دوام إضافي</div>
+                <div class="stat-angled bg-rose-50 p-4 text-slate-700">طلب تذاكر سفر</div>
+                <div class="stat-rounded bg-amber-50 p-4 text-slate-700">طلب انتداب</div>
+                <div class="stat-cut bg-violet-50 p-4 text-slate-700">طلب تعديل بيانات الموظف</div>
+                <div class="stat-pill bg-sky-50 p-4 text-slate-700">طلب مشتريات</div>
+                <div class="stat-angled bg-emerald-50 p-4 text-slate-700">طلب سلفة</div>
+                <div class="stat-rounded bg-indigo-50 p-4 text-slate-700">طلب صرف مخصص</div>
+                <div class="stat-cut bg-rose-50 p-4 text-slate-700">طلب دوام خارج المكتب</div>
+                <div class="stat-pill bg-amber-50 p-4 text-slate-700">طلب دورة تدريبية</div>
+                <div class="stat-angled bg-violet-50 p-4 text-slate-700">طلب استقالة</div>
+                <div class="stat-rounded bg-sky-50 p-4 text-slate-700">طلب شكوى</div>
+                <div class="stat-cut bg-emerald-50 p-4 text-slate-700">طلب توظيف</div>
+                <div class="stat-pill bg-indigo-50 p-4 text-slate-700">طلب تثبيت الراتب</div>
+                <div class="stat-angled bg-rose-50 p-4 text-slate-700">طلب تبديل يوم راحة</div>
+            </div>
+        </div>
+
+        <!-- Employee Zone -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">👤 الموظف</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="stat-rounded bg-emerald-50 p-4">الحضور والانصراف</div>
+                <div class="stat-angled bg-sky-50 p-4">الطلبات</div>
+                <div class="stat-pill bg-indigo-50 p-4">الإجازات</div>
+                <div class="stat-cut bg-rose-50 p-4">رصيد الإجازات</div>
+                <div class="stat-rounded bg-amber-50 p-4">الإشعارات والإنذارات</div>
+                <div class="stat-angled bg-violet-50 p-4">القرارات</div>
+                <div class="stat-pill bg-sky-50 p-4">مخالفات أنظمة الشركة</div>
+                <div class="stat-cut bg-emerald-50 p-4">نماذج التقييم</div>
+                <div class="stat-rounded bg-indigo-50 p-4">التعاميم</div>
+                <div class="stat-angled bg-rose-50 p-4">السلف والذمم</div>
+                <div class="stat-pill bg-amber-50 p-4">الاستبيانات</div>
+                <div class="stat-cut bg-violet-50 p-4">أنشطة الأعمال</div>
+                <div class="stat-rounded bg-sky-50 p-4">الخطابات</div>
+                <div class="stat-angled bg-emerald-50 p-4">العهد</div>
+                <div class="stat-pill bg-indigo-50 p-4">قسائم الراتب</div>
+            </div>
+        </div>
+
+        <!-- Manager Zone -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-amber">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">👔 المدير</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="stat-pill bg-amber-50 p-4">الحضور والانصراف</div>
+                <div class="stat-rounded bg-sky-50 p-4">طلبات المرؤوسين</div>
+                <div class="stat-angled bg-emerald-50 p-4">إشعارات المرؤوسين</div>
+                <div class="stat-cut bg-indigo-50 p-4">خطة الإجازات</div>
+                <div class="stat-pill bg-rose-50 p-4">إسناد طلب</div>
+                <div class="stat-rounded bg-violet-50 p-4">نماذج تقييم المرؤوسين</div>
+                <div class="stat-angled bg-amber-50 p-4">قائمة المرؤوسين</div>
+            </div>
+        </div>
+
+        <!-- Pending Operations -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">⏳ عمليات بانتظار إجراء</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="stat-rounded bg-violet-50 p-4">عمليات بانتظار إجراء</div>
+                <div class="stat-angled bg-sky-50 p-4">طلبات بانتظار إجراء</div>
+                <div class="stat-pill bg-emerald-50 p-4">قرارات بانتظار إجراء</div>
+                <div class="stat-cut bg-rose-50 p-4">مصروفات بانتظار إجراء</div>
+            </div>
+        </div>
+
+        <!-- HR Zone -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">🧩 الموارد البشرية</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div class="stat-rounded bg-rose-50 p-4">الموظفون</div>
+                <div class="stat-angled bg-amber-50 p-4">الهيكل التنظيمي</div>
+                <div class="stat-pill bg-emerald-50 p-4">الهيكل التنظيمي للموظفين</div>
+                <div class="stat-cut bg-sky-50 p-4">الهيكل التنظيمي للإدارات</div>
+                <div class="stat-rounded bg-indigo-50 p-4">المخصصات</div>
+            </div>
+        </div>
+
+        <!-- Decisions & Payroll -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-indigo">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">📄 القرارات</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-indigo-50 p-4">إنهاء خدمات الموظف</div>
+                    <div class="stat-angled bg-emerald-50 p-4">إيقاف راتب موظف</div>
+                    <div class="stat-pill bg-rose-50 p-4">تعديل راتب</div>
+                    <div class="stat-cut bg-amber-50 p-4">قرار ترقية</div>
+                    <div class="stat-rounded bg-sky-50 p-4">اعتماد مسير الرواتب</div>
+                    <div class="stat-angled bg-violet-50 p-4">قرار حسم غياب وتأخير</div>
+                    <div class="stat-pill bg-emerald-50 p-4">قرار نقل موظف</div>
+                    <div class="stat-cut bg-indigo-50 p-4">جميع القرارات</div>
+                </div>
+            </div>
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-emerald">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">💰 الرواتب والمصروفات</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-emerald-50 p-4">مسيرات الرواتب</div>
+                    <div class="stat-angled bg-rose-50 p-4">الحسومات</div>
+                    <div class="stat-pill bg-amber-50 p-4">حسومات متكررة</div>
+                    <div class="stat-cut bg-sky-50 p-4">الإضافات</div>
+                    <div class="stat-rounded bg-violet-50 p-4">إضافات متكررة</div>
+                    <div class="stat-angled bg-indigo-50 p-4">السلف والذمم</div>
+                    <div class="stat-pill bg-emerald-50 p-4">المصروفات</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Government Services & Visas -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-sky">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">🏛️ الخدمات الحكومية</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-sky-50 p-4">التأمينات الاجتماعية</div>
+                    <div class="stat-angled bg-emerald-50 p-4">خدمات مقيم</div>
+                </div>
+            </div>
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">🛂 تأشيرات الخروج والعودة</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-pill bg-amber-50 p-4">إصدار</div>
+                    <div class="stat-rounded bg-rose-50 p-4">إلغاء</div>
+                    <div class="stat-angled bg-sky-50 p-4">إعادة طباعة تأشيرة خروج وعودة</div>
+                    <div class="stat-cut bg-emerald-50 p-4">تأشيرات الخروج النهائي</div>
+                    <div class="stat-pill bg-violet-50 p-4">إصدار</div>
+                    <div class="stat-rounded bg-indigo-50 p-4">إلغاء</div>
+                    <div class="stat-angled bg-amber-50 p-4">خدمات الجواز</div>
+                    <div class="stat-cut bg-rose-50 p-4">تجديد الإقامة</div>
+                    <div class="stat-pill bg-sky-50 p-4">سجل العمليات</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training & Notifications -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-violet">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">📚 التدريب والتطوير</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-violet-50 p-4">الأداء والتقييم</div>
+                    <div class="stat-angled bg-emerald-50 p-4">الدورات التدريبية</div>
+                    <div class="stat-pill bg-amber-50 p-4">فجوة المهارات</div>
+                    <div class="stat-cut bg-sky-50 p-4">التعاقب الوظيفي</div>
+                </div>
+            </div>
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">🔔 التعاميم والإشعارات</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-rose-50 p-4">الإشعارات</div>
+                    <div class="stat-angled bg-amber-50 p-4">الإنذارات</div>
+                    <div class="stat-pill bg-emerald-50 p-4">التعاميم</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policies & Recruitment -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-indigo">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">📘 السياسات</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-indigo-50 p-4">عرض السياسات</div>
+                    <div class="stat-angled bg-sky-50 p-4">إدارة السياسات</div>
+                </div>
+            </div>
+            <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-emerald">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">👥 التوظيف</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="stat-rounded bg-emerald-50 p-4">قائمة الوظائف</div>
+                    <div class="stat-angled bg-amber-50 p-4">إضافة شاغر وظيفي</div>
+                    <div class="stat-pill bg-rose-50 p-4">تقييم المقابلات الشخصية</div>
+                    <div class="stat-cut bg-sky-50 p-4">بوابة التوظيف</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports & Self Services -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">📊 التقارير والخدمات الذاتية</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm">
+                <div class="bg-slate-50 rounded-2xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3">تقارير مالية</h3>
+                    <ul class="space-y-2 text-slate-700">
+                        <li>تقرير الحسومات والإضافات</li>
+                        <li>تقرير نهاية الخدمة</li>
+                        <li>تقرير مخصصات نهاية الخدمة</li>
+                        <li>تقرير مسيرات الرواتب</li>
+                        <li>تقرير الفروقات بين مسيرات الرواتب</li>
+                        <li>تقرير السلف والذمم</li>
+                        <li>تقرير المصروفات</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3">الخدمات الذاتية</h3>
+                    <ul class="space-y-2 text-slate-700">
+                        <li>تقرير الطلبات</li>
+                        <li>تقرير طلبات الشراء</li>
+                        <li>تقرير المتقدمين</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home Dashboard Note -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">🏠 الرئيسية</h2>
+            <div class="bg-rose-50 rounded-2xl p-5 text-slate-700">
+                لم تقم بإضافة أي عنصر للوحة القيادة. بإمكانك إضافة عناصر للوحة القيادة من خلال الضغط على زر الإضافة أعلى الشاشة.
+                عناصر لوحة القيادة تعطي إحصائيات وأرقام لعدة مواضيع، تساعد في رفع الأداء وتوفر الوقت والمجهود.
+            </div>
+        </div>
+
+        <!-- Data Tables -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">👥 جدول الموظفين</h3>
+                <span id="employeesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-emerald-50 text-emerald-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الموظف</th>
+                            <th class="px-3 py-2 text-right">الاسم</th>
+                            <th class="px-3 py-2 text-right">البريد</th>
+                            <th class="px-3 py-2 text-right">المنصب</th>
+                            <th class="px-3 py-2 text-right">القسم</th>
+                            <th class="px-3 py-2 text-right">المنشأة</th>
+                            <th class="px-3 py-2 text-right">تاريخ التعيين</th>
+                            <th class="px-3 py-2 text-right">الراتب</th>
+                            <th class="px-3 py-2 text-right">نوع التوظيف</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📨 جدول طلبات الموظفين</h3>
+                <span id="requestsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-violet-50 text-violet-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الطلب</th>
+                            <th class="px-3 py-2 text-right">الموظف</th>
+                            <th class="px-3 py-2 text-right">نوع الطلب</th>
+                            <th class="px-3 py-2 text-right">العنوان</th>
+                            <th class="px-3 py-2 text-right">الأولوية</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">تاريخ الطلب</th>
+                            <th class="px-3 py-2 text-right">الموافقة مطلوبة</th>
+                            <th class="px-3 py-2 text-right">ملاحظات</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📌 جدول أنواع الطلبات</h3>
+                <span id="typesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-rose-50 text-rose-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم النوع</th>
+                            <th class="px-3 py-2 text-right">الاسم</th>
+                            <th class="px-3 py-2 text-right">الفئة</th>
+                            <th class="px-3 py-2 text-right">الوصف</th>
+                            <th class="px-3 py-2 text-right">يتطلب موافقة</th>
+                            <th class="px-3 py-2 text-right">يتطلب مدير</th>
+                            <th class="px-3 py-2 text-right">يتطلب موارد بشرية</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="typesTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        let employees = [];
+        let requests = [];
+        let requestTypes = [];
+
+        async function loadData() {
+            try {
+                const [employeesRes, requestsRes, typesRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/employees`),
+                    fetch(`${API_BASE}/api/employee-requests`),
+                    fetch(`${API_BASE}/api/request-types`)
+                ]);
+
+                const [employeesData, requestsData, typesData] = await Promise.all([
+                    employeesRes.json(),
+                    requestsRes.json(),
+                    typesRes.json()
+                ]);
+
+                employees = Array.isArray(employeesData) ? employeesData : [];
+                requests = Array.isArray(requestsData) ? requestsData : [];
+                requestTypes = Array.isArray(typesData) ? typesData : [];
+
+                renderTables();
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                renderTables();
+            }
+        }
+
+        function renderTables() {
+            const employeeRows = employees.map(e => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${sanitizeText(e.employee_number || e.id)}</td>
+                    <td class="px-3 py-2 font-semibold">${sanitizeText(e.full_name)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.email)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.position)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.department)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.entity_name || e.entity_id)}</td>
+                    <td class="px-3 py-2">${formatDate(e.hire_date)}</td>
+                    <td class="px-3 py-2">${formatMoney(e.salary)}</td>
+                    <td class="px-3 py-2">${translateEmploymentType(e.employment_type)}</td>
+                    <td class="px-3 py-2">${e.is_active ? 'نشط' : 'غير نشط'}</td>
+                </tr>
+            `).join('');
+            document.getElementById('employeesTable').innerHTML = employeeRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('employeesCount').textContent = `عدد الصفوف: ${employees.length}`;
+
+            const requestRows = requests.map(r => `
+                <tr class="hover:bg-violet-50">
+                    <td class="px-3 py-2">${sanitizeText(r.id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(r.employee_name || r.employee_id)}</td>
+                    <td class="px-3 py-2">${resolveRequestTypeName(r.request_type)}</td>
+                    <td class="px-3 py-2">${sanitizeText(r.request_title)}</td>
+                    <td class="px-3 py-2">${translatePriority(r.priority)}</td>
+                    <td class="px-3 py-2">${normalizeStatus(r.status)}</td>
+                    <td class="px-3 py-2">${formatDate(r.requested_date)}</td>
+                    <td class="px-3 py-2">${r.requires_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(r.notes))}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('requestsTable').innerHTML = requestRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('requestsCount').textContent = `عدد الصفوف: ${requests.length}`;
+
+            const typeRows = requestTypes.map(t => `
+                <tr class="hover:bg-rose-50">
+                    <td class="px-3 py-2">${sanitizeText(t.id)}</td>
+                    <td class="px-3 py-2 font-semibold">${sanitizeText(t.type_name_ar)}</td>
+                    <td class="px-3 py-2">${translateCategory(t.category)}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(t.description_ar))}</td>
+                    <td class="px-3 py-2">${t.requires_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${t.requires_manager_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${t.requires_hr_approval ? 'نعم' : 'لا'}</td>
+                    <td class="px-3 py-2">${t.is_active ? 'نشط' : 'غير نشط'}</td>
+                </tr>
+            `).join('');
+            document.getElementById('typesTable').innerHTML = typeRows || `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('typesCount').textContent = `عدد الصفوف: ${requestTypes.length}`;
+        }
+
+        function resolveRequestTypeName(code) {
+            const match = requestTypes.find(t => t.type_code === code);
+            return sanitizeText(match?.type_name_ar || code || 'غير محدد');
+        }
+
+        function normalizeStatus(value) {
+            const map = {
+                PENDING: 'قيد المعالجة',
+                APPROVED: 'معتمد',
+                REJECTED: 'مرفوض',
+                COMPLETED: 'مكتمل',
+                IN_PROGRESS: 'قيد التنفيذ'
+            };
+            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function translatePriority(value) {
+            const map = { HIGH: 'عاجل', NORMAL: 'عادي', LOW: 'منخفض' };
+            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function translateEmploymentType(value) {
+            const map = {
+                FULL_TIME: 'دوام كامل',
+                PART_TIME: 'دوام جزئي',
+                CONTRACT: 'تعاقد',
+                TEMPORARY: 'مؤقت',
+                INTERN: 'تدريب'
+            };
+            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function translateCategory(value) {
+            const map = {
+                general: 'عام',
+                leave: 'إجازات',
+                payroll: 'رواتب',
+                attendance: 'حضور',
+                hr: 'موارد بشرية',
+                admin: 'إداري'
+            };
+            return map[String(value || '').toLowerCase()] || sanitizeText(value) || 'غير محدد';
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function truncate(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            return text.length > 120 ? text.slice(0, 120) + '...' : text;
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || '-';
+        }
+
+        function downloadAllJSON() {
+            const payload = { employees, requests, request_types: requestTypes };
+            downloadBlob(JSON.stringify(payload, null, 2), 'بوابة-العمليات-والطلبات.json', 'application/json');
+        }
+
+        function downloadAllCSV() {
+            const rows = [];
+            rows.push(['الموظفون']);
+            rows.push(['رقم الموظف','الاسم','البريد','المنصب','القسم','المنشأة','تاريخ التعيين','الراتب','نوع التوظيف','الحالة']);
+            employees.forEach(e => rows.push([
+                e.employee_number || e.id,
+                sanitizeText(e.full_name),
+                sanitizeText(e.email),
+                sanitizeText(e.position),
+                sanitizeText(e.department),
+                sanitizeText(e.entity_name || e.entity_id),
+                e.hire_date,
+                e.salary,
+                translateEmploymentType(e.employment_type),
+                e.is_active ? 'نشط' : 'غير نشط'
+            ]));
+
+            rows.push([]);
+            rows.push(['طلبات الموظفين']);
+            rows.push(['رقم الطلب','الموظف','نوع الطلب','العنوان','الأولوية','الحالة','تاريخ الطلب','الموافقة مطلوبة','ملاحظات','تاريخ الإنشاء']);
+            requests.forEach(r => rows.push([
+                r.id,
+                sanitizeText(r.employee_name || r.employee_id),
+                resolveRequestTypeName(r.request_type),
+                sanitizeText(r.request_title),
+                translatePriority(r.priority),
+                normalizeStatus(r.status),
+                r.requested_date,
+                r.requires_approval ? 'نعم' : 'لا',
+                sanitizeText(r.notes),
+                r.created_at
+            ]));
+
+            rows.push([]);
+            rows.push(['أنواع الطلبات']);
+            rows.push(['رقم النوع','الاسم','الفئة','الوصف','يتطلب موافقة','يتطلب مدير','يتطلب موارد بشرية','الحالة']);
+            requestTypes.forEach(t => rows.push([
+                t.id,
+                sanitizeText(t.type_name_ar),
+                translateCategory(t.category),
+                sanitizeText(t.description_ar),
+                t.requires_approval ? 'نعم' : 'لا',
+                t.requires_manager_approval ? 'نعم' : 'لا',
+                t.requires_hr_approval ? 'نعم' : 'لا',
+                t.is_active ? 'نشط' : 'غير نشط'
+            ]));
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'بوابة-العمليات-والطلبات.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
