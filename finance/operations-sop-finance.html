@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧭 إجراءات التشغيل المالي - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 55%, #14b8a6 100%);
+            min-height: 100vh;
+        }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+        .shape-rounded { border-radius: 26px; }
+        .shape-angled { border-radius: 34px 10px 34px 10px; }
+        .shape-pill { border-radius: 999px; }
+        .shape-cut { border-radius: 18px 18px 42px 8px; }
+        .table-scroll { max-height: 520px; overflow: auto; }
+        .chart-box { position: relative; height: 260px; }
+        .accent-sky { border-top: 4px solid #0ea5e9; }
+        .accent-indigo { border-top: 4px solid #6366f1; }
+        .accent-emerald { border-top: 4px solid #10b981; }
+        .accent-rose { border-top: 4px solid #f43f5e; }
+        .accent-amber { border-top: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-white mb-8">
+            <h1 class="text-4xl font-bold mb-2">🧭 إجراءات التشغيل المالي</h1>
+            <p class="text-lg opacity-90">إصدار الفواتير والتحصيل والمصروفات والإقفال الشهري (الصفحة 40)</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل ملف بيانات شامل
+            </button>
+            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل ملف جدولي شامل
+            </button>
+            <button onclick="printPage()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة الصفحة
+            </button>
+            <button onclick="copySummary()" class="bg-amber-500 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-copy"></i>
+                نسخ ملخص الإجراءات
+            </button>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🧾 إصدار الفواتير</h2>
+                <span class="text-sm text-slate-500">ضمان فواتير دقيقة وموحدة وقابلة للتتبع</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-sky-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الهدف</h3>
+                    <p class="text-sm text-slate-600">ضمان إصدار فواتير دقيقة وموحدة وقابلة للتتبع.</p>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">النطاق</h3>
+                    <p class="text-sm text-slate-600">جميع الفروع والحاضنات والبرامج.</p>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">المسؤوليات</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>موظف البرنامج: إدخال الطلب</li>
+                        <li>المالية: المراجعة</li>
+                        <li>النظام: إصدار الفاتورة</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="glass shape-rounded p-5 border border-sky-100">
+                    <h4 class="font-bold text-slate-800 mb-2">الإجراءات</h4>
+                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
+                        <li>استلام طلب خدمة من العميل</li>
+                        <li>التحقق من بيانات العميل</li>
+                        <li>إدخال تفاصيل الخدمة</li>
+                        <li>تحديد سياسة الدفع (كامل/جزئي/خطة دفع)</li>
+                        <li>إصدار الفاتورة</li>
+                        <li>إرسالها للعميل عبر البريد ولوحة العميل</li>
+                        <li>تسجيلها في الدفتر العام</li>
+                    </ol>
+                </div>
+                <div class="glass shape-rounded p-5 border border-emerald-100">
+                    <h4 class="font-bold text-slate-800 mb-2">ملخص الفواتير الحالية</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-sky-50 rounded-xl p-3">
+                            <div class="text-xs text-slate-500">إجمالي الفواتير</div>
+                            <div id="totalInvoices" class="text-lg font-bold text-slate-800">0</div>
+                        </div>
+                        <div class="bg-rose-50 rounded-xl p-3">
+                            <div class="text-xs text-slate-500">فواتير متأخرة</div>
+                            <div id="overdueInvoices" class="text-lg font-bold text-slate-800">0</div>
+                        </div>
+                        <div class="bg-emerald-50 rounded-xl p-3">
+                            <div class="text-xs text-slate-500">إجمالي المدفوع</div>
+                            <div id="totalPaid" class="text-lg font-bold text-slate-800">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">💳 التحصيل</h2>
+                <span class="text-sm text-slate-500">تحصيل مستحقات نايوش بكفاءة وشفافية</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">خطوات التحصيل</h3>
+                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
+                        <li>فتح شاشة التحصيل</li>
+                        <li>البحث عن العميل</li>
+                        <li>عرض الفواتير المفتوحة</li>
+                        <li>اختيار نوع الدفع (كامل/جزئي/خطة دفع)</li>
+                        <li>إدخال المبلغ وتحديد وسيلة الدفع</li>
+                        <li>تأكيد العملية</li>
+                    </ol>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-amber-100">
+                    <h3 class="font-bold text-slate-800 mb-2">النظام يقوم بـ</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li>تسجيل الدفعة</li>
+                        <li>تحديث الرصيد</li>
+                        <li>إنشاء القيد المحاسبي</li>
+                        <li>إرسال إيصال للعميل</li>
+                    </ul>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">مؤشرات التحصيل</h3>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <div>إجمالي المدفوعات: <span id="totalPayments" class="font-bold">0</span></div>
+                        <div>خطط السداد: <span id="plansCount" class="font-bold">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-amber">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">🧾 المصروفات</h2>
+                <span class="text-sm text-slate-500">معالجة المصروفات خطوة بخطوة</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-amber-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الإجراءات</h3>
+                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
+                        <li>تقديم طلب شراء</li>
+                        <li>مراجعة الطلب</li>
+                        <li>الحصول على عروض أسعار</li>
+                        <li>اعتماد الطلب</li>
+                        <li>استلام الفاتورة</li>
+                        <li>تسجيلها في النظام</li>
+                        <li>إصدار أمر دفع</li>
+                        <li>إنشاء القيد المحاسبي</li>
+                    </ol>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">مؤشرات المصروفات</h3>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <div>إجمالي المصروفات: <span id="totalExpenses" class="font-bold">0</span></div>
+                        <div>عدد المصروفات: <span id="expensesCountSummary" class="font-bold">0</span></div>
+                    </div>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">ملخص الاعتماد</h3>
+                    <p class="text-sm text-slate-600">تُعتمد المصروفات وفق الطلبات والعروض والفواتير المعتمدة.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-rose">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">📆 الإقفال الشهري</h2>
+                <span class="text-sm text-slate-500">تنفيذ الإقفال بانتظام وانضباط</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass shape-angled p-5 shadow-lg border border-rose-100">
+                    <h3 class="font-bold text-slate-800 mb-2">الإجراءات</h3>
+                    <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
+                        <li>تسوية البنك</li>
+                        <li>تسوية الذمم</li>
+                        <li>تسوية العهد</li>
+                        <li>احتساب الإهلاك</li>
+                        <li>مراجعة القيود</li>
+                        <li>إعداد ميزان المراجعة</li>
+                        <li>اعتماد الإقفال</li>
+                    </ol>
+                </div>
+                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                    <h3 class="font-bold text-slate-800 mb-2">مؤشرات الإقفال</h3>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <div>عدد القيود: <span id="totalEntries" class="font-bold">0</span></div>
+                        <div>إجمالي الإهلاك: <span id="totalDepreciation" class="font-bold">0</span></div>
+                    </div>
+                </div>
+                <div class="glass shape-pill p-5 shadow-lg border border-amber-100">
+                    <h3 class="font-bold text-slate-800 mb-2">انضباط الإقفال</h3>
+                    <p class="text-sm text-slate-600">لا يتم إدخال قيود بعد الإقفال إلا وفق الموافقات المعتمدة.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="glass shape-rounded shadow-2xl p-6 accent-sky">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">📊 توزيع حالات الفواتير</h3>
+                <div class="chart-box"><canvas id="invoiceStatusChart"></canvas></div>
+            </div>
+            <div class="glass shape-rounded shadow-2xl p-6 accent-emerald">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">💳 توزيع طرق التحصيل</h3>
+                <div class="chart-box"><canvas id="paymentMethodChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="glass shape-rounded shadow-2xl p-6 accent-amber">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">🧾 توزيع أنواع المصروفات</h3>
+                <div class="chart-box"><canvas id="expensesTypeChart"></canvas></div>
+            </div>
+            <div class="glass shape-rounded shadow-2xl p-6 accent-indigo">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">🏢 ملخص الأصول والإهلاك</h3>
+                <div class="chart-box"><canvas id="assetsChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير</h3>
+                <span id="invoicesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-sky-50 text-sky-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الفاتورة</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإصدار</th>
+                            <th class="px-3 py-2 text-right">تاريخ الاستحقاق</th>
+                            <th class="px-3 py-2 text-right">العميل</th>
+                            <th class="px-3 py-2 text-right">الإجمالي</th>
+                            <th class="px-3 py-2 text-right">المتبقي</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">💳 جدول المدفوعات</h3>
+                <span id="paymentsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-emerald-50 text-emerald-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الدفعة</th>
+                            <th class="px-3 py-2 text-right">العميل</th>
+                            <th class="px-3 py-2 text-right">قيمة الدفعة</th>
+                            <th class="px-3 py-2 text-right">تاريخ الدفعة</th>
+                            <th class="px-3 py-2 text-right">طريقة التحصيل</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-amber">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🧾 جدول المصروفات</h3>
+                <span id="expensesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-amber-50 text-amber-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم المصروف</th>
+                            <th class="px-3 py-2 text-right">تاريخ المصروف</th>
+                            <th class="px-3 py-2 text-right">النوع</th>
+                            <th class="px-3 py-2 text-right">المورد</th>
+                            <th class="px-3 py-2 text-right">الإجمالي</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🏢 جدول الأصول الثابتة</h3>
+                <span id="assetsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-indigo-50 text-indigo-700">
+                        <tr>
+                            <th class="px-3 py-2 text-right">رقم الأصل</th>
+                            <th class="px-3 py-2 text-right">اسم الأصل</th>
+                            <th class="px-3 py-2 text-right">تاريخ الشراء</th>
+                            <th class="px-3 py-2 text-right">تكلفة الشراء</th>
+                            <th class="px-3 py-2 text-right">القيمة الدفترية</th>
+                            <th class="px-3 py-2 text-right">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetsTable" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = '1';
+
+        let store = {
+            invoices: [],
+            payments: [],
+            expenses: [],
+            assets: [],
+            plans: [],
+            entries: []
+        };
+
+        let invoiceChartInstance = null;
+        let paymentChartInstance = null;
+        let expensesChartInstance = null;
+        let assetsChartInstance = null;
+
+        async function loadData() {
+            try {
+                const [invoiceRes, paymentRes, expenseRes, assetRes, planRes, entryRes] = await Promise.all([
+                    fetch(`${API_BASE}/finance/invoices`),
+                    fetch(`${API_BASE}/finance/payments`),
+                    fetch(`${API_BASE}/finance/expenses?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/fixed-assets?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`)
+                ]);
+
+                const [invoiceData, paymentData, expenseData, assetData, planData, entryData] = await Promise.all([
+                    invoiceRes.json(),
+                    paymentRes.json(),
+                    expenseRes.json(),
+                    assetRes.json(),
+                    planRes.json(),
+                    entryRes.json()
+                ]);
+
+                store.invoices = invoiceData.invoices || [];
+                store.payments = paymentData.payments || [];
+                store.expenses = expenseData.expenses || [];
+                store.assets = assetData.assets || [];
+                store.plans = planData.plans || [];
+                store.entries = entryData.entries || entryData.rows || [];
+
+                renderStats();
+                renderCharts();
+                renderTables();
+                renderSummaryInsights();
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        function renderStats() {
+            const totalInvoices = store.invoices.length;
+            const overdueInvoices = store.invoices.filter(i => String(i.status || '').toUpperCase() === 'OVERDUE').length;
+            const totalPaid = sum(store.invoices, 'paid_amount');
+            const totalPayments = sum(store.payments, 'payment_amount');
+            const totalExpenses = sum(store.expenses, 'total_amount');
+            const totalAssets = store.assets.length;
+            const totalDep = sum(store.assets, 'accumulated_depreciation');
+            const totalPlans = store.plans.length;
+            const totalEntries = store.entries.length;
+
+            document.getElementById('totalInvoices').textContent = totalInvoices.toLocaleString('ar-SA');
+            document.getElementById('overdueInvoices').textContent = overdueInvoices.toLocaleString('ar-SA');
+            document.getElementById('totalPaid').textContent = formatMoney(totalPaid);
+            document.getElementById('totalPayments').textContent = formatMoney(totalPayments);
+            document.getElementById('plansCount').textContent = totalPlans.toLocaleString('ar-SA');
+            document.getElementById('totalExpenses').textContent = formatMoney(totalExpenses);
+            document.getElementById('expensesCountSummary').textContent = store.expenses.length.toLocaleString('ar-SA');
+            document.getElementById('totalEntries').textContent = totalEntries.toLocaleString('ar-SA');
+            document.getElementById('totalDepreciation').textContent = formatMoney(totalDep);
+            document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${totalInvoices}`;
+            document.getElementById('paymentsCount').textContent = `عدد الصفوف: ${store.payments.length}`;
+            document.getElementById('expensesCount').textContent = `عدد الصفوف: ${store.expenses.length}`;
+            document.getElementById('assetsCount').textContent = `عدد الصفوف: ${store.assets.length}`;
+            document.getElementById('totalAssets').textContent = totalAssets.toLocaleString('ar-SA');
+        }
+
+        function renderSummaryInsights() {
+            // الحفاظ على النصوص عربية فقط
+        }
+
+        function renderCharts() {
+            const statusCounts = store.invoices.reduce((acc, inv) => {
+                const status = translateStatus(inv.status);
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const invoiceCtx = document.getElementById('invoiceStatusChart').getContext('2d');
+            if (invoiceChartInstance) invoiceChartInstance.destroy();
+            invoiceChartInstance = new Chart(invoiceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts).length ? Object.keys(statusCounts) : ['لا توجد بيانات'],
+                    datasets: [{
+                        data: Object.values(statusCounts).length ? Object.values(statusCounts) : [0],
+                        backgroundColor: ['#0ea5e9', '#f59e0b', '#10b981', '#ef4444', '#6366f1']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const methodCounts = store.payments.reduce((acc, p) => {
+                const method = translatePaymentMethod(p.payment_method);
+                acc[method] = (acc[method] || 0) + 1;
+                return acc;
+            }, {});
+
+            const paymentCtx = document.getElementById('paymentMethodChart').getContext('2d');
+            if (paymentChartInstance) paymentChartInstance.destroy();
+            paymentChartInstance = new Chart(paymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(methodCounts).length ? Object.keys(methodCounts) : ['لا توجد بيانات'],
+                    datasets: [{
+                        data: Object.values(methodCounts).length ? Object.values(methodCounts) : [0],
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const expenseTypeCounts = store.expenses.reduce((acc, e) => {
+                const type = sanitizeText(e.expense_type || e.expense_category);
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+            }, {});
+
+            const expensesCtx = document.getElementById('expensesTypeChart').getContext('2d');
+            if (expensesChartInstance) expensesChartInstance.destroy();
+            expensesChartInstance = new Chart(expensesCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(expenseTypeCounts).length ? Object.keys(expenseTypeCounts) : ['لا توجد بيانات'],
+                    datasets: [{
+                        data: Object.values(expenseTypeCounts).length ? Object.values(expenseTypeCounts) : [0],
+                        backgroundColor: '#f59e0b'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const assetsSummary = {
+                total: store.assets.length,
+                active: store.assets.filter(a => String(a.status || '').toUpperCase() === 'ACTIVE').length,
+                disposed: store.assets.filter(a => String(a.status || '').toUpperCase() === 'DISPOSED').length
+            };
+
+            const assetsCtx = document.getElementById('assetsChart').getContext('2d');
+            if (assetsChartInstance) assetsChartInstance.destroy();
+            assetsChartInstance = new Chart(assetsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['إجمالي الأصول', 'أصول نشطة', 'أصول مستبعدة'],
+                    datasets: [{
+                        data: [assetsSummary.total, assetsSummary.active, assetsSummary.disposed],
+                        backgroundColor: ['#6366f1', '#10b981', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderTables() {
+            const invoiceRows = store.invoices.map(inv => `
+                <tr class="hover:bg-sky-50">
+                    <td class="px-3 py-2">${sanitizeText(inv.invoice_number)}</td>
+                    <td class="px-3 py-2">${formatDate(inv.invoice_date)}</td>
+                    <td class="px-3 py-2">${formatDate(inv.due_date)}</td>
+                    <td class="px-3 py-2">${sanitizeText(inv.customer_name_ar || inv.customer_name)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(inv.total_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(inv.remaining_amount)}</td>
+                    <td class="px-3 py-2">${translateStatus(inv.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('invoicesTable').innerHTML = invoiceRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+
+            const paymentRows = store.payments.map(p => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${sanitizeText(p.payment_number || p.payment_id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(p.customer_name_ar || p.customer_name || p.customer_id)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(p.payment_amount)}</td>
+                    <td class="px-3 py-2">${formatDate(p.payment_date)}</td>
+                    <td class="px-3 py-2">${translatePaymentMethod(p.payment_method)}</td>
+                    <td class="px-3 py-2">${translateStatus(p.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('paymentsTable').innerHTML = paymentRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+
+            const expenseRows = store.expenses.map(e => `
+                <tr class="hover:bg-amber-50">
+                    <td class="px-3 py-2">${sanitizeText(e.expense_number || e.expense_id)}</td>
+                    <td class="px-3 py-2">${formatDate(e.expense_date)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.expense_type || e.expense_category)}</td>
+                    <td class="px-3 py-2">${sanitizeText(e.vendor_name)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(e.total_amount || e.amount)}</td>
+                    <td class="px-3 py-2">${translateStatus(e.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('expensesTable').innerHTML = expenseRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+
+            const assetRows = store.assets.map(a => `
+                <tr class="hover:bg-indigo-50">
+                    <td class="px-3 py-2">${sanitizeText(a.asset_code || a.asset_id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(a.asset_name_ar || a.asset_name_en || a.asset_name)}</td>
+                    <td class="px-3 py-2">${formatDate(a.purchase_date)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(a.purchase_cost)}</td>
+                    <td class="px-3 py-2">${formatMoney(a.net_book_value)}</td>
+                    <td class="px-3 py-2">${translateStatus(a.status)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('assetsTable').innerHTML = assetRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+        }
+
+        function translateStatus(value) {
+            const map = {
+                PAID: 'مدفوعة',
+                UNPAID: 'غير مدفوعة',
+                PARTIAL: 'مدفوعة جزئيًا',
+                OVERDUE: 'متأخرة',
+                ACTIVE: 'نشطة',
+                CLOSED: 'مغلقة',
+                PENDING: 'قيد المراجعة',
+                APPROVED: 'معتمدة',
+                REJECTED: 'مرفوضة',
+                DISPOSED: 'مستبعدة'
+            };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function translatePaymentMethod(value) {
+            const map = {
+                BANK_TRANSFER: 'تحويل بنكي',
+                CARD: 'بطاقة',
+                POS: 'نقاط بيع',
+                CASH: 'نقد',
+                GATEWAY: 'بوابة الدفع',
+                CHEQUE: 'شيك'
+            };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return 'غير محدد';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || 'غير محدد';
+        }
+
+        function sum(rows, key) {
+            return rows.reduce((acc, row) => acc + parseFloat(row[key] || 0), 0);
+        }
+
+        function downloadAllJSON() {
+            const payload = {
+                invoices: store.invoices,
+                payments: store.payments,
+                expenses: store.expenses,
+                fixed_assets: store.assets,
+                payment_plans: store.plans,
+                journal_entries: store.entries
+            };
+            downloadBlob(JSON.stringify(payload, null, 2), 'إجراءات-التشغيل-المالي.json', 'application/json');
+        }
+
+        function downloadAllCSV() {
+            const rows = [];
+            rows.push(['الفواتير']);
+            rows.push(['رقم الفاتورة','تاريخ الإصدار','تاريخ الاستحقاق','العميل','الإجمالي','المتبقي','الحالة']);
+            store.invoices.forEach(inv => rows.push([
+                sanitizeText(inv.invoice_number), inv.invoice_date, inv.due_date, sanitizeText(inv.customer_name_ar || inv.customer_name),
+                inv.total_amount, inv.remaining_amount, translateStatus(inv.status)
+            ]));
+
+            rows.push([]);
+            rows.push(['المدفوعات']);
+            rows.push(['رقم الدفعة','العميل','قيمة الدفعة','تاريخ الدفعة','طريقة التحصيل','الحالة']);
+            store.payments.forEach(p => rows.push([
+                p.payment_number || p.payment_id, sanitizeText(p.customer_name_ar || p.customer_name || p.customer_id), p.payment_amount,
+                p.payment_date, translatePaymentMethod(p.payment_method), translateStatus(p.status)
+            ]));
+
+            rows.push([]);
+            rows.push(['المصروفات']);
+            rows.push(['رقم المصروف','تاريخ المصروف','النوع','المورد','الإجمالي','الحالة']);
+            store.expenses.forEach(e => rows.push([
+                e.expense_number || e.expense_id, e.expense_date, sanitizeText(e.expense_type || e.expense_category), sanitizeText(e.vendor_name),
+                e.total_amount || e.amount, translateStatus(e.status)
+            ]));
+
+            rows.push([]);
+            rows.push(['الأصول الثابتة']);
+            rows.push(['رقم الأصل','اسم الأصل','تاريخ الشراء','تكلفة الشراء','القيمة الدفترية','الحالة']);
+            store.assets.forEach(a => rows.push([
+                a.asset_code || a.asset_id, sanitizeText(a.asset_name_ar || a.asset_name_en || a.asset_name), a.purchase_date,
+                a.purchase_cost, a.net_book_value, translateStatus(a.status)
+            ]));
+
+            const csv = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csv, 'إجراءات-التشغيل-المالي.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function copySummary() {
+            const summary = `ملخص إجراءات التشغيل المالي\n` +
+                `إجمالي الفواتير: ${store.invoices.length}\n` +
+                `الفواتير المتأخرة: ${store.invoices.filter(i => String(i.status || '').toUpperCase() === 'OVERDUE').length}\n` +
+                `إجمالي المدفوعات: ${formatMoney(sum(store.payments, 'payment_amount'))}\n` +
+                `إجمالي المصروفات: ${formatMoney(sum(store.expenses, 'total_amount'))}\n` +
+                `عدد الأصول: ${store.assets.length}\n` +
+                `عدد القيود: ${store.entries.length}`;
+            navigator.clipboard.writeText(summary).catch(() => {});
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printPage() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
