@@ -1,6 +1,6 @@
 /**
  * 🧮 AR Aging API
- * Page 18 of Accounting System
+ * Page 24 of Accounting System
  */
 
 const { Pool } = require('pg');
@@ -15,7 +15,7 @@ const pool = new Pool({
 });
 
 async function getARAging(req, res) {
-    const { entity_id, status, aging_category, from_date, to_date } = req.query;
+    const { entity_id, status, aging_category, from_date, to_date, invoice_number, customer_name, customer_code } = req.query;
 
     if (!entity_id) {
         return res.status(400).json({
@@ -36,6 +36,21 @@ async function getARAging(req, res) {
             values.push(status);
             index++;
         }
+        if (invoice_number) {
+            conditions.push(`invoice_number ILIKE $${index}`);
+            values.push(`%${invoice_number}%`);
+            index++;
+        }
+        if (customer_name) {
+            conditions.push(`(customer_name_ar ILIKE $${index} OR customer_name_en ILIKE $${index})`);
+            values.push(`%${customer_name}%`);
+            index++;
+        }
+        if (customer_code) {
+            conditions.push(`customer_code ILIKE $${index}`);
+            values.push(`%${customer_code}%`);
+            index++;
+        }
         if (aging_category) {
             conditions.push(`LOWER(aging_category) = LOWER($${index})`);
             values.push(aging_category);
@@ -53,25 +68,41 @@ async function getARAging(req, res) {
         }
 
         const query = `
-            SELECT
-                invoice_id,
-                invoice_number,
-                invoice_date,
-                due_date,
-                customer_id,
-                customer_code,
-                customer_name_ar,
-                total_amount,
-                paid_amount,
-                remaining_amount,
-                status,
-                days_overdue,
-                aging_category,
-                entity_type,
-                entity_id,
-                branch_id,
-                incubator_id
-            FROM finance_ar_aging
+            WITH aging AS (
+                SELECT
+                    i.invoice_id,
+                    i.invoice_number,
+                    i.invoice_date,
+                    i.due_date,
+                    c.customer_id,
+                    c.customer_code,
+                    c.customer_name_ar,
+                    c.customer_name_en,
+                    c.customer_type,
+                    i.total_amount,
+                    i.paid_amount,
+                    i.remaining_amount,
+                    i.status,
+                    i.payment_status,
+                    CURRENT_DATE - i.due_date AS days_overdue,
+                    CASE 
+                        WHEN CURRENT_DATE <= i.due_date THEN 'CURRENT'
+                        WHEN CURRENT_DATE - i.due_date BETWEEN 1 AND 30 THEN '1-30_DAYS'
+                        WHEN CURRENT_DATE - i.due_date BETWEEN 31 AND 60 THEN '31-60_DAYS'
+                        WHEN CURRENT_DATE - i.due_date BETWEEN 61 AND 90 THEN '61-90_DAYS'
+                        ELSE 'OVER_90_DAYS'
+                    END AS aging_category,
+                    i.entity_type,
+                    i.entity_id,
+                    i.branch_id,
+                    i.incubator_id
+                FROM finance_invoices i
+                JOIN finance_customers c ON i.customer_id = c.customer_id
+                WHERE i.remaining_amount > 0
+                  AND i.status IN ('ISSUED', 'PARTIAL', 'OVERDUE')
+            )
+            SELECT *
+            FROM aging
             WHERE ${conditions.join(' AND ')}
             ORDER BY days_overdue DESC NULLS LAST, invoice_date DESC
         `;
@@ -97,6 +128,9 @@ async function getARAging(req, res) {
             by_bucket: {},
             by_status: {}
         });
+
+        summary.entity_id = entity_id;
+        summary.generated_at = new Date().toISOString();
 
         res.json({
             success: true,
