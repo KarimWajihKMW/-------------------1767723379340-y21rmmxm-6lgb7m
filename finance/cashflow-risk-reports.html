@@ -52,7 +52,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="mb-8 text-white">
             <h1 class="text-4xl font-bold mb-2">💧 التدفقات النقدية + المخاطر + التقارير الذكية</h1>
-            <p class="text-lg opacity-90">Cash Flow Zone + Financial Risk Zone + Smart Reports (الصفحة 27)</p>
+            <p class="text-lg opacity-90">منطقة التدفقات النقدية + منطقة المخاطر المالية + التقارير الذكية (الصفحة 27)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
@@ -77,8 +77,8 @@
         <!-- Cash Flow Zone -->
         <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-slate-800">💧 منطقة التدفقات النقدية (Cash Flow Zone)</h2>
-                <div class="text-sm text-slate-500">مصدر البيانات: finance_cashflow_* + finance_ai_forecasts</div>
+                <h2 class="text-2xl font-bold text-slate-800">💧 منطقة التدفقات النقدية</h2>
+                <div class="text-sm text-slate-500">مصدر البيانات: جداول التدفقات النقدية والتوقعات الذكية</div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
                 <div class="stat-pill bg-gradient-to-br from-sky-500 to-blue-600 text-white p-6">
@@ -128,7 +128,7 @@
         <!-- Financial Risk Zone -->
         <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-slate-800">⚠️ منطقة المخاطر المالية (Financial Risk Zone)</h2>
+                <h2 class="text-2xl font-bold text-slate-800">⚠️ منطقة المخاطر المالية</h2>
                 <div class="text-sm text-slate-500">رادار المخاطر الذكي</div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
@@ -179,7 +179,7 @@
         <!-- Smart Reports Zone -->
         <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-slate-800">📑 منطقة التقارير الذكية (Smart Reports Zone)</h2>
+                <h2 class="text-2xl font-bold text-slate-800">📑 منطقة التقارير الذكية</h2>
                 <div class="text-sm text-slate-500">تقارير جاهزة بضغطة زر</div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -229,15 +229,15 @@
                 <table class="w-full text-xs">
                     <thead class="bg-sky-50 text-sky-700">
                         <tr>
-                            <th class="px-3 py-2 text-right">flow_id</th>
-                            <th class="px-3 py-2 text-right">flow_type</th>
-                            <th class="px-3 py-2 text-right">amount</th>
-                            <th class="px-3 py-2 text-right">description</th>
-                            <th class="px-3 py-2 text-right">flow_date</th>
-                            <th class="px-3 py-2 text-right">entity_id</th>
-                            <th class="px-3 py-2 text-right">created_by</th>
-                            <th class="px-3 py-2 text-right">created_at</th>
-                            <th class="px-3 py-2 text-right">source</th>
+                            <th class="px-3 py-2 text-right">رقم التدفق</th>
+                            <th class="px-3 py-2 text-right">نوع التدفق</th>
+                            <th class="px-3 py-2 text-right">المبلغ</th>
+                            <th class="px-3 py-2 text-right">الوصف</th>
+                            <th class="px-3 py-2 text-right">تاريخ التدفق</th>
+                            <th class="px-3 py-2 text-right">معرف المنشأة</th>
+                            <th class="px-3 py-2 text-right">منشئ السجل</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                            <th class="px-3 py-2 text-right">المصدر</th>
                         </tr>
                     </thead>
                     <tbody id="cashflowTable" class="divide-y divide-slate-100">
@@ -259,15 +259,15 @@
                 <table class="w-full text-xs">
                     <thead class="bg-emerald-50 text-emerald-700">
                         <tr>
-                            <th class="px-3 py-2 text-right">forecast_id</th>
-                            <th class="px-3 py-2 text-right">entity_id</th>
-                            <th class="px-3 py-2 text-right">forecast_period</th>
-                            <th class="px-3 py-2 text-right">forecast_type</th>
-                            <th class="px-3 py-2 text-right">forecast_amount</th>
-                            <th class="px-3 py-2 text-right">confidence_level</th>
-                            <th class="px-3 py-2 text-right">ai_model</th>
-                            <th class="px-3 py-2 text-right">ai_insights</th>
-                            <th class="px-3 py-2 text-right">created_at</th>
+                            <th class="px-3 py-2 text-right">رقم التوقع</th>
+                            <th class="px-3 py-2 text-right">معرف المنشأة</th>
+                            <th class="px-3 py-2 text-right">فترة التوقع</th>
+                            <th class="px-3 py-2 text-right">نوع التوقع</th>
+                            <th class="px-3 py-2 text-right">قيمة التوقع</th>
+                            <th class="px-3 py-2 text-right">مستوى الثقة</th>
+                            <th class="px-3 py-2 text-right">نموذج الذكاء</th>
+                            <th class="px-3 py-2 text-right">ملاحظات الذكاء</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
                         </tr>
                     </thead>
                     <tbody id="forecastTable" class="divide-y divide-slate-100">
@@ -289,19 +289,19 @@
                 <table class="w-full text-xs">
                     <thead class="bg-rose-50 text-rose-700">
                         <tr>
-                            <th class="px-3 py-2 text-right">risk_id</th>
-                            <th class="px-3 py-2 text-right">customer_id</th>
-                            <th class="px-3 py-2 text-right">assessment_date</th>
-                            <th class="px-3 py-2 text-right">risk_score</th>
-                            <th class="px-3 py-2 text-right">risk_level</th>
-                            <th class="px-3 py-2 text-right">risk_factors</th>
-                            <th class="px-3 py-2 text-right">calculation_details</th>
-                            <th class="px-3 py-2 text-right">recommendations</th>
-                            <th class="px-3 py-2 text-right">suggested_actions</th>
-                            <th class="px-3 py-2 text-right">entity_type</th>
-                            <th class="px-3 py-2 text-right">entity_id</th>
-                            <th class="px-3 py-2 text-right">model_version</th>
-                            <th class="px-3 py-2 text-right">created_at</th>
+                            <th class="px-3 py-2 text-right">رقم المخاطر</th>
+                            <th class="px-3 py-2 text-right">رقم العميل</th>
+                            <th class="px-3 py-2 text-right">تاريخ التقييم</th>
+                            <th class="px-3 py-2 text-right">درجة المخاطرة</th>
+                            <th class="px-3 py-2 text-right">مستوى المخاطرة</th>
+                            <th class="px-3 py-2 text-right">عوامل المخاطر</th>
+                            <th class="px-3 py-2 text-right">تفاصيل الحساب</th>
+                            <th class="px-3 py-2 text-right">التوصيات</th>
+                            <th class="px-3 py-2 text-right">إجراءات مقترحة</th>
+                            <th class="px-3 py-2 text-right">نوع المنشأة</th>
+                            <th class="px-3 py-2 text-right">معرف المنشأة</th>
+                            <th class="px-3 py-2 text-right">نسخة النموذج</th>
+                            <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
                         </tr>
                     </thead>
                     <tbody id="riskTable" class="divide-y divide-slate-100">
@@ -457,7 +457,7 @@
             document.getElementById('default30').textContent = `${default30.toFixed(1)}%`;
 
             const levelCounts = riskScores.reduce((acc, r) => {
-                const level = (r.risk_level || 'Unknown').toUpperCase();
+                const level = translateRiskLevel(r.risk_level) || 'غير محدد';
                 acc[level] = (acc[level] || 0) + 1;
                 return acc;
             }, {});
@@ -502,7 +502,7 @@
             const cashRows = merged.map(row => `
                 <tr class="hover:bg-sky-50">
                     <td class="px-3 py-2">${row.flow_id ?? '-'}</td>
-                    <td class="px-3 py-2">${row.flow_type ?? '-'}</td>
+                    <td class="px-3 py-2">${translateFlowType(row.flow_type)}</td>
                     <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(row.amount)}</td>
                     <td class="px-3 py-2">${row.description ?? '-'}</td>
                     <td class="px-3 py-2">${formatDate(row.flow_date)}</td>
@@ -519,12 +519,12 @@
                 <tr class="hover:bg-emerald-50">
                     <td class="px-3 py-2">${f.forecast_id ?? '-'}</td>
                     <td class="px-3 py-2">${f.entity_id ?? '-'}</td>
-                    <td class="px-3 py-2">${f.forecast_period ?? '-'}</td>
-                    <td class="px-3 py-2">${f.forecast_type ?? '-'}</td>
+                    <td class="px-3 py-2">${formatPeriod(f.forecast_period)}</td>
+                    <td class="px-3 py-2">${translateForecastType(f.forecast_type)}</td>
                     <td class="px-3 py-2">${formatMoney(f.forecast_amount)}</td>
-                    <td class="px-3 py-2">${f.confidence_level ?? '-'}</td>
-                    <td class="px-3 py-2">${f.ai_model ?? '-'}</td>
-                    <td class="px-3 py-2">${truncate(f.ai_insights)}</td>
+                    <td class="px-3 py-2">${formatPercent(f.confidence_level)}</td>
+                    <td class="px-3 py-2">${sanitizeText(f.ai_model)}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(f.ai_insights))}</td>
                     <td class="px-3 py-2">${formatDateTime(f.created_at)}</td>
                 </tr>
             `).join('');
@@ -536,15 +536,15 @@
                     <td class="px-3 py-2">${r.risk_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
                     <td class="px-3 py-2">${formatDate(r.assessment_date)}</td>
-                    <td class="px-3 py-2">${r.risk_score ?? '-'}</td>
-                    <td class="px-3 py-2">${r.risk_level ?? '-'}</td>
-                    <td class="px-3 py-2">${truncate(r.risk_factors)}</td>
-                    <td class="px-3 py-2">${truncate(r.calculation_details)}</td>
-                    <td class="px-3 py-2">${truncate(r.recommendations)}</td>
-                    <td class="px-3 py-2">${truncate(r.suggested_actions)}</td>
-                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${formatPercent(r.risk_score)}</td>
+                    <td class="px-3 py-2">${translateRiskLevel(r.risk_level)}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(r.risk_factors))}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(r.calculation_details))}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(r.recommendations))}</td>
+                    <td class="px-3 py-2">${truncate(sanitizeText(r.suggested_actions))}</td>
+                    <td class="px-3 py-2">${translateEntityType(r.entity_type)}</td>
                     <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
-                    <td class="px-3 py-2">${r.model_version ?? '-'}</td>
+                    <td class="px-3 py-2">${sanitizeText(r.model_version)}</td>
                     <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
                 </tr>
             `).join('');
@@ -622,32 +622,48 @@
                 payments,
                 ar_aging: arAging
             };
-            downloadBlob(JSON.stringify(payload, null, 2), 'cashflow-risk-reports.json', 'application/json');
+            downloadBlob(JSON.stringify(payload, null, 2), 'التدفقات-والمخاطر-والتقارير.json', 'application/json');
         }
 
         function downloadAllCSV() {
             const rows = [];
-            rows.push(['CASHFLOW_TRANSACTIONS']);
-            rows.push(['flow_id','flow_type','amount','description','flow_date','entity_id','created_by','created_at','source']);
-            mergeCashflows().forEach(r => rows.push([r.flow_id, r.flow_type, r.amount, r.description, r.flow_date, r.entity_id, r.created_by, r.created_at, r.source]));
+            rows.push(['معاملات التدفق النقدي']);
+            rows.push(['رقم التدفق','نوع التدفق','المبلغ','الوصف','تاريخ التدفق','معرف المنشأة','منشئ السجل','تاريخ الإنشاء','المصدر']);
+            mergeCashflows().forEach(r => rows.push([r.flow_id, translateFlowType(r.flow_type), r.amount, sanitizeText(r.description), r.flow_date, r.entity_id, r.created_by, r.created_at, r.source]));
 
             rows.push([]);
-            rows.push(['AI_FORECASTS']);
-            rows.push(['forecast_id','entity_id','forecast_period','forecast_type','forecast_amount','confidence_level','ai_model','ai_insights','created_at']);
-            forecasts.forEach(f => rows.push([f.forecast_id, f.entity_id, f.forecast_period, f.forecast_type, f.forecast_amount, f.confidence_level, f.ai_model, f.ai_insights, f.created_at]));
+            rows.push(['التوقعات الذكية']);
+            rows.push(['رقم التوقع','معرف المنشأة','فترة التوقع','نوع التوقع','قيمة التوقع','مستوى الثقة','نموذج الذكاء','ملاحظات الذكاء','تاريخ الإنشاء']);
+            forecasts.forEach(f => rows.push([f.forecast_id, f.entity_id, f.forecast_period, translateForecastType(f.forecast_type), f.forecast_amount, f.confidence_level, sanitizeText(f.ai_model), sanitizeText(f.ai_insights), f.created_at]));
 
             rows.push([]);
-            rows.push(['AI_RISK_SCORES']);
-            rows.push(['risk_id','customer_id','assessment_date','risk_score','risk_level','risk_factors','calculation_details','recommendations','suggested_actions','entity_type','entity_id','model_version','created_at']);
-            riskScores.forEach(r => rows.push([r.risk_id, r.customer_id, r.assessment_date, r.risk_score, r.risk_level, r.risk_factors, r.calculation_details, r.recommendations, r.suggested_actions, r.entity_type, r.entity_id, r.model_version, r.created_at]));
+            rows.push(['تقييمات المخاطر']);
+            rows.push(['رقم المخاطر','رقم العميل','تاريخ التقييم','درجة المخاطرة','مستوى المخاطرة','عوامل المخاطر','تفاصيل الحساب','التوصيات','إجراءات مقترحة','نوع المنشأة','معرف المنشأة','نسخة النموذج','تاريخ الإنشاء']);
+            riskScores.forEach(r => rows.push([r.risk_id, r.customer_id, r.assessment_date, r.risk_score, translateRiskLevel(r.risk_level), sanitizeText(r.risk_factors), sanitizeText(r.calculation_details), sanitizeText(r.recommendations), sanitizeText(r.suggested_actions), translateEntityType(r.entity_type), r.entity_id, sanitizeText(r.model_version), r.created_at]));
 
             const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
-            downloadBlob(csvContent, 'cashflow-risk-reports.csv', 'text/csv;charset=utf-8;');
+            downloadBlob(csvContent, 'التدفقات-والمخاطر-والتقارير.csv', 'text/csv;charset=utf-8;');
         }
 
         function downloadReport(type) {
             const report = buildReport(type);
-            downloadBlob(JSON.stringify(report, null, 2), `${type}.json`, 'application/json');
+            const nameMap = {
+                'customer-statement': 'كشف-حساب-العملاء',
+                'overdue-customers': 'العملاء-المتأخرون',
+                'top-balances': 'العملاء-الأعلى-رصيدًا',
+                'branch-collections': 'تحصيل-الفروع',
+                'branch-ar': 'ذمم-الفروع',
+                'branch-cashflow': 'تدفق-الفروع',
+                'incubator-programs': 'أداء-برامج-الحاضنات',
+                'incubator-collections': 'تحصيل-الحاضنات',
+                'incubator-ar': 'ذمم-الحاضنات',
+                'empire-monthly': 'تقرير-مالي-شهري',
+                'empire-quarterly': 'تقرير-مالي-ربع-سنوي',
+                'empire-risk': 'تقرير-المخاطر',
+                'empire-forecast': 'تقرير-التوقعات'
+            };
+            const fileName = nameMap[type] || 'تقرير';
+            downloadBlob(JSON.stringify(report, null, 2), `${fileName}.json`, 'application/json');
         }
 
         function buildReport(type) {
@@ -679,8 +695,57 @@
                 case 'empire-forecast':
                     return { forecasts };
                 default:
-                    return { error: 'Unknown report type' };
+                    return { خطأ: 'نوع تقرير غير معروف' };
             }
+        }
+
+        function translateFlowType(value) {
+            const map = {
+                collection: 'تحصيل',
+                payment: 'مدفوعات',
+                salary: 'رواتب',
+                expense: 'مصروفات تشغيلية',
+                asset_purchase: 'شراء أصول',
+                investment: 'استثمار',
+                other_investing: 'أنشطة استثمارية أخرى',
+                capital_injection: 'زيادة رأس المال',
+                loan_received: 'قرض مستلم',
+                loan_payment: 'سداد قرض',
+                dividend_payment: 'توزيع أرباح'
+            };
+            return map[value] || 'غير محدد';
+        }
+
+        function translateRiskLevel(value) {
+            const map = { HIGH: 'مرتفع', MEDIUM: 'متوسط', LOW: 'منخفض', CRITICAL: 'حرج' };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function translateEntityType(value) {
+            const map = { HQ: 'مركز رئيسي', BRANCH: 'فرع', PLATFORM: 'منصة', INCUBATOR: 'حاضنة', PROGRAM: 'برنامج' };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function translateForecastType(value) {
+            const map = { REVENUE: 'إيرادات', EXPENSE: 'مصروفات', CASHFLOW: 'تدفقات نقدية', DEFAULT: 'تعثر' };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function formatPeriod(value) {
+            return value ? sanitizeText(value) : 'غير محدد';
+        }
+
+        function formatPercent(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            const num = parseFloat(value || 0);
+            return `${num.toFixed(1)}%`;
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || '-';
         }
 
         function buildCustomerStatement() {
