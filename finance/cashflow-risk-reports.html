@@ -334,22 +334,45 @@
         let cashflowMixInstance = null;
         let riskLevelInstance = null;
 
+        async function fetchJsonSafe(url, fallback) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    return fallback;
+                }
+                return await res.json();
+            } catch (error) {
+                console.warn('⚠️ fetch failed:', url, error);
+                return fallback;
+            }
+        }
+
+        async function fetchJsonWithFallback(urls, fallback) {
+            for (const url of urls) {
+                const data = await fetchJsonSafe(url, null);
+                if (data !== null) {
+                    return data;
+                }
+            }
+            return fallback;
+        }
+
         async function loadData() {
             try {
-                const [overviewRes, operatingRes, investingRes, financingRes, forecastRes, riskRes, invoiceRes, paymentRes, arRes] = await Promise.all([
-                    fetch(`${API_BASE}/finance/cashflow/overview?entity_id=${CASHFLOW_ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/cashflow/operating?entity_id=${CASHFLOW_ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/cashflow/investing?entity_id=${CASHFLOW_ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/cashflow/financing?entity_id=${CASHFLOW_ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/ai-forecasts?entity_id=${CASHFLOW_ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/ai-risk-scores?entity_id=${CASHFLOW_ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/invoices`),
-                    fetch(`${API_BASE}/finance/payments`),
-                    fetch(`${API_BASE}/finance/ar-aging?entity_id=${AR_ENTITY_ID}`)
-                ]);
-
                 const [overviewData, operatingData, investingData, financingData, forecastData, riskData, invoiceData, paymentData, arData] = await Promise.all([
-                    overviewRes.json(), operatingRes.json(), investingRes.json(), financingRes.json(), forecastRes.json(), riskRes.json(), invoiceRes.json(), paymentRes.json(), arRes.json()
+                    fetchJsonSafe(`${API_BASE}/finance/cashflow/overview?entity_id=${CASHFLOW_ENTITY_ID}`, null),
+                    fetchJsonSafe(`${API_BASE}/finance/cashflow/operating?entity_id=${CASHFLOW_ENTITY_ID}`, { cashflows: [] }),
+                    fetchJsonSafe(`${API_BASE}/finance/cashflow/investing?entity_id=${CASHFLOW_ENTITY_ID}`, { cashflows: [] }),
+                    fetchJsonSafe(`${API_BASE}/finance/cashflow/financing?entity_id=${CASHFLOW_ENTITY_ID}`, { cashflows: [] }),
+                    fetchJsonSafe(`${API_BASE}/finance/ai-forecasts?entity_id=${CASHFLOW_ENTITY_ID}`, { forecasts: [] }),
+                    fetchJsonSafe(`${API_BASE}/finance/ai-risk-scores?entity_id=${CASHFLOW_ENTITY_ID}`, { rows: [] }),
+                    fetchJsonWithFallback([
+                        `${API_BASE}/finance/invoices?entity_id=${AR_ENTITY_ID}`,
+                        `${API_BASE}/api/invoices?entity_id=${AR_ENTITY_ID}`,
+                        `${API_BASE}/api/invoices`
+                    ], []),
+                    fetchJsonSafe(`${API_BASE}/finance/payments?entity_id=${AR_ENTITY_ID}`, { payments: [] }),
+                    fetchJsonSafe(`${API_BASE}/finance/ar-aging?entity_id=${AR_ENTITY_ID}`, { rows: [] })
                 ]);
 
                 cashflowOverview = overviewData;
@@ -358,7 +381,7 @@
                 cashflowFinancing = financingData.cashflows || [];
                 forecasts = forecastData.forecasts || [];
                 riskScores = riskData.rows || [];
-                invoices = invoiceData.invoices || [];
+                invoices = Array.isArray(invoiceData) ? invoiceData : (invoiceData.invoices || invoiceData.rows || []);
                 payments = paymentData.payments || [];
                 arAging = arData.rows || [];
 
