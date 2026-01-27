@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 نظام الموافقات والصلاحيات والحوكمة - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .stat-pill {
+            border-radius: 999px;
+            box-shadow: 0 20px 35px rgba(15, 23, 42, 0.18);
+        }
+        .stat-angled {
+            border-radius: 32px 8px 32px 8px;
+        }
+        .stat-rounded {
+            border-radius: 32px;
+        }
+        .stat-cut {
+            border-radius: 8px 32px 8px 32px;
+        }
+        .table-scroll {
+            max-height: 550px;
+            overflow: auto;
+        }
+        .section-accent-violet { border-top: 5px solid #8b5cf6; }
+        .section-accent-indigo { border-top: 5px solid #6366f1; }
+        .section-accent-purple { border-top: 5px solid #a855f7; }
+        .section-accent-fuchsia { border-top: 5px solid #d946ef; }
+        .section-accent-rose { border-top: 5px solid #f43f5e; }
+        .level-card {
+            transition: all 0.3s;
+        }
+        .level-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .badge {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-5xl font-bold mb-3">🔐 نظام الموافقات والصلاحيات والحوكمة</h1>
+            <p class="text-xl opacity-90">نظام الموافقات - الصلاحيات - حوكمة البيانات - حوكمة التقارير - حوكمة الذكاء الاصطناعي - حوكمة المخاطر (الصفحة 41)</p>
+        </div>
+
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="refreshData()" class="bg-white text-purple-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل بيانات شاملة
+            </button>
+            <button onclick="printReport()" class="bg-fuchsia-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة التقرير
+            </button>
+        </div>
+
+        <!-- Approval System Overview -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-slate-800">✅ نظام الموافقات والصلاحيات</h2>
+                <div class="text-sm text-slate-500">مصدر البيانات: جداول الصلاحيات والأدوار</div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="stat-pill bg-gradient-to-br from-violet-500 to-purple-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>إجمالي الأدوار</span><i class="fas fa-user-tag text-3xl opacity-70"></i></div>
+                    <div id="totalRoles" class="text-4xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-angled bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>إجمالي الصلاحيات</span><i class="fas fa-shield-halved text-3xl opacity-70"></i></div>
+                    <div id="totalPermissions" class="text-4xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-rounded bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>المستويات النشطة</span><i class="fas fa-layer-group text-3xl opacity-70"></i></div>
+                    <div id="activeLevels" class="text-4xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+                <div class="stat-cut bg-gradient-to-br from-rose-500 to-red-600 text-white p-6">
+                    <div class="flex justify-between mb-3"><span>المستخدمون النشطون</span><i class="fas fa-users text-3xl opacity-70"></i></div>
+                    <div id="activeUsers" class="text-4xl font-bold"><div class="animate-pulse">...</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Levels -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">📊 مستويات الموافقات</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Level 1 -->
+                <div class="level-card bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border-r-8 border-emerald-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">1</div>
+                        <h3 class="text-xl font-bold text-slate-800">محاسب</h3>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-600"></i>
+                            <span>إدخال قيود</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-600"></i>
+                            <span>تسجيل فواتير</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-600"></i>
+                            <span>تسجيل مصروفات</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 2 -->
+                <div class="level-card bg-gradient-to-br from-sky-50 to-blue-50 rounded-2xl p-6 border-r-8 border-sky-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-sky-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">2</div>
+                        <h3 class="text-xl font-bold text-slate-800">مدير مالي</h3>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-sky-600"></i>
+                            <span>اعتماد الفواتير</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-sky-600"></i>
+                            <span>اعتماد المصروفات</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-sky-600"></i>
+                            <span>اعتماد خطط الدفع</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-sky-600"></i>
+                            <span>تعديل قيود قبل الإقفال</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 3 -->
+                <div class="level-card bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-6 border-r-8 border-violet-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-violet-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">3</div>
+                        <h3 class="text-xl font-bold text-slate-800">مدير مالي تنفيذي</h3>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-violet-600"></i>
+                            <span>اعتماد الميزانيات</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-violet-600"></i>
+                            <span>اعتماد المصروفات الكبيرة</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-violet-600"></i>
+                            <span>تعديل القيود بعد الإقفال</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-violet-600"></i>
+                            <span>اعتماد سياسات مالية</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 4 -->
+                <div class="level-card bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6 border-r-8 border-rose-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-rose-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">4</div>
+                        <h3 class="text-xl font-bold text-slate-800">مجلس الإدارة</h3>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-rose-600"></i>
+                            <span>اعتماد الميزانية السنوية</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-rose-600"></i>
+                            <span>اعتماد المشاريع الكبرى</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-rose-600"></i>
+                            <span>اعتماد التوسع المالي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Data Governance -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-purple">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">🛡️ حوكمة البيانات المالية</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-6 border-r-4 border-purple-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-file-shield text-purple-600"></i>
+                        السياسات
+                    </h3>
+                    <div class="space-y-3 text-sm text-slate-700">
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-calendar text-purple-600 mt-1"></i>
+                            <span>كل عملية مالية يجب أن تحتوي على: تاريخ - مستخدم - مصدر - مرفقات</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-ban text-red-600 mt-1"></i>
+                            <span>لا يُسمح بحذف أي سجل مالي</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-edit text-blue-600 mt-1"></i>
+                            <span>التعديل يتم عبر: إشعار دائن/مدين - قيد عكسي</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-6 border-r-4 border-indigo-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-magnifying-glass-chart text-indigo-600"></i>
+                        التدقيق
+                    </h3>
+                    <div class="space-y-3 text-sm text-slate-700">
+                        <div class="bg-white p-3 rounded-xl flex items-center justify-between">
+                            <span>تدقيق شهري داخلي</span>
+                            <span class="badge bg-green-100 text-green-700">شهري</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-center justify-between">
+                            <span>تدقيق ربع سنوي</span>
+                            <span class="badge bg-blue-100 text-blue-700">ربع سنوي</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-center justify-between">
+                            <span>تدقيق سنوي خارجي</span>
+                            <span class="badge bg-purple-100 text-purple-700">سنوي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporting Governance -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-fuchsia">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">📑 حوكمة التقارير المالية</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-br from-fuchsia-50 to-pink-50 rounded-2xl p-6 border-r-4 border-fuchsia-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-fuchsia-600"></i>
+                        أنواع التقارير
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between hover:shadow-md transition">
+                            <span class="font-semibold text-slate-700">تقارير تشغيلية</span>
+                            <span class="badge bg-emerald-100 text-emerald-700">يومي</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between hover:shadow-md transition">
+                            <span class="font-semibold text-slate-700">تقارير تكتيكية</span>
+                            <span class="badge bg-sky-100 text-sky-700">شهري</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between hover:shadow-md transition">
+                            <span class="font-semibold text-slate-700">تقارير استراتيجية</span>
+                            <span class="badge bg-violet-100 text-violet-700">سنوي</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-rose-50 to-red-50 rounded-2xl p-6 border-r-4 border-rose-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-list-check text-rose-600"></i>
+                        سياسات التقارير
+                    </h3>
+                    <div class="space-y-3 text-sm text-slate-700">
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-robot text-blue-600 mt-1"></i>
+                            <span>كل تقرير يجب أن يكون آلي</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-equals text-green-600 mt-1"></i>
+                            <span>كل تقرير يجب أن يكون موحد</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-check-double text-purple-600 mt-1"></i>
+                            <span>كل تقرير يجب أن يكون قابل للتدقيق</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl flex items-start gap-2">
+                            <i class="fas fa-database text-orange-600 mt-1"></i>
+                            <span>كل تقرير يحتوي على مصدر البيانات</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Governance -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">🤖 حوكمة الذكاء الاصطناعي المالي</h2>
+            
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border-r-4 border-indigo-500">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-brain text-indigo-600"></i>
+                    السياسات
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
+                    <div class="bg-white p-4 rounded-xl flex items-start gap-3">
+                        <i class="fas fa-lightbulb text-amber-600 text-xl mt-1"></i>
+                        <div>
+                            <div class="font-bold mb-1">توصيات فقط</div>
+                            <div>الذكاء الاصطناعي يقدم توصيات، لا قرارات نهائية</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl flex items-start gap-3">
+                        <i class="fas fa-glasses text-blue-600 text-xl mt-1"></i>
+                        <div>
+                            <div class="font-bold mb-1">قابلية التفسير</div>
+                            <div>كل توصية يجب أن تكون قابلة للتفسير</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl flex items-start gap-3">
+                        <i class="fas fa-user-check text-green-600 text-xl mt-1"></i>
+                        <div>
+                            <div class="font-bold mb-1">موافقة بشرية</div>
+                            <div>لا إجراء مالي آلي دون موافقة بشرية</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl flex items-start gap-3">
+                        <i class="fas fa-broom text-purple-600 text-xl mt-1"></i>
+                        <div>
+                            <div class="font-bold mb-1">بيانات نظيفة</div>
+                            <div>تدريب النماذج على بيانات نظيفة فقط</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl flex items-start gap-3 md:col-span-2">
+                        <i class="fas fa-calendar-check text-rose-600 text-xl mt-1"></i>
+                        <div>
+                            <div class="font-bold mb-1">مراجعة دورية</div>
+                            <div>مراجعة أداء النموذج كل 3 أشهر</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Governance -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">⚠️ حوكمة المخاطر المالية</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-r-4 border-amber-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-simple text-amber-600"></i>
+                        تصنيف المخاطر
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between border-r-4 border-green-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-circle-check text-green-600"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">منخفض</span>
+                            </div>
+                            <span class="badge bg-green-100 text-green-700">آمن</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between border-r-4 border-yellow-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                    <i class="fas fa-circle-exclamation text-yellow-600"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">متوسط</span>
+                            </div>
+                            <span class="badge bg-yellow-100 text-yellow-700">مراقبة</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between border-r-4 border-orange-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                    <i class="fas fa-triangle-exclamation text-orange-600"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">مرتفع</span>
+                            </div>
+                            <span class="badge bg-orange-100 text-orange-700">تحذير</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center justify-between border-r-4 border-red-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                    <i class="fas fa-circle-xmark text-red-600"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">حرج</span>
+                            </div>
+                            <span class="badge bg-red-100 text-red-700">عاجل</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl p-6 border-r-4 border-red-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-gears text-red-600"></i>
+                        إجراءات التعامل
+                    </h3>
+                    <div class="space-y-3 text-sm text-slate-700">
+                        <div class="bg-white p-4 rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-green-700">منخفض</span>
+                                <i class="fas fa-bell text-green-600"></i>
+                            </div>
+                            <div>تذكير للعميل فقط</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-yellow-700">متوسط</span>
+                                <i class="fas fa-calendar-days text-yellow-600"></i>
+                            </div>
+                            <div>إنشاء خطة دفع للعميل</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-orange-700">مرتفع</span>
+                                <i class="fas fa-user-tie text-orange-600"></i>
+                            </div>
+                            <div>تدخل إداري مباشر</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-red-700">حرج</span>
+                                <i class="fas fa-hand text-red-600"></i>
+                            </div>
+                            <div>إيقاف خدمات + خطة دفع خاصة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Table -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📋 جدول الأدوار</h3>
+                <span id="rolesCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-violet-50 text-violet-700 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 text-right">رقم الدور</th>
+                            <th class="px-4 py-3 text-right">اسم الدور</th>
+                            <th class="px-4 py-3 text-right">الوصف</th>
+                            <th class="px-4 py-3 text-right">مستوى الصلاحية</th>
+                            <th class="px-4 py-3 text-right">الحالة</th>
+                            <th class="px-4 py-3 text-right">تاريخ الإنشاء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rolesTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Permissions Table -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-indigo">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-slate-800">🔑 جدول الصلاحيات</h3>
+                <span id="permissionsCount" class="text-sm text-slate-500"></span>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-xs">
+                    <thead class="bg-indigo-50 text-indigo-700 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 text-right">رقم الصلاحية</th>
+                            <th class="px-4 py-3 text-right">رقم الدور</th>
+                            <th class="px-4 py-3 text-right">اسم الصلاحية</th>
+                            <th class="px-4 py-3 text-right">المورد</th>
+                            <th class="px-4 py-3 text-right">الإجراء</th>
+                            <th class="px-4 py-3 text-right">الشروط</th>
+                            <th class="px-4 py-3 text-right">الحالة</th>
+                            <th class="px-4 py-3 text-right">تاريخ الإنشاء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="permissionsTable" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        let roles = [];
+        let permissions = [];
+
+        async function loadData() {
+            try {
+                const [rolesRes, statsRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/permissions/roles`),
+                    fetch(`${API_BASE}/api/permissions/stats`)
+                ]);
+
+                const [rolesData, statsData] = await Promise.all([
+                    rolesRes.json(),
+                    statsRes.json()
+                ]);
+
+                roles = rolesData.roles || [];
+                permissions = statsData.stats || {};
+
+                renderStats();
+                renderTables();
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                renderStats();
+                renderTables();
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('totalRoles').textContent = roles.length || 0;
+            document.getElementById('totalPermissions').textContent = permissions.total_permissions || 0;
+            
+            const uniqueLevels = new Set(roles.map(r => r.hierarchy_level).filter(l => l !== null && l !== undefined));
+            document.getElementById('activeLevels').textContent = uniqueLevels.size || 4;
+            
+            document.getElementById('activeUsers').textContent = '—';
+        }
+
+        function renderTables() {
+            const rolesRows = roles.map(r => `
+                <tr class="hover:bg-violet-50 transition">
+                    <td class="px-4 py-3">${sanitizeText(r.id)}</td>
+                    <td class="px-4 py-3 font-semibold">${sanitizeText(r.name_ar || r.job_title_ar)}</td>
+                    <td class="px-4 py-3">${sanitizeText(r.description || r.approval_notes_ar)}</td>
+                    <td class="px-4 py-3">
+                        <span class="badge ${getLevelColor(r.hierarchy_level)}">
+                            ${translateLevel(r.hierarchy_level)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="badge ${getStatusColor(r.is_active)}">
+                            ${translateStatus(r.is_active)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">${formatDateTime(r.created_at)}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('rolesTable').innerHTML = rolesRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('rolesCount').textContent = `عدد الصفوف: ${roles.length}`;
+
+            // Since we don't have individual permissions data, show summary
+            const permissionsRows = `
+                <tr class="hover:bg-indigo-50 transition">
+                    <td colspan="8" class="px-4 py-8 text-center text-slate-600">
+                        إجمالي الصلاحيات: ${permissions.total_permissions || 0}<br>
+                        عدد الأنظمة: ${permissions.total_systems || 0}<br>
+                        مستويات الصلاحيات: ${permissions.total_permission_levels || 0}
+                    </td>
+                </tr>
+            `;
+            
+            document.getElementById('permissionsTable').innerHTML = permissionsRows;
+            document.getElementById('permissionsCount').textContent = `إجمالي: ${permissions.total_permissions || 0}`;
+        }
+
+        function getLevelColor(level) {
+            const colorMap = {
+                1: 'bg-emerald-100 text-emerald-700',
+                2: 'bg-sky-100 text-sky-700',
+                3: 'bg-violet-100 text-violet-700',
+                4: 'bg-rose-100 text-rose-700'
+            };
+            return colorMap[level] || 'bg-slate-100 text-slate-700';
+        }
+
+        function translateLevel(level) {
+            const levelMap = {
+                1: 'محاسب',
+                2: 'مدير مالي',
+                3: 'مدير مالي تنفيذي',
+                4: 'مجلس إدارة'
+            };
+            return levelMap[level] || `مستوى ${level}`;
+        }
+
+        function getStatusColor(isActive) {
+            return isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+        }
+
+        function translateStatus(isActive) {
+            return isActive ? 'نشط' : 'غير نشط';
+        }
+
+        function getActionColor(action) {
+            const colorMap = {
+                create: 'bg-green-100 text-green-700',
+                read: 'bg-blue-100 text-blue-700',
+                update: 'bg-amber-100 text-amber-700',
+                delete: 'bg-red-100 text-red-700',
+                approve: 'bg-purple-100 text-purple-700'
+            };
+            return colorMap[String(action || '').toLowerCase()] || 'bg-slate-100 text-slate-700';
+        }
+
+        function translateAction(action) {
+            const actionMap = {
+                create: 'إنشاء',
+                read: 'قراءة',
+                update: 'تحديث',
+                delete: 'حذف',
+                approve: 'اعتماد'
+            };
+            return actionMap[String(action || '').toLowerCase()] || sanitizeText(action);
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '—';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function truncate(value) {
+            if (!value || value === '—') return '—';
+            return value.length > 100 ? value.slice(0, 100) + '...' : value;
+        }
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '—';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            return cleaned || '—';
+        }
+
+        function downloadAllJSON() {
+            const payload = {
+                roles,
+                permissions,
+                governance: {
+                    data_governance: {
+                        policies: [
+                            'كل عملية مالية يجب أن تحتوي على: تاريخ - مستخدم - مصدر - مرفقات',
+                            'لا يُسمح بحذف أي سجل مالي',
+                            'التعديل يتم عبر: إشعار دائن/مدين - قيد عكسي'
+                        ],
+                        audit: ['تدقيق شهري داخلي', 'تدقيق ربع سنوي', 'تدقيق سنوي خارجي']
+                    },
+                    reporting_governance: {
+                        types: ['تشغيلية', 'تكتيكية', 'استراتيجية'],
+                        policies: ['آلي', 'موحد', 'قابل للتدقيق', 'يحتوي على مصدر البيانات']
+                    },
+                    ai_governance: {
+                        policies: [
+                            'الذكاء الاصطناعي يقدم توصيات، لا قرارات نهائية',
+                            'كل توصية يجب أن تكون قابلة للتفسير',
+                            'لا إجراء مالي آلي دون موافقة بشرية',
+                            'تدريب النماذج على بيانات نظيفة فقط',
+                            'مراجعة أداء النموذج كل 3 أشهر'
+                        ]
+                    },
+                    risk_governance: {
+                        classifications: ['منخفض', 'متوسط', 'مرتفع', 'حرج'],
+                        actions: {
+                            low: 'تذكير',
+                            medium: 'خطة دفع',
+                            high: 'تدخل إداري',
+                            critical: 'إيقاف خدمات + خطة دفع خاصة'
+                        }
+                    }
+                }
+            };
+            downloadBlob(JSON.stringify(payload, null, 2), 'الموافقات-والصلاحيات-والحوكمة.json', 'application/json');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

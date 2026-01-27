@@ -12,9 +12,6 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files
-app.use(express.static('.'));
-
 // Authentication API Routes
 const authRoutes = require('./auth-api');
 app.use('/api/auth', authRoutes);
@@ -26,6 +23,13 @@ app.use('/api/menu', menuRoutes);
 // Super Admin API Routes
 const superAdminRoutes = require('./super-admin-api');
 app.use('/api/admin', superAdminRoutes);
+
+// Permissions API Routes
+const permissionsRoutes = require('./api-permissions-routes');
+app.use('/api/permissions', permissionsRoutes);
+
+// Serve static files (must come AFTER API routes to avoid conflicts)
+app.use(express.static('.'));
 
 // Finance System API Routes
 const financeRoutes = require('./finance/api/finance-routes');
