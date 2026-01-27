@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💳 الذمم والتحصيل + الفواتير وخطط الدفع - نظام نايوش</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(120deg, #0ea5e9 0%, #0f766e 45%, #7c3aed 100%);
+            min-height: 100vh;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
+        .stat-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+        .table-scroll {
+            max-height: 520px;
+            overflow: auto;
+        }
+        .section-accent-sky { border-top: 4px solid #0ea5e9; }
+        .section-accent-emerald { border-top: 4px solid #10b981; }
+        .section-accent-amber { border-top: 4px solid #f59e0b; }
+        .section-accent-violet { border-top: 4px solid #8b5cf6; }
+        .section-accent-indigo { border-top: 4px solid #6366f1; }
+        .json-pill {
+            max-width: 260px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-white">
+            <h1 class="text-4xl font-bold mb-2">💳 الذمم والتحصيل + الفواتير وخطط الدفع</h1>
+            <p class="text-lg opacity-90">منطقة الذمم والتحصيل + منطقة الفواتير وخطط الدفع (الصفحة 26)</p>
+        </div>
+
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="downloadCSV()" class="bg-white text-sky-700 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تنزيل CSV
+            </button>
+            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-code"></i>
+                تنزيل JSON
+            </button>
+            <button onclick="printReport()" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-print"></i>
+                طباعة
+            </button>
+            <button onclick="refreshData()" class="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+        </div>
+
+        <!-- Receivables Zone KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-file-invoice-dollar text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">إجمالي الذمم</span>
+                </div>
+                <div id="totalAR" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-file-invoice text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">عدد الفواتير المفتوحة</span>
+                </div>
+                <div id="openInvoices" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-sack-dollar text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">تحصيل اليوم</span>
+                </div>
+                <div id="dailyCollections" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-calendar-week text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">تحصيل الأسبوع</span>
+                </div>
+                <div id="weeklyCollections" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+                <h3 class="text-lg font-bold text-gray-800">🔎 فلاتر الذمم والفواتير</h3>
+                <button onclick="resetFilters()" class="text-sm text-sky-700 hover:text-sky-900 font-semibold">إعادة ضبط الفلاتر</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">رقم الفاتورة</label>
+                    <input id="invoiceNumber" type="text" placeholder="INV-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">اسم العميل</label>
+                    <input id="customerName" type="text" placeholder="اسم العميل" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">كود العميل</label>
+                    <input id="customerCode" type="text" placeholder="CUST-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none" oninput="applyFilters()">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">حالة الفاتورة</label>
+                    <input id="invoiceStatus" type="text" placeholder="overdue" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none" oninput="applyFilters()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-emerald">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📊 الذمم حسب العمر</h3>
+                <div class="chart-container">
+                    <canvas id="agingChart"></canvas>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-amber">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">💳 التحصيل حسب القنوات</h3>
+                <div class="chart-container">
+                    <canvas id="collectionMethodChart"></canvas>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-violet">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🏢 التحصيل حسب الفروع</h3>
+                <div class="chart-container">
+                    <canvas id="collectionBranchChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8 section-accent-indigo">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">🤖 ملخص الذكاء الاصطناعي</h3>
+            <div id="aiInsights" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="animate-pulse text-gray-500">جاري التحميل...</div>
+            </div>
+        </div>
+
+        <!-- Invoices & Plans KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="stat-card bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-file-invoice text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">الفواتير المتأخرة</span>
+                </div>
+                <div id="overdueInvoices" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-check-double text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">الفواتير المدفوعة</span>
+                </div>
+                <div id="paidInvoices" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-chart-line text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">متوسط قيمة الفاتورة</span>
+                </div>
+                <div id="avgInvoiceValue" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-sky-500 to-cyan-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-calendar-day text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">متوسط مدة السداد</span>
+                </div>
+                <div id="avgTerms" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+            <div class="stat-card bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <i class="fas fa-handshake text-4xl opacity-70"></i>
+                    <span class="text-sm opacity-90">نسبة الالتزام بالخطط</span>
+                </div>
+                <div id="planCompliance" class="text-4xl font-bold"><div class="animate-pulse">جاري التحميل...</div></div>
+            </div>
+        </div>
+
+        <!-- Top Lists -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-emerald">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🏆 العملاء الأكثر التزامًا</h3>
+                <div id="topCommitted" class="space-y-3">
+                    <div class="animate-pulse text-gray-500">جاري التحميل...</div>
+                </div>
+            </div>
+            <div class="card-gradient rounded-2xl shadow-2xl p-6 section-accent-amber">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">⚠️ العملاء الأكثر تعثرًا</h3>
+                <div id="topDelinquent" class="space-y-3">
+                    <div class="animate-pulse text-gray-500">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AR Aging Table -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden mb-8 section-accent-sky">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">📋 جدول أعمار الذمم</h3>
+                    <span id="agingCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 text-slate-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">invoice_id</th>
+                                <th class="px-3 py-2 text-right">invoice_number</th>
+                                <th class="px-3 py-2 text-right">invoice_date</th>
+                                <th class="px-3 py-2 text-right">due_date</th>
+                                <th class="px-3 py-2 text-right">customer_id</th>
+                                <th class="px-3 py-2 text-right">customer_code</th>
+                                <th class="px-3 py-2 text-right">customer_name_ar</th>
+                                <th class="px-3 py-2 text-right">customer_name_en</th>
+                                <th class="px-3 py-2 text-right">customer_type</th>
+                                <th class="px-3 py-2 text-right">total_amount</th>
+                                <th class="px-3 py-2 text-right">paid_amount</th>
+                                <th class="px-3 py-2 text-right">remaining_amount</th>
+                                <th class="px-3 py-2 text-right">status</th>
+                                <th class="px-3 py-2 text-right">payment_status</th>
+                                <th class="px-3 py-2 text-right">days_overdue</th>
+                                <th class="px-3 py-2 text-right">aging_category</th>
+                                <th class="px-3 py-2 text-right">entity_type</th>
+                                <th class="px-3 py-2 text-right">entity_id</th>
+                                <th class="px-3 py-2 text-right">branch_id</th>
+                                <th class="px-3 py-2 text-right">incubator_id</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agingTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="20" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden mb-8 section-accent-indigo">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">🧾 جدول الفواتير</h3>
+                    <span id="invoicesCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-indigo-50 text-indigo-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">invoice_id</th>
+                                <th class="px-3 py-2 text-right">invoice_number</th>
+                                <th class="px-3 py-2 text-right">invoice_date</th>
+                                <th class="px-3 py-2 text-right">due_date</th>
+                                <th class="px-3 py-2 text-right">customer_id</th>
+                                <th class="px-3 py-2 text-right">customer_name</th>
+                                <th class="px-3 py-2 text-right">customer_name_ar</th>
+                                <th class="px-3 py-2 text-right">customer_code</th>
+                                <th class="px-3 py-2 text-right">risk_level</th>
+                                <th class="px-3 py-2 text-right">subtotal</th>
+                                <th class="px-3 py-2 text-right">tax_amount</th>
+                                <th class="px-3 py-2 text-right">discount_amount</th>
+                                <th class="px-3 py-2 text-right">total_amount</th>
+                                <th class="px-3 py-2 text-right">paid_amount</th>
+                                <th class="px-3 py-2 text-right">remaining_amount</th>
+                                <th class="px-3 py-2 text-right">status</th>
+                                <th class="px-3 py-2 text-right">payment_status</th>
+                                <th class="px-3 py-2 text-right">allow_partial_payment</th>
+                                <th class="px-3 py-2 text-right">allow_installments</th>
+                                <th class="px-3 py-2 text-right">program_id</th>
+                                <th class="px-3 py-2 text-right">service_id</th>
+                                <th class="px-3 py-2 text-right">entity_type</th>
+                                <th class="px-3 py-2 text-right">entity_id</th>
+                                <th class="px-3 py-2 text-right">branch_id</th>
+                                <th class="px-3 py-2 text-right">incubator_id</th>
+                                <th class="px-3 py-2 text-right">platform_id</th>
+                                <th class="px-3 py-2 text-right">office_id</th>
+                                <th class="px-3 py-2 text-right">journal_entry_id</th>
+                                <th class="px-3 py-2 text-right">notes</th>
+                                <th class="px-3 py-2 text-right">terms_conditions</th>
+                                <th class="px-3 py-2 text-right">created_at</th>
+                                <th class="px-3 py-2 text-right">updated_at</th>
+                                <th class="px-3 py-2 text-right">created_by</th>
+                                <th class="px-3 py-2 text-right">updated_by</th>
+                                <th class="px-3 py-2 text-right">cancelled_by</th>
+                                <th class="px-3 py-2 text-right">cancelled_at</th>
+                                <th class="px-3 py-2 text-right">cancelled_reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="37" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden mb-8 section-accent-emerald">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">💵 جدول التحصيل (المدفوعات)</h3>
+                    <span id="paymentsCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-emerald-50 text-emerald-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">payment_id</th>
+                                <th class="px-3 py-2 text-right">payment_number</th>
+                                <th class="px-3 py-2 text-right">payment_date</th>
+                                <th class="px-3 py-2 text-right">customer_id</th>
+                                <th class="px-3 py-2 text-right">customer_name</th>
+                                <th class="px-3 py-2 text-right">customer_name_ar</th>
+                                <th class="px-3 py-2 text-right">customer_code</th>
+                                <th class="px-3 py-2 text-right">payment_amount</th>
+                                <th class="px-3 py-2 text-right">payment_method</th>
+                                <th class="px-3 py-2 text-right">payment_type</th>
+                                <th class="px-3 py-2 text-right">bank_name</th>
+                                <th class="px-3 py-2 text-right">check_number</th>
+                                <th class="px-3 py-2 text-right">transaction_reference</th>
+                                <th class="px-3 py-2 text-right">status</th>
+                                <th class="px-3 py-2 text-right">entity_type</th>
+                                <th class="px-3 py-2 text-right">entity_id</th>
+                                <th class="px-3 py-2 text-right">branch_id</th>
+                                <th class="px-3 py-2 text-right">incubator_id</th>
+                                <th class="px-3 py-2 text-right">platform_id</th>
+                                <th class="px-3 py-2 text-right">journal_entry_id</th>
+                                <th class="px-3 py-2 text-right">notes</th>
+                                <th class="px-3 py-2 text-right">created_at</th>
+                                <th class="px-3 py-2 text-right">updated_at</th>
+                                <th class="px-3 py-2 text-right">created_by</th>
+                                <th class="px-3 py-2 text-right">approved_by</th>
+                                <th class="px-3 py-2 text-right">approved_at</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="26" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Plans Table -->
+        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden section-accent-violet">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">📆 جدول خطط الدفع</h3>
+                    <span id="plansCount" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="w-full">
+                        <thead class="bg-violet-50 text-violet-700 text-xs">
+                            <tr>
+                                <th class="px-3 py-2 text-right">plan_id</th>
+                                <th class="px-3 py-2 text-right">plan_number</th>
+                                <th class="px-3 py-2 text-right">customer_id</th>
+                                <th class="px-3 py-2 text-right">customer_name_ar</th>
+                                <th class="px-3 py-2 text-right">customer_name_en</th>
+                                <th class="px-3 py-2 text-right">customer_code</th>
+                                <th class="px-3 py-2 text-right">customer_type</th>
+                                <th class="px-3 py-2 text-right">invoice_id</th>
+                                <th class="px-3 py-2 text-right">invoice_number</th>
+                                <th class="px-3 py-2 text-right">invoice_date</th>
+                                <th class="px-3 py-2 text-right">invoice_status</th>
+                                <th class="px-3 py-2 text-right">invoice_payment_status</th>
+                                <th class="px-3 py-2 text-right">start_date</th>
+                                <th class="px-3 py-2 text-right">end_date</th>
+                                <th class="px-3 py-2 text-right">total_amount</th>
+                                <th class="px-3 py-2 text-right">paid_amount</th>
+                                <th class="px-3 py-2 text-right">remaining_amount</th>
+                                <th class="px-3 py-2 text-right">number_of_installments</th>
+                                <th class="px-3 py-2 text-right">installment_amount</th>
+                                <th class="px-3 py-2 text-right">installment_frequency</th>
+                                <th class="px-3 py-2 text-right">status</th>
+                                <th class="px-3 py-2 text-right">risk_score_at_creation</th>
+                                <th class="px-3 py-2 text-right">risk_level_at_creation</th>
+                                <th class="px-3 py-2 text-right">entity_type</th>
+                                <th class="px-3 py-2 text-right">entity_id</th>
+                                <th class="px-3 py-2 text-right">branch_id</th>
+                                <th class="px-3 py-2 text-right">incubator_id</th>
+                                <th class="px-3 py-2 text-right">created_at</th>
+                                <th class="px-3 py-2 text-right">updated_at</th>
+                                <th class="px-3 py-2 text-right">created_by</th>
+                                <th class="px-3 py-2 text-right">approved_by</th>
+                                <th class="px-3 py-2 text-right">approved_at</th>
+                            </tr>
+                        </thead>
+                        <tbody id="plansTable" class="text-xs divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="32" class="px-4 py-12 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                    <div>جاري تحميل البيانات...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const ENTITY_ID = 'HQ001';
+
+        let arRows = [];
+        let invoices = [];
+        let payments = [];
+        let plans = [];
+
+        let agingChartInstance = null;
+        let methodChartInstance = null;
+        let branchChartInstance = null;
+
+        async function loadData() {
+            try {
+                const [arRes, invRes, payRes, planRes] = await Promise.all([
+                    fetch(`${API_BASE}/finance/ar-aging?entity_id=${ENTITY_ID}`),
+                    fetch(`${API_BASE}/finance/invoices`),
+                    fetch(`${API_BASE}/finance/payments`),
+                    fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`)
+                ]);
+
+                const [arData, invData, payData, planData] = await Promise.all([
+                    arRes.json(), invRes.json(), payRes.json(), planRes.json()
+                ]);
+
+                if (!arData.success) throw new Error(arData.error || 'Failed to load AR aging');
+                if (!invData.success) throw new Error(invData.error || 'Failed to load invoices');
+                if (!payData.success) throw new Error(payData.error || 'Failed to load payments');
+                if (!planData.success) throw new Error(planData.error || 'Failed to load plans');
+
+                arRows = arData.rows || [];
+                invoices = invData.invoices || [];
+                payments = payData.payments || [];
+                plans = planData.plans || [];
+
+                applyFilters();
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        function applyFilters() {
+            const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerCode = document.getElementById('customerCode').value.trim();
+            const invoiceStatus = document.getElementById('invoiceStatus').value.trim();
+
+            const filteredAr = arRows.filter(r => {
+                const matchInvoice = !invoiceNumber || (r.invoice_number || '').toString().includes(invoiceNumber);
+                const matchCustomer = !customerName || ((r.customer_name_ar || '').includes(customerName) || (r.customer_name_en || '').includes(customerName));
+                const matchCode = !customerCode || ((r.customer_code || '').includes(customerCode));
+                const matchStatus = !invoiceStatus || ((r.status || '').toLowerCase() === invoiceStatus.toLowerCase());
+                return matchInvoice && matchCustomer && matchCode && matchStatus;
+            });
+
+            renderSummary(filteredAr, invoices, payments, plans);
+            renderCharts(filteredAr, payments);
+            renderAIInsights(filteredAr);
+            renderTopCustomers(plans);
+            renderAgingTable(filteredAr);
+            renderInvoicesTable(invoices);
+            renderPaymentsTable(payments);
+            renderPlansTable(plans);
+        }
+
+        function resetFilters() {
+            document.getElementById('invoiceNumber').value = '';
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerCode').value = '';
+            document.getElementById('invoiceStatus').value = '';
+            applyFilters();
+        }
+
+        function renderSummary(arData, invData, payData, planData) {
+            const totalAR = arData.reduce((sum, r) => sum + parseFloat(r.remaining_amount || 0), 0);
+            const openInvoices = arData.length;
+            const today = new Date();
+
+            const daily = payData.filter(p => isWithinDays(p.payment_date, 1)).reduce((sum, p) => sum + parseFloat(p.payment_amount || 0), 0);
+            const weekly = payData.filter(p => isWithinDays(p.payment_date, 7)).reduce((sum, p) => sum + parseFloat(p.payment_amount || 0), 0);
+
+            document.getElementById('totalAR').textContent = formatMoney(totalAR);
+            document.getElementById('openInvoices').textContent = openInvoices;
+            document.getElementById('dailyCollections').textContent = formatMoney(daily);
+            document.getElementById('weeklyCollections').textContent = formatMoney(weekly);
+
+            const overdue = invData.filter(i => (i.status || '').toUpperCase() === 'OVERDUE').length;
+            const paid = invData.filter(i => (i.status || '').toUpperCase() === 'PAID').length;
+            const avgInvoice = invData.length ? invData.reduce((sum, i) => sum + parseFloat(i.total_amount || 0), 0) / invData.length : 0;
+            const avgTerms = invData.length ? invData.reduce((sum, i) => sum + diffDays(i.invoice_date, i.due_date), 0) / invData.length : 0;
+
+            document.getElementById('overdueInvoices').textContent = overdue;
+            document.getElementById('paidInvoices').textContent = paid;
+            document.getElementById('avgInvoiceValue').textContent = formatMoney(avgInvoice);
+            document.getElementById('avgTerms').textContent = `${avgTerms.toFixed(0)} يوم`;
+
+            const totalPlanAmount = planData.reduce((sum, p) => sum + parseFloat(p.total_amount || 0), 0);
+            const totalPlanPaid = planData.reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0);
+            const compliance = totalPlanAmount > 0 ? (totalPlanPaid / totalPlanAmount) * 100 : 0;
+            document.getElementById('planCompliance').textContent = `${compliance.toFixed(1)}%`;
+        }
+
+        function renderCharts(arData, payData) {
+            const bucketTotals = groupSum(arData, 'aging_category', 'remaining_amount');
+            const bucketLabels = Object.keys(bucketTotals);
+            const bucketValues = bucketLabels.map(k => bucketTotals[k]);
+
+            const agingCtx = document.getElementById('agingChart').getContext('2d');
+            if (agingChartInstance) agingChartInstance.destroy();
+            agingChartInstance = new Chart(agingCtx, {
+                type: 'bar',
+                data: {
+                    labels: bucketLabels.length ? bucketLabels : ['لا يوجد'],
+                    datasets: [{
+                        label: 'الرصيد المتبقي',
+                        data: bucketValues.length ? bucketValues : [0],
+                        backgroundColor: 'rgba(14, 165, 233, 0.7)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const methodTotals = groupSum(payData, 'payment_method', 'payment_amount');
+            const methodLabels = Object.keys(methodTotals);
+            const methodValues = methodLabels.map(k => methodTotals[k]);
+            const methodCtx = document.getElementById('collectionMethodChart').getContext('2d');
+            if (methodChartInstance) methodChartInstance.destroy();
+            methodChartInstance = new Chart(methodCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: methodLabels.length ? methodLabels : ['لا يوجد'],
+                    datasets: [{
+                        data: methodValues.length ? methodValues : [1],
+                        backgroundColor: ['#0ea5e9', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const branchTotals = groupSum(payData, 'branch_id', 'payment_amount');
+            const branchLabels = Object.keys(branchTotals).map(k => k || 'غير محدد');
+            const branchValues = Object.values(branchTotals);
+            const branchCtx = document.getElementById('collectionBranchChart').getContext('2d');
+            if (branchChartInstance) branchChartInstance.destroy();
+            branchChartInstance = new Chart(branchCtx, {
+                type: 'bar',
+                data: {
+                    labels: branchLabels.length ? branchLabels : ['لا يوجد'],
+                    datasets: [{
+                        label: 'التحصيل',
+                        data: branchValues.length ? branchValues : [0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderAIInsights(arData) {
+            const riskyInvoices = arData.filter(r => ['61-90_DAYS', 'OVER_90_DAYS'].includes(String(r.aging_category || '').toUpperCase()));
+            const riskyCustomers = new Set(riskyInvoices.map(r => r.customer_id)).size;
+            const reminders = arData.filter(r => String(r.aging_category || '').toUpperCase() !== 'CURRENT').length;
+
+            document.getElementById('aiInsights').innerHTML = `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-triangle-exclamation text-amber-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">عملاء معرضون للتعثر</div>
+                        <div class="font-bold">${riskyCustomers} عميل</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-bell text-emerald-600 text-xl"></i>
+                    <div>
+                        <div class="text-sm text-gray-600">فواتير تحتاج تذكير</div>
+                        <div class="font-bold">${reminders} فاتورة</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTopCustomers(planData) {
+            const grouped = {};
+            planData.forEach(p => {
+                const key = p.customer_name_ar || p.customer_name_en || `عميل ${p.customer_id}`;
+                const total = parseFloat(p.total_amount || 0);
+                const paid = parseFloat(p.paid_amount || 0);
+                if (!grouped[key]) grouped[key] = { total: 0, paid: 0 };
+                grouped[key].total += total;
+                grouped[key].paid += paid;
+            });
+
+            const ranked = Object.entries(grouped).map(([name, vals]) => ({
+                name,
+                ratio: vals.total > 0 ? vals.paid / vals.total : 0,
+                total: vals.total,
+                paid: vals.paid
+            }));
+
+            const committed = ranked.sort((a, b) => b.ratio - a.ratio).slice(0, 5);
+            const delinquent = ranked.sort((a, b) => a.ratio - b.ratio).slice(0, 5);
+
+            document.getElementById('topCommitted').innerHTML = committed.length ? committed.map(c => `
+                <div class="flex items-center justify-between bg-emerald-50 p-3 rounded-lg">
+                    <div>${c.name}</div>
+                    <div class="font-bold">${(c.ratio * 100).toFixed(1)}%</div>
+                </div>
+            `).join('') : '<div class="text-gray-500 text-center">لا توجد بيانات</div>';
+
+            document.getElementById('topDelinquent').innerHTML = delinquent.length ? delinquent.map(c => `
+                <div class="flex items-center justify-between bg-amber-50 p-3 rounded-lg">
+                    <div>${c.name}</div>
+                    <div class="font-bold">${(c.ratio * 100).toFixed(1)}%</div>
+                </div>
+            `).join('') : '<div class="text-gray-500 text-center">لا توجد بيانات</div>';
+        }
+
+        function renderAgingTable(rowsData) {
+            const body = rowsData.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
+                    <td class="px-3 py-2">${formatDate(r.due_date)}</td>
+                    <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_en ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_type ?? '-'}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.total_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.paid_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.remaining_amount)}</td>
+                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.payment_status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.days_overdue ?? '-'}</td>
+                    <td class="px-3 py-2">${r.aging_category ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('agingTable').innerHTML = body.length ? body : `
+                <tr><td colspan="20" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td></tr>
+            `;
+            document.getElementById('agingCount').textContent = `عدد الصفوف: ${rowsData.length}`;
+        }
+
+        function renderInvoicesTable(rows) {
+            const body = rows.map(r => `
+                <tr class="hover:bg-indigo-50">
+                    <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
+                    <td class="px-3 py-2">${formatDate(r.due_date)}</td>
+                    <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.risk_level ?? '-'}</td>
+                    <td class="px-3 py-2">${formatMoney(r.subtotal)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.tax_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.discount_amount)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.total_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.paid_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.remaining_amount)}</td>
+                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.payment_status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.allow_partial_payment ?? '-'}</td>
+                    <td class="px-3 py-2">${r.allow_installments ?? '-'}</td>
+                    <td class="px-3 py-2">${r.program_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.service_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.platform_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.office_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.journal_entry_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.notes ?? '-'}</td>
+                    <td class="px-3 py-2"><div class="json-pill">${r.terms_conditions ?? '-'}</div></td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.updated_at)}</td>
+                    <td class="px-3 py-2">${r.created_by ?? '-'}</td>
+                    <td class="px-3 py-2">${r.updated_by ?? '-'}</td>
+                    <td class="px-3 py-2">${r.cancelled_by ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.cancelled_at)}</td>
+                    <td class="px-3 py-2"><div class="json-pill">${r.cancelled_reason ?? '-'}</div></td>
+                </tr>
+            `).join('');
+
+            document.getElementById('invoicesTable').innerHTML = body.length ? body : `
+                <tr><td colspan="37" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td></tr>
+            `;
+            document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${rows.length}`;
+        }
+
+        function renderPaymentsTable(rows) {
+            const body = rows.map(r => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${r.payment_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.payment_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.payment_date)}</td>
+                    <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_code ?? '-'}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.payment_amount)}</td>
+                    <td class="px-3 py-2">${r.payment_method ?? '-'}</td>
+                    <td class="px-3 py-2">${r.payment_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.bank_name ?? '-'}</td>
+                    <td class="px-3 py-2">${r.check_number ?? '-'}</td>
+                    <td class="px-3 py-2">${r.transaction_reference ?? '-'}</td>
+                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.platform_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.journal_entry_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.notes ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.updated_at)}</td>
+                    <td class="px-3 py-2">${r.created_by ?? '-'}</td>
+                    <td class="px-3 py-2">${r.approved_by ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.approved_at)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('paymentsTable').innerHTML = body.length ? body : `
+                <tr><td colspan="26" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td></tr>
+            `;
+            document.getElementById('paymentsCount').textContent = `عدد الصفوف: ${rows.length}`;
+        }
+
+        function renderPlansTable(rows) {
+            const body = rows.map(r => `
+                <tr class="hover:bg-violet-50">
+                    <td class="px-3 py-2">${r.plan_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.plan_number ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_name_en ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_code ?? '-'}</td>
+                    <td class="px-3 py-2">${r.customer_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
+                    <td class="px-3 py-2">${r.invoice_status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.invoice_payment_status ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDate(r.start_date)}</td>
+                    <td class="px-3 py-2">${formatDate(r.end_date)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.total_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.paid_amount)}</td>
+                    <td class="px-3 py-2">${formatMoney(r.remaining_amount)}</td>
+                    <td class="px-3 py-2">${r.number_of_installments ?? '-'}</td>
+                    <td class="px-3 py-2">${formatMoney(r.installment_amount)}</td>
+                    <td class="px-3 py-2">${r.installment_frequency ?? '-'}</td>
+                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${r.risk_score_at_creation ?? '-'}</td>
+                    <td class="px-3 py-2">${r.risk_level_at_creation ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
+                    <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
+                    <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.updated_at)}</td>
+                    <td class="px-3 py-2">${r.created_by ?? '-'}</td>
+                    <td class="px-3 py-2">${r.approved_by ?? '-'}</td>
+                    <td class="px-3 py-2">${formatDateTime(r.approved_at)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('plansTable').innerHTML = body.length ? body : `
+                <tr><td colspan="32" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td></tr>
+            `;
+            document.getElementById('plansCount').textContent = `عدد الصفوف: ${rows.length}`;
+        }
+
+        function isWithinDays(dateValue, days) {
+            if (!dateValue) return false;
+            const target = new Date(dateValue);
+            const now = new Date();
+            const diff = (now - target) / (1000 * 60 * 60 * 24);
+            return diff <= days;
+        }
+
+        function diffDays(start, end) {
+            if (!start || !end) return 0;
+            return (new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24);
+        }
+
+        function groupSum(rows, key, valueKey) {
+            return rows.reduce((acc, row) => {
+                const label = row[key] ?? 'غير محدد';
+                acc[label] = (acc[label] || 0) + parseFloat(row[valueKey] || 0);
+                return acc;
+            }, {});
+        }
+
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function downloadCSV() {
+            const rows = [];
+            rows.push(['AR_AGING_TABLE']);
+            rows.push(['invoice_id','invoice_number','invoice_date','due_date','customer_id','customer_code','customer_name_ar','customer_name_en','customer_type','total_amount','paid_amount','remaining_amount','status','payment_status','days_overdue','aging_category','entity_type','entity_id','branch_id','incubator_id']);
+            arRows.forEach(r => rows.push([
+                r.invoice_id, r.invoice_number, r.invoice_date, r.due_date, r.customer_id, r.customer_code,
+                r.customer_name_ar, r.customer_name_en, r.customer_type, r.total_amount, r.paid_amount,
+                r.remaining_amount, r.status, r.payment_status, r.days_overdue, r.aging_category, r.entity_type,
+                r.entity_id, r.branch_id, r.incubator_id
+            ]));
+
+            rows.push([]);
+            rows.push(['INVOICES_TABLE']);
+            rows.push(['invoice_id','invoice_number','invoice_date','due_date','customer_id','customer_name','customer_name_ar','customer_code','risk_level','subtotal','tax_amount','discount_amount','total_amount','paid_amount','remaining_amount','status','payment_status','allow_partial_payment','allow_installments','program_id','service_id','entity_type','entity_id','branch_id','incubator_id','platform_id','office_id','journal_entry_id','notes','terms_conditions','created_at','updated_at','created_by','updated_by','cancelled_by','cancelled_at','cancelled_reason']);
+            invoices.forEach(i => rows.push([
+                i.invoice_id, i.invoice_number, i.invoice_date, i.due_date, i.customer_id, i.customer_name,
+                i.customer_name_ar, i.customer_code, i.risk_level, i.subtotal, i.tax_amount, i.discount_amount,
+                i.total_amount, i.paid_amount, i.remaining_amount, i.status, i.payment_status, i.allow_partial_payment,
+                i.allow_installments, i.program_id, i.service_id, i.entity_type, i.entity_id, i.branch_id, i.incubator_id,
+                i.platform_id, i.office_id, i.journal_entry_id, i.notes, i.terms_conditions, i.created_at, i.updated_at,
+                i.created_by, i.updated_by, i.cancelled_by, i.cancelled_at, i.cancelled_reason
+            ]));
+
+            rows.push([]);
+            rows.push(['PAYMENTS_TABLE']);
+            rows.push(['payment_id','payment_number','payment_date','customer_id','customer_name','customer_name_ar','customer_code','payment_amount','payment_method','payment_type','bank_name','check_number','transaction_reference','status','entity_type','entity_id','branch_id','incubator_id','platform_id','journal_entry_id','notes','created_at','updated_at','created_by','approved_by','approved_at']);
+            payments.forEach(p => rows.push([
+                p.payment_id, p.payment_number, p.payment_date, p.customer_id, p.customer_name, p.customer_name_ar,
+                p.customer_code, p.payment_amount, p.payment_method, p.payment_type, p.bank_name, p.check_number,
+                p.transaction_reference, p.status, p.entity_type, p.entity_id, p.branch_id, p.incubator_id, p.platform_id,
+                p.journal_entry_id, p.notes, p.created_at, p.updated_at, p.created_by, p.approved_by, p.approved_at
+            ]));
+
+            rows.push([]);
+            rows.push(['PAYMENT_PLANS_TABLE']);
+            rows.push(['plan_id','plan_number','customer_id','customer_name_ar','customer_name_en','customer_code','customer_type','invoice_id','invoice_number','invoice_date','invoice_status','invoice_payment_status','start_date','end_date','total_amount','paid_amount','remaining_amount','number_of_installments','installment_amount','installment_frequency','status','risk_score_at_creation','risk_level_at_creation','entity_type','entity_id','branch_id','incubator_id','created_at','updated_at','created_by','approved_by','approved_at']);
+            plans.forEach(p => rows.push([
+                p.plan_id, p.plan_number, p.customer_id, p.customer_name_ar, p.customer_name_en, p.customer_code,
+                p.customer_type, p.invoice_id, p.invoice_number, p.invoice_date, p.invoice_status, p.invoice_payment_status,
+                p.start_date, p.end_date, p.total_amount, p.paid_amount, p.remaining_amount, p.number_of_installments,
+                p.installment_amount, p.installment_frequency, p.status, p.risk_score_at_creation, p.risk_level_at_creation,
+                p.entity_type, p.entity_id, p.branch_id, p.incubator_id, p.created_at, p.updated_at, p.created_by,
+                p.approved_by, p.approved_at
+            ]));
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'receivables-collections-report.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON() {
+            const payload = {
+                ar_aging: arRows,
+                invoices,
+                payments,
+                payment_plans: plans
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'receivables-collections-report.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
