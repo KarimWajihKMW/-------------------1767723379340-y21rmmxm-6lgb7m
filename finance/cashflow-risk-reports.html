@@ -41,6 +41,7 @@
         .section-accent-amber { border-top: 4px solid #f59e0b; }
         .section-accent-violet { border-top: 4px solid #8b5cf6; }
         .section-accent-rose { border-top: 4px solid #f43f5e; }
+        .section-accent-indigo { border-top: 4px solid #6366f1; }
         .chip {
             padding: 6px 12px;
             border-radius: 999px;
@@ -366,14 +367,30 @@
                 renderTables();
             } catch (error) {
                 console.error('❌ خطأ في تحميل البيانات:', error);
+                cashflowOverview = null;
+                cashflowOperating = [];
+                cashflowInvesting = [];
+                cashflowFinancing = [];
+                forecasts = [];
+                riskScores = [];
+                invoices = [];
+                payments = [];
+                arAging = [];
+                renderCashflow();
+                renderRisk();
+                renderTables();
             }
         }
 
         function renderCashflow() {
-            if (!cashflowOverview?.success) return;
-            const inflow = cashflowOverview.operating.inflow + cashflowOverview.investing.inflow + cashflowOverview.financing.inflow;
-            const outflow = cashflowOverview.operating.outflow + cashflowOverview.investing.outflow + cashflowOverview.financing.outflow;
-            const net = cashflowOverview.total_net_cashflow;
+            const hasOverview = cashflowOverview?.success && cashflowOverview.operating && cashflowOverview.investing && cashflowOverview.financing;
+            const inflow = hasOverview
+                ? cashflowOverview.operating.inflow + cashflowOverview.investing.inflow + cashflowOverview.financing.inflow
+                : 0;
+            const outflow = hasOverview
+                ? cashflowOverview.operating.outflow + cashflowOverview.investing.outflow + cashflowOverview.financing.outflow
+                : 0;
+            const net = hasOverview ? cashflowOverview.total_net_cashflow : 0;
 
             document.getElementById('cashInflow').textContent = formatMoney(inflow);
             document.getElementById('cashOutflow').textContent = formatMoney(outflow);
@@ -386,12 +403,12 @@
             document.getElementById('forecast30').textContent = formatMoney(forecast30Val);
             document.getElementById('forecast90').textContent = formatMoney(forecast90Val);
 
-            const insights = forecastSorted.slice(0, 2).map((f, idx) => `
+            const insights = forecastSorted.length ? forecastSorted.slice(0, 2).map((f, idx) => `
                 <div class="bg-slate-50 p-3 rounded-xl">
                     <div class="font-bold">تنبيه ${idx + 1}</div>
                     <div>${extractInsight(f.ai_insights) || 'لا توجد ملاحظة'}</div>
                 </div>
-            `).join('') || '<div class="text-slate-500">لا توجد تنبيهات</div>';
+            `).join('') : '<div class="text-slate-500">لا توجد تنبيهات</div>';
             document.getElementById('cashflowInsights').innerHTML = insights;
 
             const merged = mergeCashflows();
