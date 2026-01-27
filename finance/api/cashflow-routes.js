@@ -95,6 +95,9 @@ router.post('/operating', async (req, res) => {
       directionToUse = 'OUT'; // default
     }
     
+    const amountNumeric = parseFloat(amount || 0);
+    const signedAmount = directionToUse === 'OUT' ? -Math.abs(amountNumeric) : Math.abs(amountNumeric);
+
     const result = await db.query(
       `INSERT INTO finance_cashflow 
        (transaction_date, flow_type, flow_category, amount, flow_direction, description,
@@ -102,14 +105,23 @@ router.post('/operating', async (req, res) => {
         fiscal_year, fiscal_period)
        VALUES ($1, 'OPERATING', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [dateToUse, categoryToUse, amount, directionToUse, description,
+      [dateToUse, categoryToUse, amountNumeric, directionToUse, description,
        reference_type, reference_id, entity_type, entity_id, branch_id, incubator_id,
        fiscal_year, fiscal_period]
+    );
+
+    const operatingRow = await db.query(
+      `INSERT INTO finance_cashflow_operating
+       (entity_id, flow_type, amount, description, flow_date, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [entity_id || '1', flow_type || categoryToUse, signedAmount, description, dateToUse, req.headers['x-user-id'] || 'WEB']
     );
     
     res.status(201).json({
       success: true,
-      cashflow: result.rows[0]
+      cashflow: operatingRow.rows[0],
+      ledger: result.rows[0]
     });
   } catch (error) {
     console.error('Error recording operating cashflow:', error);
@@ -180,6 +192,9 @@ router.post('/investing', async (req, res) => {
     const categoryToUse = flow_category || categoryMap[flow_type] || 'ASSET_PURCHASE';
     const directionToUse = flow_direction || (flow_type === 'asset_sale' ? 'IN' : 'OUT');
     
+    const amountNumeric = parseFloat(amount || 0);
+    const signedAmount = directionToUse === 'OUT' ? -Math.abs(amountNumeric) : Math.abs(amountNumeric);
+
     const result = await db.query(
       `INSERT INTO finance_cashflow 
        (transaction_date, flow_type, flow_category, amount, flow_direction, description,
@@ -187,14 +202,23 @@ router.post('/investing', async (req, res) => {
         fiscal_year, fiscal_period)
        VALUES ($1, 'INVESTING', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [dateToUse, categoryToUse, amount, directionToUse, description,
+      [dateToUse, categoryToUse, amountNumeric, directionToUse, description,
        reference_type, reference_id, entity_type, entity_id, branch_id, incubator_id,
        fiscal_year, fiscal_period]
+    );
+
+    const investingRow = await db.query(
+      `INSERT INTO finance_cashflow_investing
+       (entity_id, flow_type, amount, description, flow_date, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [entity_id || '1', flow_type || categoryToUse, signedAmount, description, dateToUse, req.headers['x-user-id'] || 'WEB']
     );
     
     res.status(201).json({
       success: true,
-      cashflow: result.rows[0]
+      cashflow: investingRow.rows[0],
+      ledger: result.rows[0]
     });
   } catch (error) {
     console.error('Error recording investing cashflow:', error);
@@ -265,6 +289,9 @@ router.post('/financing', async (req, res) => {
     const categoryToUse = flow_category || categoryMap[flow_type] || 'LOANS';
     const directionToUse = flow_direction || (flow_type?.includes('repayment') || flow_type?.includes('dividend') ? 'OUT' : 'IN');
     
+    const amountNumeric = parseFloat(amount || 0);
+    const signedAmount = directionToUse === 'OUT' ? -Math.abs(amountNumeric) : Math.abs(amountNumeric);
+
     const result = await db.query(
       `INSERT INTO finance_cashflow 
        (transaction_date, flow_type, flow_category, amount, flow_direction, description,
@@ -272,14 +299,23 @@ router.post('/financing', async (req, res) => {
         fiscal_year, fiscal_period)
        VALUES ($1, 'FINANCING', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [dateToUse, categoryToUse, amount, directionToUse, description,
+      [dateToUse, categoryToUse, amountNumeric, directionToUse, description,
        reference_type, reference_id, entity_type, entity_id, branch_id, incubator_id,
        fiscal_year, fiscal_period]
+    );
+
+    const financingRow = await db.query(
+      `INSERT INTO finance_cashflow_financing
+       (entity_id, flow_type, amount, description, flow_date, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [entity_id || '1', flow_type || categoryToUse, signedAmount, description, dateToUse, req.headers['x-user-id'] || 'WEB']
     );
     
     res.status(201).json({
       success: true,
-      cashflow: result.rows[0]
+      cashflow: financingRow.rows[0],
+      ledger: result.rows[0]
     });
   } catch (error) {
     console.error('Error recording financing cashflow:', error);
@@ -358,26 +394,20 @@ router.post('/forecast', async (req, res) => {
       model_parameters
     } = req.body;
     
-    // Convert frontend format to backend format
-    const typeToUse = forecast_type?.toUpperCase() || 'CASHFLOW';
-    const periodToUse = forecast_period || 'MONTHLY';
-    const valueToUse = forecasted_value || predicted_amount || 0;
-    const startDateToUse = start_date || forecast_date;
-    const endDateToUse = end_date || forecast_date;
-    const inputDataToUse = input_data || (influencing_factors ? JSON.stringify({ factors: influencing_factors }) : null);
-    
+    // Convert frontend format to existing table format
+    const typeToUse = forecast_type || 'surplus';
+    const periodToUse = forecast_period || (forecast_date ? new Date(forecast_date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' }) : 'غير محدد');
+    const amountToUse = forecast_amount || forecasted_value || predicted_amount || 0;
+    const confidenceToUse = confidence_level;
+    const modelToUse = model_version || 'Naiosh-AI v1';
+    const insightsToUse = input_data || (influencing_factors ? { factors: influencing_factors } : null);
+
     const result = await db.query(
       `INSERT INTO finance_ai_forecasts 
-       (forecast_type, forecast_period, forecast_date, start_date, end_date,
-        forecasted_value, confidence_level, lower_bound, upper_bound,
-        entity_type, entity_id, branch_id, incubator_id,
-        model_version, input_data, model_parameters)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       (entity_id, forecast_period, forecast_type, forecast_amount, confidence_level, ai_model, ai_insights)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [typeToUse, periodToUse, forecast_date, startDateToUse, endDateToUse,
-       valueToUse, confidence_level, lower_bound, upper_bound,
-       entity_type, entity_id, branch_id, incubator_id,
-       model_version, inputDataToUse, model_parameters]
+      [entity_id || '1', periodToUse, typeToUse, amountToUse, confidenceToUse, modelToUse, insightsToUse]
     );
     
     res.status(201).json({
