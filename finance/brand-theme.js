@@ -3,7 +3,7 @@
         if (!config || !config.data || !Array.isArray(config.data.datasets)) {
             return config;
         }
-        const palette = ['#000000', '#ef4444', '#ffffff'];
+        const palette = ['#000000', '#ef4444', '#64748b'];
         config.data.datasets = config.data.datasets.map((dataset, index) => {
             const safeIndex = index % palette.length;
             const nextColor = palette[safeIndex];
