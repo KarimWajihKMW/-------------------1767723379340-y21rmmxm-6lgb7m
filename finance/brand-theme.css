@@ -3,11 +3,10 @@
     --brand-white: #ffffff;
     --brand-red: #ef4444;
     --brand-red-dark: #991b1b;
-    --brand-beige: #f5f0e6;
 }
 
 body {
-    background: var(--brand-beige) !important;
+    background: var(--brand-white) !important;
     color: var(--brand-black) !important;
 }
 
@@ -21,7 +20,7 @@ body {
 .bg-gradient-to-tr,
 .bg-gradient-to-tl {
     background-image: none !important;
-    background-color: var(--brand-beige) !important;
+    background-color: var(--brand-white) !important;
 }
 
 /* Force non-red gradient stops to white */
@@ -41,17 +40,12 @@ body {
 .from-yellow-50, .from-yellow-100, .from-yellow-200, .from-yellow-300, .from-yellow-400, .from-yellow-500, .from-yellow-600, .from-yellow-700, .from-yellow-800, .from-yellow-900,
 .from-orange-50, .from-orange-100, .from-orange-200, .from-orange-300, .from-orange-400, .from-orange-500, .from-orange-600, .from-orange-700, .from-orange-800, .from-orange-900,
 .from-lime-50, .from-lime-100, .from-lime-200, .from-lime-300, .from-lime-400, .from-lime-500, .from-lime-600, .from-lime-700, .from-lime-800, .from-lime-900 {
-    --tw-gradient-from: var(--brand-beige) !important;
-    --tw-gradient-to: var(--brand-beige) !important;
-    --tw-gradient-stops: var(--brand-beige), var(--brand-beige) !important;
+    --tw-gradient-from: var(--brand-white) !important;
+    --tw-gradient-to: var(--brand-white) !important;
+    --tw-gradient-stops: var(--brand-white), var(--brand-white) !important;
 }
 
 /* Background overrides for non-red colors */
-.bg-slate-50, .bg-slate-100, .bg-slate-200, .bg-slate-300, .bg-slate-400, .bg-slate-500, .bg-slate-600, .bg-slate-700, .bg-slate-800, .bg-slate-900,
-.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300, .bg-gray-400, .bg-gray-500, .bg-gray-600, .bg-gray-700, .bg-gray-800, .bg-gray-900,
-.bg-zinc-50, .bg-zinc-100, .bg-zinc-200, .bg-zinc-300, .bg-zinc-400, .bg-zinc-500, .bg-zinc-600, .bg-zinc-700, .bg-zinc-800, .bg-zinc-900,
-.bg-neutral-50, .bg-neutral-100, .bg-neutral-200, .bg-neutral-300, .bg-neutral-400, .bg-neutral-500, .bg-neutral-600, .bg-neutral-700, .bg-neutral-800, .bg-neutral-900,
-.bg-stone-50, .bg-stone-100, .bg-stone-200, .bg-stone-300, .bg-stone-400, .bg-stone-500, .bg-stone-600, .bg-stone-700, .bg-stone-800, .bg-stone-900,
 .bg-blue-50, .bg-blue-100, .bg-blue-200, .bg-blue-300, .bg-blue-400, .bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900,
 .bg-green-50, .bg-green-100, .bg-green-200, .bg-green-300, .bg-green-400, .bg-green-500, .bg-green-600, .bg-green-700, .bg-green-800, .bg-green-900,
 .bg-emerald-50, .bg-emerald-100, .bg-emerald-200, .bg-emerald-300, .bg-emerald-400, .bg-emerald-500, .bg-emerald-600, .bg-emerald-700, .bg-emerald-800, .bg-emerald-900,
@@ -68,15 +62,10 @@ body {
 .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
 .bg-orange-50, .bg-orange-100, .bg-orange-200, .bg-orange-300, .bg-orange-400, .bg-orange-500, .bg-orange-600, .bg-orange-700, .bg-orange-800, .bg-orange-900,
 .bg-lime-50, .bg-lime-100, .bg-lime-200, .bg-lime-300, .bg-lime-400, .bg-lime-500, .bg-lime-600, .bg-lime-700, .bg-lime-800, .bg-lime-900 {
-    background-color: var(--brand-beige) !important;
+    background-color: var(--brand-white) !important;
 }
 
 /* Text overrides for non-red colors */
-.text-slate-50, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700, .text-slate-800, .text-slate-900,
-.text-gray-50, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900,
-.text-zinc-50, .text-zinc-100, .text-zinc-200, .text-zinc-300, .text-zinc-400, .text-zinc-500, .text-zinc-600, .text-zinc-700, .text-zinc-800, .text-zinc-900,
-.text-neutral-50, .text-neutral-100, .text-neutral-200, .text-neutral-300, .text-neutral-400, .text-neutral-500, .text-neutral-600, .text-neutral-700, .text-neutral-800, .text-neutral-900,
-.text-stone-50, .text-stone-100, .text-stone-200, .text-stone-300, .text-stone-400, .text-stone-500, .text-stone-600, .text-stone-700, .text-stone-800, .text-stone-900,
 .text-blue-50, .text-blue-100, .text-blue-200, .text-blue-300, .text-blue-400, .text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900,
 .text-green-50, .text-green-100, .text-green-200, .text-green-300, .text-green-400, .text-green-500, .text-green-600, .text-green-700, .text-green-800, .text-green-900,
 .text-emerald-50, .text-emerald-100, .text-emerald-200, .text-emerald-300, .text-emerald-400, .text-emerald-500, .text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900,
@@ -97,11 +86,6 @@ body {
 }
 
 /* Border overrides for non-red colors */
-.border-slate-50, .border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400, .border-slate-500, .border-slate-600, .border-slate-700, .border-slate-800, .border-slate-900,
-.border-gray-50, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-gray-900,
-.border-zinc-50, .border-zinc-100, .border-zinc-200, .border-zinc-300, .border-zinc-400, .border-zinc-500, .border-zinc-600, .border-zinc-700, .border-zinc-800, .border-zinc-900,
-.border-neutral-50, .border-neutral-100, .border-neutral-200, .border-neutral-300, .border-neutral-400, .border-neutral-500, .border-neutral-600, .border-neutral-700, .border-neutral-800, .border-neutral-900,
-.border-stone-50, .border-stone-100, .border-stone-200, .border-stone-300, .border-stone-400, .border-stone-500, .border-stone-600, .border-stone-700, .border-stone-800, .border-stone-900,
 .border-blue-50, .border-blue-100, .border-blue-200, .border-blue-300, .border-blue-400, .border-blue-500, .border-blue-600, .border-blue-700, .border-blue-800, .border-blue-900,
 .border-green-50, .border-green-100, .border-green-200, .border-green-300, .border-green-400, .border-green-500, .border-green-600, .border-green-700, .border-green-800, .border-green-900,
 .border-emerald-50, .border-emerald-100, .border-emerald-200, .border-emerald-300, .border-emerald-400, .border-emerald-500, .border-emerald-600, .border-emerald-700, .border-emerald-800, .border-emerald-900,
@@ -119,26 +103,6 @@ body {
 .border-orange-50, .border-orange-100, .border-orange-200, .border-orange-300, .border-orange-400, .border-orange-500, .border-orange-600, .border-orange-700, .border-orange-800, .border-orange-900,
 .border-lime-50, .border-lime-100, .border-lime-200, .border-lime-300, .border-lime-400, .border-lime-500, .border-lime-600, .border-lime-700, .border-lime-800, .border-lime-900 {
     border-color: var(--brand-black) !important;
-}
-
-/* Ensure text remains visible on light surfaces */
-.text-white {
-    color: var(--brand-black) !important;
-}
-
-.bg-black .text-white,
-.bg-black.text-white,
-.bg-red-500 .text-white,
-.bg-red-600 .text-white,
-.bg-red-700 .text-white,
-.bg-red-800 .text-white,
-.bg-red-900 .text-white,
-.bg-red-500.text-white,
-.bg-red-600.text-white,
-.bg-red-700.text-white,
-.bg-red-800.text-white,
-.bg-red-900.text-white {
-    color: var(--brand-white) !important;
 }
 
 /* Buttons and badges using non-red colors become neutral */
