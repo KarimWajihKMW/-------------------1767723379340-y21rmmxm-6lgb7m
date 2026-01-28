@@ -32,6 +32,46 @@
             background-color: #f8fafc;
             transform: translateX(-5px);
         }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+        }
+        .kpi-glow {
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+        }
+        .chip {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .progress-track {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.25);
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 1.6s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .insight-card {
+            border-left: 4px solid rgba(99, 102, 241, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -43,7 +83,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="mb-6 flex gap-3">
+        <div class="mb-6 flex flex-wrap gap-3">
             <button onclick="showAddJournalEntry()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-plus"></i>
                 إضافة قيد محاسبي
@@ -51,6 +91,18 @@
             <button onclick="generateReport()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-pdf"></i>
                 تقرير دفتر اليومية
+            </button>
+            <button onclick="refreshAllData()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث ذكي شامل
+            </button>
+            <button onclick="exportJournalCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-file-csv"></i>
+                تصدير CSV متقدم
+            </button>
+            <button onclick="downloadAdvancedReport()" class="bg-amber-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-bolt"></i>
+                تقرير تعزيزات ذكي
             </button>
         </div>
 
@@ -101,6 +153,84 @@
             </div>
         </div>
 
+        <!-- Intelligent Command Center -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+            <div class="glass-panel rounded-2xl p-6 kpi-glow">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">🧠 جودة القيود الذكية</h3>
+                        <p class="text-sm text-slate-500">تحليل فوري لتوازن القيود وتكاملها</p>
+                    </div>
+                    <span id="qualityBadge" class="chip bg-emerald-100 text-emerald-700">ممتاز</span>
+                </div>
+                <div class="flex items-end justify-between mb-3">
+                    <div>
+                        <div class="text-3xl font-bold text-slate-800" id="qualityScore">0%</div>
+                        <div class="text-sm text-slate-500">مؤشر الجودة</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-slate-500">قيود غير متزنة</div>
+                        <div class="text-xl font-bold text-rose-600" id="unbalancedCount">0</div>
+                    </div>
+                </div>
+                <div class="progress-track">
+                    <div id="qualityProgress" class="progress-fill bg-emerald-500" style="width: 0%"></div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-slate-500">متوسط الأسطر</div>
+                        <div class="font-bold text-slate-800" id="avgLines">0</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3">
+                        <div class="text-slate-500">آخر تحديث</div>
+                        <div class="font-bold text-slate-800" id="lastSync">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel rounded-2xl p-6 kpi-glow">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">🚨 تنبيهات استباقية</h3>
+                        <p class="text-sm text-slate-500">رصد المخاطر والأخطاء قبل الترحيل</p>
+                    </div>
+                    <span class="pulse-dot"></span>
+                </div>
+                <div id="smartAlerts" class="space-y-3 text-sm text-slate-700">
+                    <div class="animate-pulse text-slate-400">جاري تحليل القيود...</div>
+                </div>
+            </div>
+            <div class="glass-panel rounded-2xl p-6 kpi-glow">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">⚡ مؤشرات استباقية</h3>
+                        <p class="text-sm text-slate-500">قراءات ذكية لحركة القيود</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-indigo-50 rounded-xl p-4">
+                        <div class="text-sm text-indigo-600">سرعة الإدخال</div>
+                        <div class="text-2xl font-bold text-indigo-800" id="entryVelocity">0/يوم</div>
+                    </div>
+                    <div class="bg-rose-50 rounded-xl p-4">
+                        <div class="text-sm text-rose-600">تنبيهات عالية</div>
+                        <div class="text-2xl font-bold text-rose-700" id="riskFlagCount">0</div>
+                    </div>
+                    <div class="bg-emerald-50 rounded-xl p-4">
+                        <div class="text-sm text-emerald-600">معدل الترحيل</div>
+                        <div class="text-2xl font-bold text-emerald-700" id="postRate">0%</div>
+                    </div>
+                    <div class="bg-amber-50 rounded-xl p-4">
+                        <div class="text-sm text-amber-600">قيود اليوم</div>
+                        <div class="text-2xl font-bold text-amber-700" id="todayEntries">0</div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h4 class="text-sm font-bold text-slate-700 mb-2">🏆 الحسابات الأكثر تأثيرًا</h4>
+                    <div id="topAccountsList" class="space-y-2 text-sm"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
             <!-- Tabs -->
@@ -120,6 +250,74 @@
             <div class="p-6">
                 <!-- Journal Tab -->
                 <div id="content-journal">
+                    <div class="glass-panel rounded-2xl p-5 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">🎯 مرشحات متقدمة</h3>
+                                <p class="text-sm text-slate-500">فلترة متعددة وفق مخاطر القيود وتوازنها</p>
+                            </div>
+                            <button onclick="resetJournalFilters()" class="text-sm font-bold text-purple-600 hover:text-purple-800">إعادة تعيين المرشحات</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+                            <input id="filterSearch" type="text" placeholder="بحث سريع..." class="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none" />
+                            <input id="filterDateFrom" type="date" class="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none" />
+                            <input id="filterDateTo" type="date" class="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none" />
+                            <select id="filterStatus" class="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none">
+                                <option value="">كل الحالات</option>
+                                <option value="POSTED">مرحل</option>
+                                <option value="APPROVED">معتمد</option>
+                                <option value="DRAFT">مسودة</option>
+                                <option value="CANCELLED">ملغي</option>
+                            </select>
+                            <select id="filterType" class="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none">
+                                <option value="">كل الأنواع</option>
+                                <option value="GENERAL">عام</option>
+                                <option value="ADJUSTMENT">تسوية</option>
+                                <option value="OPENING">افتتاحي</option>
+                            </select>
+                            <input id="filterMinAmount" type="number" min="0" placeholder="حد أدنى للمبلغ" class="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none" />
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4 mt-4 text-sm text-slate-600">
+                            <label class="flex items-center gap-2">
+                                <input id="filterUnbalanced" type="checkbox" class="rounded border-gray-300 text-purple-600" />
+                                غير متزن فقط
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input id="filterMissingDesc" type="checkbox" class="rounded border-gray-300 text-purple-600" />
+                                بدون وصف
+                            </label>
+                            <span id="filterSummary" class="text-slate-500"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="card-gradient rounded-2xl p-5 shadow-xl">
+                            <h4 class="text-sm font-bold text-gray-700 mb-3">📈 اتجاهات المدين/الدائن</h4>
+                            <div class="h-52">
+                                <canvas id="journalTrendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-gradient rounded-2xl p-5 shadow-xl">
+                            <h4 class="text-sm font-bold text-gray-700 mb-3">🧩 توزيع الحالات</h4>
+                            <div class="h-52">
+                                <canvas id="journalStatusChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card-gradient rounded-2xl p-5 shadow-xl">
+                            <h4 class="text-sm font-bold text-gray-700 mb-3">🧾 توزيع أنواع القيود</h4>
+                            <div class="h-52">
+                                <canvas id="journalTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-gradient rounded-2xl p-5 shadow-xl mb-6">
+                        <h4 class="text-sm font-bold text-gray-700 mb-3">🤖 ملخص الذكاء المحاسبي</h4>
+                        <div id="journalInsights" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
+                            <div class="animate-pulse text-slate-400">جاري توليد الملخص...</div>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-100 text-gray-600 text-sm">
@@ -294,6 +492,22 @@
         let journalEntries = [];
         let chartAccounts = [];
         let trialBalanceRows = [];
+        let journalTrendChart = null;
+        let journalStatusChart = null;
+        let journalTypeChart = null;
+        let filtersReady = false;
+        let lastSyncAt = null;
+
+        const journalFilters = {
+            search: '',
+            dateFrom: '',
+            dateTo: '',
+            status: '',
+            type: '',
+            minAmount: '',
+            unbalancedOnly: false,
+            missingDescOnly: false
+        };
 
         // Tab Switching
         function switchTab(tabName) {
@@ -330,6 +544,7 @@
                 ]);
 
                 await loadStats();
+                updateEnhancements();
 
                 console.log('✅ تم تحميل جميع البيانات');
             } catch (error) {
@@ -383,85 +598,19 @@
                 const response = await fetch(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`);
                 const data = await response.json();
 
-                const tbody = document.getElementById('journalTable');
-
                 if (data.success && data.entries && data.entries.length > 0) {
                     console.log(`✅ تم تحميل ${data.entries.length} قيد محاسبي`);
                     journalEntries = data.entries;
-
-                    tbody.innerHTML = data.entries.map(entry => {
-                        // Calculate totals from lines
-                        let totalDebit = 0;
-                        let totalCredit = 0;
-
-                        if (entry.lines) {
-                            entry.lines.forEach(line => {
-                                totalDebit += parseFloat(line.debit_amount || 0);
-                                totalCredit += parseFloat(line.credit_amount || 0);
-                            });
-                        }
-
-                        const statusColors = {
-                            'DRAFT': 'bg-gray-100 text-gray-700',
-                            'POSTED': 'bg-green-100 text-green-700',
-                            'APPROVED': 'bg-blue-100 text-blue-700',
-                            'CANCELLED': 'bg-red-100 text-red-700'
-                        };
-
-                        const statusLabels = {
-                            'DRAFT': 'مسودة',
-                            'POSTED': 'مرحل',
-                            'APPROVED': 'معتمد',
-                            'CANCELLED': 'ملغي'
-                        };
-
-                        return `
-                            <tr class="journal-entry hover:bg-gray-50 cursor-pointer" onclick="viewJournalEntry(${entry.entry_id})">
-                                <td class="px-4 py-3 font-mono font-bold text-purple-600">${entry.entry_number}</td>
-                                <td class="px-4 py-3 text-gray-600">${new Date(entry.entry_date).toLocaleDateString('ar-SA')}</td>
-                                <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
-                                        ${entry.entry_type || 'عام'}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-gray-700">${entry.description || '-'}</td>
-                                <td class="px-4 py-3 font-bold text-red-600">${totalDebit.toLocaleString('ar-SA')} ر.س</td>
-                                <td class="px-4 py-3 font-bold text-green-600">${totalCredit.toLocaleString('ar-SA')} ر.س</td>
-                                <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded-full text-xs font-bold ${statusColors[entry.status] || statusColors.DRAFT}">
-                                        ${statusLabels[entry.status] || 'مسودة'}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <button onclick="event.stopPropagation(); viewJournalEntry(${entry.entry_id})" class="text-purple-600 hover:text-purple-800">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
+                    lastSyncAt = new Date();
+                    applyJournalFilters();
                 } else {
                     journalEntries = [];
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-3 opacity-30"></i>
-                                <div>لا توجد قيود محاسبية</div>
-                            </td>
-                        </tr>
-                    `;
+                    applyJournalFilters();
                 }
             } catch (error) {
                 console.error('❌ خطأ في تحميل القيود:', error);
                 journalEntries = [];
-                document.getElementById('journalTable').innerHTML = `
-                    <tr>
-                        <td colspan="8" class="px-4 py-12 text-center text-red-500">
-                            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
-                            <div>فشل تحميل القيود المحاسبية</div>
-                        </td>
-                    </tr>
-                `;
+                applyJournalFilters();
             }
         }
 
@@ -642,6 +791,432 @@
                     </tr>
                 `;
             }
+        }
+
+        function setupJournalFilters() {
+            if (filtersReady) return;
+            filtersReady = true;
+            const bind = (id, key, type = 'value') => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    journalFilters[key] = type === 'checked' ? el.checked : el.value;
+                    applyJournalFilters();
+                });
+                el.addEventListener('change', () => {
+                    journalFilters[key] = type === 'checked' ? el.checked : el.value;
+                    applyJournalFilters();
+                });
+            };
+
+            bind('filterSearch', 'search');
+            bind('filterDateFrom', 'dateFrom');
+            bind('filterDateTo', 'dateTo');
+            bind('filterStatus', 'status');
+            bind('filterType', 'type');
+            bind('filterMinAmount', 'minAmount');
+            bind('filterUnbalanced', 'unbalancedOnly', 'checked');
+            bind('filterMissingDesc', 'missingDescOnly', 'checked');
+        }
+
+        function resetJournalFilters() {
+            journalFilters.search = '';
+            journalFilters.dateFrom = '';
+            journalFilters.dateTo = '';
+            journalFilters.status = '';
+            journalFilters.type = '';
+            journalFilters.minAmount = '';
+            journalFilters.unbalancedOnly = false;
+            journalFilters.missingDescOnly = false;
+
+            const elements = [
+                'filterSearch',
+                'filterDateFrom',
+                'filterDateTo',
+                'filterStatus',
+                'filterType',
+                'filterMinAmount',
+                'filterUnbalanced',
+                'filterMissingDesc'
+            ];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.type === 'checkbox') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
+            });
+            applyJournalFilters();
+        }
+
+        function applyJournalFilters() {
+            const summary = document.getElementById('filterSummary');
+            let filtered = [...journalEntries];
+
+            if (journalFilters.search) {
+                const q = journalFilters.search.toLowerCase().trim();
+                filtered = filtered.filter(entry => {
+                    const haystack = [
+                        entry.entry_number,
+                        entry.entry_type,
+                        entry.description,
+                        entry.status
+                    ].map(val => String(val || '').toLowerCase()).join(' ');
+                    return haystack.includes(q);
+                });
+            }
+
+            if (journalFilters.dateFrom) {
+                const from = new Date(journalFilters.dateFrom);
+                filtered = filtered.filter(entry => new Date(entry.entry_date) >= from);
+            }
+
+            if (journalFilters.dateTo) {
+                const to = new Date(journalFilters.dateTo);
+                filtered = filtered.filter(entry => new Date(entry.entry_date) <= to);
+            }
+
+            if (journalFilters.status) {
+                filtered = filtered.filter(entry => String(entry.status || '').toUpperCase() === journalFilters.status);
+            }
+
+            if (journalFilters.type) {
+                filtered = filtered.filter(entry => String(entry.entry_type || '').toUpperCase() === journalFilters.type);
+            }
+
+            if (journalFilters.minAmount) {
+                const minVal = parseFloat(journalFilters.minAmount || 0);
+                filtered = filtered.filter(entry => getEntryTotals(entry).total >= minVal);
+            }
+
+            if (journalFilters.unbalancedOnly) {
+                filtered = filtered.filter(entry => !getEntryTotals(entry).balanced);
+            }
+
+            if (journalFilters.missingDescOnly) {
+                filtered = filtered.filter(entry => !String(entry.description || '').trim());
+            }
+
+            if (summary) {
+                summary.textContent = `المعروض: ${filtered.length} من ${journalEntries.length}`;
+            }
+
+            renderJournalEntries(filtered);
+            updateJournalCharts(filtered);
+            updateJournalInsights(filtered);
+            updateSmartAlerts(filtered);
+        }
+
+        function renderJournalEntries(entries) {
+            const tbody = document.getElementById('journalTable');
+            if (!tbody) return;
+
+            if (!entries.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-3 opacity-30"></i>
+                            <div>لا توجد قيود محاسبية</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const statusColors = {
+                'DRAFT': 'bg-gray-100 text-gray-700',
+                'POSTED': 'bg-green-100 text-green-700',
+                'APPROVED': 'bg-blue-100 text-blue-700',
+                'CANCELLED': 'bg-red-100 text-red-700'
+            };
+
+            const statusLabels = {
+                'DRAFT': 'مسودة',
+                'POSTED': 'مرحل',
+                'APPROVED': 'معتمد',
+                'CANCELLED': 'ملغي'
+            };
+
+            tbody.innerHTML = entries.map(entry => {
+                const totals = getEntryTotals(entry);
+                const balanceBadge = totals.balanced
+                    ? '<span class="chip bg-emerald-100 text-emerald-700">متزن</span>'
+                    : '<span class="chip bg-rose-100 text-rose-700">غير متزن</span>';
+
+                return `
+                    <tr class="journal-entry hover:bg-gray-50 cursor-pointer" onclick="viewJournalEntry(${entry.entry_id})">
+                        <td class="px-4 py-3 font-mono font-bold text-purple-600">${entry.entry_number}</td>
+                        <td class="px-4 py-3 text-gray-600">${formatDate(entry.entry_date)}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+                                ${entry.entry_type || 'عام'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-700">${entry.description || '-'}</td>
+                        <td class="px-4 py-3 font-bold text-red-600">${formatMoneyPlain(totals.debit)} ر.س</td>
+                        <td class="px-4 py-3 font-bold text-green-600">${formatMoneyPlain(totals.credit)} ر.س</td>
+                        <td class="px-4 py-3 space-y-2">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold ${statusColors[entry.status] || statusColors.DRAFT}">
+                                ${statusLabels[entry.status] || 'مسودة'}
+                            </span>
+                            <div>${balanceBadge}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <button onclick="event.stopPropagation(); viewJournalEntry(${entry.entry_id})" class="text-purple-600 hover:text-purple-800">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getEntryTotals(entry) {
+            let totalDebit = 0;
+            let totalCredit = 0;
+            (entry.lines || []).forEach(line => {
+                totalDebit += parseFloat(line.debit_amount || 0);
+                totalCredit += parseFloat(line.credit_amount || 0);
+            });
+            const total = Math.max(totalDebit, totalCredit);
+            return {
+                debit: totalDebit,
+                credit: totalCredit,
+                total,
+                balanced: Math.abs(totalDebit - totalCredit) < 0.01
+            };
+        }
+
+        function updateEnhancements() {
+            updateCommandCenter();
+            updateJournalCharts(journalEntries);
+            updateJournalInsights(journalEntries);
+            updateSmartAlerts(journalEntries);
+        }
+
+        function updateCommandCenter() {
+            const total = journalEntries.length;
+            const balances = journalEntries.map(getEntryTotals);
+            const balancedCount = balances.filter(t => t.balanced).length;
+            const unbalancedCount = total - balancedCount;
+
+            const qualityScore = total ? Math.round((balancedCount / total) * 100) : 0;
+            const avgLines = total ? Math.round(journalEntries.reduce((sum, e) => sum + (e.lines ? e.lines.length : 0), 0) / total) : 0;
+            const postCount = journalEntries.filter(e => String(e.status || '').toUpperCase() === 'POSTED').length;
+            const postRate = total ? Math.round((postCount / total) * 100) : 0;
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntries = journalEntries.filter(e => (e.entry_date || '').startsWith(today)).length;
+
+            const lastSyncEl = document.getElementById('lastSync');
+            if (lastSyncEl) lastSyncEl.textContent = lastSyncAt ? lastSyncAt.toLocaleString('ar-SA') : '-';
+
+            const qualityEl = document.getElementById('qualityScore');
+            if (qualityEl) qualityEl.textContent = `${qualityScore}%`;
+
+            const unbalancedEl = document.getElementById('unbalancedCount');
+            if (unbalancedEl) unbalancedEl.textContent = unbalancedCount.toLocaleString('ar-SA');
+
+            const avgLinesEl = document.getElementById('avgLines');
+            if (avgLinesEl) avgLinesEl.textContent = avgLines.toLocaleString('ar-SA');
+
+            const progressEl = document.getElementById('qualityProgress');
+            if (progressEl) progressEl.style.width = `${qualityScore}%`;
+
+            const badgeEl = document.getElementById('qualityBadge');
+            if (badgeEl) {
+                if (qualityScore >= 90) {
+                    badgeEl.textContent = 'ممتاز';
+                    badgeEl.className = 'chip bg-emerald-100 text-emerald-700';
+                } else if (qualityScore >= 70) {
+                    badgeEl.textContent = 'جيد';
+                    badgeEl.className = 'chip bg-amber-100 text-amber-700';
+                } else {
+                    badgeEl.textContent = 'بحاجة تحسين';
+                    badgeEl.className = 'chip bg-rose-100 text-rose-700';
+                }
+            }
+
+            const velocityEl = document.getElementById('entryVelocity');
+            if (velocityEl) {
+                const last30 = journalEntries.filter(e => new Date(e.entry_date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
+                const velocity = (last30 / 30).toFixed(1);
+                velocityEl.textContent = `${velocity}/يوم`;
+            }
+
+            const postRateEl = document.getElementById('postRate');
+            if (postRateEl) postRateEl.textContent = `${postRate}%`;
+
+            const todayEl = document.getElementById('todayEntries');
+            if (todayEl) todayEl.textContent = todayEntries.toLocaleString('ar-SA');
+
+            const riskFlags = journalEntries.filter(e => {
+                const totals = getEntryTotals(e);
+                return !totals.balanced || !String(e.description || '').trim();
+            }).length;
+            const riskFlagEl = document.getElementById('riskFlagCount');
+            if (riskFlagEl) riskFlagEl.textContent = riskFlags.toLocaleString('ar-SA');
+
+            const topAccountsEl = document.getElementById('topAccountsList');
+            if (topAccountsEl) {
+                const accountTotals = {};
+                journalEntries.forEach(entry => {
+                    (entry.lines || []).forEach(line => {
+                        const key = line.account_name || line.account_code || 'غير محدد';
+                        const amount = Math.max(parseFloat(line.debit_amount || 0), parseFloat(line.credit_amount || 0));
+                        accountTotals[key] = (accountTotals[key] || 0) + amount;
+                    });
+                });
+                const topAccounts = Object.entries(accountTotals)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 4);
+                topAccountsEl.innerHTML = topAccounts.length
+                    ? topAccounts.map(([name, amount]) => `
+                        <div class="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
+                            <span>${sanitizeText(name)}</span>
+                            <span class="chip bg-indigo-100 text-indigo-700">${formatMoneyPlain(amount)} ر.س</span>
+                        </div>
+                    `).join('')
+                    : '<div class="text-slate-500">لا توجد بيانات كافية</div>';
+            }
+        }
+
+        function updateJournalCharts(entries) {
+            const grouped = entries.reduce((acc, entry) => {
+                const date = entry.entry_date ? new Date(entry.entry_date).toISOString().split('T')[0] : 'غير محدد';
+                if (!acc[date]) acc[date] = { debit: 0, credit: 0 };
+                const totals = getEntryTotals(entry);
+                acc[date].debit += totals.debit;
+                acc[date].credit += totals.credit;
+                return acc;
+            }, {});
+            const labels = Object.keys(grouped).sort();
+            const debitSeries = labels.map(date => grouped[date].debit);
+            const creditSeries = labels.map(date => grouped[date].credit);
+
+            const trendCtx = document.getElementById('journalTrendChart');
+            if (trendCtx) {
+                if (journalTrendChart) journalTrendChart.destroy();
+                journalTrendChart = new Chart(trendCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'مدين', data: debitSeries, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.2)', tension: 0.35 },
+                            { label: 'دائن', data: creditSeries, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', tension: 0.35 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const statusCounts = entries.reduce((acc, entry) => {
+                const key = String(entry.status || 'DRAFT').toUpperCase();
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+            const statusCtx = document.getElementById('journalStatusChart');
+            if (statusCtx) {
+                if (journalStatusChart) journalStatusChart.destroy();
+                journalStatusChart = new Chart(statusCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+
+            const typeCounts = entries.reduce((acc, entry) => {
+                const key = String(entry.entry_type || 'GENERAL').toUpperCase();
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+            const typeCtx = document.getElementById('journalTypeChart');
+            if (typeCtx) {
+                if (journalTypeChart) journalTypeChart.destroy();
+                journalTypeChart = new Chart(typeCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(typeCounts),
+                        datasets: [{
+                            data: Object.values(typeCounts),
+                            backgroundColor: ['#8b5cf6', '#0ea5e9', '#f97316', '#10b981']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        function updateJournalInsights(entries) {
+            const insightsEl = document.getElementById('journalInsights');
+            if (!insightsEl) return;
+            if (!entries.length) {
+                insightsEl.innerHTML = '<div class="text-slate-500">لا توجد بيانات لعرض الملخص.</div>';
+                return;
+            }
+
+            const totals = entries.map(getEntryTotals);
+            const totalDebit = totals.reduce((sum, t) => sum + t.debit, 0);
+            const totalCredit = totals.reduce((sum, t) => sum + t.credit, 0);
+            const imbalance = totals.filter(t => !t.balanced).length;
+            const missingDesc = entries.filter(e => !String(e.description || '').trim()).length;
+            const highValue = totals.filter(t => t.total >= percentile(totals.map(val => val.total), 0.9)).length;
+
+            insightsEl.innerHTML = `
+                <div class="insight-card bg-slate-50 rounded-xl p-4">
+                    📊 إجمالي المدين: <strong>${formatMoneyPlain(totalDebit)} ر.س</strong> مقابل إجمالي الدائن: <strong>${formatMoneyPlain(totalCredit)} ر.س</strong>
+                </div>
+                <div class="insight-card bg-slate-50 rounded-xl p-4">
+                    ⚖️ القيود غير المتزنة: <strong>${imbalance}</strong> | القيود بدون وصف: <strong>${missingDesc}</strong>
+                </div>
+                <div class="insight-card bg-slate-50 rounded-xl p-4">
+                    🔥 قيود عالية القيمة: <strong>${highValue}</strong> (أعلى 10%)
+                </div>
+                <div class="insight-card bg-slate-50 rounded-xl p-4">
+                    🧭 متوسط القيمة لكل قيد: <strong>${formatMoneyPlain(totalDebit / entries.length)} ر.س</strong>
+                </div>
+            `;
+        }
+
+        function updateSmartAlerts(entries) {
+            const alertsEl = document.getElementById('smartAlerts');
+            if (!alertsEl) return;
+            if (!entries.length) {
+                alertsEl.innerHTML = '<div class="text-slate-500">لا توجد تنبيهات حالياً.</div>';
+                return;
+            }
+
+            const totals = entries.map(getEntryTotals);
+            const imbalanceCount = totals.filter(t => !t.balanced).length;
+            const missingDesc = entries.filter(e => !String(e.description || '').trim()).length;
+            const draftCount = entries.filter(e => String(e.status || '').toUpperCase() === 'DRAFT').length;
+            const highValueThreshold = percentile(totals.map(val => val.total), 0.9);
+            const highValueCount = totals.filter(t => t.total >= highValueThreshold).length;
+
+            const alerts = [
+                imbalanceCount ? `⚠️ يوجد <strong>${imbalanceCount}</strong> قيد غير متزن يتطلب مراجعة فورية.` : '✅ جميع القيود متزنة في نطاق البيانات الحالية.',
+                missingDesc ? `📝 <strong>${missingDesc}</strong> قيد بدون وصف، يوصى باستكمال البيانات.` : '✅ جميع القيود تحتوي على أوصاف واضحة.',
+                draftCount ? `⏳ يوجد <strong>${draftCount}</strong> قيد مسودة لم يتم ترحيله بعد.` : '✅ لا توجد قيود مسودة معلقة.',
+                highValueCount ? `💰 تم رصد <strong>${highValueCount}</strong> قيد عالي القيمة ضمن أعلى 10%.` : '✅ لا توجد قيود عالية القيمة خارج النمط الطبيعي.'
+            ];
+
+            alertsEl.innerHTML = alerts.map(text => `
+                <div class="bg-slate-50 rounded-xl p-3">${text}</div>
+            `).join('');
+        }
+
+        function percentile(values, p) {
+            if (!values.length) return 0;
+            const sorted = [...values].sort((a, b) => a - b);
+            const index = Math.floor((sorted.length - 1) * p);
+            return sorted[index] || 0;
         }
 
         // View Journal Entry Details
@@ -957,8 +1532,51 @@
             URL.revokeObjectURL(url);
         }
 
+        function refreshAllData() {
+            loadAllData();
+        }
+
+        function exportJournalCSV() {
+            const rows = [];
+            rows.push(['رقم القيد','التاريخ','النوع','البيان','المدين','الدائن','الحالة','متزن']);
+            journalEntries.forEach(entry => {
+                const totals = getEntryTotals(entry);
+                rows.push([
+                    entry.entry_number,
+                    entry.entry_date,
+                    entry.entry_type,
+                    sanitizeText(entry.description),
+                    totals.debit,
+                    totals.credit,
+                    entry.status,
+                    totals.balanced ? 'متزن' : 'غير متزن'
+                ]);
+            });
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'دفتر-اليومية-المتقدم.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function downloadAdvancedReport() {
+            const totals = journalEntries.map(getEntryTotals);
+            const report = {
+                entity_id: ENTITY_ID,
+                generated_at: new Date().toISOString(),
+                quality_score: journalEntries.length ? Math.round((totals.filter(t => t.balanced).length / journalEntries.length) * 100) : 0,
+                unbalanced_entries: journalEntries.filter(entry => !getEntryTotals(entry).balanced),
+                missing_descriptions: journalEntries.filter(entry => !String(entry.description || '').trim()),
+                high_value_threshold: percentile(totals.map(t => t.total), 0.9),
+                journal_entries: journalEntries,
+                filters: journalFilters,
+                chart_of_accounts: chartAccounts
+            };
+            downloadBlob(JSON.stringify(report, null, 2), 'تقرير-التعزيزات-الذكية.json', 'application/json');
+        }
+
         // Load data on page load
-        document.addEventListener('DOMContentLoaded', loadAllData);
+        document.addEventListener('DOMContentLoaded', () => {
+            setupJournalFilters();
+            loadAllData();
+        });
     </script>
 </body>
 </html>

@@ -949,6 +949,26 @@
         "/^node /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m/test-payment-plans-api\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-build\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^lsof -i :3000 -sTCP:LISTEN$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-build\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^export DATABASE_URL=\"postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway\" && nohup npm start > server\\.log 2>&1 &$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^sleep 5 && node test-build\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
