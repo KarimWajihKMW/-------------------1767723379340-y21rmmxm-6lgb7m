@@ -46,7 +46,7 @@
         }
         /* Accents converted to Black/Red/Gray theme */
         .section-accent-sky { border-top: 4px solid #18181b; }      /* Black */
-        .section-accent-emerald { border-top: 4px solid #52525b; }  /* Zinc-600 */
+        .section-accent-emerald { border-top: 4px solid #000000; }  /* Black */
         .section-accent-amber { border-top: 4px solid #ef4444; }    /* Red-500 */
         .section-accent-violet { border-top: 4px solid #18181b; }   /* Black */
         .section-accent-rose { border-top: 4px solid #991b1b; }     /* Red-800 */
@@ -139,7 +139,7 @@
                         <h3 class="text-lg font-bold text-slate-800">🧠 جودة التدفق النقدي</h3>
                         <p class="text-sm text-slate-500">مؤشر توازن وتذبذب التدفقات</p>
                     </div>
-                    <span id="cashflowQualityBadge" class="chip bg-emerald-100 text-emerald-700">ممتاز</span>
+                    <span id="cashflowQualityBadge" class="chip bg-black text-white">ممتاز</span>
                 </div>
                 <div class="flex items-end justify-between mb-3">
                     <div>
@@ -148,11 +148,11 @@
                     </div>
                     <div class="text-right">
                         <div class="text-sm text-slate-500">نسبة التذبذب</div>
-                        <div class="text-xl font-bold text-rose-600" id="cashflowVolatility">0%</div>
+                        <div class="text-xl font-bold text-red-600" id="cashflowVolatility">0%</div>
                     </div>
                 </div>
                 <div class="progress-track">
-                    <div id="cashflowQualityProgress" class="progress-fill bg-emerald-500" style="width: 0%"></div>
+                    <div id="cashflowQualityProgress" class="progress-fill bg-slate-900" style="width: 0%"></div>
                 </div>
                 <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
                     <div class="bg-slate-50 rounded-xl p-3">
@@ -185,21 +185,21 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-indigo-50 rounded-xl p-4">
-                        <div class="text-sm text-indigo-600">معدل التحصيل</div>
-                        <div class="text-2xl font-bold text-indigo-800" id="collectionRate">0%</div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <div class="text-sm text-slate-600">معدل التحصيل</div>
+                        <div class="text-2xl font-bold text-slate-800" id="collectionRate">0%</div>
                     </div>
-                    <div class="bg-rose-50 rounded-xl p-4">
-                        <div class="text-sm text-rose-600">مخاطر عالية</div>
-                        <div class="text-2xl font-bold text-rose-700" id="highRiskShare">0%</div>
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4">
+                        <div class="text-sm text-red-600">مخاطر عالية</div>
+                        <div class="text-2xl font-bold text-red-700" id="highRiskShare">0%</div>
                     </div>
-                    <div class="bg-emerald-50 rounded-xl p-4">
-                        <div class="text-sm text-emerald-600">متوسط التحصيل</div>
-                        <div class="text-2xl font-bold text-emerald-700" id="avgCollection">0</div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <div class="text-sm text-slate-600">متوسط التحصيل</div>
+                        <div class="text-2xl font-bold text-slate-700" id="avgCollection">0</div>
                     </div>
-                    <div class="bg-amber-50 rounded-xl p-4">
-                        <div class="text-sm text-amber-600">صافي السيولة</div>
-                        <div class="text-2xl font-bold text-amber-700" id="netLiquidity">0</div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <div class="text-sm text-slate-600">صافي السيولة</div>
+                        <div class="text-2xl font-bold text-slate-700" id="netLiquidity">0</div>
                     </div>
                 </div>
                 <div class="mt-4">
@@ -362,7 +362,7 @@
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
-                    <thead class="bg-sky-50 text-sky-700">
+                    <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
                         <tr>
                             <th class="px-3 py-2 text-right">رقم التدفق</th>
                             <th class="px-3 py-2 text-right">نوع التدفق</th>
@@ -392,7 +392,7 @@
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
-                    <thead class="bg-emerald-50 text-emerald-700">
+                    <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
                         <tr>
                             <th class="px-3 py-2 text-right">رقم التوقع</th>
                             <th class="px-3 py-2 text-right">معرف المنشأة</th>
@@ -422,7 +422,7 @@
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
-                    <thead class="bg-rose-50 text-rose-700">
+                    <thead class="bg-red-50 text-red-800 font-bold border-b border-red-100">
                         <tr>
                             <th class="px-3 py-2 text-right">رقم المخاطر</th>
                             <th class="px-3 py-2 text-right">رقم العميل</th>
@@ -817,13 +817,13 @@
             if (badgeEl) {
                 if (qualityScore >= 85) {
                     badgeEl.textContent = 'ممتاز';
-                    badgeEl.className = 'chip bg-emerald-100 text-emerald-700';
+                    badgeEl.className = 'chip bg-black text-white';
                 } else if (qualityScore >= 65) {
                     badgeEl.textContent = 'مستقر';
-                    badgeEl.className = 'chip bg-amber-100 text-amber-700';
+                    badgeEl.className = 'chip bg-slate-200 text-slate-800';
                 } else {
                     badgeEl.textContent = 'متقلب';
-                    badgeEl.className = 'chip bg-rose-100 text-rose-700';
+                    badgeEl.className = 'chip bg-red-100 text-red-700';
                 }
             }
 
@@ -888,9 +888,9 @@
                 const items = Object.entries(sourceTotals).sort((a, b) => b[1] - a[1]).slice(0, 4);
                 topSourcesEl.innerHTML = items.length
                     ? items.map(([name, amount]) => `
-                        <div class="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
+                        <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-2">
                             <span>${name}</span>
-                            <span class="chip bg-indigo-100 text-indigo-700">${formatMoney(amount)}</span>
+                            <span class="chip bg-black text-white">${formatMoney(amount)}</span>
                         </div>
                     `).join('')
                     : '<div class="text-slate-500">لا توجد بيانات كافية</div>';
