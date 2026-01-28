@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
 const db = require('./db');
 require('dotenv').config();
 
@@ -29,6 +31,35 @@ const permissionsRoutes = require('./api-permissions-routes');
 app.use('/api/permissions', permissionsRoutes);
 
 // Serve static files (must come AFTER API routes to avoid conflicts)
+app.get(['/finance', '/finance/', '/finance/*.html'], (req, res, next) => {
+  try {
+    const requestPath = req.path === '/finance' || req.path === '/finance/'
+      ? '/finance/index.html'
+      : req.path;
+    const safePath = decodeURIComponent(requestPath).replace(/\.{2,}/g, '');
+    const filePath = path.join(__dirname, safePath);
+
+    if (!filePath.startsWith(path.join(__dirname, 'finance')) || !fs.existsSync(filePath)) {
+      return next();
+    }
+
+    const html = fs.readFileSync(filePath, 'utf8');
+    const hasTheme = html.includes('/finance/brand-theme.css');
+    if (hasTheme) {
+      res.type('html').send(html);
+      return;
+    }
+
+    const injected = html.replace(
+      '</head>',
+      '    <link rel="stylesheet" href="/finance/brand-theme.css">\n    <script src="/finance/brand-theme.js"></script>\n</head>'
+    );
+    res.type('html').send(injected);
+  } catch (error) {
+    next();
+  }
+});
+
 app.use(express.static('.'));
 
 // Finance System API Routes
