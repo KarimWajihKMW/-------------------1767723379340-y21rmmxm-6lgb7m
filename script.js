@@ -1547,7 +1547,7 @@ const app = (() => {
         else if (route === 'facilities-assets') content = renderFacilitiesAssets();
         else if (route === 'facilities-projects') content = renderFacilitiesProjects();
         else if (route === 'facilities-projects-maintenance') content = renderFacilitiesProjectsMaintenance();
-        else if (route === 'facilities-projects-contracts') content = renderFacilitiesProjectsContracts();
+        else if (route === 'facilities-projects-contracts') content = await renderFacilitiesProjectsContracts();
         else if (route === 'facilities-projects-vendors') content = renderFacilitiesProjectsVendors();
         else if (route === 'facilities-projects-energy') content = renderFacilitiesProjectsEnergy();
         else if (route === 'facilities-projects-crowd') content = renderFacilitiesProjectsCrowd();
@@ -7615,12 +7615,20 @@ const app = (() => {
         </div>`;
     };
 
-    const renderFacilitiesProjectsContracts = () => {
-        const contracts = [
-            { name: 'عقد المصاعد الذكية', partner: 'شركة المصاعد', expiry: '2026-04-12', status: 'قيد التجديد', sla: '98%', risk: 'مرتفع' },
-            { name: 'عقد النظافة الشاملة', partner: 'شركة اللمعان', expiry: '2026-06-01', status: 'ساري', sla: '96%', risk: 'منخفض' },
-            { name: 'عقد الأمن الميداني', partner: 'الحرس المتقدم', expiry: '2026-03-22', status: 'قيد التفاوض', sla: '94%', risk: 'متوسط' }
-        ];
+    const renderFacilitiesProjectsContracts = async () => {
+        let contracts = [];
+        try {
+            contracts = await fetchAPI('/api/facilities/contracts');
+        } catch (error) {
+            console.error('Error loading facilities contracts:', error);
+            showToast('تعذر تحميل عقود الطرف التاني من قاعدة البيانات', 'error');
+        }
+
+        facilitiesContractsCache = Array.isArray(contracts) ? contracts : [];
+        const activeStatuses = ['ساري', 'قيد المراجعة', 'قيد التجديد', 'قيد التفاوض'];
+        const totalContracts = facilitiesContractsCache.length;
+        const activeContracts = facilitiesContractsCache.filter(c => activeStatuses.includes(c.status)).length;
+        const closureRate = totalContracts ? Math.round(((totalContracts - activeContracts) / totalContracts) * 100) : 0;
 
         return `
         <div class="space-y-6 animate-fade-in">
@@ -7654,19 +7662,26 @@ const app = (() => {
                                 <th class="px-3 py-2">الالتزام SLA</th>
                                 <th class="px-3 py-2">المخاطر</th>
                                 <th class="px-3 py-2">الحالة</th>
+                                <th class="px-3 py-2">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${contracts.map(item => `
+                            ${facilitiesContractsCache.length ? facilitiesContractsCache.map(item => `
                                 <tr class="border-b border-slate-100 hover:bg-slate-50">
-                                    <td class="px-3 py-2 font-semibold">${item.name}</td>
-                                    <td class="px-3 py-2">${item.partner}</td>
-                                    <td class="px-3 py-2">${item.expiry}</td>
-                                    <td class="px-3 py-2">${item.sla}</td>
-                                    <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">${item.risk}</span></td>
-                                    <td class="px-3 py-2">${item.status}</td>
+                                    <td class="px-3 py-2 font-semibold">${item.contract_name || '-'}</td>
+                                    <td class="px-3 py-2">${item.partner || '-'}</td>
+                                    <td class="px-3 py-2">${item.expiry || '-'}</td>
+                                    <td class="px-3 py-2">${item.sla_percent ? `${item.sla_percent}%` : '-'}</td>
+                                    <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">${item.risk_level || 'متوسط'}</span></td>
+                                    <td class="px-3 py-2">${item.status || 'قيد المراجعة'}</td>
+                                    <td class="px-3 py-2">
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="app.editFacilitiesContract(${item.id})" class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">تعديل</button>
+                                            <button onclick="app.deleteFacilitiesContract(${item.id})" class="px-3 py-1 bg-red-50 text-red-700 rounded-lg text-xs font-bold">حذف</button>
+                                        </div>
+                                    </td>
                                 </tr>
-                            `).join('')}
+                            `).join('') : `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات محفوظة</td></tr>`}
                         </tbody>
                     </table>
                 </div>
@@ -7675,15 +7690,15 @@ const app = (() => {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
                     <h3 class="font-bold text-lg text-slate-800">مستحقات قريبة</h3>
-                    <div class="text-sm text-slate-600 mt-3">قيمة مستحقات الربع القادم: <span class="font-bold text-amber-700">4.2M ر.س</span></div>
+                    <div class="text-sm text-slate-600 mt-3">عدد العقود الكلي: <span class="font-bold text-amber-700">${totalContracts}</span></div>
                 </div>
                 <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
                     <h3 class="font-bold text-lg text-slate-800">امتثال الشروط</h3>
-                    <div class="text-sm text-slate-600 mt-3">متوسط تقييم الالتزام: <span class="font-bold text-emerald-700">95%</span></div>
+                    <div class="text-sm text-slate-600 mt-3">العقود النشطة: <span class="font-bold text-emerald-700">${activeContracts}</span></div>
                 </div>
                 <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
                     <h3 class="font-bold text-lg text-slate-800">تنبيهات الغرامات</h3>
-                    <div class="text-sm text-red-600 mt-3">غرامتان محتملتان بقيمة 120K ر.س.</div>
+                    <div class="text-sm text-red-600 mt-3">معدل الإغلاق: ${closureRate}%</div>
                 </div>
             </div>
         </div>`;
@@ -7912,6 +7927,7 @@ const app = (() => {
     };
 
     // Facilities actions
+    let facilitiesContractsCache = [];
     const createFacilityRequest = () => {
         showToast('📌 تم فتح طلب مرفق جديد (نموذج افتراضي)', 'info');
     };
@@ -7946,11 +7962,88 @@ const app = (() => {
             subtitle,
             fields,
             primaryLabel: isCreate ? 'حفظ' : 'اعتماد الإجراء',
-            onSubmit: (payload) => {
+            onSubmit: async (payload) => {
+                if (section === 'projects-contracts' && isCreate) {
+                    await createFacilitiesContract(payload);
+                    return;
+                }
                 logAction('FACILITIES_ACTION', { section, action, payload });
                 showToast(`✅ تم تنفيذ: ${action}`, 'success');
             }
         });
+    };
+
+    const createFacilitiesContract = async (payload) => {
+        try {
+            const response = await fetchAPI('/api/facilities/contracts', {
+                method: 'POST',
+                body: JSON.stringify({
+                    contract_name: payload.contract_name,
+                    partner: payload.partner,
+                    expiry: payload.expiry,
+                    value_text: payload.value
+                })
+            });
+            if (response && response.id) {
+                showToast('✅ تم إضافة العقد وحفظه في قاعدة البيانات', 'success');
+                loadRoute('facilities-projects-contracts');
+            }
+        } catch (error) {
+            console.error('Error creating facilities contract:', error);
+            showToast('تعذر حفظ العقد في قاعدة البيانات', 'error');
+        }
+    };
+
+    const editFacilitiesContract = (contractId) => {
+        const contract = facilitiesContractsCache.find(item => String(item.id) === String(contractId));
+        if (!contract) {
+            showToast('لم يتم العثور على بيانات العقد', 'error');
+            return;
+        }
+
+        const fields = getFacilitiesFormFields('projects-contracts', 'تعديل عقد');
+        openFacilitiesModal({
+            title: 'تعديل عقد الطرف التاني',
+            subtitle: 'تحديث البيانات الأساسية ثم حفظ التعديلات.',
+            fields,
+            initialValues: {
+                contract_name: contract.contract_name || '',
+                partner: contract.partner || '',
+                expiry: contract.expiry ? String(contract.expiry).split('T')[0] : '',
+                value: contract.value_text || ''
+            },
+            primaryLabel: 'تحديث',
+            onSubmit: async (payload) => {
+                try {
+                    await fetchAPI(`/api/facilities/contracts/${contract.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            contract_name: payload.contract_name,
+                            partner: payload.partner,
+                            expiry: payload.expiry,
+                            value_text: payload.value
+                        })
+                    });
+                    showToast('✅ تم تحديث العقد بنجاح', 'success');
+                    loadRoute('facilities-projects-contracts');
+                } catch (error) {
+                    console.error('Error updating facilities contract:', error);
+                    showToast('تعذر تحديث العقد', 'error');
+                }
+            }
+        });
+    };
+
+    const deleteFacilitiesContract = async (contractId) => {
+        if (!confirm('هل أنت متأكد من حذف العقد؟')) return;
+        try {
+            await fetchAPI(`/api/facilities/contracts/${contractId}`, { method: 'DELETE' });
+            showToast('✅ تم حذف العقد بنجاح', 'success');
+            loadRoute('facilities-projects-contracts');
+        } catch (error) {
+            console.error('Error deleting facilities contract:', error);
+            showToast('تعذر حذف العقد', 'error');
+        }
     };
 
     const getFacilitiesFormFields = (section, action) => {
@@ -8031,7 +8124,7 @@ const app = (() => {
         ];
     };
 
-    const openFacilitiesModal = ({ title, subtitle, fields, primaryLabel, onSubmit }) => {
+    const openFacilitiesModal = ({ title, subtitle, fields, primaryLabel, onSubmit, initialValues = {} }) => {
         const existing = document.getElementById('facilities-modal');
         if (existing) existing.remove();
 
@@ -8065,6 +8158,13 @@ const app = (() => {
         `;
 
         document.body.appendChild(modal);
+
+        fields.forEach(field => {
+            if (Object.prototype.hasOwnProperty.call(initialValues, field.id)) {
+                const input = document.getElementById(field.id);
+                if (input) input.value = initialValues[field.id] ?? '';
+            }
+        });
 
         const submitBtn = document.getElementById('facilities-modal-submit');
         if (submitBtn) {
@@ -17013,6 +17113,7 @@ const app = (() => {
         loadRoute: loadRoute,  // Expose loadRoute function
         showToast: showToast,  // Expose showToast for external use
         createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction, handleFacilityPageAction,
+        editFacilitiesContract, deleteFacilitiesContract,
         handleSupplyChainAction, handleQualityPolicyAction  // Facilities, Supply Chain, Quality & Policies functions
     };
 })();

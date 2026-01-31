@@ -9,6 +9,32 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const ensureFacilitiesContractsTable = async () => {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS facilities_project_contracts (
+        id SERIAL PRIMARY KEY,
+        contract_name TEXT NOT NULL,
+        partner TEXT NOT NULL,
+        expiry DATE,
+        value_text TEXT,
+        status TEXT DEFAULT 'قيد المراجعة',
+        sla_percent NUMERIC,
+        risk_level TEXT DEFAULT 'متوسط',
+        entity_id TEXT,
+        entity_type TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    console.log('✅ facilities_project_contracts table ready');
+  } catch (error) {
+    console.error('❌ Failed to ensure facilities_project_contracts table:', error);
+  }
+};
+
+ensureFacilitiesContractsTable();
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
@@ -237,6 +263,110 @@ app.get('/api/health', async (req, res) => {
     res.json({ status: 'OK', database: 'Connected', time: result.rows[0].now });
   } catch (error) {
     res.status(500).json({ status: 'ERROR', message: error.message });
+  }
+});
+
+// Facilities Projects Contracts API
+app.get('/api/facilities/contracts', async (req, res) => {
+  try {
+    const filter = getEntityFilter(req.userEntity, 'c');
+    const result = await db.query(
+      `SELECT c.id, c.contract_name, c.partner, c.expiry, c.value_text, c.status, c.sla_percent, c.risk_level
+       FROM facilities_project_contracts c
+       WHERE ${filter}
+       ORDER BY c.created_at DESC`
+    );
+    res.json(result.rows || []);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/facilities/contracts', async (req, res) => {
+  try {
+    const { contract_name, partner, expiry, value_text, status, sla_percent, risk_level } = req.body || {};
+    if (!contract_name || !partner) {
+      return res.status(400).json({ error: 'contract_name and partner are required' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO facilities_project_contracts
+       (contract_name, partner, expiry, value_text, status, sla_percent, risk_level, entity_id, entity_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id, contract_name, partner, expiry, value_text, status, sla_percent, risk_level`,
+      [
+        contract_name,
+        partner,
+        expiry || null,
+        value_text || null,
+        status || 'قيد المراجعة',
+        sla_percent || null,
+        risk_level || 'متوسط',
+        req.userEntity.id,
+        req.userEntity.type
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/facilities/contracts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { contract_name, partner, expiry, value_text, status, sla_percent, risk_level } = req.body || {};
+    const filter = getEntityFilter(req.userEntity, 'c');
+    const result = await db.query(
+      `UPDATE facilities_project_contracts c
+       SET contract_name = COALESCE($1, c.contract_name),
+           partner = COALESCE($2, c.partner),
+           expiry = COALESCE($3, c.expiry),
+           value_text = COALESCE($4, c.value_text),
+           status = COALESCE($5, c.status),
+           sla_percent = COALESCE($6, c.sla_percent),
+           risk_level = COALESCE($7, c.risk_level),
+           updated_at = NOW()
+       WHERE c.id = $8 AND ${filter}
+       RETURNING id, contract_name, partner, expiry, value_text, status, sla_percent, risk_level`,
+      [
+        contract_name || null,
+        partner || null,
+        expiry || null,
+        value_text || null,
+        status || null,
+        sla_percent || null,
+        risk_level || null,
+        id
+      ]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/facilities/contracts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filter = getEntityFilter(req.userEntity, 'c');
+    const result = await db.query(
+      `DELETE FROM facilities_project_contracts c
+       WHERE c.id = $1 AND ${filter}
+       RETURNING id`,
+      [id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+    res.json({ success: true, id: result.rows[0].id });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
