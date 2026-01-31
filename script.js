@@ -7554,6 +7554,178 @@ const app = (() => {
         showToast('⬇️ تم تصدير الملف بنجاح', 'success');
     };
 
+    const handleSupplyChainAction = (section, action) => {
+        if (action.includes('تصدير')) {
+            downloadSupplyChainPayload(section, action);
+            return;
+        }
+
+        const fields = getSupplyChainFields(section, action);
+        openSupplyChainModal({
+            title: action,
+            subtitle: 'يرجى تعبئة البيانات ثم تأكيد الإجراء.',
+            fields,
+            primaryLabel: 'حفظ',
+            onSubmit: (payload) => {
+                logAction('SUPPLY_CHAIN_ACTION', { section, action, payload });
+                showToast(`✅ تم تنفيذ: ${action}`, 'success');
+            }
+        });
+    };
+
+    const getSupplyChainFields = (section, action) => {
+        if (section === 'purchases') {
+            return [
+                { id: 'item_name', label: 'اسم الصنف', placeholder: 'مثال: مواد خام A' },
+                { id: 'quantity', label: 'الكمية', placeholder: 'مثال: 1200' },
+                { id: 'budget', label: 'الميزانية التقديرية', placeholder: 'مثال: 250000' },
+                { id: 'needed_date', label: 'تاريخ الاحتياج', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'logistics') {
+            return [
+                { id: 'shipment_id', label: 'رقم الشحنة', placeholder: 'SHIP-2026-001' },
+                { id: 'origin', label: 'نقطة الانطلاق', placeholder: 'الرياض' },
+                { id: 'destination', label: 'نقطة الوصول', placeholder: 'جدة' },
+                { id: 'eta', label: 'موعد التسليم المتوقع', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'inventory') {
+            return [
+                { id: 'sku', label: 'رمز الصنف', placeholder: 'SKU-1450' },
+                { id: 'location', label: 'الموقع', placeholder: 'مستودع الرياض' },
+                { id: 'on_hand', label: 'المتوفر', placeholder: 'مثال: 350' },
+                { id: 'reorder_point', label: 'حد إعادة الطلب', placeholder: 'مثال: 120' }
+            ];
+        }
+        if (section === 'suppliers') {
+            return [
+                { id: 'supplier_name', label: 'اسم المورد', placeholder: 'شركة التوريدات المتقدمة' },
+                { id: 'category', label: 'الفئة', placeholder: 'مواد خام / خدمات' },
+                { id: 'rating', label: 'التقييم', placeholder: 'مثال: 4.5' },
+                { id: 'contract_end', label: 'تاريخ انتهاء العقد', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'orders') {
+            return [
+                { id: 'order_id', label: 'رقم الطلب', placeholder: 'ORD-2026-110' },
+                { id: 'priority', label: 'الأولوية', placeholder: 'عاجل / عادي' },
+                { id: 'channel', label: 'قناة الطلب', placeholder: 'متجر / منصة / مباشر' },
+                { id: 'delivery_date', label: 'تاريخ التسليم', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'smart-procurement') {
+            return [
+                { id: 'scenario_name', label: 'اسم السيناريو', placeholder: 'خفض مخزون زائد' },
+                { id: 'impact', label: 'الأثر المتوقع', placeholder: 'توفير 6% تكاليف' },
+                { id: 'owner', label: 'المالك', placeholder: 'فريق الإمداد' }
+            ];
+        }
+        if (section === 'manufacturing') {
+            return [
+                { id: 'line', label: 'خط الإنتاج', placeholder: 'خط الإنتاج A' },
+                { id: 'order_qty', label: 'كمية الإنتاج', placeholder: 'مثال: 500' },
+                { id: 'start_date', label: 'تاريخ البدء', placeholder: 'YYYY-MM-DD', type: 'date' },
+                { id: 'shift', label: 'الوردية', placeholder: 'صباحي / مسائي' }
+            ];
+        }
+        if (section === 'product-lifecycle') {
+            return [
+                { id: 'product_name', label: 'اسم المنتج', placeholder: 'منتج X' },
+                { id: 'stage', label: 'مرحلة دورة الحياة', placeholder: 'تطوير / نمو / نضج' },
+                { id: 'owner', label: 'المالك', placeholder: 'فريق المنتج' }
+            ];
+        }
+        if (section === 'maintenance') {
+            return [
+                { id: 'asset', label: 'الأصل', placeholder: 'مولد كهربائي رئيسي' },
+                { id: 'issue', label: 'وصف العطل', placeholder: 'اهتزاز عالي' },
+                { id: 'priority', label: 'الأولوية', placeholder: 'عاجل / متوسط' },
+                { id: 'due', label: 'تاريخ الاستحقاق', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'quality') {
+            return [
+                { id: 'batch', label: 'رقم الدفعة', placeholder: 'B-2026-77' },
+                { id: 'defect', label: 'نوع العيب', placeholder: 'خدش / عدم مطابقة' },
+                { id: 'severity', label: 'الخطورة', placeholder: 'منخفض / متوسط / مرتفع' }
+            ];
+        }
+        if (section === 'safety') {
+            return [
+                { id: 'incident', label: 'نوع البلاغ', placeholder: 'إصابة / شبه حادث' },
+                { id: 'location', label: 'الموقع', placeholder: 'منطقة التخزين' },
+                { id: 'date', label: 'التاريخ', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        return [{ id: 'note', label: 'ملاحظة', placeholder: 'تفاصيل إضافية' }];
+    };
+
+    const openSupplyChainModal = ({ title, subtitle, fields, primaryLabel, onSubmit }) => {
+        const existing = document.getElementById('supplychain-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'supplychain-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-xl text-white">${title}</h3>
+                        <p class="text-sm text-white/80">${subtitle || ''}</p>
+                    </div>
+                    <button onclick="document.getElementById('supplychain-modal').remove()" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    ${fields.map(field => `
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">${field.label}</label>
+                            <input id="${field.id}" type="${field.type || 'text'}" placeholder="${field.placeholder || ''}" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-slate-700 focus:ring-2 focus:ring-slate-200">
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="p-6 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                    <button onclick="document.getElementById('supplychain-modal').remove()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-100 transition">إلغاء</button>
+                    <button id="supplychain-modal-submit" class="px-5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">${primaryLabel || 'حفظ'}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const submitBtn = document.getElementById('supplychain-modal-submit');
+        if (submitBtn) {
+            submitBtn.onclick = () => {
+                const payload = fields.reduce((acc, field) => {
+                    acc[field.id] = document.getElementById(field.id)?.value || '';
+                    return acc;
+                }, {});
+                if (onSubmit) onSubmit(payload);
+                modal.remove();
+            };
+        }
+    };
+
+    const downloadSupplyChainPayload = (section, action) => {
+        const payload = {
+            section,
+            action,
+            generated_at: new Date().toISOString(),
+            notes: 'تصدير تشغيلي تجريبي من نظام سلاسل التوريد'
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `supplychain-${section}-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇️ تم تصدير الملف بنجاح', 'success');
+    };
+
     // Strategic Management Render Functions
     const renderExecutiveManagement = async () => {
         console.log('🎯 ============================================');
@@ -8795,45 +8967,91 @@ const app = (() => {
                         <span class="text-slate-600">طلبات قيد الانتظار</span>
                         <i class="fas fa-clock text-yellow-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">14</h3>
+                    <p class="text-xs text-slate-500 mt-1">قيمة 1.9M ر.س</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">طلبات معتمدة</span>
                         <i class="fas fa-check-circle text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">45</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">51</h3>
+                    <p class="text-xs text-slate-500 mt-1">منذ بداية الشهر</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">إجمالي المشتريات</span>
                         <i class="fas fa-dollar-sign text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">$125,000</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">12.8M ر.س</h3>
+                    <p class="text-xs text-emerald-600 mt-1">+6.2% عن الربع السابق</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">متوسط وقت الموافقة</span>
                         <i class="fas fa-hourglass-half text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">2.5 يوم</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">1.8 يوم</h3>
+                    <p class="text-xs text-slate-500 mt-1">SLA: 48 ساعة</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
                 <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <button onclick="app.showToast('فتح نموذج طلب شراء جديد', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('purchases','طلب شراء جديد')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
                         <i class="fas fa-plus-circle text-blue-600 ml-2"></i>
                         <span class="font-bold text-blue-700">طلب شراء جديد</span>
                     </button>
-                    <button onclick="app.showToast('عرض الطلبات المعلقة', 'info')" class="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('purchases','مراجعة الطلبات المعلقة')" class="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-right">
                         <i class="fas fa-list text-yellow-600 ml-2"></i>
                         <span class="font-bold text-yellow-700">الطلبات المعلقة</span>
                     </button>
-                    <button onclick="app.showToast('تصدير تقرير المشتريات', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('purchases','تصدير تقرير المشتريات')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
                         <i class="fas fa-download text-green-600 ml-2"></i>
                         <span class="font-bold text-green-700">تصدير التقرير</span>
                     </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تحليل الإنفاق حسب الفئة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { cat: 'مواد خام', value: '4.2M ر.س', percent: 33, color: 'blue' },
+                            { cat: 'خدمات لوجستية', value: '2.6M ر.س', percent: 20, color: 'emerald' },
+                            { cat: 'قطع غيار', value: '2.1M ر.س', percent: 16, color: 'amber' },
+                            { cat: 'معدات تشغيلية', value: '1.8M ر.س', percent: 14, color: 'violet' },
+                            { cat: 'عقود صيانة', value: '1.1M ر.س', percent: 9, color: 'rose' }
+                        ].map(row => `
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-slate-700">${row.cat}</span>
+                                    <span class="text-slate-600">${row.value}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-3">
+                                    <div class="bg-${row.color}-600 h-3 rounded-full" style="width:${row.percent}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">أهم مؤشرات الموردين</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'شركة التوريدات المتقدمة', lead: '6 أيام', otif: '94%', risk: 'منخفض' },
+                            { name: 'مجموعة الإمداد الذكي', lead: '8 أيام', otif: '91%', risk: 'متوسط' },
+                            { name: 'مؤسسة الجودة للتجارة', lead: '5 أيام', otif: '96%', risk: 'منخفض' }
+                        ].map(s => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div>
+                                    <p class="font-bold text-slate-800">${s.name}</p>
+                                    <p class="text-xs text-slate-500">Lead Time: ${s.lead} • OTIF: ${s.otif}</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">${s.risk}</span>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -8855,28 +9073,32 @@ const app = (() => {
                         <span class="text-slate-600">شحنات نشطة</span>
                         <i class="fas fa-shipping-fast text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">28</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">32</h3>
+                    <p class="text-xs text-slate-500 mt-1">تم التتبع خلال 24 ساعة</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">في الطريق</span>
                         <i class="fas fa-route text-orange-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">15</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">19</h3>
+                    <p class="text-xs text-slate-500 mt-1">ETA متوسط 2.1 يوم</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">تم التسليم اليوم</span>
                         <i class="fas fa-check-double text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">42</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">47</h3>
+                    <p class="text-xs text-emerald-600 mt-1">OTIF: 93%</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">متأخرة</span>
                         <i class="fas fa-exclamation-triangle text-red-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">4</h3>
+                    <p class="text-xs text-slate-500 mt-1">أسباب: ازدحام/جمارك</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -8884,6 +9106,54 @@ const app = (() => {
                 <div class="bg-slate-100 rounded-lg p-8 text-center">
                     <i class="fas fa-map-marked-alt text-6xl text-slate-400 mb-4"></i>
                     <p class="text-slate-600">عرض خريطة تتبع الشحنات في الوقت الفعلي</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات تشغيلية</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.handleSupplyChainAction('logistics','إضافة شحنة جديدة')" class="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus text-emerald-600 ml-2"></i>
+                        <span class="font-bold text-emerald-700">شحنة جديدة</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('logistics','تحديث مسار الشحن')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-route text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تحديث المسار</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('logistics','تصدير تقرير اللوجستيات')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تصدير التقرير</span>
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">أحدث الشحنات</h3>
+                <div class="overflow-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-3 py-2 text-right">رقم الشحنة</th>
+                                <th class="px-3 py-2 text-right">المسار</th>
+                                <th class="px-3 py-2 text-right">الحالة</th>
+                                <th class="px-3 py-2 text-right">ETD/ETA</th>
+                                <th class="px-3 py-2 text-right">مؤشر OTIF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${[
+                                { id: 'SHIP-2026-221', route: 'الرياض → جدة', status: 'قيد التوصيل', eta: '2026-02-03', otif: '95%' },
+                                { id: 'SHIP-2026-219', route: 'الدمام → الرياض', status: 'تم التسليم', eta: '2026-02-01', otif: '98%' },
+                                { id: 'SHIP-2026-214', route: 'جدة → المدينة', status: 'متأخرة', eta: '2026-02-02', otif: '88%' }
+                            ].map(row => `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold">${row.id}</td>
+                                    <td class="px-3 py-2">${row.route}</td>
+                                    <td class="px-3 py-2">${row.status}</td>
+                                    <td class="px-3 py-2">${row.eta}</td>
+                                    <td class="px-3 py-2">${row.otif}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>`;
@@ -8905,45 +9175,100 @@ const app = (() => {
                         <span class="text-slate-600">إجمالي الأصناف</span>
                         <i class="fas fa-box text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">1,245</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">1,312</h3>
+                    <p class="text-xs text-slate-500 mt-1">+4.1% تنوع</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">أصناف منخفضة</span>
                         <i class="fas fa-exclamation-circle text-yellow-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">41</h3>
+                    <p class="text-xs text-amber-600 mt-1">بحاجة إعادة طلب</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">نفذت من المخزون</span>
                         <i class="fas fa-times-circle text-red-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">6</h3>
+                    <p class="text-xs text-red-600 mt-1">أثر على 3 فروع</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">قيمة المخزون</span>
                         <i class="fas fa-dollar-sign text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">$520,000</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">8.4M ر.س</h3>
+                    <p class="text-xs text-emerald-600 mt-1">دوران: 6.2x</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
                 <h3 class="font-bold text-lg mb-4">إدارة المخزون</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <button onclick="app.showToast('إضافة صنف جديد', 'info')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('inventory','إضافة صنف جديد')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
                         <i class="fas fa-plus text-purple-600 ml-2"></i>
                         <span class="font-bold text-purple-700">إضافة صنف</span>
                     </button>
-                    <button onclick="app.showToast('جرد المخزون', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('inventory','تنفيذ جرد المخزون')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
                         <i class="fas fa-clipboard-list text-blue-600 ml-2"></i>
                         <span class="font-bold text-blue-700">جرد</span>
                     </button>
-                    <button onclick="app.showToast('تقرير المخزون', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('inventory','تصدير تقرير المخزون')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
                         <i class="fas fa-file-excel text-green-600 ml-2"></i>
                         <span class="font-bold text-green-700">تصدير</span>
                     </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تحليل ABC</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { label: 'فئة A (قيمة عالية)', percent: 68, count: 142, color: 'red' },
+                            { label: 'فئة B (قيمة متوسطة)', percent: 22, count: 318, color: 'amber' },
+                            { label: 'فئة C (قيمة منخفضة)', percent: 10, count: 852, color: 'green' }
+                        ].map(item => `
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-slate-700">${item.label}</span>
+                                    <span class="text-slate-600">${item.count} صنف</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-3">
+                                    <div class="bg-${item.color}-600 h-3 rounded-full" style="width:${item.percent}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">توصيات إعادة الطلب</h3>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2 text-right">الصنف</th>
+                                    <th class="px-3 py-2 text-right">المتوفر</th>
+                                    <th class="px-3 py-2 text-right">الحد الأدنى</th>
+                                    <th class="px-3 py-2 text-right">الاقتراح</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${[
+                                    { name: 'SKU-1450 مواد خام A', onHand: 85, min: 120, rec: 'طلب 300' },
+                                    { name: 'SKU-2231 قطع غيار', onHand: 40, min: 80, rec: 'طلب 150' },
+                                    { name: 'SKU-1789 عبوات', onHand: 120, min: 200, rec: 'طلب 400' }
+                                ].map(row => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${row.name}</td>
+                                        <td class="px-3 py-2">${row.onHand}</td>
+                                        <td class="px-3 py-2">${row.min}</td>
+                                        <td class="px-3 py-2">${row.rec}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -8965,28 +9290,32 @@ const app = (() => {
                         <span class="text-slate-600">موردون نشطون</span>
                         <i class="fas fa-user-check text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">87</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">94</h3>
+                    <p class="text-xs text-slate-500 mt-1">معتمدون 72%</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">طلبات مفتوحة</span>
                         <i class="fas fa-file-invoice text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">23</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">27</h3>
+                    <p class="text-xs text-slate-500 mt-1">قيمة 3.1M ر.س</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">متوسط التقييم</span>
                         <i class="fas fa-star text-yellow-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">4.5/5</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">4.6/5</h3>
+                    <p class="text-xs text-emerald-600 mt-1">تحسن 0.2</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">إجمالي المدفوعات</span>
                         <i class="fas fa-money-bill-wave text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">$2.1M</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">18.4M ر.س</h3>
+                    <p class="text-xs text-slate-500 mt-1">آخر 12 شهر</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9008,6 +9337,62 @@ const app = (() => {
                     `).join('')}
                 </div>
             </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">بطاقات تقييم الموردين</h3>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2 text-right">المورد</th>
+                                    <th class="px-3 py-2 text-right">الجودة</th>
+                                    <th class="px-3 py-2 text-right">الالتزام</th>
+                                    <th class="px-3 py-2 text-right">السعر</th>
+                                    <th class="px-3 py-2 text-right">التقييم</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${[
+                                    { name: 'شركة التوريدات المتقدمة', q: '97%', o: '94%', p: 'ممتاز', score: '4.8' },
+                                    { name: 'مجموعة الإمداد الذكي', q: '92%', o: '90%', p: 'جيد جدًا', score: '4.5' },
+                                    { name: 'مؤسسة الجودة للتجارة', q: '95%', o: '96%', p: 'ممتاز', score: '4.7' }
+                                ].map(row => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${row.name}</td>
+                                        <td class="px-3 py-2">${row.q}</td>
+                                        <td class="px-3 py-2">${row.o}</td>
+                                        <td class="px-3 py-2">${row.p}</td>
+                                        <td class="px-3 py-2">${row.score}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border space-y-4">
+                    <h3 class="font-bold text-lg">تنبيهات المخاطر</h3>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
+                        3 عقود توريد تنتهي خلال 60 يومًا — يلزم بدء التجديد.
+                    </div>
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-700">
+                        مورد واحد لديه تأخير متكرر خلال 3 شحنات متتالية.
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button onclick="app.handleSupplyChainAction('suppliers','إضافة مورد جديد')" class="p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                            <i class="fas fa-user-plus text-orange-600 ml-2"></i>
+                            <span class="font-bold text-orange-700">إضافة مورد</span>
+                        </button>
+                        <button onclick="app.handleSupplyChainAction('suppliers','تقييم مورد')" class="p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                            <i class="fas fa-star text-blue-600 ml-2"></i>
+                            <span class="font-bold text-blue-700">تقييم مورد</span>
+                        </button>
+                        <button onclick="app.handleSupplyChainAction('suppliers','تصدير ملف الموردين')" class="p-3 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                            <i class="fas fa-download text-green-600 ml-2"></i>
+                            <span class="font-bold text-green-700">تصدير</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>`;
     };
 
@@ -9027,28 +9412,32 @@ const app = (() => {
                         <span class="text-slate-600">طلبات جديدة</span>
                         <i class="fas fa-inbox text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">18</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">22</h3>
+                    <p class="text-xs text-slate-500 mt-1">+6 اليوم</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">قيد التجهيز</span>
                         <i class="fas fa-cog text-orange-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">32</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">37</h3>
+                    <p class="text-xs text-slate-500 mt-1">متوسط تجهيز 1.4 يوم</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">قيد الشحن</span>
                         <i class="fas fa-truck text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">45</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">52</h3>
+                    <p class="text-xs text-slate-500 mt-1">ETA 2.3 يوم</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">تم التسليم</span>
                         <i class="fas fa-check-circle text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">168</h3>
+                    <p class="text-xs text-emerald-600 mt-1">SLA: 94%</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9084,6 +9473,52 @@ const app = (() => {
                     </div>
                 </div>
             </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات تشغيلية</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.handleSupplyChainAction('orders','إنشاء طلب جديد')" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus text-teal-600 ml-2"></i>
+                        <span class="font-bold text-teal-700">طلب جديد</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('orders','تحديث حالة الطلب')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-right">
+                        <i class="fas fa-sync text-orange-600 ml-2"></i>
+                        <span class="font-bold text-orange-700">تحديث الحالة</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('orders','تصدير تقرير الطلبات')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تصدير التقرير</span>
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">قائمة الطلبات ذات التأخير</h3>
+                <div class="overflow-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-3 py-2 text-right">رقم الطلب</th>
+                                <th class="px-3 py-2 text-right">العميل</th>
+                                <th class="px-3 py-2 text-right">سبب التأخير</th>
+                                <th class="px-3 py-2 text-right">أيام التأخير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${[
+                                { id: 'ORD-2026-110', client: 'شركة التميز', reason: 'تأخر مورد', days: 2 },
+                                { id: 'ORD-2026-108', client: 'مؤسسة النجاح', reason: 'مراجعة الجودة', days: 1 },
+                                { id: 'ORD-2026-101', client: 'مجموعة الأمل', reason: 'نقص مخزون', days: 3 }
+                            ].map(row => `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold">${row.id}</td>
+                                    <td class="px-3 py-2">${row.client}</td>
+                                    <td class="px-3 py-2">${row.reason}</td>
+                                    <td class="px-3 py-2">${row.days}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>`;
     };
 
@@ -9103,21 +9538,24 @@ const app = (() => {
                         <span class="text-slate-600">كفاءة السلسلة</span>
                         <i class="fas fa-chart-line text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">92%</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">93%</h3>
+                    <p class="text-xs text-slate-500 mt-1">OTIF +3%</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">توقعات الطلب</span>
                         <i class="fas fa-crystal-ball text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">+15%</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">+12%</h3>
+                    <p class="text-xs text-slate-500 mt-1">ربع سنوي</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">توفير التكاليف</span>
                         <i class="fas fa-piggy-bank text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">$45K</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">520K ر.س</h3>
+                    <p class="text-xs text-emerald-600 mt-1">توفير متحقق</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9133,6 +9571,52 @@ const app = (() => {
                             <p class="text-slate-700">${rec.text}</p>
                         </div>
                     `).join('')}
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">سيناريوهات الإمداد</h3>
+                <div class="overflow-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-3 py-2 text-right">السيناريو</th>
+                                <th class="px-3 py-2 text-right">الأثر المتوقع</th>
+                                <th class="px-3 py-2 text-right">الجدوى</th>
+                                <th class="px-3 py-2 text-right">المالك</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${[
+                                { name: 'خفض مخزون زائد', impact: 'توفير 6%', score: 'عالية', owner: 'الإمداد' },
+                                { name: 'تنويع الموردين', impact: 'خفض مخاطر 18%', score: 'متوسطة', owner: 'المشتريات' },
+                                { name: 'إعادة توزيع المخزون', impact: 'تحسين OTIF 4%', score: 'عالية', owner: 'العمليات' }
+                            ].map(row => `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold">${row.name}</td>
+                                    <td class="px-3 py-2">${row.impact}</td>
+                                    <td class="px-3 py-2">${row.score}</td>
+                                    <td class="px-3 py-2">${row.owner}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات ذكية</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.handleSupplyChainAction('smart-procurement','تشغيل محرك التوصيات')" class="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition text-right">
+                        <i class="fas fa-bolt text-indigo-600 ml-2"></i>
+                        <span class="font-bold text-indigo-700">تشغيل التوصيات</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('smart-procurement','تحليل سيناريو جديد')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-right">
+                        <i class="fas fa-flask text-purple-600 ml-2"></i>
+                        <span class="font-bold text-purple-700">تحليل سيناريو</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('smart-procurement','تصدير تقرير الذكاء')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تصدير التقرير</span>
+                    </button>
                 </div>
             </div>
         </div>`;
@@ -9154,41 +9638,85 @@ const app = (() => {
                         <span class="text-slate-600">خطوط الإنتاج النشطة</span>
                         <i class="fas fa-cogs text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">8/10</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">9/10</h3>
+                    <p class="text-xs text-slate-500 mt-1">جاهزية 90%</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">الإنتاج اليومي</span>
                         <i class="fas fa-box-open text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">1,245</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">1,380</h3>
+                    <p class="text-xs text-emerald-600 mt-1">+7% عن الأسبوع</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">معدل الكفاءة</span>
                         <i class="fas fa-tachometer-alt text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">87%</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">89%</h3>
+                    <p class="text-xs text-slate-500 mt-1">OEE محدث</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">أوامر قيد التنفيذ</span>
                         <i class="fas fa-tasks text-orange-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">34</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">29</h3>
+                    <p class="text-xs text-slate-500 mt-1">سعات 3 أيام</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
                 <h3 class="font-bold text-lg mb-4">أوامر الإنتاج</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <button onclick="app.showToast('إنشاء أمر إنتاج جديد', 'info')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('manufacturing','إنشاء أمر إنتاج جديد')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
                         <i class="fas fa-plus-circle text-blue-600 ml-2"></i>
                         <span class="font-bold text-blue-700">أمر إنتاج جديد</span>
                     </button>
-                    <button onclick="app.showToast('عرض تقرير الإنتاج', 'success')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                    <button onclick="app.handleSupplyChainAction('manufacturing','تقرير الإنتاج')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
                         <i class="fas fa-chart-bar text-green-600 ml-2"></i>
                         <span class="font-bold text-green-700">تقرير الإنتاج</span>
                     </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تفصيل مؤشر OEE</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { label: 'التوفر', value: 92, color: 'blue' },
+                            { label: 'الأداء', value: 88, color: 'green' },
+                            { label: 'الجودة', value: 93, color: 'purple' }
+                        ].map(item => `
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-bold text-slate-700">${item.label}</span>
+                                    <span class="text-slate-600">${item.value}%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-3">
+                                    <div class="bg-${item.color}-600 h-3 rounded-full" style="width:${item.value}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">عنق الزجاجة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { line: 'خط الإنتاج B', issue: 'توقف متكرر', impact: '3.2 ساعة' },
+                            { line: 'خط التعبئة', issue: 'سعة منخفضة', impact: '1.1 ساعة' },
+                            { line: 'الفرن الحراري', issue: 'تأخير إعداد', impact: '0.9 ساعة' }
+                        ].map(item => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div>
+                                    <p class="font-bold text-slate-800">${item.line}</p>
+                                    <p class="text-xs text-slate-500">${item.issue}</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 font-bold">${item.impact}</span>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -9210,28 +9738,32 @@ const app = (() => {
                         <span class="text-slate-600">منتجات نشطة</span>
                         <i class="fas fa-cube text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">245</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">268</h3>
+                    <p class="text-xs text-slate-500 mt-1">محفظة نشطة</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">قيد التطوير</span>
                         <i class="fas fa-flask text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">14</h3>
+                    <p class="text-xs text-slate-500 mt-1">قيد الابتكار</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">في مرحلة النضج</span>
                         <i class="fas fa-chart-line text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">162</h3>
+                    <p class="text-xs text-emerald-600 mt-1">أعلى هامش</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">قيد الإيقاف</span>
                         <i class="fas fa-stop-circle text-red-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">6</h3>
+                    <p class="text-xs text-slate-500 mt-1">خطة إيقاف</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9256,6 +9788,59 @@ const app = (() => {
                     `).join('')}
                 </div>
             </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">خارطة الإطلاقات القادمة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { name: 'منتج X2', date: '2026-03-10', status: 'تصميم نهائي' },
+                            { name: 'منتج Y Green', date: '2026-04-05', status: 'اختبار سوق' },
+                            { name: 'منتج Z Lite', date: '2026-05-22', status: 'جاهز للإطلاق' }
+                        ].map(item => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div>
+                                    <p class="font-bold text-slate-800">${item.name}</p>
+                                    <p class="text-xs text-slate-500">${item.status}</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">${item.date}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">هامش الربح حسب المرحلة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { stage: 'النمو', margin: '32%', color: 'green' },
+                            { stage: 'النضج', margin: '41%', color: 'emerald' },
+                            { stage: 'التقديم', margin: '18%', color: 'blue' },
+                            { stage: 'الانحدار', margin: '9%', color: 'red' }
+                        ].map(item => `
+                            <div class="flex items-center justify-between p-3 bg-${item.color}-50 rounded-lg">
+                                <span class="font-bold text-slate-800">${item.stage}</span>
+                                <span class="text-${item.color}-700 font-bold">${item.margin}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.handleSupplyChainAction('product-lifecycle','إضافة منتج جديد')" class="p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition text-right">
+                        <i class="fas fa-plus text-emerald-600 ml-2"></i>
+                        <span class="font-bold text-emerald-700">إضافة منتج</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('product-lifecycle','تحديث مرحلة المنتج')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-rotate text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">تحديث المرحلة</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('product-lifecycle','تصدير خارطة المنتجات')" class="p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-slate-600 ml-2"></i>
+                        <span class="font-bold text-slate-700">تصدير</span>
+                    </button>
+                </div>
+            </div>
         </div>`;
     };
 
@@ -9275,28 +9860,32 @@ const app = (() => {
                         <span class="text-slate-600">طلبات صيانة مفتوحة</span>
                         <i class="fas fa-tools text-orange-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">15</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">13</h3>
+                    <p class="text-xs text-slate-500 mt-1">إجمالي 320 ساعة عمل</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">صيانة وقائية مجدولة</span>
                         <i class="fas fa-calendar-check text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">8</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">11</h3>
+                    <p class="text-xs text-slate-500 mt-1">قادمة خلال 14 يومًا</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">معدل الاستجابة</span>
                         <i class="fas fa-stopwatch text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">2.5 ساعة</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">2.1 ساعة</h3>
+                    <p class="text-xs text-emerald-600 mt-1">تحسن 0.4 ساعة</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">معدل الإنجاز</span>
                         <i class="fas fa-check-circle text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">94%</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">95%</h3>
+                    <p class="text-xs text-slate-500 mt-1">SLA: 96%</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9320,6 +9909,58 @@ const app = (() => {
                     `).join('')}
                 </div>
             </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">مؤشرات الاعتمادية</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { label: 'MTBF', value: '128 ساعة', color: 'blue' },
+                            { label: 'MTTR', value: '2.1 ساعة', color: 'green' },
+                            { label: 'معدل الأعطال', value: '1.8%', color: 'orange' }
+                        ].map(item => `
+                            <div class="flex items-center justify-between p-3 bg-${item.color}-50 rounded-lg">
+                                <span class="font-bold text-slate-800">${item.label}</span>
+                                <span class="text-${item.color}-700 font-bold">${item.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">تذاكر الصيانة المفتوحة</h3>
+                    <div class="space-y-3">
+                        ${[
+                            { asset: 'مولد كهربائي رئيسي', status: 'قيد التنفيذ', sla: '6 ساعات' },
+                            { asset: 'خط التعبئة', status: 'بانتظار قطع', sla: '12 ساعة' },
+                            { asset: 'نظام التبريد', status: 'مجدولة', sla: '24 ساعة' }
+                        ].map(item => `
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <div>
+                                    <p class="font-bold text-slate-800">${item.asset}</p>
+                                    <p class="text-xs text-slate-500">${item.status}</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-bold">${item.sla}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border">
+                <h3 class="font-bold text-lg mb-4">إجراءات سريعة</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="app.handleSupplyChainAction('maintenance','فتح طلب صيانة')" class="p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-right">
+                        <i class="fas fa-wrench text-yellow-600 ml-2"></i>
+                        <span class="font-bold text-yellow-700">طلب صيانة</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('maintenance','جدولة صيانة وقائية')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                        <i class="fas fa-calendar-check text-blue-600 ml-2"></i>
+                        <span class="font-bold text-blue-700">جدولة وقائية</span>
+                    </button>
+                    <button onclick="app.handleSupplyChainAction('maintenance','تصدير سجل الصيانة')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                        <i class="fas fa-download text-green-600 ml-2"></i>
+                        <span class="font-bold text-green-700">تصدير السجل</span>
+                    </button>
+                </div>
+            </div>
         </div>`;
     };
 
@@ -9339,28 +9980,32 @@ const app = (() => {
                         <span class="text-slate-600">معدل القبول</span>
                         <i class="fas fa-check-circle text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">98.5%</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">98.9%</h3>
+                    <p class="text-xs text-emerald-600 mt-1">تحسن 0.4%</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">فحوصات اليوم</span>
                         <i class="fas fa-clipboard-check text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">156</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">172</h3>
+                    <p class="text-xs text-slate-500 mt-1">مختبر الجودة</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">حالات الرفض</span>
                         <i class="fas fa-times-circle text-red-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">3</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">2</h3>
+                    <p class="text-xs text-red-600 mt-1">معدل 1.1%</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">شهادات نشطة</span>
                         <i class="fas fa-certificate text-yellow-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">13</h3>
+                    <p class="text-xs text-slate-500 mt-1">ISO وHACCP</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9382,6 +10027,54 @@ const app = (() => {
                     `).join('')}
                 </div>
             </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">حالات عدم المطابقة</h3>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2 text-right">الدفعة</th>
+                                    <th class="px-3 py-2 text-right">النوع</th>
+                                    <th class="px-3 py-2 text-right">الخطورة</th>
+                                    <th class="px-3 py-2 text-right">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${[
+                                    { batch: 'B-2026-77', type: 'خدش', sev: 'منخفض', action: 'فرز' },
+                                    { batch: 'B-2026-74', type: 'وزن ناقص', sev: 'متوسط', action: 'إعادة فحص' },
+                                    { batch: 'B-2026-72', type: 'تفاوت أبعاد', sev: 'مرتفع', action: 'إيقاف شحنة' }
+                                ].map(row => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${row.batch}</td>
+                                        <td class="px-3 py-2">${row.type}</td>
+                                        <td class="px-3 py-2">${row.sev}</td>
+                                        <td class="px-3 py-2">${row.action}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">إجراءات الجودة</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button onclick="app.handleSupplyChainAction('quality','تسجيل فحص جديد')" class="p-4 bg-red-50 hover:bg-red-100 rounded-lg transition text-right">
+                            <i class="fas fa-clipboard-check text-red-600 ml-2"></i>
+                            <span class="font-bold text-red-700">فحص جديد</span>
+                        </button>
+                        <button onclick="app.handleSupplyChainAction('quality','فتح CAPA')" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-lg transition text-right">
+                            <i class="fas fa-clipboard-list text-amber-600 ml-2"></i>
+                            <span class="font-bold text-amber-700">فتح CAPA</span>
+                        </button>
+                        <button onclick="app.handleSupplyChainAction('quality','تصدير تقارير الجودة')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                            <i class="fas fa-download text-green-600 ml-2"></i>
+                            <span class="font-bold text-green-700">تصدير</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>`;
     };
 
@@ -9401,28 +10094,32 @@ const app = (() => {
                         <span class="text-slate-600">أيام بدون حوادث</span>
                         <i class="fas fa-shield-alt text-green-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">245</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">268</h3>
+                    <p class="text-xs text-emerald-600 mt-1">سجل ممتاز</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">تدريبات السلامة</span>
                         <i class="fas fa-user-graduate text-blue-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">12</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">14</h3>
+                    <p class="text-xs text-slate-500 mt-1">90% التزام</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">فحوصات السلامة</span>
                         <i class="fas fa-clipboard-list text-purple-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">8/8</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">9/9</h3>
+                    <p class="text-xs text-slate-500 mt-1">جولات شهرية</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-sm border">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-slate-600">معدات السلامة</span>
                         <i class="fas fa-box text-orange-600"></i>
                     </div>
-                    <h3 class="text-3xl font-bold text-slate-800">100%</h3>
+                    <h3 class="text-3xl font-bold text-slate-800">98%</h3>
+                    <p class="text-xs text-slate-500 mt-1">3 عناصر تحتاج إحلال</p>
                 </div>
             </div>
             <div class="bg-white rounded-xl p-6 shadow-sm border">
@@ -9462,6 +10159,54 @@ const app = (() => {
                             <span class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">${tr.date}</span>
                         </div>
                     `).join('')}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">بلاغات السلامة الأخيرة</h3>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2 text-right">البلاغ</th>
+                                    <th class="px-3 py-2 text-right">الموقع</th>
+                                    <th class="px-3 py-2 text-right">التصنيف</th>
+                                    <th class="px-3 py-2 text-right">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${[
+                                    { type: 'شبه حادث', loc: 'المستودع', cat: 'منخفض', action: 'تم الإغلاق' },
+                                    { type: 'إصابة خفيفة', loc: 'خط الإنتاج', cat: 'متوسط', action: 'متابعة' },
+                                    { type: 'سلوك غير آمن', loc: 'منطقة التحميل', cat: 'منخفض', action: 'توعية' }
+                                ].map(row => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${row.type}</td>
+                                        <td class="px-3 py-2">${row.loc}</td>
+                                        <td class="px-3 py-2">${row.cat}</td>
+                                        <td class="px-3 py-2">${row.action}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4">إجراءات السلامة</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button onclick="app.handleSupplyChainAction('safety','تسجيل بلاغ سلامة')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-right">
+                            <i class="fas fa-shield-alt text-blue-600 ml-2"></i>
+                            <span class="font-bold text-blue-700">بلاغ جديد</span>
+                        </button>
+                        <button onclick="app.handleSupplyChainAction('safety','جدولة تدريب سلامة')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-right">
+                            <i class="fas fa-user-graduate text-green-600 ml-2"></i>
+                            <span class="font-bold text-green-700">جدولة تدريب</span>
+                        </button>
+                        <button onclick="app.handleSupplyChainAction('safety','تصدير سجل السلامة')" class="p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition text-right">
+                            <i class="fas fa-download text-slate-600 ml-2"></i>
+                            <span class="font-bold text-slate-700">تصدير</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -15458,7 +16203,8 @@ const app = (() => {
         init: init,  // Expose init function
         loadRoute: loadRoute,  // Expose loadRoute function
         showToast: showToast,  // Expose showToast for external use
-        createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction, handleFacilityPageAction  // Facilities functions
+        createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction, handleFacilityPageAction,
+        handleSupplyChainAction  // Facilities & Supply Chain functions
     };
 })();
 
