@@ -7726,6 +7726,131 @@ const app = (() => {
         showToast('⬇️ تم تصدير الملف بنجاح', 'success');
     };
 
+    const handleQualityPolicyAction = (section, action) => {
+        if (action.includes('تصدير')) {
+            downloadQualityPolicyPayload(section, action);
+            return;
+        }
+
+        const fields = getQualityPolicyFields(section, action);
+        openQualityPolicyModal({
+            title: action,
+            subtitle: 'يرجى تعبئة البيانات ثم اعتماد الإجراء.',
+            fields,
+            primaryLabel: 'اعتماد',
+            onSubmit: (payload) => {
+                logAction('QUALITY_POLICY_ACTION', { section, action, payload });
+                showToast(`✅ تم تنفيذ: ${action}`, 'success');
+            }
+        });
+    };
+
+    const getQualityPolicyFields = (section, action) => {
+        if (section === 'policies') {
+            return [
+                { id: 'policy_name', label: 'اسم السياسة', placeholder: 'مثال: سياسة النزاهة الأكاديمية' },
+                { id: 'owner', label: 'المالك', placeholder: 'إدارة الجودة' },
+                { id: 'review_date', label: 'تاريخ المراجعة', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'kpi') {
+            return [
+                { id: 'kpi_name', label: 'اسم المؤشر', placeholder: 'الامتثال للسياسات' },
+                { id: 'current', label: 'القيمة الحالية', placeholder: 'مثال: 96%' },
+                { id: 'target', label: 'المستهدف', placeholder: 'مثال: 98%' }
+            ];
+        }
+        if (section === 'reports') {
+            return [
+                { id: 'period', label: 'فترة التقرير', placeholder: 'يناير 2026' },
+                { id: 'scope', label: 'النطاق', placeholder: 'الجودة والسياسات' },
+                { id: 'owner', label: 'مسؤول الإصدار', placeholder: 'مدير الجودة' }
+            ];
+        }
+        if (section === 'support') {
+            return [
+                { id: 'ticket_title', label: 'عنوان الطلب', placeholder: 'مثال: تعذر الوصول للسياسات' },
+                { id: 'priority', label: 'الأولوية', placeholder: 'عاجل / متوسط' },
+                { id: 'requester', label: 'مقدم الطلب', placeholder: 'اسم المستفيد' }
+            ];
+        }
+        if (section === 'privacy') {
+            return [
+                { id: 'dataset', label: 'البيانات المعنية', placeholder: 'بيانات المتعلمين' },
+                { id: 'risk_level', label: 'مستوى المخاطر', placeholder: 'منخفض / متوسط / مرتفع' },
+                { id: 'reviewer', label: 'المراجع', placeholder: 'مسؤول الأمن السيبراني' }
+            ];
+        }
+        return [
+            { id: 'note', label: 'ملاحظة', placeholder: 'تفاصيل إضافية' }
+        ];
+    };
+
+    const openQualityPolicyModal = ({ title, subtitle, fields, primaryLabel, onSubmit }) => {
+        const existing = document.getElementById('quality-policy-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'quality-policy-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-teal-600 to-cyan-600 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-xl text-white">${title}</h3>
+                        <p class="text-sm text-white/80">${subtitle || ''}</p>
+                    </div>
+                    <button onclick="document.getElementById('quality-policy-modal').remove()" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    ${fields.map(field => `
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">${field.label}</label>
+                            <input id="${field.id}" type="${field.type || 'text'}" placeholder="${field.placeholder || ''}" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200">
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="p-6 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                    <button onclick="document.getElementById('quality-policy-modal').remove()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-100 transition">إلغاء</button>
+                    <button id="quality-policy-modal-submit" class="px-5 py-2 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition">${primaryLabel || 'اعتماد'}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const submitBtn = document.getElementById('quality-policy-modal-submit');
+        if (submitBtn) {
+            submitBtn.onclick = () => {
+                const payload = fields.reduce((acc, field) => {
+                    acc[field.id] = document.getElementById(field.id)?.value || '';
+                    return acc;
+                }, {});
+                if (onSubmit) onSubmit(payload);
+                modal.remove();
+            };
+        }
+    };
+
+    const downloadQualityPolicyPayload = (section, action) => {
+        const payload = {
+            section,
+            action,
+            generated_at: new Date().toISOString(),
+            notes: 'تصدير تجريبي من لوحة الجودة والسياسات'
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `quality-policies-${section}-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇️ تم تصدير الملف بنجاح', 'success');
+    };
+
     // Strategic Management Render Functions
     const renderExecutiveManagement = async () => {
         console.log('🎯 ============================================');
@@ -8427,15 +8552,76 @@ const app = (() => {
             fetchAPI('/api/quality-standards'),
             fetchAPI('/api/quality-audits')
         ]);
+
+        const policyCatalog = [
+            { title: 'سياسة القبول', owner: 'شؤون البرامج', status: 'محدث', due: '2026-02-15' },
+            { title: 'سياسة الشهادات', owner: 'الاعتماد والجودة', status: 'نشط', due: '2026-03-05' },
+            { title: 'سياسة الاعتماد', owner: 'الاعتماد والجودة', status: 'قيد المراجعة', due: '2026-01-29' },
+            { title: 'سياسة الانسحاب والاسترداد', owner: 'الخدمات المالية', status: 'محدث', due: '2026-02-20' },
+            { title: 'سياسة النزاهة الأكاديمية', owner: 'التقويم والمتابعة', status: 'نشط', due: '2026-04-10' },
+            { title: 'سياسة حماية الملكية الفكرية', owner: 'الشؤون القانونية', status: 'قيد الاعتماد', due: '2026-03-25' },
+            { title: 'سياسة الحضور والمشاركة', owner: 'شؤون المتعلمين', status: 'نشط', due: '2026-01-30' },
+            { title: 'سياسة التقييم والاختبارات الإلكترونية', owner: 'التقويم والمتابعة', status: 'محدث', due: '2026-02-08' },
+            { title: 'سياسة تطوير المحتوى', owner: 'التطوير التعليمي', status: 'قيد المراجعة', due: '2026-03-18' },
+            { title: 'سياسة إدارة المخاطر', owner: 'إدارة المخاطر', status: 'نشط', due: '2026-01-28' },
+            { title: 'سياسة استمرارية الأعمال', owner: 'إدارة المخاطر', status: 'نشط', due: '2026-04-01' },
+            { title: 'سياسة الجودة الشاملة (TQM)', owner: 'الجودة والتميز', status: 'نشط', due: '2026-05-12' }
+        ];
+
+        const governanceCards = [
+            { title: 'الدعم الفني ودعم المتعلمين', desc: 'مركز موحد لطلبات الدعم، SLA صارم، تتبع رضا المستفيدين', metric: '98%', tone: 'from-sky-500 to-cyan-600', icon: 'fa-headset' },
+            { title: 'أمن البيانات والخصوصية', desc: 'تصنيف البيانات، سياسات الوصول، تشفير السجلات، امتثال نظامي', metric: 'AA', tone: 'from-indigo-500 to-purple-600', icon: 'fa-shield-halved' },
+            { title: 'الحوكمة وإدارة الجودة', desc: 'لجان التدقيق، التقارير الدورية، مراجعات التحسين المستمر', metric: '12 لجنة', tone: 'from-emerald-500 to-teal-600', icon: 'fa-scale-balanced' }
+        ];
+
+        const qualityPrograms = [
+            { title: 'مراقبة الجودة', desc: 'خطط تفتيش دورية، سجلات عدم المطابقة', progress: 92 },
+            { title: 'ضمان الجودة', desc: 'مراجعة العمليات الأساسية وربط المخاطر بالضوابط', progress: 88 },
+            { title: 'نماذج الجودة', desc: 'نموذج EFQM، معيار ISO 9001، ونماذج محلية', progress: 81 },
+            { title: 'مصفوفة مؤشرات الأداء KPIs', desc: 'تتبع مؤشرات الجودة لكل برنامج/إدارة', progress: 90 },
+            { title: 'التقارير', desc: 'تقارير شهرية مع توصيات تصحيحية', progress: 95 }
+        ];
+
+        const kpiMatrix = [
+            { area: 'الامتثال للسياسات', target: '98%', current: '96%', trend: '+2%' },
+            { area: 'نتائج التدقيق الداخلي', target: '95%', current: '93%', trend: '+1%' },
+            { area: 'رضا المستفيدين', target: '90%', current: '92%', trend: '+3%' },
+            { area: 'سلامة البيانات', target: '99%', current: '98.5%', trend: '+0.5%' },
+            { area: 'تحسين العمليات', target: '12 مبادرة', current: '10', trend: '+2' }
+        ];
         
         return `
         <div class="space-y-6 animate-fade-in">
             <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
-                <h2 class="text-3xl font-bold flex items-center gap-3">
-                    <i class="fas fa-clipboard-check"></i>
-                    الجودة والتدقيق
-                </h2>
-                <p class="mt-2 opacity-90">معايير الجودة ومراجعة الأداء</p>
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-bold flex items-center gap-3">
+                            <i class="fas fa-clipboard-check"></i>
+                            الجودة والسياسات
+                        </h2>
+                        <p class="mt-2 opacity-90">حوكمة الجودة، السياسات التفصيلية، ومصفوفة مؤشرات الأداء</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="app.handleQualityPolicyAction('policies','إطلاق مراجعة السياسات')" class="px-4 py-2 bg-white/15 rounded-xl text-sm font-bold hover:bg-white/25 transition">مراجعة السياسات</button>
+                        <button onclick="app.handleQualityPolicyAction('reports','تصدير تقرير الجودة والسياسات')" class="px-4 py-2 bg-white/15 rounded-xl text-sm font-bold hover:bg-white/25 transition">تصدير التقرير</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${governanceCards.map(card => `
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-r ${card.tone} flex items-center justify-center text-white">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500">${card.metric}</span>
+                        </div>
+                        <h3 class="mt-4 font-bold text-lg text-slate-800">${card.title}</h3>
+                        <p class="text-sm text-slate-600 mt-2">${card.desc}</p>
+                        <button onclick="app.handleQualityPolicyAction('governance','تحديث ${card.title}')" class="mt-4 text-sm font-bold text-teal-700">تحديث المسار</button>
+                    </div>
+                `).join('')}
             </div>
             
             <!-- Quality Standards -->
@@ -8509,6 +8695,87 @@ const app = (() => {
                             </div>
                         </div>
                     `).join('')}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-xl text-slate-800">السياسات التفصيلية</h3>
+                        <button onclick="app.handleQualityPolicyAction('policies','تحديث سجل السياسات')" class="text-sm font-bold text-teal-700">تحديث السجل</button>
+                    </div>
+                    <div class="space-y-3">
+                        ${policyCatalog.map(policy => `
+                            <div class="border border-slate-100 rounded-xl p-4 hover:bg-slate-50 transition">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">${policy.title}</h4>
+                                        <p class="text-xs text-slate-500 mt-1">المالك: ${policy.owner}</p>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                        policy.status === 'محدث' ? 'bg-emerald-100 text-emerald-700' :
+                                        policy.status === 'نشط' ? 'bg-blue-100 text-blue-700' :
+                                        'bg-amber-100 text-amber-700'
+                                    }">${policy.status}</span>
+                                </div>
+                                <div class="mt-3 text-xs text-slate-500">موعد المراجعة التالي: <span class="font-bold text-slate-700">${policy.due}</span></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-xl text-slate-800">برامج الجودة والتحسين</h3>
+                        <button onclick="app.handleQualityPolicyAction('quality','تحديث خطط الجودة')" class="text-sm font-bold text-teal-700">تحديث الخطة</button>
+                    </div>
+                    <div class="space-y-4">
+                        ${qualityPrograms.map(program => `
+                            <div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="font-bold text-slate-700">${program.title}</span>
+                                    <span class="text-slate-500">${program.progress}%</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">${program.desc}</p>
+                                <div class="w-full h-2 bg-slate-100 rounded-full mt-2">
+                                    <div class="h-2 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500" style="width:${program.progress}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-sm border">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-xl text-slate-800">مصفوفة مؤشرات الأداء (KPIs)</h3>
+                    <button onclick="app.handleQualityPolicyAction('kpi','تحديث مصفوفة KPIs')" class="text-sm font-bold text-teal-700">تحديث المؤشرات</button>
+                </div>
+                <div class="overflow-auto">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-3 py-2">المجال</th>
+                                <th class="px-3 py-2">المستهدف</th>
+                                <th class="px-3 py-2">الحالي</th>
+                                <th class="px-3 py-2">الاتجاه</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${kpiMatrix.map(row => `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold">${row.area}</td>
+                                    <td class="px-3 py-2">${row.target}</td>
+                                    <td class="px-3 py-2">${row.current}</td>
+                                    <td class="px-3 py-2 text-emerald-600 font-bold">${row.trend}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <button onclick="app.handleQualityPolicyAction('reports','إصدار تقرير الجودة الشهري')" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition">إصدار تقرير</button>
+                    <button onclick="app.handleQualityPolicyAction('support','فتح طلب دعم فني')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition">دعم فني</button>
+                    <button onclick="app.handleQualityPolicyAction('privacy','مراجعة أمن البيانات والخصوصية')" class="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-bold hover:bg-indigo-100 transition">أمن البيانات</button>
                 </div>
             </div>
         </div>`;
@@ -16204,7 +16471,7 @@ const app = (() => {
         loadRoute: loadRoute,  // Expose loadRoute function
         showToast: showToast,  // Expose showToast for external use
         createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction, handleFacilityPageAction,
-        handleSupplyChainAction  // Facilities & Supply Chain functions
+        handleSupplyChainAction, handleQualityPolicyAction  // Facilities, Supply Chain, Quality & Policies functions
     };
 })();
 
