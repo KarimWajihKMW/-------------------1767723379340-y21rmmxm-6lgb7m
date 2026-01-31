@@ -15463,6 +15463,7 @@ const app = (() => {
 })();
 
 window.app = app;
+window.loadRoute = app.loadRoute;
 
 // ========================================
 // TASK MANAGEMENT (Outside closure)
