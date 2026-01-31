@@ -403,6 +403,10 @@ const app = (() => {
     };
 
     const isOfficeRouteAllowed = (route) => {
+        const tenantType = currentUser?.tenantType || currentUser?.tenant_type;
+        if (tenantType === 'HQ') {
+            return true;
+        }
         if (currentUser?.entityId === 'HQ001' || currentUser?.entity_id === 'HQ001') {
             return true;
         }
