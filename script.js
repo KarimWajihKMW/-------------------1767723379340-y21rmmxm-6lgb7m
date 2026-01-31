@@ -376,6 +376,11 @@ const app = (() => {
         'facilities-real-estate': 'facilities',
         'facilities-assets': 'facilities',
         'facilities-projects': 'facilities',
+        'facilities-projects-maintenance': 'facilities',
+        'facilities-projects-contracts': 'facilities',
+        'facilities-projects-vendors': 'facilities',
+        'facilities-projects-energy': 'facilities',
+        'facilities-projects-crowd': 'facilities',
         'main-menu': 'tasks-management',
         'control-panel': 'tasks-management',
         'my-tasks': 'tasks-management',
@@ -1541,6 +1546,11 @@ const app = (() => {
         else if (route === 'facilities-real-estate') content = renderFacilitiesRealEstate();
         else if (route === 'facilities-assets') content = renderFacilitiesAssets();
         else if (route === 'facilities-projects') content = renderFacilitiesProjects();
+        else if (route === 'facilities-projects-maintenance') content = renderFacilitiesProjectsMaintenance();
+        else if (route === 'facilities-projects-contracts') content = renderFacilitiesProjectsContracts();
+        else if (route === 'facilities-projects-vendors') content = renderFacilitiesProjectsVendors();
+        else if (route === 'facilities-projects-energy') content = renderFacilitiesProjectsEnergy();
+        else if (route === 'facilities-projects-crowd') content = renderFacilitiesProjectsCrowd();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1593,6 +1603,11 @@ const app = (() => {
             'facilities-real-estate': 'العقارات والمباني - إدارة المرافق',
             'facilities-assets': 'إدارة الأصول - إدارة المرافق',
             'facilities-projects': 'إدارة المشاريع - إدارة المرافق',
+            'facilities-projects-maintenance': 'الصيانة - إدارة المشاريع',
+            'facilities-projects-contracts': 'عقود الطرف التاني - إدارة المشاريع',
+            'facilities-projects-vendors': 'الموردين - إدارة المشاريع',
+            'facilities-projects-energy': 'ادارة الطاقه - إدارة المشاريع',
+            'facilities-projects-crowd': 'اداره الحشود - إدارة المشاريع',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية',
             // Strategic Management subitems
@@ -1700,6 +1715,11 @@ const app = (() => {
         'facilities-real-estate': '/facilities/real-estate',
         'facilities-assets': '/facilities/assets',
         'facilities-projects': '/facilities/projects',
+        'facilities-projects-maintenance': '/facilities/projects/maintenance',
+        'facilities-projects-contracts': '/facilities/projects/contracts',
+        'facilities-projects-vendors': '/facilities/projects/vendors',
+        'facilities-projects-energy': '/facilities/projects/energy',
+        'facilities-projects-crowd': '/facilities/projects/crowd',
         'audit-logs': '/audit-logs',
         'settings': '/settings',
         'employees': '/hr',
@@ -1757,6 +1777,11 @@ const app = (() => {
         '/facilities/real-estate': 'facilities-real-estate',
         '/facilities/assets': 'facilities-assets',
         '/facilities/projects': 'facilities-projects',
+        '/facilities/projects/maintenance': 'facilities-projects-maintenance',
+        '/facilities/projects/contracts': 'facilities-projects-contracts',
+        '/facilities/projects/vendors': 'facilities-projects-vendors',
+        '/facilities/projects/energy': 'facilities-projects-energy',
+        '/facilities/projects/crowd': 'facilities-projects-crowd',
         '/audit-logs': 'audit-logs',
         '/settings': 'settings',
         '/hr': 'employees',
@@ -1998,7 +2023,12 @@ const app = (() => {
                         { id: 'facilities-events', icon: 'fa-calendar-star', label: 'الفعاليات والترفيه' },
                         { id: 'facilities-real-estate', icon: 'fa-city', label: 'العقارات والمباني' },
                         { id: 'facilities-assets', icon: 'fa-boxes-stacked', label: 'إدارة الأصول' },
-                        { id: 'facilities-projects', icon: 'fa-diagram-project', label: 'إدارة المشاريع' }
+                        { id: 'facilities-projects', icon: 'fa-diagram-project', label: 'إدارة المشاريع' },
+                        { id: 'facilities-projects-maintenance', icon: 'fa-screwdriver-wrench', label: 'الصيانة' },
+                        { id: 'facilities-projects-contracts', icon: 'fa-file-contract', label: 'عقود الطرف التاني' },
+                        { id: 'facilities-projects-vendors', icon: 'fa-people-carry-box', label: 'الموردين' },
+                        { id: 'facilities-projects-energy', icon: 'fa-bolt', label: 'ادارة الطاقه' },
+                        { id: 'facilities-projects-crowd', icon: 'fa-people-group', label: 'اداره الحشود' }
                     ]
                 },
                 { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() && isOfficeRouteAllowed('settings') },
@@ -7428,6 +7458,456 @@ const app = (() => {
                     <button onclick="app.handleFacilityPageAction('projects','فتح مركز القرارات')" class="w-full px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition">مركز القرارات</button>
                 </div>
             </div>
+
+            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg text-slate-800">بوابات إدارة المشاريع المتخصصة</h3>
+                    <span class="text-xs font-bold text-slate-500">تفرعات تشغيل المرافق</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                    <button onclick="app.loadRoute('facilities-projects-maintenance')" class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-right hover:border-emerald-200 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">الصيانة</p>
+                                <h4 class="font-bold text-slate-800 mt-1">خطة الصيانة الذكية</h4>
+                                <p class="text-xs text-slate-500 mt-1">SLA، قطع الغيار، فرق الميدان</p>
+                            </div>
+                            <i class="fas fa-screwdriver-wrench text-emerald-600 text-xl"></i>
+                        </div>
+                    </button>
+                    <button onclick="app.loadRoute('facilities-projects-contracts')" class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-right hover:border-emerald-200 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">عقود الطرف التاني</p>
+                                <h4 class="font-bold text-slate-800 mt-1">حوكمة العقود</h4>
+                                <p class="text-xs text-slate-500 mt-1">تجديدات، التزامات، غرامات</p>
+                            </div>
+                            <i class="fas fa-file-contract text-emerald-600 text-xl"></i>
+                        </div>
+                    </button>
+                    <button onclick="app.loadRoute('facilities-projects-vendors')" class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-right hover:border-emerald-200 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">الموردين</p>
+                                <h4 class="font-bold text-slate-800 mt-1">شبكة الموردين</h4>
+                                <p class="text-xs text-slate-500 mt-1">التقييمات والاعتمادات</p>
+                            </div>
+                            <i class="fas fa-people-carry-box text-emerald-600 text-xl"></i>
+                        </div>
+                    </button>
+                    <button onclick="app.loadRoute('facilities-projects-energy')" class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-right hover:border-emerald-200 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">ادارة الطاقه</p>
+                                <h4 class="font-bold text-slate-800 mt-1">كفاءة الطاقة</h4>
+                                <p class="text-xs text-slate-500 mt-1">القراءات والوفورات</p>
+                            </div>
+                            <i class="fas fa-bolt text-emerald-600 text-xl"></i>
+                        </div>
+                    </button>
+                    <button onclick="app.loadRoute('facilities-projects-crowd')" class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-right hover:border-emerald-200 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">اداره الحشود</p>
+                                <h4 class="font-bold text-slate-800 mt-1">إدارة التجمعات</h4>
+                                <p class="text-xs text-slate-500 mt-1">السعة والإخلاء الفوري</p>
+                            </div>
+                            <i class="fas fa-people-group text-emerald-600 text-xl"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesProjectsMaintenance = () => {
+        const kpis = [
+            { label: 'بلاغات مفتوحة', value: '14', note: '5 حرجة', icon: 'fa-triangle-exclamation', color: 'text-red-600', bg: 'bg-red-50' },
+            { label: 'نسبة الالتزام SLA', value: '93%', note: 'آخر 30 يوم', icon: 'fa-stopwatch', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'تكلفة الصيانة', value: '2.4M ر.س', note: 'ربع سنوي', icon: 'fa-wallet', color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'الصيانة الوقائية', value: '78%', note: 'معدل التنفيذ', icon: 'fa-shield-check', color: 'text-slate-700', bg: 'bg-slate-100' }
+        ];
+
+        const tickets = [
+            { id: 'MNT-4021', asset: 'محطة التبريد 3', priority: 'عاجل', owner: 'فريق التبريد', eta: '4 ساعات', status: 'قيد التنفيذ' },
+            { id: 'MNT-3984', asset: 'مصاعد البرج A', priority: 'مرتفع', owner: 'شركة المصاعد الذكية', eta: '18 ساعة', status: 'بانتظار قطع' },
+            { id: 'MNT-3966', asset: 'لوحات الكهرباء', priority: 'متوسط', owner: 'فريق الكهرباء', eta: '36 ساعة', status: 'مجدول' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-600 to-slate-700 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-screwdriver-wrench"></i>
+                        الصيانة
+                    </h2>
+                    <p class="mt-2 opacity-90">تخطيط الصيانة الوقائية، متابعة الأعطال، وتحليل التكاليف التشغيلية.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('projects-maintenance','فتح بلاغ صيانة')" class="px-4 py-2 bg-white text-blue-700 rounded-xl font-bold hover:bg-blue-50 transition">فتح بلاغ</button>
+                    <button onclick="app.handleFacilityPageAction('projects-maintenance','جدولة زيارة فني')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">جدولة زيارة</button>
+                    <button onclick="app.handleFacilityPageAction('projects-maintenance','تصدير خطة الصيانة')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير الخطة</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                ${kpis.map(card => `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">${card.label}</p>
+                                <h3 class="text-2xl font-black text-slate-800 mt-2">${card.value}</h3>
+                                <p class="text-xs text-slate-400 mt-1">${card.note}</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl ${card.bg} ${card.color} flex items-center justify-center">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">لوحة البلاغات الحرجة</h3>
+                        <button onclick="app.handleFacilityPageAction('projects-maintenance','فتح لوحة SLA')" class="text-sm font-bold text-blue-700">لوحة SLA</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">رقم البلاغ</th>
+                                    <th class="px-3 py-2">الأصل</th>
+                                    <th class="px-3 py-2">الأولوية</th>
+                                    <th class="px-3 py-2">المسؤول</th>
+                                    <th class="px-3 py-2">زمن الاستجابة</th>
+                                    <th class="px-3 py-2">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tickets.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.id}</td>
+                                        <td class="px-3 py-2">${item.asset}</td>
+                                        <td class="px-3 py-2">${item.priority}</td>
+                                        <td class="px-3 py-2">${item.owner}</td>
+                                        <td class="px-3 py-2">${item.eta}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">${item.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">جاهزية الطوارئ</h3>
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
+                        تم اعتماد خطة إعادة التشغيل للأنظمة الحيوية بنسبة 92%.
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
+                        3 قطع غيار عالية التكلفة بحاجة موافقات شراء خلال 48 ساعة.
+                    </div>
+                    <button onclick="app.handleFacilityPageAction('projects-maintenance','فتح سجل الأعطال المتكررة')" class="w-full px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition">سجل الأعطال</button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesProjectsContracts = () => {
+        const contracts = [
+            { name: 'عقد المصاعد الذكية', partner: 'شركة المصاعد', expiry: '2026-04-12', status: 'قيد التجديد', sla: '98%', risk: 'مرتفع' },
+            { name: 'عقد النظافة الشاملة', partner: 'شركة اللمعان', expiry: '2026-06-01', status: 'ساري', sla: '96%', risk: 'منخفض' },
+            { name: 'عقد الأمن الميداني', partner: 'الحرس المتقدم', expiry: '2026-03-22', status: 'قيد التفاوض', sla: '94%', risk: 'متوسط' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-amber-600 to-orange-600 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-file-contract"></i>
+                        عقود الطرف التاني
+                    </h2>
+                    <p class="mt-2 opacity-90">متابعة الالتزام، تجديد العقود، وإدارة المخاطر التعاقدية.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('projects-contracts','إضافة عقد جديد')" class="px-4 py-2 bg-white text-amber-700 rounded-xl font-bold hover:bg-amber-50 transition">إضافة عقد</button>
+                    <button onclick="app.handleFacilityPageAction('projects-contracts','مراجعة مؤشرات الالتزام')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">مؤشرات الالتزام</button>
+                    <button onclick="app.handleFacilityPageAction('projects-contracts','تصدير سجل العقود')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير السجل</button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg text-slate-800">عقود حرجة تحتاج متابعة</h3>
+                    <button onclick="app.handleFacilityPageAction('projects-contracts','فتح لوحة التجديد')" class="text-sm font-bold text-amber-700">لوحة التجديد</button>
+                </div>
+                <div class="overflow-auto">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-3 py-2">العقد</th>
+                                <th class="px-3 py-2">الشريك</th>
+                                <th class="px-3 py-2">تاريخ الانتهاء</th>
+                                <th class="px-3 py-2">الالتزام SLA</th>
+                                <th class="px-3 py-2">المخاطر</th>
+                                <th class="px-3 py-2">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${contracts.map(item => `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold">${item.name}</td>
+                                    <td class="px-3 py-2">${item.partner}</td>
+                                    <td class="px-3 py-2">${item.expiry}</td>
+                                    <td class="px-3 py-2">${item.sla}</td>
+                                    <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">${item.risk}</span></td>
+                                    <td class="px-3 py-2">${item.status}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800">مستحقات قريبة</h3>
+                    <div class="text-sm text-slate-600 mt-3">قيمة مستحقات الربع القادم: <span class="font-bold text-amber-700">4.2M ر.س</span></div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800">امتثال الشروط</h3>
+                    <div class="text-sm text-slate-600 mt-3">متوسط تقييم الالتزام: <span class="font-bold text-emerald-700">95%</span></div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800">تنبيهات الغرامات</h3>
+                    <div class="text-sm text-red-600 mt-3">غرامتان محتملتان بقيمة 120K ر.س.</div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesProjectsVendors = () => {
+        const vendors = [
+            { name: 'مؤسسة الإمداد المتقدم', score: '4.7', coverage: 'صيانة/طاقة', status: 'معتمد', renewal: '2026-05-15' },
+            { name: 'شركة الحلول الذكية', score: '4.4', coverage: 'أتمتة/تحكم', status: 'قيد التقييم', renewal: '2026-03-30' },
+            { name: 'مزود الأمن الصناعي', score: '4.2', coverage: 'أمن/حشود', status: 'معتمد', renewal: '2026-07-01' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-emerald-600 to-green-600 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-people-carry-box"></i>
+                        الموردين
+                    </h2>
+                    <p class="mt-2 opacity-90">إدارة شبكة الموردين والاعتمادات ومستويات الأداء.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('projects-vendors','إضافة مورد جديد')" class="px-4 py-2 bg-white text-emerald-700 rounded-xl font-bold hover:bg-emerald-50 transition">إضافة مورد</button>
+                    <button onclick="app.handleFacilityPageAction('projects-vendors','تحديث تقييم الموردين')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تحديث التقييم</button>
+                    <button onclick="app.handleFacilityPageAction('projects-vendors','تصدير سجل الموردين')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير السجل</button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg text-slate-800">موردون استراتيجيون</h3>
+                    <button onclick="app.handleFacilityPageAction('projects-vendors','فتح لوحة الامتثال')" class="text-sm font-bold text-emerald-700">لوحة الامتثال</button>
+                </div>
+                <div class="overflow-auto">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-3 py-2">المورد</th>
+                                <th class="px-3 py-2">التغطية</th>
+                                <th class="px-3 py-2">التقييم</th>
+                                <th class="px-3 py-2">الحالة</th>
+                                <th class="px-3 py-2">تجديد الاعتماد</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${vendors.map(item => `
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-3 py-2 font-semibold">${item.name}</td>
+                                    <td class="px-3 py-2">${item.coverage}</td>
+                                    <td class="px-3 py-2">${item.score}</td>
+                                    <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">${item.status}</span></td>
+                                    <td class="px-3 py-2">${item.renewal}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800">مخاطر التوريد</h3>
+                    <div class="text-sm text-amber-700 mt-3">موردان بحاجة خطة بديلة خلال 60 يومًا.</div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800">التغطية الجغرافية</h3>
+                    <div class="text-sm text-slate-600 mt-3">8 مناطق مخدومة بمتوسط استجابة 3 ساعات.</div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800">نقاط القوة</h3>
+                    <div class="text-sm text-emerald-700 mt-3">%92 من الموردين لديهم شهادات جودة سارية.</div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesProjectsEnergy = () => {
+        const kpis = [
+            { label: 'استهلاك اليوم', value: '38,200 kWh', note: 'أقل بـ 6%', icon: 'fa-gauge-high', color: 'text-yellow-700', bg: 'bg-yellow-50' },
+            { label: 'تكلفة الطاقة', value: '1.9M ر.س', note: 'ربع سنوي', icon: 'fa-coins', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'وفر الكفاءة', value: '420K ر.س', note: 'بعد التحسينات', icon: 'fa-leaf', color: 'text-green-600', bg: 'bg-green-50' },
+            { label: 'إنذارات فورية', value: '3', note: 'تجاوز حدود', icon: 'fa-bell', color: 'text-red-600', bg: 'bg-red-50' }
+        ];
+
+        const zones = [
+            { zone: 'البرج A', usage: '11,200 kWh', variance: '+4%', status: 'مراقبة' },
+            { zone: 'القاعة الكبرى', usage: '8,600 kWh', variance: '-3%', status: 'مستقر' },
+            { zone: 'المواقف الذكية', usage: '6,200 kWh', variance: '+9%', status: 'تنبيه' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-yellow-500 to-amber-600 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-bolt"></i>
+                        ادارة الطاقه
+                    </h2>
+                    <p class="mt-2 opacity-90">مراقبة الاستهلاك، إدارة الأحمال، وتحليل فرص الترشيد.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('projects-energy','تسجيل قراءة عداد')" class="px-4 py-2 bg-white text-amber-700 rounded-xl font-bold hover:bg-amber-50 transition">تسجيل قراءة</button>
+                    <button onclick="app.handleFacilityPageAction('projects-energy','ضبط حدود إنذار')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">حدود الإنذار</button>
+                    <button onclick="app.handleFacilityPageAction('projects-energy','تصدير تقرير الطاقة')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير التقرير</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                ${kpis.map(card => `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">${card.label}</p>
+                                <h3 class="text-2xl font-black text-slate-800 mt-2">${card.value}</h3>
+                                <p class="text-xs text-slate-400 mt-1">${card.note}</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl ${card.bg} ${card.color} flex items-center justify-center">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">مناطق الاستهلاك الأعلى</h3>
+                        <button onclick="app.handleFacilityPageAction('projects-energy','فتح لوحة الأحمال')" class="text-sm font-bold text-amber-700">لوحة الأحمال</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">المنطقة</th>
+                                    <th class="px-3 py-2">الاستهلاك</th>
+                                    <th class="px-3 py-2">الانحراف</th>
+                                    <th class="px-3 py-2">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${zones.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.zone}</td>
+                                        <td class="px-3 py-2">${item.usage}</td>
+                                        <td class="px-3 py-2">${item.variance}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">${item.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">فرص الترشيد</h3>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-700">تحديث أنظمة الإضاءة سيوفر 8% سنويًا.</div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">رفع كفاءة التكييف مطلوب قبل موسم الصيف.</div>
+                    <button onclick="app.handleFacilityPageAction('projects-energy','فتح خطة الترشيد')" class="w-full px-4 py-2 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition">خطة الترشيد</button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesProjectsCrowd = () => {
+        const zones = [
+            { area: 'البهو الرئيسي', capacity: '1,200', current: '840', status: 'مستقر' },
+            { area: 'الساحة الخارجية', capacity: '2,500', current: '1,940', status: 'مرتفع' },
+            { area: 'قاعة المؤتمرات', capacity: '800', current: '640', status: 'مستقر' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-rose-600 to-red-600 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-people-group"></i>
+                        اداره الحشود
+                    </h2>
+                    <p class="mt-2 opacity-90">إدارة السعة الفعلية، خطط الإخلاء، ومسارات التجمع.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('projects-crowd','تحديث خطة إخلاء')" class="px-4 py-2 bg-white text-rose-700 rounded-xl font-bold hover:bg-rose-50 transition">تحديث خطة الإخلاء</button>
+                    <button onclick="app.handleFacilityPageAction('projects-crowd','جدولة تدريب')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">جدولة تدريب</button>
+                    <button onclick="app.handleFacilityPageAction('projects-crowd','تصدير خطة الحشود')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير الخطة</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">سعات المناطق الحرجة</h3>
+                        <button onclick="app.handleFacilityPageAction('projects-crowd','فتح مركز التحكم')" class="text-sm font-bold text-rose-700">مركز التحكم</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">المنطقة</th>
+                                    <th class="px-3 py-2">السعة</th>
+                                    <th class="px-3 py-2">الحضور الحالي</th>
+                                    <th class="px-3 py-2">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${zones.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.area}</td>
+                                        <td class="px-3 py-2">${item.capacity}</td>
+                                        <td class="px-3 py-2">${item.current}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold">${item.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">تنبيهات فورية</h3>
+                    <div class="bg-rose-50 border border-rose-100 rounded-xl p-4 text-sm text-rose-700">ارتفاع الحشود بالساحة الخارجية إلى 78% من الحد الأقصى.</div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">يجب إعادة توزيع المسارات عند بوابة 3 خلال 15 دقيقة.</div>
+                    <button onclick="app.handleFacilityPageAction('projects-crowd','تسجيل نقاط تجمع')" class="w-full px-4 py-2 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition">تسجيل نقاط تجمع</button>
+                </div>
+            </div>
         </div>`;
     };
 
@@ -7504,6 +7984,46 @@ const app = (() => {
                 { id: 'phase', label: 'المرحلة', placeholder: 'تصميم / تنفيذ / تسليم' },
                 { id: 'budget', label: 'الميزانية', placeholder: 'مثال: 3.2M' },
                 { id: 'eta', label: 'تاريخ التسليم المتوقع', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'projects-maintenance') {
+            return [
+                { id: 'asset_tag', label: 'كود الأصل', placeholder: 'FAC-MNT-241' },
+                { id: 'priority', label: 'الأولوية', placeholder: 'عاجل / متوسط' },
+                { id: 'sla', label: 'اتفاقية SLA', placeholder: '24h' },
+                { id: 'visit_date', label: 'تاريخ الزيارة', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'projects-contracts') {
+            return [
+                { id: 'contract_name', label: 'اسم العقد', placeholder: 'عقد صيانة المصاعد' },
+                { id: 'partner', label: 'الطرف التاني', placeholder: 'شركة المصاعد الذكية' },
+                { id: 'expiry', label: 'تاريخ الانتهاء', placeholder: 'YYYY-MM-DD', type: 'date' },
+                { id: 'value', label: 'قيمة العقد', placeholder: 'مثال: 2.8M' }
+            ];
+        }
+        if (section === 'projects-vendors') {
+            return [
+                { id: 'vendor_name', label: 'اسم المورد', placeholder: 'مؤسسة الإمداد المتقدم' },
+                { id: 'category', label: 'الفئة', placeholder: 'طاقة / صيانة / أمن' },
+                { id: 'cert', label: 'الشهادات', placeholder: 'ISO 9001' },
+                { id: 'rating', label: 'التقييم', placeholder: '4.5/5' }
+            ];
+        }
+        if (section === 'projects-energy') {
+            return [
+                { id: 'meter', label: 'رقم العداد', placeholder: 'EN-1145' },
+                { id: 'baseline', label: 'خط الأساس', placeholder: 'مثال: 1200 kWh' },
+                { id: 'alert_threshold', label: 'حد التنبيه', placeholder: 'مثال: 10%' },
+                { id: 'reading_date', label: 'تاريخ القراءة', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'projects-crowd') {
+            return [
+                { id: 'zone', label: 'المنطقة', placeholder: 'البهو الرئيسي' },
+                { id: 'capacity', label: 'السعة القصوى', placeholder: 'مثال: 1200' },
+                { id: 'plan', label: 'خطة الإخلاء', placeholder: 'نسخة Q1-2026' },
+                { id: 'drill_date', label: 'تاريخ التمرين', placeholder: 'YYYY-MM-DD', type: 'date' }
             ];
         }
         return [
