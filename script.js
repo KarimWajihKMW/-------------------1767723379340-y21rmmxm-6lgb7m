@@ -403,6 +403,9 @@ const app = (() => {
     };
 
     const isOfficeRouteAllowed = (route) => {
+        if (currentUser?.entityId === 'HQ001' || currentUser?.entity_id === 'HQ001') {
+            return true;
+        }
         if ((route === 'strategic-management' || route === 'quality-audit') && currentUser?.role === ROLES.ADMIN) {
             return true;
         }
