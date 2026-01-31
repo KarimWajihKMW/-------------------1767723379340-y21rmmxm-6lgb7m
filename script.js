@@ -410,6 +410,9 @@ const app = (() => {
         if (currentUser?.entityId === 'HQ001' || currentUser?.entity_id === 'HQ001') {
             return true;
         }
+        if (route === 'quality-policies' && currentUser?.role === ROLES.ADMIN) {
+            return true;
+        }
         if ((route === 'strategic-management' || route === 'quality-audit') && currentUser?.role === ROLES.ADMIN) {
             return true;
         }
@@ -1458,6 +1461,10 @@ const app = (() => {
             console.log('🔄 Routing to: quality-audit');
             content = await renderQualityAudit();
         }
+        else if (route === 'quality-policies') {
+            console.log('🔄 Routing to: quality-policies');
+            content = await renderQualityAudit();
+        }
         else if (route === 'evaluation') {
             console.log('🔄 Routing to: evaluation');
             content = await renderEvaluation();
@@ -1600,7 +1607,8 @@ const app = (() => {
             'marketing': 'التسويق',
             'advertisers-center': 'مركز المعلنين',
             'training-development': 'التدريب والتطوير',
-            'quality-audit': 'الجودة والسياسات',
+            'quality-audit': 'الجودة والتدقيق',
+            'quality-policies': 'الجودة والسياسات',
             'evaluation': 'التقييم',
             'tasks-strategic': 'المهام',
             'information-center': 'مركز المعلومات',
@@ -1708,6 +1716,7 @@ const app = (() => {
         'advertisers-center': '/strategic/advertisers',
         'training-development': '/strategic/training',
         'quality-audit': '/strategic/quality',
+        'quality-policies': '/quality-policies',
         'evaluation': '/strategic/evaluation',
         'tasks-strategic': '/strategic/tasks',
         'information-center': '/strategic/information',
@@ -1764,6 +1773,7 @@ const app = (() => {
         '/strategic/advertisers': 'advertisers-center',
         '/strategic/training': 'training-development',
         '/strategic/quality': 'quality-audit',
+        '/quality-policies': 'quality-policies',
         '/strategic/evaluation': 'evaluation',
         '/strategic/tasks': 'tasks-strategic',
         '/strategic/information': 'information-center',
@@ -1796,6 +1806,7 @@ const app = (() => {
             const items = [
                 { id: 'dashboard', icon: 'fa-chart-pie', label: 'الرئيسية', show: isOfficeRouteAllowed('dashboard') },
                 { id: 'super-admin', icon: 'fa-shield-alt', label: 'إدارة الأدوار والصلاحيات', show: isSuperAdmin },
+                { id: 'quality-policies', icon: 'fa-clipboard-check', label: 'الجودة والسياسات', show: isOfficeRouteAllowed('quality-policies') },
                 {
                     id: 'strategic-management',
                     icon: 'fa-chess',
@@ -1813,7 +1824,7 @@ const app = (() => {
                         { id: 'marketing', icon: 'fa-bullhorn', label: 'التسويق' },
                         { id: 'advertisers-center', icon: 'fa-ad', label: 'مركز المعلنين' },
                         { id: 'training-development', icon: 'fa-chalkboard-teacher', label: 'التدريب والتطوير' },
-                        { id: 'quality-audit', icon: 'fa-clipboard-check', label: 'الجودة والسياسات' },
+                        { id: 'quality-audit', icon: 'fa-clipboard-check', label: 'الجودة والتدقيق' },
                         { id: 'evaluation', icon: 'fa-star', label: 'التقييم' },
                         { id: 'tasks-strategic', icon: 'fa-tasks', label: 'المهام' },
                         { id: 'information-center', icon: 'fa-info-circle', label: 'مركز المعلومات' },
