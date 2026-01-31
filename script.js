@@ -403,6 +403,9 @@ const app = (() => {
     };
 
     const isOfficeRouteAllowed = (route) => {
+        if ((route === 'strategic-management' || route === 'quality-audit') && currentUser?.role === ROLES.ADMIN) {
+            return true;
+        }
         const allowedPages = getOfficeAllowedPages();
         if (!allowedPages || allowedPages.length === 0) return true;
         if (allowedPages.includes(route)) return true;
