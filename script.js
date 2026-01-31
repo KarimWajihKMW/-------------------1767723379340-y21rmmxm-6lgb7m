@@ -7383,7 +7383,131 @@ const app = (() => {
     };
 
     const handleFacilityPageAction = (section, action) => {
-        showToast(`🏢 [${section}] ${action}`, 'success');
+        if (action.includes('تصدير')) {
+            downloadFacilitiesPayload(section, action);
+            return;
+        }
+
+        const isCreate = action.includes('إضافة') || action.includes('إنشاء');
+        const fields = getFacilitiesFormFields(section, action);
+        const title = isCreate ? action : `لوحة ${action}`;
+        const subtitle = isCreate
+            ? 'يرجى تعبئة البيانات أدناه ثم حفظ العملية.'
+            : 'ملخص تشغيلي سريع مع إجراءات مقترحة.';
+
+        openFacilitiesModal({
+            title,
+            subtitle,
+            fields,
+            primaryLabel: isCreate ? 'حفظ' : 'اعتماد الإجراء',
+            onSubmit: (payload) => {
+                logAction('FACILITIES_ACTION', { section, action, payload });
+                showToast(`✅ تم تنفيذ: ${action}`, 'success');
+            }
+        });
+    };
+
+    const getFacilitiesFormFields = (section, action) => {
+        if (section === 'real-estate') {
+            return [
+                { id: 'building_name', label: 'اسم المبنى', placeholder: 'مثال: برج النخيل' },
+                { id: 'city', label: 'المدينة', placeholder: 'الرياض' },
+                { id: 'occupancy', label: 'نسبة الإشغال', placeholder: 'مثال: 90%' },
+                { id: 'contract_renewal', label: 'تاريخ تجديد العقود', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        if (section === 'events') {
+            return [
+                { id: 'event_title', label: 'اسم الفعالية', placeholder: 'ملتقى الابتكار' },
+                { id: 'venue', label: 'الموقع', placeholder: 'القاعة الكبرى' },
+                { id: 'event_date', label: 'التاريخ', placeholder: 'YYYY-MM-DD', type: 'date' },
+                { id: 'capacity', label: 'السعة', placeholder: 'مثال: 500' }
+            ];
+        }
+        if (section === 'assets') {
+            return [
+                { id: 'asset_name', label: 'اسم الأصل', placeholder: 'وحدات التكييف المركزية' },
+                { id: 'asset_category', label: 'الفئة', placeholder: 'معدات تشغيلية' },
+                { id: 'asset_value', label: 'القيمة الدفترية', placeholder: 'مثال: 250000' },
+                { id: 'asset_status', label: 'الحالة', placeholder: 'جيد / متوسط / ممتاز' }
+            ];
+        }
+        if (section === 'projects') {
+            return [
+                { id: 'project_name', label: 'اسم المشروع', placeholder: 'رفع كفاءة الإضاءة' },
+                { id: 'phase', label: 'المرحلة', placeholder: 'تصميم / تنفيذ / تسليم' },
+                { id: 'budget', label: 'الميزانية', placeholder: 'مثال: 3.2M' },
+                { id: 'eta', label: 'تاريخ التسليم المتوقع', placeholder: 'YYYY-MM-DD', type: 'date' }
+            ];
+        }
+        return [
+            { id: 'note', label: 'ملاحظة', placeholder: 'أدخل تفاصيل الإجراء' }
+        ];
+    };
+
+    const openFacilitiesModal = ({ title, subtitle, fields, primaryLabel, onSubmit }) => {
+        const existing = document.getElementById('facilities-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'facilities-modal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center backdrop-blur-sm p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
+                <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-red-600 to-red-700 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-xl text-white">${title}</h3>
+                        <p class="text-sm text-white/80">${subtitle || ''}</p>
+                    </div>
+                    <button onclick="document.getElementById('facilities-modal').remove()" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    ${fields.map(field => `
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">${field.label}</label>
+                            <input id="${field.id}" type="${field.type || 'text'}" placeholder="${field.placeholder || ''}" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200">
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="p-6 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                    <button onclick="document.getElementById('facilities-modal').remove()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-100 transition">إلغاء</button>
+                    <button id="facilities-modal-submit" class="px-5 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition">${primaryLabel || 'حفظ'}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const submitBtn = document.getElementById('facilities-modal-submit');
+        if (submitBtn) {
+            submitBtn.onclick = () => {
+                const payload = fields.reduce((acc, field) => {
+                    acc[field.id] = document.getElementById(field.id)?.value || '';
+                    return acc;
+                }, {});
+                if (onSubmit) onSubmit(payload);
+                modal.remove();
+            };
+        }
+    };
+
+    const downloadFacilitiesPayload = (section, action) => {
+        const payload = {
+            section,
+            action,
+            generated_at: new Date().toISOString(),
+            notes: 'تصدير تشغيلي تجريبي من لوحة إدارة المرافق'
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `facilities-${section}-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇️ تم تصدير الملف بنجاح', 'success');
     };
 
     // Strategic Management Render Functions
