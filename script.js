@@ -372,6 +372,10 @@ const app = (() => {
         'feasibility-studies': 'services',
         'research': 'services',
         'consulting-training': 'services',
+        'facilities-events': 'facilities',
+        'facilities-real-estate': 'facilities',
+        'facilities-assets': 'facilities',
+        'facilities-projects': 'facilities',
         'main-menu': 'tasks-management',
         'control-panel': 'tasks-management',
         'my-tasks': 'tasks-management',
@@ -1516,6 +1520,10 @@ const app = (() => {
         else if (route === 'feasibility-studies') content = renderFeasibilityStudies();
         else if (route === 'research') content = renderResearch();
         else if (route === 'consulting-training') content = renderConsultingTraining();
+        else if (route === 'facilities-events') content = renderFacilitiesEvents();
+        else if (route === 'facilities-real-estate') content = renderFacilitiesRealEstate();
+        else if (route === 'facilities-assets') content = renderFacilitiesAssets();
+        else if (route === 'facilities-projects') content = renderFacilitiesProjects();
         else content = renderPlaceholder();
 
         if (route !== 'incubator') {
@@ -1564,6 +1572,10 @@ const app = (() => {
             'task-reports': 'التقارير',
             'task-settings': 'الإعدادات',
             'facilities': 'إدارة المرافق',
+            'facilities-events': 'الفعاليات والترفيه - إدارة المرافق',
+            'facilities-real-estate': 'العقارات والمباني - إدارة المرافق',
+            'facilities-assets': 'إدارة الأصول - إدارة المرافق',
+            'facilities-projects': 'إدارة المشاريع - إدارة المرافق',
             'audit-logs': 'سجل الأحداث (Audit Logs)',
             'settings': 'إعدادات الهوية والعلامة التجارية',
             // Strategic Management subitems
@@ -1666,6 +1678,10 @@ const app = (() => {
         'task-reports': '/tasks/reports',
         'task-settings': '/tasks/settings',
         'facilities': '/facilities',
+        'facilities-events': '/facilities/events',
+        'facilities-real-estate': '/facilities/real-estate',
+        'facilities-assets': '/facilities/assets',
+        'facilities-projects': '/facilities/projects',
         'audit-logs': '/audit-logs',
         'settings': '/settings',
         'employees': '/hr',
@@ -1718,6 +1734,10 @@ const app = (() => {
         '/tasks/reports': 'task-reports',
         '/tasks/settings': 'task-settings',
         '/facilities': 'facilities',
+        '/facilities/events': 'facilities-events',
+        '/facilities/real-estate': 'facilities-real-estate',
+        '/facilities/assets': 'facilities-assets',
+        '/facilities/projects': 'facilities-projects',
         '/audit-logs': 'audit-logs',
         '/settings': 'settings',
         '/hr': 'employees',
@@ -1947,7 +1967,19 @@ const app = (() => {
                     { id: 'task-settings', icon: 'fa-cog', label: 'الإعدادات' }
                 ]
             },
-                { id: 'facilities', icon: 'fa-building-gear', label: 'إدارة المرافق', show: isOfficeRouteAllowed('facilities') },
+                {
+                    id: 'facilities',
+                    icon: 'fa-building-gear',
+                    label: 'إدارة المرافق',
+                    show: isOfficeRouteAllowed('facilities'),
+                    subItems: [
+                        { id: 'facilities', icon: 'fa-layer-group', label: 'لوحة المرافق' },
+                        { id: 'facilities-events', icon: 'fa-calendar-star', label: 'الفعاليات والترفيه' },
+                        { id: 'facilities-real-estate', icon: 'fa-city', label: 'العقارات والمباني' },
+                        { id: 'facilities-assets', icon: 'fa-boxes-stacked', label: 'إدارة الأصول' },
+                        { id: 'facilities-projects', icon: 'fa-diagram-project', label: 'إدارة المشاريع' }
+                    ]
+                },
                 { id: 'settings', icon: 'fa-paint-brush', label: 'إعدادات الهوية', show: perms.isAdmin() && isOfficeRouteAllowed('settings') },
                 { id: 'audit-logs', icon: 'fa-history', label: 'سجل النظام', show: perms.canViewAuditLogs() && isOfficeRouteAllowed('audit-logs') }
             ];
@@ -6869,6 +6901,57 @@ const app = (() => {
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <button onclick="app.loadRoute('facilities-events')" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm text-right hover:border-red-200 hover:shadow transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-500">بوابة الفعاليات والترفيه</p>
+                            <h3 class="text-lg font-black text-slate-800 mt-2">إدارة الرزنامة والسعة</h3>
+                            <p class="text-sm text-slate-500 mt-1">تخطيط الفعاليات، إدارة الموارد، وإيرادات التذاكر.</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                            <i class="fas fa-calendar-star"></i>
+                        </div>
+                    </div>
+                </button>
+                <button onclick="app.loadRoute('facilities-real-estate')" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm text-right hover:border-red-200 hover:shadow transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-500">بوابة العقارات والمباني</p>
+                            <h3 class="text-lg font-black text-slate-800 mt-2">محفظة الأصول العقارية</h3>
+                            <p class="text-sm text-slate-500 mt-1">إشغال، عقود الإيجار، وتكلفة دورة الحياة.</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                            <i class="fas fa-city"></i>
+                        </div>
+                    </div>
+                </button>
+                <button onclick="app.loadRoute('facilities-assets')" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm text-right hover:border-red-200 hover:shadow transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-500">بوابة إدارة الأصول</p>
+                            <h3 class="text-lg font-black text-slate-800 mt-2">التتبع والتقييم</h3>
+                            <p class="text-sm text-slate-500 mt-1">الجرد، الإهلاك، وسجلات الصيانة.</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                            <i class="fas fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                </button>
+                <button onclick="app.loadRoute('facilities-projects')" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm text-right hover:border-red-200 hover:shadow transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-500">بوابة إدارة المشاريع</p>
+                            <h3 class="text-lg font-black text-slate-800 mt-2">محفظة التطوير والتحسين</h3>
+                            <p class="text-sm text-slate-500 mt-1">التخطيط، المخاطر، والموازنة.</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                            <i class="fas fa-diagram-project"></i>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
                 ${summaries.map(card => `
                     <button onclick="app.handleFacilitySummary('${card.label}')" class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm text-right w-full hover:border-red-200 hover:shadow transition">
@@ -6914,6 +6997,374 @@ const app = (() => {
         </div>`;
     };
 
+    const renderFacilitiesEvents = () => {
+        const kpis = [
+            { label: 'فعاليات هذا الشهر', value: '12', note: '6 ترفيهية + 6 مؤسسية', icon: 'fa-calendar-check', color: 'text-red-600', bg: 'bg-red-50' },
+            { label: 'نسبة الإشغال', value: '86%', note: 'قاعات ومناطق مفتوحة', icon: 'fa-people-group', color: 'text-slate-700', bg: 'bg-slate-100' },
+            { label: 'رضا الزوار', value: '4.6/5', note: 'آخر 30 يوم', icon: 'fa-face-smile', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'إيرادات الفعاليات', value: '1.24M ر.س', note: 'تذاكر + رعاة', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50' }
+        ];
+
+        const schedule = [
+            { title: 'ملتقى الابتكار الشتوي', venue: 'القاعة الكبرى', date: '2026-02-08', capacity: '780', status: 'جاهز' },
+            { title: 'مهرجان المأكولات', venue: 'الساحة الخارجية', date: '2026-02-12', capacity: '1,200', status: 'قيد التجهيز' },
+            { title: 'يوم المستثمرين', venue: 'قاعة الاجتماعات 3', date: '2026-02-19', capacity: '180', status: 'موافق عليه' },
+            { title: 'حفل الشركاء السنوي', venue: 'قاعة المؤتمرات', date: '2026-02-27', capacity: '540', status: 'بانتظار التعاقد' }
+        ];
+
+        const readiness = [
+            { label: 'السلامة والإخلاء', value: 92, color: 'bg-emerald-500' },
+            { label: 'الخدمات المساندة', value: 84, color: 'bg-amber-500' },
+            { label: 'الموردين والتموين', value: 76, color: 'bg-red-500' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-red-600 to-rose-600 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-calendar-star"></i>
+                        الفعاليات والترفيه
+                    </h2>
+                    <p class="mt-2 opacity-90">إدارة الرزنامة، السعة التشغيلية، والأنشطة الترفيهية الذكية.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('events','إنشاء فعالية جديدة')" class="px-4 py-2 bg-white text-red-600 rounded-xl font-bold hover:bg-red-50 transition">إنشاء فعالية جديدة</button>
+                    <button onclick="app.handleFacilityPageAction('events','تحديث خطة الترفيه')" class="px-4 py-2 bg-red-500/30 text-white rounded-xl font-bold hover:bg-red-500/40 transition">تحديث خطة الترفيه</button>
+                    <button onclick="app.handleFacilityPageAction('events','تصدير رزنامة الفعاليات')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير الرزنامة</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                ${kpis.map(card => `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">${card.label}</p>
+                                <h3 class="text-2xl font-black text-slate-800 mt-2">${card.value}</h3>
+                                <p class="text-xs text-slate-400 mt-1">${card.note}</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl ${card.bg} ${card.color} flex items-center justify-center">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">رزنامة الفعاليات القادمة</h3>
+                        <button onclick="app.handleFacilityPageAction('events','فتح لوحة الحضور')" class="text-sm font-bold text-red-600">لوحة الحضور</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">الفعالية</th>
+                                    <th class="px-3 py-2">الموقع</th>
+                                    <th class="px-3 py-2">التاريخ</th>
+                                    <th class="px-3 py-2">السعة</th>
+                                    <th class="px-3 py-2">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${schedule.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.title}</td>
+                                        <td class="px-3 py-2">${item.venue}</td>
+                                        <td class="px-3 py-2">${item.date}</td>
+                                        <td class="px-3 py-2">${item.capacity}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">${item.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">جاهزية الفعاليات</h3>
+                    ${readiness.map(item => `
+                        <div>
+                            <div class="flex items-center justify-between text-sm text-slate-600 mb-2">
+                                <span>${item.label}</span>
+                                <span class="font-bold">${item.value}%</span>
+                            </div>
+                            <div class="h-2 rounded-full bg-slate-100">
+                                <div class="h-2 rounded-full ${item.color}" style="width:${item.value}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-700">
+                        <strong>تنبيه:</strong> يلزم استكمال عقود التموين لفعالية مهرجان المأكولات خلال 48 ساعة.
+                    </div>
+                    <button onclick="app.handleFacilityPageAction('events','فتح سجل المخاطر')" class="w-full px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition">فتح سجل المخاطر</button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesRealEstate = () => {
+        const portfolio = [
+            { label: 'عدد المباني', value: '24', note: '14 تشغيلية + 10 استثمارية', icon: 'fa-building', color: 'text-slate-700', bg: 'bg-slate-100' },
+            { label: 'نسبة الإشغال', value: '91%', note: 'آخر ربع سنوي', icon: 'fa-chart-pie', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: 'قيمة المحفظة', value: '3.8B ر.س', note: 'تقييم معتمد', icon: 'fa-chart-line', color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'عقود الإيجار', value: '146', note: '12 عقد بحاجة مراجعة', icon: 'fa-file-signature', color: 'text-red-600', bg: 'bg-red-50' }
+        ];
+
+        const buildings = [
+            { name: 'برج النخيل', city: 'الرياض', status: 'تشغيلي', occupancy: '96%', renewal: '2026-06-10' },
+            { name: 'مجمع الواجهة', city: 'جدة', status: 'إعادة تطوير', occupancy: '72%', renewal: '2026-03-22' },
+            { name: 'مركز المؤتمرات', city: 'الدمام', status: 'تشغيلي', occupancy: '89%', renewal: '2026-08-01' },
+            { name: 'مشروع الواحة', city: 'المدينة', status: 'تسليم مرحلي', occupancy: '61%', renewal: '2026-04-15' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-slate-800 to-zinc-700 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-city"></i>
+                        العقارات والمباني
+                    </h2>
+                    <p class="mt-2 opacity-90">إدارة محفظة المباني، الإشغال، والعقود التشغيلية.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('real-estate','إضافة مبنى جديد')" class="px-4 py-2 bg-white text-slate-800 rounded-xl font-bold hover:bg-slate-100 transition">إضافة مبنى</button>
+                    <button onclick="app.handleFacilityPageAction('real-estate','تحديث خطة الإشغال')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تحديث خطة الإشغال</button>
+                    <button onclick="app.handleFacilityPageAction('real-estate','تصدير محفظة العقارات')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير المحفظة</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                ${portfolio.map(card => `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">${card.label}</p>
+                                <h3 class="text-2xl font-black text-slate-800 mt-2">${card.value}</h3>
+                                <p class="text-xs text-slate-400 mt-1">${card.note}</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl ${card.bg} ${card.color} flex items-center justify-center">
+                                <i class="fas ${card.icon}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">محفظة المباني</h3>
+                        <button onclick="app.handleFacilityPageAction('real-estate','فتح تقييم المخاطر العقارية')" class="text-sm font-bold text-slate-700">تقييم المخاطر</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">المبنى</th>
+                                    <th class="px-3 py-2">المدينة</th>
+                                    <th class="px-3 py-2">الحالة</th>
+                                    <th class="px-3 py-2">الإشغال</th>
+                                    <th class="px-3 py-2">تجديد العقود</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${buildings.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.name}</td>
+                                        <td class="px-3 py-2">${item.city}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">${item.status}</span></td>
+                                        <td class="px-3 py-2">${item.occupancy}</td>
+                                        <td class="px-3 py-2">${item.renewal}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">تنبيهات العقود</h3>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
+                        6 عقود إيجار تنتهي خلال 90 يومًا — أولوية عالية للتجديد.
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm text-slate-600">
+                        تم رصد ارتفاع استهلاك الطاقة في برج النخيل بنسبة 12% مقارنة بالربع السابق.
+                    </div>
+                    <button onclick="app.handleFacilityPageAction('real-estate','فتح خطة تحسين الكفاءة')" class="w-full px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">خطة تحسين الكفاءة</button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesAssets = () => {
+        const assets = [
+            { name: 'وحدات التكييف المركزية', count: '84', health: 'ممتاز', value: '28.4M ر.س' },
+            { name: 'أنظمة الأمن والمراقبة', count: '130', health: 'جيد', value: '9.2M ر.س' },
+            { name: 'مصاعد وخدمات رأسية', count: '46', health: 'متوسط', value: '15.6M ر.س' },
+            { name: 'شبكات الطاقة الذكية', count: '52', health: 'جيد جدًا', value: '18.1M ر.س' }
+        ];
+
+        const lifecycle = [
+            { label: 'أصول حرجة', value: 22, color: 'bg-red-500' },
+            { label: 'أصول تحتاج صيانة', value: 41, color: 'bg-amber-500' },
+            { label: 'أصول مستقرة', value: 127, color: 'bg-emerald-500' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-amber-500 to-yellow-500 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-boxes-stacked"></i>
+                        إدارة الأصول
+                    </h2>
+                    <p class="mt-2 opacity-90">تتبع الأصول، الإهلاك، وخطط الصيانة الوقائية.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('assets','إضافة أصل جديد')" class="px-4 py-2 bg-white text-amber-700 rounded-xl font-bold hover:bg-amber-50 transition">إضافة أصل</button>
+                    <button onclick="app.handleFacilityPageAction('assets','جدولة جرد الأصول')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">جدولة الجرد</button>
+                    <button onclick="app.handleFacilityPageAction('assets','تصدير سجل الأصول')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير السجل</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">سجل الأصول الحرجة</h3>
+                        <button onclick="app.handleFacilityPageAction('assets','فتح خطة الإهلاك')" class="text-sm font-bold text-amber-700">خطة الإهلاك</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">فئة الأصل</th>
+                                    <th class="px-3 py-2">العدد</th>
+                                    <th class="px-3 py-2">الحالة</th>
+                                    <th class="px-3 py-2">القيمة الدفترية</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${assets.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.name}</td>
+                                        <td class="px-3 py-2">${item.count}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">${item.health}</span></td>
+                                        <td class="px-3 py-2">${item.value}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">حالة دورة حياة الأصول</h3>
+                    ${lifecycle.map(item => `
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-600">${item.label}</span>
+                            <span class="text-sm font-bold">${item.value}</span>
+                        </div>
+                        <div class="h-2 rounded-full bg-slate-100">
+                            <div class="h-2 rounded-full ${item.color}" style="width:${Math.min(item.value, 100)}%"></div>
+                        </div>
+                    `).join('')}
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-700">
+                        9 أصول تجاوزت العمر الافتراضي وتحتاج خطة إحلال خلال 120 يومًا.
+                    </div>
+                    <button onclick="app.handleFacilityPageAction('assets','فتح خطة الإحلال')" class="w-full px-4 py-2 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition">خطة الإحلال</button>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    const renderFacilitiesProjects = () => {
+        const projects = [
+            { name: 'توسعة مركز الطاقة', phase: 'تصميم تفصيلي', budget: '48M ر.س', risk: 'متوسط', eta: '2026-05-20' },
+            { name: 'تطوير مسرح الفعاليات', phase: 'مشتريات', budget: '21M ر.س', risk: 'مرتفع', eta: '2026-04-12' },
+            { name: 'أتمتة الصيانة الوقائية', phase: 'تنفيذ', budget: '7.5M ر.س', risk: 'منخفض', eta: '2026-03-02' },
+            { name: 'رفع كفاءة الإضاءة', phase: 'تسليم', budget: '3.2M ر.س', risk: 'منخفض', eta: '2026-02-18' }
+        ];
+
+        const milestones = [
+            { label: 'مشاريع حرجة', value: '4', note: 'تأثير تشغيلي مباشر' },
+            { label: 'مشاريع قيد التنفيذ', value: '11', note: 'نسبة إنجاز 62%' },
+            { label: 'مشاريع مخطط لها', value: '9', note: 'بانتظار اعتماد' }
+        ];
+
+        return `
+        <div class="space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-diagram-project"></i>
+                        إدارة المشاريع
+                    </h2>
+                    <p class="mt-2 opacity-90">محفظة مشاريع المرافق، التكاليف، والجداول الزمنية.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="app.handleFacilityPageAction('projects','إنشاء مشروع جديد')" class="px-4 py-2 bg-white text-emerald-700 rounded-xl font-bold hover:bg-emerald-50 transition">إنشاء مشروع</button>
+                    <button onclick="app.handleFacilityPageAction('projects','فتح لوحة المخاطر')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">لوحة المخاطر</button>
+                    <button onclick="app.handleFacilityPageAction('projects','تصدير محفظة المشاريع')" class="px-4 py-2 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition">تصدير المحفظة</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${milestones.map(card => `
+                    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+                        <p class="text-xs font-bold text-slate-500">${card.label}</p>
+                        <h3 class="text-2xl font-black text-slate-800 mt-2">${card.value}</h3>
+                        <p class="text-xs text-slate-400 mt-1">${card.note}</p>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-800">قائمة المشاريع ذات الأولوية</h3>
+                        <button onclick="app.handleFacilityPageAction('projects','فتح مخطط زمني')" class="text-sm font-bold text-emerald-700">مخطط زمني</button>
+                    </div>
+                    <div class="overflow-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-slate-50 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2">المشروع</th>
+                                    <th class="px-3 py-2">المرحلة</th>
+                                    <th class="px-3 py-2">الميزانية</th>
+                                    <th class="px-3 py-2">المخاطر</th>
+                                    <th class="px-3 py-2">التسليم المتوقع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${projects.map(item => `
+                                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-semibold">${item.name}</td>
+                                        <td class="px-3 py-2">${item.phase}</td>
+                                        <td class="px-3 py-2">${item.budget}</td>
+                                        <td class="px-3 py-2"><span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">${item.risk}</span></td>
+                                        <td class="px-3 py-2">${item.eta}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800">ملاحظات التحكم</h3>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-700">
+                        3 مشاريع تجاوزت 60% إنجاز وتم اعتماد صرف الدفعة الثالثة.
+                    </div>
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-700">
+                        مشروع تطوير مسرح الفعاليات يحتاج موافقة توريد إضافية خلال 7 أيام.
+                    </div>
+                    <button onclick="app.handleFacilityPageAction('projects','فتح مركز القرارات')" class="w-full px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition">مركز القرارات</button>
+                </div>
+            </div>
+        </div>`;
+    };
+
     // Facilities actions
     const createFacilityRequest = () => {
         showToast('📌 تم فتح طلب مرفق جديد (نموذج افتراضي)', 'info');
@@ -6929,6 +7380,10 @@ const app = (() => {
 
     const handleFacilityAction = (moduleKey, action) => {
         showToast(`🛠️ [${moduleKey}] ${action}`, 'info');
+    };
+
+    const handleFacilityPageAction = (section, action) => {
+        showToast(`🏢 [${section}] ${action}`, 'success');
     };
 
     // Strategic Management Render Functions
@@ -14835,7 +15290,7 @@ const app = (() => {
         init: init,  // Expose init function
         loadRoute: loadRoute,  // Expose loadRoute function
         showToast: showToast,  // Expose showToast for external use
-        createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction  // Facilities functions
+        createFacilityRequest, exportFacilityReport, handleFacilitySummary, handleFacilityAction, handleFacilityPageAction  // Facilities functions
     };
 })();
 
