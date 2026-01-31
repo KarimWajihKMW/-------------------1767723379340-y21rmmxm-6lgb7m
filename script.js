@@ -2781,6 +2781,45 @@ const app = (() => {
         });
     };
 
+    const getHqMainMenuModules = () => ([
+        { title: 'الموارد المالية', desc: 'الميزانيات، القيود، والتحليلات المالية', icon: 'fa-sack-dollar', route: 'finance', tone: 'from-emerald-500 to-teal-600' },
+        { title: 'الموارد البشرية والقانونية', desc: 'الهيكل الوظيفي والالتزام والسياسات', icon: 'fa-scale-balanced', route: 'employees', tone: 'from-indigo-500 to-purple-600' },
+        { title: 'الإدارة الاستراتيجية', desc: 'الأهداف والمبادرات والمخرجات التنفيذية', icon: 'fa-bullseye', route: 'executive-management', tone: 'from-amber-500 to-orange-600' },
+        { title: 'إدارة العمليات', desc: 'التشغيل، الجودة، ومتابعة الأداء اليومي', icon: 'fa-gear', route: 'operations-management', tone: 'from-slate-700 to-slate-900' },
+        { title: 'الأنظمة الذكية', desc: 'التحليلات المتقدمة والأتمتة الذكية', icon: 'fa-robot', route: 'smart-systems', tone: 'from-sky-500 to-blue-600' },
+        { title: 'الفروع', desc: 'إدارة فروع الدولة وربطها بالمقر', icon: 'fa-store', route: 'hierarchy', tone: 'from-rose-500 to-pink-600' },
+        { title: 'الحاضنات', desc: 'برامج النمو ومتابعة الحاضنات', icon: 'fa-seedling', route: 'hierarchy', tone: 'from-green-500 to-emerald-600' },
+        { title: 'المنصات', desc: 'حوكمة المنصات والخدمات الرقمية', icon: 'fa-layer-group', route: 'hierarchy', tone: 'from-violet-500 to-fuchsia-600' },
+        { title: 'المكاتب', desc: 'إدارة المكاتب التابعة وربطها بالهيكل', icon: 'fa-building', route: 'hierarchy', tone: 'from-red-500 to-red-600' }
+    ]);
+
+    const renderHqMainMenuSection = () => {
+        const hqModules = getHqMainMenuModules();
+        return `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800">ERP | المكتب الرئيسي | الجزء الثاني</h3>
+                    <p class="text-slate-500 text-sm">الوحدات المخصصة للمكتب الرئيسي كما في العرض.</p>
+                </div>
+                <div class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">HQ</div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${hqModules.map(mod => `
+                    <button onclick="loadRoute('${mod.route}')" class="bg-gradient-to-br ${mod.tone} p-5 rounded-2xl text-white hover:shadow-xl transition text-right">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-lg font-bold mb-1">${mod.title}</h4>
+                                <p class="text-white/80 text-xs">${mod.desc}</p>
+                            </div>
+                            <i class="fas ${mod.icon} text-2xl opacity-60"></i>
+                        </div>
+                    </button>
+                `).join('')}
+            </div>
+        </div>`;
+    };
+
     const renderDashboard = async () => {
         // Verify currentUser exists
         if (!currentUser || !currentUser.entityId) {
@@ -2888,7 +2927,10 @@ const app = (() => {
                  ${renderKpiCard('تذاكر الدعم', perms.getVisibleTickets().length, 'fa-headset', 'text-red-600', 'bg-red-50')}
                  ${renderKpiCard('عدد المستخدمين', entity.users, 'fa-users', 'text-purple-600', 'bg-purple-50')}
             </div>
-        </div>`;
+        </div>
+
+        ${renderHqMainMenuSection()}
+        `;
     };
 
     // Incubator Dashboard - Customer Journey & Programs
@@ -5445,18 +5487,6 @@ const app = (() => {
     // ===== TASK MANAGEMENT PAGES =====
 
     const renderMainMenu = async () => {
-        const hqModules = [
-            { title: 'الموارد المالية', desc: 'الميزانيات، القيود، والتحليلات المالية', icon: 'fa-sack-dollar', route: 'finance', tone: 'from-emerald-500 to-teal-600' },
-            { title: 'الموارد البشرية والقانونية', desc: 'الهيكل الوظيفي والالتزام والسياسات', icon: 'fa-scale-balanced', route: 'employees', tone: 'from-indigo-500 to-purple-600' },
-            { title: 'الإدارة الاستراتيجية', desc: 'الأهداف والمبادرات والمخرجات التنفيذية', icon: 'fa-bullseye', route: 'executive-management', tone: 'from-amber-500 to-orange-600' },
-            { title: 'إدارة العمليات', desc: 'التشغيل، الجودة، ومتابعة الأداء اليومي', icon: 'fa-gear', route: 'operations-management', tone: 'from-slate-700 to-slate-900' },
-            { title: 'الأنظمة الذكية', desc: 'التحليلات المتقدمة والأتمتة الذكية', icon: 'fa-robot', route: 'smart-systems', tone: 'from-sky-500 to-blue-600' },
-            { title: 'الفروع', desc: 'إدارة فروع الدولة وربطها بالمقر', icon: 'fa-store', route: 'hierarchy', tone: 'from-rose-500 to-pink-600' },
-            { title: 'الحاضنات', desc: 'برامج النمو ومتابعة الحاضنات', icon: 'fa-seedling', route: 'hierarchy', tone: 'from-green-500 to-emerald-600' },
-            { title: 'المنصات', desc: 'حوكمة المنصات والخدمات الرقمية', icon: 'fa-layer-group', route: 'hierarchy', tone: 'from-violet-500 to-fuchsia-600' },
-            { title: 'المكاتب', desc: 'إدارة المكاتب التابعة وربطها بالهيكل', icon: 'fa-building', route: 'hierarchy', tone: 'from-red-500 to-red-600' }
-        ];
-
         return `
         <div class="space-y-6 animate-fade-in">
             <div>
@@ -5526,28 +5556,7 @@ const app = (() => {
                 </button>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-                    <div>
-                        <h3 class="text-xl font-black text-slate-800">ERP | المكتب الرئيسي | الجزء الثاني</h3>
-                        <p class="text-slate-500 text-sm">الوحدات المخصصة للمكتب الرئيسي كما في العرض.</p>
-                    </div>
-                    <div class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">HQ</div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    ${hqModules.map(mod => `
-                        <button onclick="loadRoute('${mod.route}')" class="bg-gradient-to-br ${mod.tone} p-5 rounded-2xl text-white hover:shadow-xl transition text-right">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="text-lg font-bold mb-1">${mod.title}</h4>
-                                    <p class="text-white/80 text-xs">${mod.desc}</p>
-                                </div>
-                                <i class="fas ${mod.icon} text-2xl opacity-60"></i>
-                            </div>
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
+            ${renderHqMainMenuSection()}
         </div>`;
     };
 
