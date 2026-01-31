@@ -2796,6 +2796,7 @@ const app = (() => {
         { title: 'الموارد البشرية والقانونية', desc: 'الهيكل الوظيفي والالتزام والسياسات', icon: 'fa-scale-balanced', route: 'employees', tone: 'from-indigo-500 to-purple-600' },
         { title: 'الإدارة الاستراتيجية', desc: 'الأهداف والمبادرات والمخرجات التنفيذية', icon: 'fa-bullseye', route: 'executive-management', tone: 'from-amber-500 to-orange-600' },
         { title: 'إدارة العمليات', desc: 'التشغيل، الجودة، ومتابعة الأداء اليومي', icon: 'fa-gear', route: 'operations-management', tone: 'from-slate-700 to-slate-900' },
+        { title: 'الجودة والسياسات', desc: 'حوكمة الجودة، السياسات التفصيلية، ومؤشرات الأداء', icon: 'fa-clipboard-check', route: 'quality-audit', tone: 'from-teal-500 to-cyan-600' },
         { title: 'الأنظمة الذكية', desc: 'التحليلات المتقدمة والأتمتة الذكية', icon: 'fa-robot', route: 'smart-systems', tone: 'from-sky-500 to-blue-600' },
         { title: 'الفروع', desc: 'إدارة فروع الدولة وربطها بالمقر', icon: 'fa-store', route: 'hierarchy', tone: 'from-rose-500 to-pink-600' },
         { title: 'الحاضنات', desc: 'برامج النمو ومتابعة الحاضنات', icon: 'fa-seedling', route: 'hierarchy', tone: 'from-green-500 to-emerald-600' },
