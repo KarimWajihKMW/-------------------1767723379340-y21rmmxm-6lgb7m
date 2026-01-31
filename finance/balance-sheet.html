@@ -374,61 +374,13 @@
                 renderBalanceSheet();
             } catch (error) {
                 console.error('❌ خطأ في تحميل الميزانية العمومية:', error);
-                // Apply demo fallback
-                applyDemoData();
+                balanceState.sheet = null;
+                balanceState.assets = [];
+                balanceState.liabilities = [];
+                balanceState.equity = [];
+                balanceState.totals = { total_assets: 0, total_liabilities: 0, total_equity: 0, is_balanced: false, difference: 0 };
                 renderBalanceSheet();
             }
-        }
-
-        function applyDemoData() {
-            console.log('📊 استخدام بيانات تجريبية للميزانية العمومية');
-            const today = new Date().toISOString().split('T')[0];
-            
-            balanceState.sheet = {
-                sheet_id: 1,
-                entity_id: ENTITY_ID,
-                sheet_date: today,
-                period_type: 'quarterly',
-                fiscal_year: 2026,
-                notes: 'بيانات تجريبية - للأغراض التوضيحية فقط'
-            };
-
-            balanceState.assets = [
-                { asset_id: 1, asset_category: 'current', asset_type: 'cash', asset_name: 'النقدية في الصندوق', amount: 150000, description: 'النقدية المتاحة' },
-                { asset_id: 2, asset_category: 'current', asset_type: 'bank', asset_name: 'الرصيد البنكي', amount: 580000, description: 'حسابات بنكية جارية' },
-                { asset_id: 3, asset_category: 'current', asset_type: 'receivables', asset_name: 'ذمم العملاء', amount: 420000, description: 'مستحقات من العملاء' },
-                { asset_id: 4, asset_category: 'current', asset_type: 'inventory', asset_name: 'المخزون', amount: 280000, description: 'مخزون البضائع والمواد' },
-                { asset_id: 5, asset_category: 'fixed', asset_type: 'building', asset_name: 'المباني والمقار', amount: 1200000, description: 'المقر الرئيسي والفروع' },
-                { asset_id: 6, asset_category: 'fixed', asset_type: 'equipment', asset_name: 'المعدات والأجهزة', amount: 350000, description: 'معدات تقنية وآلات' },
-                { asset_id: 7, asset_category: 'fixed', asset_type: 'vehicle', asset_name: 'المركبات', amount: 180000, description: 'أسطول المركبات' },
-                { asset_id: 8, asset_category: 'fixed', asset_type: 'land', asset_name: 'الأراضي', amount: 650000, description: 'أراضي استثمارية' }
-            ];
-
-            balanceState.liabilities = [
-                { liability_id: 1, liability_category: 'current', liability_type: 'payables', liability_name: 'ذمم الموردين', amount: 245000, description: 'مستحقات للموردين' },
-                { liability_id: 2, liability_category: 'current', liability_type: 'salary', liability_name: 'الرواتب المستحقة', amount: 120000, description: 'رواتب ومكافآت الموظفين' },
-                { liability_id: 3, liability_category: 'current', liability_type: 'tax', liability_name: 'الضرائب المستحقة', amount: 85000, description: 'ضرائب ورسوم' },
-                { liability_id: 4, liability_category: 'long-term', liability_type: 'loan', liability_name: 'قروض طويلة الأجل', amount: 450000, description: 'قروض بنكية طويلة' },
-                { liability_id: 5, liability_category: 'long-term', liability_type: 'mortgage', liability_name: 'رهن عقاري', amount: 320000, description: 'رهن على العقارات' }
-            ];
-
-            balanceState.equity = [
-                { equity_id: 1, equity_type: 'capital', equity_name: 'رأس المال المدفوع', amount: 1500000, description: 'رأس المال الأساسي' },
-                { equity_id: 2, equity_type: 'reserves', equity_name: 'الاحتياطي القانوني', amount: 250000, description: 'احتياطيات قانونية' },
-                { equity_id: 3, equity_type: 'retained', equity_name: 'الأرباح المحتجزة', amount: 420000, description: 'أرباح غير موزعة' }
-            ];
-
-            const totalAssets = balanceState.assets.reduce((sum, a) => sum + a.amount, 0);
-            const totalLiabilities = balanceState.liabilities.reduce((sum, l) => sum + l.amount, 0);
-            const totalEquity = balanceState.equity.reduce((sum, e) => sum + e.amount, 0);
-
-            balanceState.totals = {
-                total_assets: totalAssets,
-                total_liabilities: totalLiabilities,
-                total_equity: totalEquity,
-                is_balanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 1,
-                difference: totalAssets - (totalLiabilities + totalEquity)
-            };
         }
 
         // Tab Switching

@@ -43,17 +43,17 @@ app.get(['/finance', '/finance/', '/finance/*.html'], (req, res, next) => {
       return next();
     }
 
-    const html = fs.readFileSync(filePath, 'utf8');
+    let html = fs.readFileSync(filePath, 'utf8');
+    html = html
+      .replace(/const ENTITY_ID = '1';/g, "const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';")
+      .replace(/const ENTITY_ID = 'HQ001';/g, "const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';")
+      .replace(/const CASHFLOW_ENTITY_ID = '1';/g, "const CASHFLOW_ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';")
+      .replace(/const AR_ENTITY_ID = 'HQ001';/g, "const AR_ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';");
     const hasTheme = html.includes('/finance/brand-theme.css');
-    if (hasTheme) {
-      res.type('html').send(html);
-      return;
-    }
-
-    const injected = html.replace(
-      '</head>',
-      '    <link rel="stylesheet" href="/finance/brand-theme.css">\n    <script src="/finance/brand-theme.js"></script>\n</head>'
-    );
+    const injection = hasTheme
+      ? '    <script src="/finance/finance-context.js"></script>\n'
+      : '    <link rel="stylesheet" href="/finance/brand-theme.css">\n    <script src="/finance/brand-theme.js"></script>\n    <script src="/finance/finance-context.js"></script>\n';
+    const injected = html.replace('</head>', `${injection}</head>`);
     res.type('html').send(injected);
   } catch (error) {
     next();
@@ -157,6 +157,10 @@ app.get('/finance/payment-plans', paymentPlansAPI.getPaymentPlans);
 const expensesAPI = require('./finance/api/expenses');
 app.get('/finance/expenses/test', expensesAPI.testConnection);
 app.get('/finance/expenses', expensesAPI.getExpenses);
+app.put('/finance/expenses/:id', expensesAPI.updateExpense);
+app.delete('/finance/expenses/:id', expensesAPI.deleteExpense);
+app.put('/finance/vendors/:id', expensesAPI.updateVendor);
+app.delete('/finance/vendors/:id', expensesAPI.deleteVendor);
 
 // Finance AR Aging API Routes (Page 18: Accounts Receivable Aging)
 const arAgingAPI = require('./finance/api/ar-aging');

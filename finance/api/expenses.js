@@ -196,7 +196,97 @@ async function testConnection(req, res) {
     }
 }
 
+async function updateExpense(req, res) {
+    const { id } = req.params;
+    const { expense_date, amount, tax_amount, status, notes } = req.body;
+
+    try {
+        const result = await pool.query(
+            `UPDATE finance_expenses
+             SET expense_date = COALESCE($1, expense_date),
+                 amount = COALESCE($2, amount),
+                 tax_amount = COALESCE($3, tax_amount),
+                 status = COALESCE($4, status),
+                 notes = COALESCE($5, notes),
+                 updated_at = NOW()
+             WHERE expense_id = $6
+             RETURNING *`,
+            [expense_date || null, amount ?? null, tax_amount ?? null, status || null, notes || null, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Expense not found' });
+        }
+
+        res.json({ success: true, expense: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating expense:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function deleteExpense(req, res) {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM finance_expenses WHERE expense_id = $1 RETURNING *', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Expense not found' });
+        }
+        res.json({ success: true, expense: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error deleting expense:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function updateVendor(req, res) {
+    const { id } = req.params;
+    const { vendor_name_ar, email, phone, is_active } = req.body;
+    const parsedActive = typeof is_active === 'string' ? is_active.toLowerCase() === 'true' : is_active;
+
+    try {
+        const result = await pool.query(
+            `UPDATE finance_vendors
+             SET vendor_name_ar = COALESCE($1, vendor_name_ar),
+                 email = COALESCE($2, email),
+                 phone = COALESCE($3, phone),
+                 is_active = COALESCE($4, is_active),
+                 updated_at = NOW()
+             WHERE vendor_id = $5
+             RETURNING *`,
+            [vendor_name_ar || null, email || null, phone || null, parsedActive ?? null, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Vendor not found' });
+        }
+
+        res.json({ success: true, vendor: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating vendor:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function deleteVendor(req, res) {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM finance_vendors WHERE vendor_id = $1 RETURNING *', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Vendor not found' });
+        }
+        res.json({ success: true, vendor: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error deleting vendor:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 module.exports = {
     getExpenses,
-    testConnection
+    testConnection,
+    updateExpense,
+    deleteExpense,
+    updateVendor,
+    deleteVendor
 };

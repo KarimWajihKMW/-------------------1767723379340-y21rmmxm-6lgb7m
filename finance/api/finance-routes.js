@@ -501,6 +501,59 @@ router.get('/invoices/:id', async (req, res) => {
   }
 });
 
+// Update invoice
+router.put('/invoices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      due_date,
+      total_amount,
+      status,
+      notes
+    } = req.body;
+
+    const result = await db.query(
+      `UPDATE finance_invoices
+       SET due_date = COALESCE($1, due_date),
+           total_amount = COALESCE($2, total_amount),
+           status = COALESCE($3, status),
+           notes = COALESCE($4, notes),
+           updated_at = NOW()
+       WHERE invoice_id = $5
+       RETURNING *`,
+      [due_date || null, total_amount ?? null, status || null, notes || null, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Invoice not found' });
+    }
+
+    res.json({ success: true, invoice: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating invoice:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete invoice
+router.delete('/invoices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await db.query('DELETE FROM finance_invoice_lines WHERE invoice_id = $1', [id]);
+    const result = await db.query('DELETE FROM finance_invoices WHERE invoice_id = $1 RETURNING *', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Invoice not found' });
+    }
+
+    res.json({ success: true, invoice: result.rows[0] });
+  } catch (error) {
+    console.error('Error deleting invoice:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Create new invoice
 router.post('/invoices', async (req, res) => {
   const client = await db.pool.connect();
@@ -868,6 +921,60 @@ router.post('/payments', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   } finally {
     client.release();
+  }
+});
+
+// Update payment
+router.put('/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      payment_date,
+      payment_amount,
+      payment_method,
+      status,
+      notes
+    } = req.body;
+
+    const result = await db.query(
+      `UPDATE finance_payments
+       SET payment_date = COALESCE($1, payment_date),
+           payment_amount = COALESCE($2, payment_amount),
+           payment_method = COALESCE($3, payment_method),
+           status = COALESCE($4, status),
+           notes = COALESCE($5, notes),
+           updated_at = NOW()
+       WHERE payment_id = $6
+       RETURNING *`,
+      [payment_date || null, payment_amount ?? null, payment_method || null, status || null, notes || null, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Payment not found' });
+    }
+
+    res.json({ success: true, payment: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating payment:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete payment
+router.delete('/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query('DELETE FROM finance_payment_allocations WHERE payment_id = $1', [id]);
+    const result = await db.query('DELETE FROM finance_payments WHERE payment_id = $1 RETURNING *', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Payment not found' });
+    }
+
+    res.json({ success: true, payment: result.rows[0] });
+  } catch (error) {
+    console.error('Error deleting payment:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

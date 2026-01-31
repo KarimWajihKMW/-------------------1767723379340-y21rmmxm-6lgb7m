@@ -64,10 +64,6 @@
             </button>
         </div>
 
-        <div id="demoBanner" class="banner hidden mb-6 rounded-2xl p-4 text-sm">
-            تم تحميل بيانات تجريبية لأن الاتصال بالبيانات الفعلية غير متاح حالياً.
-        </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             <div class="card rounded-2xl p-6">
                 <div class="flex items-center justify-between mb-3">
@@ -244,7 +240,6 @@
         const ENTITY_ID = 'HQ001';
 
         let bankAccounts = [];
-        let demoMode = false;
 
         function formatMoney(value) {
             const num = parseFloat(value || 0);
@@ -284,14 +279,11 @@
         }
 
         async function loadBankAccounts() {
-            const banner = document.getElementById('demoBanner');
             try {
                 const balanceData = await fetchJsonSafe(`${API_BASE}/finance/account-balances?entity_id=${ENTITY_ID}&account_type=ASSET`, null);
                 if (!balanceData || !balanceData.success) {
                     throw new Error('no data');
                 }
-                demoMode = false;
-                if (banner) banner.classList.add('hidden');
 
                 const rows = balanceData.rows || [];
                 bankAccounts = rows.filter(row => {
@@ -311,13 +303,8 @@
                         metadata: {}
                     }));
 
-                if (!bankAccounts.length) {
-                    applyDemoData();
-                }
             } catch {
-                applyDemoData();
-                demoMode = true;
-                if (banner) banner.classList.remove('hidden');
+                bankAccounts = [];
             }
 
             renderInsights();
@@ -325,40 +312,6 @@
             renderTable();
         }
 
-        function applyDemoData() {
-            bankAccounts = [
-                {
-                    account_code: '112001',
-                    bank_name: 'البنك الأهلي',
-                    account_name: 'حساب التشغيل الرئيسي',
-                    balance: 920000,
-                    currency: 'SAR',
-                    status: 'active',
-                    reconciled_at: '2026-01-25',
-                    metadata: { iban: 'SA3800000000608010167519', swift: 'NCBKSARI', threshold: 150000 }
-                },
-                {
-                    account_code: '112002',
-                    bank_name: 'بنك الرياض',
-                    account_name: 'حساب الرواتب',
-                    balance: 420000,
-                    currency: 'SAR',
-                    status: 'active',
-                    reconciled_at: '2026-01-24',
-                    metadata: { iban: 'SA2500000000701123456789', swift: 'RIBLSARI', threshold: 120000 }
-                },
-                {
-                    account_code: '112003',
-                    bank_name: 'مصرف الإنماء',
-                    account_name: 'حساب الاحتياطي',
-                    balance: 310000,
-                    currency: 'SAR',
-                    status: 'paused',
-                    reconciled_at: '2026-01-20',
-                    metadata: { iban: 'SA1900000000801123123123', swift: 'INMASARI', threshold: 80000 }
-                }
-            ];
-        }
 
         function renderSummary() {
             const totalBanks = bankAccounts.length;

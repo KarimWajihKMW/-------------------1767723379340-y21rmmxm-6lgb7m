@@ -566,21 +566,10 @@
             setTimeout(() => toast.remove(), 2000);
         }
 
-        function setDemoForm() {
-            document.getElementById('demoEntryDate').value = new Date().toLocaleDateString('ar-SA');
-            document.getElementById('demoEntryNumber').value = 'قيد-تجريبي-001';
-            document.getElementById('demoEntryType').value = 'مبيعات';
-            document.getElementById('demoDebit').value = 'النقدية';
-            document.getElementById('demoCredit').value = 'إيرادات البرامج';
-            document.getElementById('demoAmount').value = '15,000 ر.س';
-            document.getElementById('demoAttachment').value = 'مرفق فاتورة';
-        }
-
         function printReport() { window.print(); }
         function refreshData() { loadData(); }
 
         document.addEventListener('DOMContentLoaded', () => {
-            setDemoForm();
             loadData();
         });
     </script>

@@ -274,7 +274,7 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
 
         const store = {
             invoices: [],
@@ -296,7 +296,9 @@
         let modalState = { type: null, invoice: null };
 
         async function fetchJson(url) {
-            const res = await fetch(url);
+            const res = await fetch(url, {
+                headers: window.getFinanceHeaders ? window.getFinanceHeaders() : {}
+            });
             const data = await res.json();
             return { ok: res.ok, data };
         }
@@ -304,8 +306,8 @@
         async function loadData() {
             try {
                 const [invRes, payRes, planRes, budgetRes, expenseRes, cashflowRes, forecastRes, assetsRes] = await Promise.all([
-                    fetchJson(`${API_BASE}/finance/invoices`),
-                    fetchJson(`${API_BASE}/finance/payments`),
+                    fetchJson(`${API_BASE}/finance/invoices?entity_id=${ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`),
                     fetchJson(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
                     fetchJson(`${API_BASE}/finance/budgets?entity_id=${ENTITY_ID}`),
                     fetchJson(`${API_BASE}/finance/expenses?entity_id=${ENTITY_ID}`),
@@ -375,6 +377,8 @@
                             <button onclick="openAction('full', '${inv.invoice_id}')" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs">سداد كامل</button>
                             <button onclick="openAction('partial', '${inv.invoice_id}')" class="bg-amber-500 text-white px-3 py-1 rounded-full text-xs">سداد جزئي</button>
                             <button onclick="openAction('plan', '${inv.invoice_id}')" class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs">إنشاء خطة دفع</button>
+                            <button onclick="openEditInvoice(${inv.invoice_id})" class="bg-slate-700 text-white px-3 py-1 rounded-full text-xs">تعديل</button>
+                            <button onclick="deleteInvoice(${inv.invoice_id})" class="bg-rose-600 text-white px-3 py-1 rounded-full text-xs">حذف</button>
                         </div>
                     </td>
                 </tr>
@@ -382,6 +386,78 @@
 
             document.getElementById('invoicesTable').innerHTML = rows || `<tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${totalInvoices}`;
+        }
+
+        function openEditInvoice(invoiceId) {
+            const invoice = store.invoices.find(i => i.invoice_id === invoiceId);
+            if (!invoice) return;
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay flex';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal bg-white rounded-2xl shadow-2xl">
+                    <div class="p-5 border-b flex items-center justify-between">
+                        <h3 class="font-bold text-lg">تعديل الفاتورة ${invoice.invoice_number || ''}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="text-slate-500 hover:text-slate-700"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="p-5 space-y-4 text-sm">
+                        <div>
+                            <label class="block mb-1 text-slate-600">تاريخ الاستحقاق</label>
+                            <input id="edit-invoice-due" type="date" class="w-full border rounded-lg px-3 py-2" value="${(invoice.due_date || '').slice(0,10)}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-slate-600">إجمالي الفاتورة</label>
+                            <input id="edit-invoice-total" type="number" class="w-full border rounded-lg px-3 py-2" value="${invoice.total_amount || 0}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-slate-600">الحالة</label>
+                            <input id="edit-invoice-status" type="text" class="w-full border rounded-lg px-3 py-2" value="${invoice.status || ''}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-slate-600">ملاحظات</label>
+                            <textarea id="edit-invoice-notes" class="w-full border rounded-lg px-3 py-2" rows="3">${invoice.notes || ''}</textarea>
+                        </div>
+                    </div>
+                    <div class="p-5 border-t flex items-center justify-end gap-2">
+                        <button onclick="this.closest('.modal-overlay').remove()" class="px-4 py-2 rounded-lg border">إلغاء</button>
+                        <button onclick="submitEditInvoice(${invoiceId})" class="px-4 py-2 rounded-lg bg-slate-800 text-white">حفظ</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function submitEditInvoice(invoiceId) {
+            const payload = {
+                due_date: document.getElementById('edit-invoice-due').value,
+                total_amount: parseFloat(document.getElementById('edit-invoice-total').value || 0),
+                status: document.getElementById('edit-invoice-status').value,
+                notes: document.getElementById('edit-invoice-notes').value
+            };
+            const res = await fetch(`${API_BASE}/finance/invoices/${invoiceId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {}) },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                document.querySelector('.modal-overlay')?.remove();
+                await loadData();
+            } else {
+                alert('تعذر تحديث الفاتورة');
+            }
+        }
+
+        async function deleteInvoice(invoiceId) {
+            if (!confirm('هل تريد حذف هذه الفاتورة؟')) return;
+            const res = await fetch(`${API_BASE}/finance/invoices/${invoiceId}`, {
+                method: 'DELETE',
+                headers: window.getFinanceHeaders ? window.getFinanceHeaders() : {}
+            });
+            if (res.ok) {
+                await loadData();
+            } else {
+                alert('تعذر حذف الفاتورة');
+            }
         }
 
         function renderBudgetSummary() {

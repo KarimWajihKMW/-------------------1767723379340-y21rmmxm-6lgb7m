@@ -137,11 +137,12 @@
                                 <th class="px-4 py-3 text-right">نوع الدفع</th>
                                 <th class="px-4 py-3 text-right">الحالة</th>
                                 <th class="px-4 py-3 text-right">ملاحظات</th>
+                                <th class="px-4 py-3 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="paymentsTable" class="text-sm divide-y divide-gray-100">
                             <tr>
-                                <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="9" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل المدفوعات...</div>
                                 </td>
@@ -156,12 +157,14 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
         let allPayments = [];
 
         async function loadPayments() {
             try {
-                const response = await fetch(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`);
+                const response = await fetch(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`, {
+                    headers: window.getFinanceHeaders ? window.getFinanceHeaders() : {}
+                });
                 const data = await response.json();
 
                 if (!data.success) {
@@ -204,13 +207,23 @@
                         <td class="px-4 py-3">${translateType(p.payment_type)}</td>
                         <td class="px-4 py-3">${statusBadge}</td>
                         <td class="px-4 py-3 text-gray-600">${p.notes || '-'}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <button onclick="openEditPayment(${p.payment_id})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="تعديل">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button onclick="deletePayment(${p.payment_id})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             }).join('');
 
             document.getElementById('paymentsTable').innerHTML = rows.length ? rows : `
                 <tr>
-                    <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                    <td colspan="9" class="px-4 py-12 text-center text-gray-500">
                         لا توجد مدفوعات
                     </td>
                 </tr>
@@ -269,6 +282,82 @@
                 return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">فاشلة</span>';
             }
             return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">غير محدد</span>';
+        }
+
+        function openEditPayment(paymentId) {
+            const payment = allPayments.find(p => p.payment_id === paymentId);
+            if (!payment) return;
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                    <div class="p-5 border-b flex items-center justify-between">
+                        <h3 class="font-bold text-lg">تعديل المدفوعة ${payment.payment_number || ''}</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="p-5 space-y-4 text-sm">
+                        <div>
+                            <label class="block mb-1 text-gray-600">التاريخ</label>
+                            <input id="edit-payment-date" type="date" class="w-full border rounded-lg px-3 py-2" value="${(payment.payment_date || '').slice(0,10)}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-gray-600">المبلغ</label>
+                            <input id="edit-payment-amount" type="number" class="w-full border rounded-lg px-3 py-2" value="${payment.payment_amount || 0}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-gray-600">طريقة الدفع</label>
+                            <input id="edit-payment-method" type="text" class="w-full border rounded-lg px-3 py-2" value="${payment.payment_method || ''}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-gray-600">الحالة</label>
+                            <input id="edit-payment-status" type="text" class="w-full border rounded-lg px-3 py-2" value="${payment.status || ''}">
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-gray-600">ملاحظات</label>
+                            <textarea id="edit-payment-notes" class="w-full border rounded-lg px-3 py-2" rows="3">${payment.notes || ''}</textarea>
+                        </div>
+                    </div>
+                    <div class="p-5 border-t flex items-center justify-end gap-2">
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 rounded-lg border">إلغاء</button>
+                        <button onclick="submitEditPayment(${paymentId})" class="px-4 py-2 rounded-lg bg-blue-600 text-white">حفظ</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function submitEditPayment(paymentId) {
+            const payload = {
+                payment_date: document.getElementById('edit-payment-date').value,
+                payment_amount: parseFloat(document.getElementById('edit-payment-amount').value || 0),
+                payment_method: document.getElementById('edit-payment-method').value,
+                status: document.getElementById('edit-payment-status').value,
+                notes: document.getElementById('edit-payment-notes').value
+            };
+            const res = await fetch(`${API_BASE}/finance/payments/${paymentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {}) },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                document.querySelector('.fixed')?.remove();
+                await loadPayments();
+            } else {
+                alert('تعذر تحديث المدفوعة');
+            }
+        }
+
+        async function deletePayment(paymentId) {
+            if (!confirm('هل تريد حذف هذه المدفوعة؟')) return;
+            const res = await fetch(`${API_BASE}/finance/payments/${paymentId}`, {
+                method: 'DELETE',
+                headers: window.getFinanceHeaders ? window.getFinanceHeaders() : {}
+            });
+            if (res.ok) {
+                await loadPayments();
+            } else {
+                alert('تعذر حذف المدفوعة');
+            }
         }
 
         function formatMoney(value) {

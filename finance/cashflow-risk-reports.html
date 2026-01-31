@@ -127,10 +127,6 @@
             </button>
         </div>
 
-        <div id="demoBanner" class="demo-banner hidden mb-6 rounded-2xl p-4 text-slate-700 text-sm">
-            يتم عرض بيانات تجريبية مؤقتًا لأن المصادر لم تُعد أي بيانات حتى الآن.
-        </div>
-
         <!-- Command Center -->
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
             <div class="glass-panel rounded-3xl p-6 kpi-glow">
@@ -465,8 +461,6 @@
         let arAging = [];
 
         let lastSyncAt = null;
-        let isDemoMode = false;
-
         let cashflowChartInstance = null;
         let cashflowMixInstance = null;
         let riskLevelInstance = null;
@@ -522,7 +516,6 @@
                 payments = paymentData.payments || [];
                 arAging = arData.rows || [];
 
-                applyDemoFallbackIfEmpty();
                 lastSyncAt = new Date();
 
                 renderCashflow();
@@ -540,7 +533,6 @@
                 invoices = [];
                 payments = [];
                 arAging = [];
-                applyDemoFallbackIfEmpty();
                 lastSyncAt = new Date();
                 renderCashflow();
                 renderRisk();
@@ -738,58 +730,6 @@
             document.getElementById('riskCount').textContent = `عدد الصفوف: ${riskScores.length}`;
         }
 
-        function applyDemoFallbackIfEmpty() {
-            const hasData = (cashflowOperating.length + cashflowInvesting.length + cashflowFinancing.length + forecasts.length + riskScores.length + invoices.length + payments.length + arAging.length) > 0;
-            if (hasData) {
-                isDemoMode = false;
-                const banner = document.getElementById('demoBanner');
-                if (banner) banner.classList.add('hidden');
-                return;
-            }
-
-            isDemoMode = true;
-            const banner = document.getElementById('demoBanner');
-            if (banner) banner.classList.remove('hidden');
-
-            const today = new Date();
-            const daysAgo = (n) => new Date(today.getTime() - n * 24 * 60 * 60 * 1000).toISOString();
-
-            cashflowOperating = [
-                { flow_id: 101, flow_type: 'collection', amount: 180000, description: 'تحصيل عملاء رئيسي', flow_date: daysAgo(3), entity_id: CASHFLOW_ENTITY_ID, created_by: 'system', created_at: daysAgo(3) },
-                { flow_id: 102, flow_type: 'payment', amount: -95000, description: 'دفعات موردين', flow_date: daysAgo(2), entity_id: CASHFLOW_ENTITY_ID, created_by: 'system', created_at: daysAgo(2) }
-            ];
-            cashflowInvesting = [
-                { flow_id: 201, flow_type: 'investment', amount: -45000, description: 'استثمار توسعي', flow_date: daysAgo(6), entity_id: CASHFLOW_ENTITY_ID, created_by: 'system', created_at: daysAgo(6) }
-            ];
-            cashflowFinancing = [
-                { flow_id: 301, flow_type: 'loan_received', amount: 120000, description: 'تمويل قصير الأجل', flow_date: daysAgo(10), entity_id: CASHFLOW_ENTITY_ID, created_by: 'system', created_at: daysAgo(10) }
-            ];
-            cashflowOverview = {
-                success: true,
-                operating: { inflow: 180000, outflow: -95000 },
-                investing: { inflow: 0, outflow: -45000 },
-                financing: { inflow: 120000, outflow: 0 },
-                total_net_cashflow: 160000
-            };
-            forecasts = [
-                { forecast_id: 1, entity_id: CASHFLOW_ENTITY_ID, forecast_period: '30D', forecast_type: 'CASHFLOW', forecast_amount: 145000, confidence_level: 84, ai_model: 'Naiosh-AI', ai_insights: 'زيادة التدفقات نتيجة التحصيل', created_at: daysAgo(1) },
-                { forecast_id: 2, entity_id: CASHFLOW_ENTITY_ID, forecast_period: '90D', forecast_type: 'CASHFLOW', forecast_amount: 380000, confidence_level: 79, ai_model: 'Naiosh-AI', ai_insights: 'استقرار نسبي مع مخاطر موسمية', created_at: daysAgo(7) }
-            ];
-            riskScores = [
-                { risk_id: 10, customer_id: 'C-1001', assessment_date: daysAgo(2), risk_score: 72, risk_level: 'HIGH', risk_factors: 'تأخر سداد', calculation_details: 'نسبة تأخر 35%', recommendations: 'تكثيف التحصيل', suggested_actions: 'خطة سداد', entity_type: 'HQ', entity_id: CASHFLOW_ENTITY_ID, model_version: 'v2.3', created_at: daysAgo(2) },
-                { risk_id: 11, customer_id: 'C-1015', assessment_date: daysAgo(4), risk_score: 48, risk_level: 'MEDIUM', risk_factors: 'تذبذب تدفقات', calculation_details: 'متوسط رصيد', recommendations: 'متابعة أسبوعية', suggested_actions: 'مراجعة عقود', entity_type: 'BRANCH', entity_id: CASHFLOW_ENTITY_ID, model_version: 'v2.3', created_at: daysAgo(4) }
-            ];
-            invoices = [
-                { invoice_id: 501, customer_id: 'C-1001', total_amount: 180000, status: 'OVERDUE', risk_level: 'HIGH', branch_id: 'B-01', program_id: 'P-01' }
-            ];
-            payments = [
-                { payment_id: 601, customer_id: 'C-1001', payment_amount: 45000, branch_id: 'B-01', program_id: 'P-01' }
-            ];
-            arAging = [
-                { customer_id: 'C-1001', remaining_amount: 135000, branch_id: 'B-01', program_id: 'P-01' }
-            ];
-        }
-
         function renderEnhancements() {
             renderCashflowQuality();
             renderCashflowAlerts();
@@ -847,8 +787,7 @@
             const alerts = [
                 net < 0 ? `⚠️ صافي التدفق سلبي بقيمة <strong>${formatMoney(net)}</strong>` : '✅ صافي التدفق موجب ومستقر.',
                 highRiskCount ? `🚩 يوجد <strong>${highRiskCount}</strong> عميل عالي المخاطر يحتاج متابعة.` : '✅ لا توجد مخاطر عالية بارزة.',
-                overdueCount ? `💳 هناك <strong>${overdueCount}</strong> فاتورة متأخرة عن السداد.` : '✅ لا توجد فواتير متأخرة حالياً.',
-                isDemoMode ? '🧪 بيانات تجريبية قيد العرض حتى تفعيل البيانات الفعلية.' : '✅ البيانات حية ويتم تحديثها تلقائياً.'
+                overdueCount ? `💳 هناك <strong>${overdueCount}</strong> فاتورة متأخرة عن السداد.` : '✅ لا توجد فواتير متأخرة حالياً.'
             ];
 
             alertsEl.innerHTML = alerts.map(text => `<div class="bg-slate-50 rounded-xl p-3">${text}</div>`).join('');
@@ -1135,7 +1074,6 @@
         function downloadEnhancementPack() {
             const payload = {
                 generated_at: new Date().toISOString(),
-                demo_mode: isDemoMode,
                 cashflow_overview: cashflowOverview,
                 cashflow_operating: cashflowOperating,
                 cashflow_investing: cashflowInvesting,
