@@ -86,20 +86,21 @@ async function getJournalEntries(req, res) {
         for (let entry of entries) {
             const linesQuery = `
                 SELECT 
-                    line_id,
-                    entry_id,
-                    line_number,
-                    account_id,
-                    account_code,
-                    account_name,
-                    debit_amount,
-                    credit_amount,
-                    description,
-                    cost_center_id,
-                    project_id
-                FROM finance_journal_lines
-                WHERE entry_id = $1
-                ORDER BY line_number
+                    jl.line_id,
+                    jl.entry_id,
+                    jl.line_number,
+                    jl.account_id,
+                    jl.account_code,
+                    fa.account_name_ar as account_name,
+                    jl.debit_amount,
+                    jl.credit_amount,
+                    jl.description,
+                    jl.cost_center_id,
+                    jl.project_id
+                FROM finance_journal_lines jl
+                LEFT JOIN finance_accounts fa ON jl.account_id = fa.account_id
+                WHERE jl.entry_id = $1
+                ORDER BY jl.line_number
             `;
 
             const linesResult = await pool.query(linesQuery, [entry.entry_id]);
@@ -161,10 +162,22 @@ async function getJournalEntry(req, res) {
 
         // Get lines
         const linesQuery = `
-            SELECT *
-            FROM finance_journal_lines
-            WHERE entry_id = $1
-            ORDER BY line_number
+            SELECT 
+                jl.line_id,
+                jl.entry_id,
+                jl.line_number,
+                jl.account_id,
+                jl.account_code,
+                fa.account_name_ar as account_name,
+                jl.debit_amount,
+                jl.credit_amount,
+                jl.description,
+                jl.cost_center_id,
+                jl.project_id
+            FROM finance_journal_lines jl
+            LEFT JOIN finance_accounts fa ON jl.account_id = fa.account_id
+            WHERE jl.entry_id = $1
+            ORDER BY jl.line_number
         `;
 
         const linesResult = await pool.query(linesQuery, [entry_id]);
@@ -423,13 +436,38 @@ async function createJournalEntry(req, res) {
 
         console.log(`✅ Created entry #${newEntry.entry_number}`);
 
+        const accountIds = lines
+            .map(line => parseInt(line.account_id, 10))
+            .filter(id => Number.isInteger(id));
+
+        const accountsLookup = new Map();
+        if (accountIds.length) {
+            const accountsResult = await client.query(
+                `SELECT account_id, account_code, account_name_ar FROM finance_accounts WHERE account_id = ANY($1::int[])`,
+                [accountIds]
+            );
+            accountsResult.rows.forEach(row => {
+                accountsLookup.set(row.account_id, {
+                    account_code: row.account_code,
+                    account_name: row.account_name_ar
+                });
+            });
+        }
+
         // Insert journal lines
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
+            const accountId = parseInt(line.account_id, 10);
+            const accountMeta = Number.isInteger(accountId) ? accountsLookup.get(accountId) : null;
+            const accountCode = line.account_code || accountMeta?.account_code;
+
+            if (!Number.isInteger(accountId) || !accountCode) {
+                throw new Error('Invalid account data: account_id or account_code missing');
+            }
 
             const lineQuery = `
                 INSERT INTO finance_journal_lines (
-                    entry_id, line_number, account_id, account_code, account_name,
+                    entry_id, line_number, account_id, account_code,
                     debit_amount, credit_amount, description,
                     cost_center_id, project_id
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -439,9 +477,8 @@ async function createJournalEntry(req, res) {
             const lineValues = [
                 newEntry.entry_id,
                 i + 1,
-                line.account_id,
-                line.account_code,
-                line.account_name,
+                accountId,
+                accountCode,
                 normalizeAmount(line.debit_amount),
                 normalizeAmount(line.credit_amount),
                 line.description,
