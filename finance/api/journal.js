@@ -578,6 +578,163 @@ async function deleteJournalEntry(req, res) {
 }
 
 /**
+ * Update journal entry with lines
+ */
+async function updateJournalEntry(req, res) {
+    const { entry_id } = req.params;
+    const {
+        entity_id,
+        entry_date,
+        entry_type,
+        description,
+        reference_number,
+        fiscal_year,
+        fiscal_period,
+        lines
+    } = req.body;
+
+    if (!entity_id || !entry_date || !lines || lines.length === 0) {
+        return res.status(400).json({
+            success: false,
+            error: 'Missing required fields: entity_id, entry_date, lines'
+        });
+    }
+
+    const totalDebit = lines.reduce((sum, line) => sum + normalizeAmount(line.debit_amount), 0);
+    const totalCredit = lines.reduce((sum, line) => sum + normalizeAmount(line.credit_amount), 0);
+
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+        return res.status(400).json({
+            success: false,
+            error: 'Journal entry is not balanced. Total debit must equal total credit.',
+            total_debit: totalDebit,
+            total_credit: totalCredit,
+            difference: totalDebit - totalCredit
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const existingResult = await client.query(
+            `SELECT entry_id, entry_number, entry_type
+             FROM finance_journal_entries
+             WHERE entry_id = $1 AND entity_id = $2`,
+            [entry_id, entity_id]
+        );
+
+        if (existingResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({
+                success: false,
+                error: 'Journal entry not found'
+            });
+        }
+
+        const existingEntry = existingResult.rows[0];
+        const entryTypeValue = entry_type || existingEntry.entry_type || 'GENERAL';
+
+        const updateResult = await client.query(
+            `UPDATE finance_journal_entries
+             SET entry_date = $1,
+                 entry_type = $2,
+                 description = $3,
+                 reference_number = $4,
+                 fiscal_year = $5,
+                 fiscal_period = $6,
+                 updated_at = NOW(),
+                 updated_by = $7
+             WHERE entry_id = $8 AND entity_id = $9
+             RETURNING *`,
+            [
+                entry_date,
+                entryTypeValue,
+                description,
+                reference_number,
+                fiscal_year,
+                fiscal_period,
+                'SYSTEM',
+                entry_id,
+                entity_id
+            ]
+        );
+
+        await client.query('DELETE FROM finance_journal_lines WHERE entry_id = $1', [entry_id]);
+
+        const accountIds = lines
+            .map(line => parseInt(line.account_id, 10))
+            .filter(id => Number.isInteger(id));
+
+        const accountsLookup = new Map();
+        if (accountIds.length) {
+            const accountsResult = await client.query(
+                `SELECT account_id, account_code, account_name_ar FROM finance_accounts WHERE account_id = ANY($1::int[])`,
+                [accountIds]
+            );
+            accountsResult.rows.forEach(row => {
+                accountsLookup.set(row.account_id, {
+                    account_code: row.account_code,
+                    account_name: row.account_name_ar
+                });
+            });
+        }
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const accountId = parseInt(line.account_id, 10);
+            const accountMeta = Number.isInteger(accountId) ? accountsLookup.get(accountId) : null;
+            const accountCode = line.account_code || accountMeta?.account_code;
+
+            if (!Number.isInteger(accountId) || !accountCode) {
+                throw new Error('Invalid account data: account_id or account_code missing');
+            }
+
+            const lineQuery = `
+                INSERT INTO finance_journal_lines (
+                    entry_id, line_number, account_id, account_code,
+                    debit_amount, credit_amount, description,
+                    cost_center_id, project_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+            `;
+
+            const lineValues = [
+                entry_id,
+                i + 1,
+                accountId,
+                accountCode,
+                normalizeAmount(line.debit_amount),
+                normalizeAmount(line.credit_amount),
+                line.description,
+                line.cost_center_id,
+                line.project_id
+            ];
+
+            await client.query(lineQuery, lineValues);
+        }
+
+        await client.query('COMMIT');
+
+        res.json({
+            success: true,
+            entry: updateResult.rows[0],
+            message: `تم تحديث القيد المحاسبي #${existingEntry.entry_number}`
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Error updating journal entry:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    } finally {
+        client.release();
+    }
+}
+
+/**
  * Test database connection
  */
 async function testConnection(req, res) {
@@ -603,6 +760,7 @@ module.exports = {
     getAccountBalances,
     getAccountLedger,
     createJournalEntry,
+    updateJournalEntry,
     deleteJournalEntry,
     testConnection
 };

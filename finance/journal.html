@@ -412,7 +412,7 @@
     <div id="addEntryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4">
             <div class="flex items-center justify-between px-6 py-4 border-b">
-                <h3 class="text-lg font-bold text-gray-800">إضافة قيد محاسبي</h3>
+                <h3 id="entryModalTitle" class="text-lg font-bold text-gray-800">إضافة قيد محاسبي</h3>
                 <button onclick="closeAddEntryModal()" class="text-gray-400 hover:text-gray-700">
                     <i class="fas fa-xmark text-xl"></i>
                 </button>
@@ -479,7 +479,7 @@
 
                 <div class="flex items-center justify-end gap-3">
                     <button onclick="closeAddEntryModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-600">إلغاء</button>
-                    <button onclick="submitJournalEntry()" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">حفظ القيد</button>
+                    <button id="submitEntryButton" onclick="submitJournalEntry()" class="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">حفظ القيد</button>
                 </div>
             </div>
         </div>
@@ -497,6 +497,7 @@
         let journalTypeChart = null;
         let filtersReady = false;
         let lastSyncAt = null;
+        let editingEntryId = null;
 
         const journalFilters = {
             search: '',
@@ -968,6 +969,9 @@
                                 <button onclick="event.stopPropagation(); viewJournalEntry(${entry.entry_id})" class="text-purple-600 hover:text-purple-800" title="عرض">
                                     <i class="fas fa-eye"></i>
                                 </button>
+                                <button onclick="event.stopPropagation(); openEditJournalEntry(${entry.entry_id})" class="text-blue-600 hover:text-blue-800" title="تعديل">
+                                    <i class="fas fa-pen"></i>
+                                </button>
                                 <button onclick="event.stopPropagation(); deleteJournalEntry(${entry.entry_id})" class="text-red-600 hover:text-red-800" title="حذف">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -1375,7 +1379,21 @@
             modal.classList.remove('flex');
         }
 
+        function setEntryFormMode(mode) {
+            const title = document.getElementById('entryModalTitle');
+            const button = document.getElementById('submitEntryButton');
+            if (mode === 'edit') {
+                if (title) title.textContent = 'تعديل قيد محاسبي';
+                if (button) button.textContent = 'حفظ التعديل';
+            } else {
+                if (title) title.textContent = 'إضافة قيد محاسبي';
+                if (button) button.textContent = 'حفظ القيد';
+            }
+        }
+
         function resetNewEntryForm() {
+            editingEntryId = null;
+            setEntryFormMode('create');
             document.getElementById('newEntryDate').valueAsDate = new Date();
             document.getElementById('newEntryType').value = 'GENERAL';
             document.getElementById('newEntryDescription').value = '';
@@ -1389,7 +1407,7 @@
             updateEntryTotals();
         }
 
-        function addEntryLine() {
+        function addEntryLine(line = {}) {
             const tbody = document.getElementById('newEntryLines');
             if (tbody.children.length === 1 && tbody.children[0].querySelector('td[colspan="5"]')) {
                 tbody.innerHTML = '';
@@ -1424,6 +1442,24 @@
                     </button>
                 </td>
             `;
+
+            const accountSelect = row.querySelector('.entry-account');
+            const descInput = row.querySelector('.entry-desc');
+            const debitInput = row.querySelector('.entry-debit');
+            const creditInput = row.querySelector('.entry-credit');
+
+            if (line.account_id) {
+                accountSelect.value = String(line.account_id);
+            }
+            if (line.description) {
+                descInput.value = line.description;
+            }
+            if (line.debit_amount) {
+                debitInput.value = parseFloat(line.debit_amount) || '';
+            }
+            if (line.credit_amount) {
+                creditInput.value = parseFloat(line.credit_amount) || '';
+            }
 
             row.querySelectorAll('input, select').forEach(input => {
                 input.addEventListener('input', updateEntryTotals);
@@ -1505,8 +1541,13 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/finance/journal/entries`, {
-                    method: 'POST',
+                const isEdit = Number.isInteger(editingEntryId);
+                const url = isEdit
+                    ? `${API_BASE}/finance/journal/entries/${editingEntryId}?entity_id=${ENTITY_ID}`
+                    : `${API_BASE}/finance/journal/entries`;
+
+                const response = await fetch(url, {
+                    method: isEdit ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         entity_id: ENTITY_ID,
@@ -1525,12 +1566,55 @@
                 }
 
                 closeAddEntryModal();
+                editingEntryId = null;
                 await loadJournalEntries();
                 await loadStats();
-                alert('تم إنشاء القيد بنجاح');
+                alert(isEdit ? 'تم تعديل القيد بنجاح' : 'تم إنشاء القيد بنجاح');
             } catch (error) {
                 console.error('❌ خطأ في إنشاء القيد:', error);
-                alert('فشل إنشاء القيد، تحقق من توازن المدين والدائن');
+                alert(error.message || 'فشل حفظ القيد');
+            }
+        }
+
+        async function openEditJournalEntry(entryId) {
+            if (!chartAccounts.length) {
+                await loadAccountsList();
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/journal/entries/${entryId}?entity_id=${ENTITY_ID}`);
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر تحميل القيد');
+                }
+
+                const entry = data.entry;
+                editingEntryId = entry.entry_id;
+                setEntryFormMode('edit');
+                openAddEntryModal();
+
+                document.getElementById('newEntryDate').value = (entry.entry_date || '').slice(0, 10);
+                document.getElementById('newEntryType').value = entry.entry_type || 'GENERAL';
+                document.getElementById('newEntryDescription').value = entry.description || '';
+                document.getElementById('newEntryReference').value = entry.reference_number || '';
+                document.getElementById('newEntryFiscalYear').value = entry.fiscal_year || new Date().getFullYear();
+
+                const tbody = document.getElementById('newEntryLines');
+                tbody.innerHTML = '';
+                (entry.lines || []).forEach(line => addEntryLine(line));
+
+                if (!tbody.children.length) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-500">أضف سطرين على الأقل</td>
+                        </tr>
+                    `;
+                }
+
+                updateEntryTotals();
+            } catch (error) {
+                console.error('❌ خطأ في تحميل القيد للتعديل:', error);
+                alert('تعذر تحميل القيد للتعديل');
             }
         }
 
