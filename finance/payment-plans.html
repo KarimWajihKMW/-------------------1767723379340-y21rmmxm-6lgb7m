@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
         .card-gradient {
@@ -46,22 +46,22 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📆 خطط السداد والتوزيعات</h1>
             <p class="text-lg opacity-90">تفاصيل خطط السداد وربطها بتوزيعات المدفوعات</p>
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-indigo-800 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
+                <i class="fas fa-file-csv text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-purple-500 group">
+                <i class="fas fa-file-code text-xl text-purple-600 group-hover:text-purple-700 transition"></i>
                 تنزيل JSON
             </button>
             <button onclick="printReport()" class="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+                <i class="fas fa-print text-xl text-gray-600 group-hover:text-gray-700 transition"></i>
                 طباعة
             </button>
             <button onclick="refreshData()" class="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
@@ -165,7 +165,7 @@
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
-                        <thead class="bg-indigo-50 text-indigo-700 text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
                                 <th class="px-3 py-2 text-right">plan_id</th>
                                 <th class="px-3 py-2 text-right">plan_number</th>
@@ -222,7 +222,7 @@
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
-                        <thead class="bg-orange-50 text-orange-700 text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
                                 <th class="px-3 py-2 text-right">allocation_id</th>
                                 <th class="px-3 py-2 text-right">payment_id</th>

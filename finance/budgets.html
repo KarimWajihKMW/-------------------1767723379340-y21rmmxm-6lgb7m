@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: radial-gradient(circle at top, #111827 0%, #1f2937 45%, #0f172a 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
         .card-gradient {
@@ -37,22 +37,22 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📑 الميزانيات والانحرافات</h1>
             <p class="text-lg opacity-90">عرض شامل للميزانيات، البنود، وتحليل الانحرافات</p>
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-slate-800 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
+                <i class="fas fa-file-csv text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-purple-500 group">
+                <i class="fas fa-file-code text-xl text-purple-600 group-hover:text-purple-700 transition"></i>
                 تنزيل JSON
             </button>
             <button onclick="printReport()" class="bg-amber-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+                <i class="fas fa-print text-xl text-gray-600 group-hover:text-gray-700 transition"></i>
                 طباعة
             </button>
         </div>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
-                        <thead class="bg-slate-100 text-slate-700 text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
                                 <th class="px-3 py-2 text-right">budget_id</th>
                                 <th class="px-3 py-2 text-right">budget_code</th>
@@ -190,7 +190,7 @@
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
-                        <thead class="bg-emerald-50 text-emerald-700 text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
                                 <th class="px-3 py-2 text-right">line_id</th>
                                 <th class="px-3 py-2 text-right">budget_id</th>
@@ -239,7 +239,7 @@
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
-                        <thead class="bg-rose-50 text-rose-700 text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
                                 <th class="px-3 py-2 text-right">variance_id</th>
                                 <th class="px-3 py-2 text-right">fiscal_year</th>
