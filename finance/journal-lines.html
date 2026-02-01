@@ -10,137 +10,152 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .card-gradient {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
-            backdrop-filter: blur(10px);
+            background-color: #f8fafc; /* bg-slate-50 */
+            color: #0f172a; /* text-slate-900 */
         }
         .stat-card {
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
+            border-top-width: 4px;
         }
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
     </style>
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
-            <h1 class="text-4xl font-bold mb-2">🧾 تفاصيل القيود اليومية</h1>
-            <p class="text-lg opacity-90">جميع سطور القيود المحاسبية بالتفصيل</p>
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">🧾 تفاصيل القيود اليومية</h1>
+            <p class="text-slate-600">جميع سطور القيود المحاسبية بالتفصيل</p>
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-file-csv text-green-600"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-file-code text-blue-600"></i>
                 تنزيل JSON
             </button>
-            <button onclick="printLines()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+            <button onclick="printLines()" class="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-print text-slate-600"></i>
                 طباعة
             </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white border-t-blue-500 rounded-lg p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-list text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">عدد السطور</span>
+                    <div class="p-3 rounded-full bg-blue-50 text-blue-600">
+                        <i class="fas fa-list text-xl"></i>
+                    </div>
+                    <span class="text-sm text-slate-500 font-medium">عدد السطور</span>
                 </div>
-                <div id="lineCount" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                <div id="lineCount" class="text-2xl font-bold text-slate-800">
+                    <div class="animate-pulse bg-slate-200 h-8 w-24 rounded"></div>
                 </div>
             </div>
-            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white border-t-red-500 rounded-lg p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-arrow-up text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">إجمالي المدين</span>
+                    <div class="p-3 rounded-full bg-red-50 text-red-600">
+                        <i class="fas fa-arrow-up text-xl"></i>
+                    </div>
+                    <span class="text-sm text-slate-500 font-medium">إجمالي المدين</span>
                 </div>
-                <div id="totalDebit" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                <div id="totalDebit" class="text-2xl font-bold text-slate-800">
+                    <div class="animate-pulse bg-slate-200 h-8 w-24 rounded"></div>
                 </div>
             </div>
-            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white border-t-green-500 rounded-lg p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-arrow-down text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">إجمالي الدائن</span>
+                    <div class="p-3 rounded-full bg-green-50 text-green-600">
+                        <i class="fas fa-arrow-down text-xl"></i>
+                    </div>
+                    <span class="text-sm text-slate-500 font-medium">إجمالي الدائن</span>
                 </div>
-                <div id="totalCredit" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                <div id="totalCredit" class="text-2xl font-bold text-slate-800">
+                    <div class="animate-pulse bg-slate-200 h-8 w-24 rounded"></div>
                 </div>
             </div>
-            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white border-t-purple-500 rounded-lg p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-balance-scale text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">الفرق</span>
+                    <div class="p-3 rounded-full bg-purple-50 text-purple-600">
+                        <i class="fas fa-balance-scale text-xl"></i>
+                    </div>
+                    <span class="text-sm text-slate-500 font-medium">الفرق</span>
                 </div>
-                <div id="totalDiff" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                <div id="totalDiff" class="text-2xl font-bold text-slate-800">
+                    <div class="animate-pulse bg-slate-200 h-8 w-24 rounded"></div>
                 </div>
             </div>
         </div>
 
-        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">بحث</label>
-                    <input id="searchInput" type="text" placeholder="رقم القيد أو الحساب" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">بحث</label>
+                    <input id="searchInput" type="text" placeholder="رقم القيد أو الحساب" class="w-full bg-white border border-slate-300 text-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent" oninput="applyFilters()">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">نوع القيد</label>
-                    <select id="entryTypeFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
-                        <option value="">الكل</option>
-                        <option value="GENERAL">عام</option>
-                        <option value="ADJUSTING">تسويات</option>
-                        <option value="CLOSING">إقفال</option>
-                    </select>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">نوع القيد</label>
+                    <div class="relative">
+                        <select id="entryTypeFilter" class="w-full appearance-none bg-white border border-slate-300 text-slate-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-slate-500" onchange="applyFilters()">
+                            <option value="">الكل</option>
+                            <option value="GENERAL">عام</option>
+                            <option value="ADJUSTING">تسويات</option>
+                            <option value="CLOSING">إقفال</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-slate-700">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
-                    <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
-                        <option value="">الكل</option>
-                        <option value="POSTED">مرحل</option>
-                        <option value="DRAFT">مسودة</option>
-                        <option value="APPROVED">معتمد</option>
-                    </select>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">الحالة</label>
+                    <div class="relative">
+                        <select id="statusFilter" class="w-full appearance-none bg-white border border-slate-300 text-slate-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-slate-500" onchange="applyFilters()">
+                            <option value="">الكل</option>
+                            <option value="POSTED">مرحل</option>
+                            <option value="DRAFT">مسودة</option>
+                            <option value="APPROVED">معتمد</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-slate-700">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
-            <div class="p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-0">
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-gray-100 text-gray-600 text-sm">
+                        <thead class="bg-slate-50 text-slate-700 text-sm font-semibold border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 text-right">رقم القيد</th>
-                                <th class="px-4 py-3 text-right">التاريخ</th>
-                                <th class="px-4 py-3 text-right">نوع القيد</th>
-                                <th class="px-4 py-3 text-right">الحساب</th>
-                                <th class="px-4 py-3 text-right">الوصف</th>
-                                <th class="px-4 py-3 text-right">مدين</th>
-                                <th class="px-4 py-3 text-right">دائن</th>
-                                <th class="px-4 py-3 text-right">الحالة</th>
+                                <th class="px-6 py-4 text-right">رقم القيد</th>
+                                <th class="px-6 py-4 text-right">التاريخ</th>
+                                <th class="px-6 py-4 text-right">نوع القيد</th>
+                                <th class="px-6 py-4 text-right">الحساب</th>
+                                <th class="px-6 py-4 text-right">الوصف</th>
+                                <th class="px-6 py-4 text-right">مدين</th>
+                                <th class="px-6 py-4 text-right">دائن</th>
+                                <th class="px-6 py-4 text-right">الحالة</th>
                             </tr>
                         </thead>
-                        <tbody id="linesTable" class="text-sm divide-y divide-gray-100">
+                        <tbody id="linesTable" class="text-sm divide-y divide-slate-200 bg-white">
                             <tr>
-                                <td colspan="8" class="px-4 py-12 text-center text-gray-500">
-                                    <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
+                                <td colspan="8" class="px-6 py-12 text-center text-slate-500">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل السطور...</div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4 text-sm text-gray-600" id="tableCount"></div>
+                <div class="p-4 bg-slate-50 border-t border-slate-200 text-sm text-slate-600" id="tableCount"></div>
             </div>
         </div>
     </div>
