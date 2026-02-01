@@ -10,99 +10,113 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .card-gradient {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
-            backdrop-filter: blur(10px);
+            background-color: #f9fafb;
+            color: #1e293b;
         }
         .stat-card {
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
+            background: white;
+            border: 1px solid #e2e8f0;
         }
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
     </style>
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="mb-8 text-white">
-            <h1 class="text-4xl font-bold mb-2">👥 العملاء (Customers)</h1>
-            <p class="text-lg opacity-90">عرض جميع العملاء وربطهم بالبيانات المالية</p>
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">👥 العملاء (Customers)</h1>
+            <p class="text-slate-600">عرض جميع العملاء وربطهم بالبيانات المالية</p>
         </div>
 
         <!-- Action Buttons -->
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-50 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-file-csv text-green-600"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-50 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-file-code text-blue-600"></i>
                 تنزيل JSON
             </button>
-            <button onclick="printCustomers()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+            <button onclick="printCustomers()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-50 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-print text-slate-600"></i>
                 طباعة
             </button>
         </div>
 
         <!-- Summary Stats -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card p-6 rounded-xl border-t-4 border-blue-500 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-users text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">إجمالي العملاء</span>
-                </div>
-                <div id="totalCustomers" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                    <div>
+                         <p class="text-sm font-medium text-slate-500 mb-1">إجمالي العملاء</p>
+                         <h3 id="totalCustomers" class="text-2xl font-bold text-slate-800">
+                             <div class="animate-pulse h-8 w-24 bg-slate-200 rounded"></div>
+                         </h3>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded-lg">
+                        <i class="fas fa-users text-xl text-blue-600"></i>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card p-6 rounded-xl border-t-4 border-emerald-500 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-check-circle text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">العملاء النشطون</span>
-                </div>
-                <div id="activeCustomers" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                     <div>
+                         <p class="text-sm font-medium text-slate-500 mb-1">العملاء النشطون</p>
+                         <h3 id="activeCustomers" class="text-2xl font-bold text-slate-800">
+                             <div class="animate-pulse h-8 w-24 bg-slate-200 rounded"></div>
+                         </h3>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-lg">
+                        <i class="fas fa-check-circle text-xl text-emerald-600"></i>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card p-6 rounded-xl border-t-4 border-orange-500 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-user-slash text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">العملاء المحظورون</span>
-                </div>
-                <div id="blockedCustomers" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                     <div>
+                         <p class="text-sm font-medium text-slate-500 mb-1">العملاء المحظورون</p>
+                         <h3 id="blockedCustomers" class="text-2xl font-bold text-slate-800">
+                             <div class="animate-pulse h-8 w-24 bg-slate-200 rounded"></div>
+                         </h3>
+                    </div>
+                    <div class="p-3 bg-orange-50 rounded-lg">
+                        <i class="fas fa-user-slash text-xl text-orange-600"></i>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card p-6 rounded-xl border-t-4 border-purple-500 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-credit-card text-4xl opacity-70"></i>
-                    <span class="text-sm opacity-90">حد الائتمان</span>
-                </div>
-                <div id="creditLimitTotal" class="text-4xl font-bold">
-                    <div class="animate-pulse">جاري التحميل...</div>
+                     <div>
+                         <p class="text-sm font-medium text-slate-500 mb-1">حد الائتمان</p>
+                         <h3 id="creditLimitTotal" class="text-xl font-bold text-slate-800">
+                             <div class="animate-pulse h-8 w-24 bg-slate-200 rounded"></div>
+                         </h3>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-lg">
+                        <i class="fas fa-credit-card text-xl text-purple-600"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Filters -->
-        <div class="card-gradient rounded-2xl shadow-2xl p-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">بحث</label>
-                    <input id="searchInput" type="text" placeholder="ابحث بالكود أو الاسم أو البريد" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" oninput="applyFilters()">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">بحث</label>
+                    <input id="searchInput" type="text" placeholder="ابحث بالكود أو الاسم أو البريد" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">نوع العميل</label>
-                    <select id="typeFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">نوع العميل</label>
+                    <select id="typeFilter" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" onchange="applyFilters()">
                         <option value="">الكل</option>
                         <option value="INDIVIDUAL">فرد</option>
                         <option value="COMPANY">شركة</option>
@@ -110,8 +124,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
-                    <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" onchange="applyFilters()">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">الحالة</label>
+                    <select id="statusFilter" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" onchange="applyFilters()">
                         <option value="">الكل</option>
                         <option value="active">نشط</option>
                         <option value="inactive">غير نشط</option>
@@ -122,11 +136,11 @@
         </div>
 
         <!-- Customers Table -->
-        <div class="card-gradient rounded-2xl shadow-2xl overflow-hidden">
-            <div class="p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-0">
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-gray-100 text-gray-600 text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-sm border-b border-slate-200">
                             <tr>
                                 <th class="px-4 py-3 text-right">كود العميل</th>
                                 <th class="px-4 py-3 text-right">اسم العميل</th>
@@ -138,9 +152,9 @@
                                 <th class="px-4 py-3 text-right">الحالة</th>
                             </tr>
                         </thead>
-                        <tbody id="customersTable" class="text-sm divide-y divide-gray-100">
+                        <tbody id="customersTable" class="text-sm divide-y divide-slate-100">
                             <tr>
-                                <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="8" class="px-4 py-12 text-center text-slate-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل العملاء...</div>
                                 </td>
@@ -148,7 +162,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4 text-sm text-gray-600" id="tableCount"></div>
+                <div class="p-4 border-t border-slate-200 text-sm text-slate-600" id="tableCount"></div>
             </div>
         </div>
     </div>
@@ -193,13 +207,13 @@
         function renderTable(customers) {
             const rows = customers.map(c => {
                 return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-mono text-gray-600">${c.customer_code || '-'}</td>
-                        <td class="px-4 py-3 font-semibold text-gray-800">${c.customer_name_ar || '-'}</td>
+                    <tr class="hover:bg-slate-50 border-b border-slate-100 last:border-0">
+                        <td class="px-4 py-3 font-mono text-slate-600">${c.customer_code || '-'}</td>
+                        <td class="px-4 py-3 font-medium text-slate-900">${c.customer_name_ar || '-'}</td>
                         <td class="px-4 py-3">${translateType(c.customer_type)}</td>
-                        <td class="px-4 py-3 text-gray-600">${c.email || '-'}</td>
-                        <td class="px-4 py-3 text-gray-600">${c.phone || c.mobile || '-'}</td>
-                        <td class="px-4 py-3 text-gray-600">${c.city || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600">${c.email || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600">${c.phone || c.mobile || '-'}</td>
+                        <td class="px-4 py-3 text-slate-600">${c.city || '-'}</td>
                         <td class="px-4 py-3 font-bold text-purple-700">${formatMoney(c.credit_limit)}</td>
                         <td class="px-4 py-3">${getStatusBadge(c)}</td>
                     </tr>
@@ -208,7 +222,7 @@
 
             document.getElementById('customersTable').innerHTML = rows.length ? rows : `
                 <tr>
-                    <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                    <td colspan="8" class="px-4 py-12 text-center text-slate-500">
                         لا توجد عملاء
                     </td>
                 </tr>
@@ -258,7 +272,7 @@
             if (c.is_active) {
                 return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">نشط</span>';
             }
-            return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">غير نشط</span>';
+            return '<span class="px-2 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">غير نشط</span>';
         }
 
         function formatMoney(value) {
