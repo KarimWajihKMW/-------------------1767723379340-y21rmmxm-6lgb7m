@@ -419,7 +419,7 @@ async function createJournalEntry(req, res) {
 
         const entryValues = [
             entity_id,
-            entry_number || `JE-${Date.now()}`,
+            entry_number || `JE-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
             entry_date,
             entry_type || 'GENERAL',
             description,
