@@ -470,7 +470,7 @@ async function createJournalEntry(req, res) {
                     entry_id, line_number, account_id, account_code,
                     debit_amount, credit_amount, description,
                     cost_center_id, project_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 RETURNING *
             `;
 
