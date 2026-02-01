@@ -9,12 +9,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 55%, #14b8a6 100%);
-            min-height: 100vh;
+        body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0f172a; }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+    
         .shape-rounded { border-radius: 26px; }
         .shape-angled { border-radius: 34px 10px 34px 10px; }
         .shape-pill { border-radius: 999px; }
@@ -30,13 +32,13 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="text-white mb-8">
+        <div class="text-slate-900 mb-8">
             <h1 class="text-4xl font-bold mb-2">🧭 إجراءات التشغيل المالي</h1>
-            <p class="text-lg opacity-90">إصدار الفواتير والتحصيل والمصروفات والإقفال الشهري (الصفحة 40)</p>
+            <p class="text-lg text-slate-600">إصدار الفواتير والتحصيل والمصروفات والإقفال الشهري (الصفحة 40)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="refreshData()" class="bg-white text-sky-700 border border-sky-100 shadow-sm px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
@@ -58,21 +60,21 @@
             </button>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧾 إصدار الفواتير</h2>
                 <span class="text-sm text-slate-500">ضمان فواتير دقيقة وموحدة وقابلة للتتبع</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-sky-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-sky-100">
                     <h3 class="font-bold text-slate-800 mb-2">الهدف</h3>
                     <p class="text-sm text-slate-600">ضمان إصدار فواتير دقيقة وموحدة وقابلة للتتبع.</p>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-emerald-100">
                     <h3 class="font-bold text-slate-800 mb-2">النطاق</h3>
                     <p class="text-sm text-slate-600">جميع الفروع والحاضنات والبرامج.</p>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h3 class="font-bold text-slate-800 mb-2">المسؤوليات</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>موظف البرنامج: إدخال الطلب</li>
@@ -82,7 +84,7 @@
                 </div>
             </div>
             <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="glass shape-rounded p-5 border border-sky-100">
+                <div class="card-gradient shape-rounded p-5 border border-sky-100">
                     <h4 class="font-bold text-slate-800 mb-2">الإجراءات</h4>
                     <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
                         <li>استلام طلب خدمة من العميل</li>
@@ -94,7 +96,7 @@
                         <li>تسجيلها في الدفتر العام</li>
                     </ol>
                 </div>
-                <div class="glass shape-rounded p-5 border border-emerald-100">
+                <div class="card-gradient shape-rounded p-5 border border-emerald-100">
                     <h4 class="font-bold text-slate-800 mb-2">ملخص الفواتير الحالية</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div class="bg-sky-50 rounded-xl p-3">
@@ -114,13 +116,13 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">💳 التحصيل</h2>
                 <span class="text-sm text-slate-500">تحصيل مستحقات نايوش بكفاءة وشفافية</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-emerald-100">
                     <h3 class="font-bold text-slate-800 mb-2">خطوات التحصيل</h3>
                     <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
                         <li>فتح شاشة التحصيل</li>
@@ -131,7 +133,7 @@
                         <li>تأكيد العملية</li>
                     </ol>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-amber-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-amber-100">
                     <h3 class="font-bold text-slate-800 mb-2">النظام يقوم بـ</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>تسجيل الدفعة</li>
@@ -140,7 +142,7 @@
                         <li>إرسال إيصال للعميل</li>
                     </ul>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h3 class="font-bold text-slate-800 mb-2">مؤشرات التحصيل</h3>
                     <div class="text-sm text-slate-600 space-y-2">
                         <div>إجمالي المدفوعات: <span id="totalPayments" class="font-bold">0</span></div>
@@ -150,13 +152,13 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-amber">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-amber">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧾 المصروفات</h2>
                 <span class="text-sm text-slate-500">معالجة المصروفات خطوة بخطوة</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-amber-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-amber-100">
                     <h3 class="font-bold text-slate-800 mb-2">الإجراءات</h3>
                     <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
                         <li>تقديم طلب شراء</li>
@@ -169,27 +171,27 @@
                         <li>إنشاء القيد المحاسبي</li>
                     </ol>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-emerald-100">
                     <h3 class="font-bold text-slate-800 mb-2">مؤشرات المصروفات</h3>
                     <div class="text-sm text-slate-600 space-y-2">
                         <div>إجمالي المصروفات: <span id="totalExpenses" class="font-bold">0</span></div>
                         <div>عدد المصروفات: <span id="expensesCountSummary" class="font-bold">0</span></div>
                     </div>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h3 class="font-bold text-slate-800 mb-2">ملخص الاعتماد</h3>
                     <p class="text-sm text-slate-600">تُعتمد المصروفات وفق الطلبات والعروض والفواتير المعتمدة.</p>
                 </div>
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-rose">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-rose">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">📆 الإقفال الشهري</h2>
                 <span class="text-sm text-slate-500">تنفيذ الإقفال بانتظام وانضباط</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-rose-100">
                     <h3 class="font-bold text-slate-800 mb-2">الإجراءات</h3>
                     <ol class="text-sm text-slate-600 space-y-1 list-decimal list-inside">
                         <li>تسوية البنك</li>
@@ -201,14 +203,14 @@
                         <li>اعتماد الإقفال</li>
                     </ol>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-emerald-100">
                     <h3 class="font-bold text-slate-800 mb-2">مؤشرات الإقفال</h3>
                     <div class="text-sm text-slate-600 space-y-2">
                         <div>عدد القيود: <span id="totalEntries" class="font-bold">0</span></div>
                         <div>إجمالي الإهلاك: <span id="totalDepreciation" class="font-bold">0</span></div>
                     </div>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-amber-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-amber-100">
                     <h3 class="font-bold text-slate-800 mb-2">انضباط الإقفال</h3>
                     <p class="text-sm text-slate-600">لا يتم إدخال قيود بعد الإقفال إلا وفق الموافقات المعتمدة.</p>
                 </div>
@@ -216,28 +218,28 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="glass shape-rounded shadow-2xl p-6 accent-sky">
+            <div class="card-gradient shape-rounded shadow-2xl p-6 accent-sky">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">📊 توزيع حالات الفواتير</h3>
                 <div class="chart-box"><canvas id="invoiceStatusChart"></canvas></div>
             </div>
-            <div class="glass shape-rounded shadow-2xl p-6 accent-emerald">
+            <div class="card-gradient shape-rounded shadow-2xl p-6 accent-emerald">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">💳 توزيع طرق التحصيل</h3>
                 <div class="chart-box"><canvas id="paymentMethodChart"></canvas></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="glass shape-rounded shadow-2xl p-6 accent-amber">
+            <div class="card-gradient shape-rounded shadow-2xl p-6 accent-amber">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">🧾 توزيع أنواع المصروفات</h3>
                 <div class="chart-box"><canvas id="expensesTypeChart"></canvas></div>
             </div>
-            <div class="glass shape-rounded shadow-2xl p-6 accent-indigo">
+            <div class="card-gradient shape-rounded shadow-2xl p-6 accent-indigo">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">🏢 ملخص الأصول والإهلاك</h3>
                 <div class="chart-box"><canvas id="assetsChart"></canvas></div>
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير</h3>
                 <span id="invoicesCount" class="text-sm text-slate-500"></span>
@@ -262,7 +264,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">💳 جدول المدفوعات</h3>
                 <span id="paymentsCount" class="text-sm text-slate-500"></span>
@@ -286,7 +288,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-amber">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-amber">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">🧾 جدول المصروفات</h3>
                 <span id="expensesCount" class="text-sm text-slate-500"></span>
@@ -310,7 +312,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">🏢 جدول الأصول الثابتة</h3>
                 <span id="assetsCount" class="text-sm text-slate-500"></span>

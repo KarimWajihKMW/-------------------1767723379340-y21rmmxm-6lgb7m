@@ -9,15 +9,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 45%, #14b8a6 100%);
-            min-height: 100vh;
+        body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0f172a; }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-        }
+    
         .shape-rounded { border-radius: 26px; }
         .shape-angled { border-radius: 34px 10px 34px 10px; }
         .shape-pill { border-radius: 999px; }
@@ -34,13 +33,13 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="text-white mb-8">
+        <div class="text-slate-900 mb-8">
             <h1 class="text-4xl font-bold mb-2">📊 التقارير الاستراتيجية والذكاء المالي</h1>
-            <p class="text-lg opacity-90">تقارير الإدارة العليا والرادار المالي وخارطة الحوكمة (الصفحة 37)</p>
+            <p class="text-lg text-slate-600">تقارير الإدارة العليا والرادار المالي وخارطة الحوكمة (الصفحة 37)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="refreshData()" class="bg-white text-sky-700 border border-sky-100 shadow-sm px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
@@ -62,17 +61,17 @@
             </button>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">📌 الإطار الاستراتيجي للتقارير</h2>
                 <span class="text-sm text-slate-500">ربط الشفافية والانضباط وقابلية التوسع</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-sky-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-sky-100">
                     <h3 class="font-bold text-slate-800 mb-2">وثيقة تشغيل مالي موحدة</h3>
                     <p class="text-sm text-slate-600">تربط كل الوحدات وتضمن الانضباط والشفافية وقابلية التوسع.</p>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-indigo-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-indigo-100">
                     <h3 class="font-bold text-slate-800 mb-2">خارطة الحوكمة المالية</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>الإطار العام للحوكمة المالية</li>
@@ -80,7 +79,7 @@
                         <li>إجراءات التشغيل القياسية</li>
                     </ul>
                 </div>
-                <div class="glass shape-rounded p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-rounded p-5 shadow-lg border border-emerald-100">
                     <h3 class="font-bold text-slate-800 mb-2">حوكمة البيانات والتقارير</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>حوكمة البيانات المالية</li>
@@ -88,7 +87,7 @@
                         <li>حوكمة الذكاء الاصطناعي</li>
                     </ul>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h3 class="font-bold text-slate-800 mb-2">حوكمة المخاطر</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>مصفوفة مخاطر للفروع والبرامج</li>
@@ -100,28 +99,28 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            <div class="glass shape-angled p-5 shadow-lg accent-sky">
+            <div class="card-gradient shape-angled p-5 shadow-lg accent-sky">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">إيرادات مجمعة</span>
                     <i class="fas fa-chart-line text-sky-500 text-2xl"></i>
                 </div>
                 <div id="totalRevenue" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-cut p-5 shadow-lg accent-emerald">
+            <div class="card-gradient shape-cut p-5 shadow-lg accent-emerald">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">صافي التدفق النقدي</span>
                     <i class="fas fa-water text-emerald-500 text-2xl"></i>
                 </div>
                 <div id="netCashflow" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-rounded p-5 shadow-lg accent-rose">
+            <div class="card-gradient shape-rounded p-5 shadow-lg accent-rose">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">الذمم المتأخرة</span>
                     <i class="fas fa-triangle-exclamation text-rose-500 text-2xl"></i>
                 </div>
                 <div id="overdueAmount" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-pill p-5 shadow-lg accent-amber">
+            <div class="card-gradient shape-pill p-5 shadow-lg accent-amber">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">توقعات 90 يوم</span>
                     <i class="fas fa-calendar-week text-amber-500 text-2xl"></i>
@@ -130,13 +129,13 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧭 تقارير استراتيجية للإدارة العليا</h2>
                 <span class="text-sm text-slate-500">رصد الإيرادات والمخاطر والتوقعات</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="glass shape-angled p-4 border border-sky-100">
+                <div class="card-gradient shape-angled p-4 border border-sky-100">
                     <h4 class="font-bold text-slate-800 mb-2">تقرير الوضع المالي للإمبراطورية</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>إيرادات مجمّعة حسب الفرع والحاضنة والبرنامج</li>
@@ -144,7 +143,7 @@
                         <li>الذمم المدينة والمتأخرة</li>
                     </ul>
                 </div>
-                <div class="glass shape-cut p-4 border border-emerald-100">
+                <div class="card-gradient shape-cut p-4 border border-emerald-100">
                     <h4 class="font-bold text-slate-800 mb-2">مصفوفة المخاطر</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>Top 20 عملاء مخاطرة</li>
@@ -152,7 +151,7 @@
                         <li>Top 10 برامج مخاطرة</li>
                     </ul>
                 </div>
-                <div class="glass shape-rounded p-4 border border-amber-100">
+                <div class="card-gradient shape-rounded p-4 border border-amber-100">
                     <h4 class="font-bold text-slate-800 mb-2">رادار المخاطر المالية</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>توقعات التعثر 90 يومًا</li>
@@ -160,7 +159,7 @@
                         <li>تنبيهات المخاطر</li>
                     </ul>
                 </div>
-                <div class="glass shape-pill p-4 border border-rose-100">
+                <div class="card-gradient shape-pill p-4 border border-rose-100">
                     <h4 class="font-bold text-slate-800 mb-2">معايير التقارير</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>تبويب الأرقام</li>
@@ -171,13 +170,13 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧠 بدء الذكاء الاصطناعي المالي خطوة بخطوة</h2>
                 <span class="text-sm text-slate-500">نسخة أولية ذكية ثم توسّع تدريجي</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 border border-sky-100">
+                <div class="card-gradient shape-angled p-5 border border-sky-100">
                     <h4 class="font-bold text-slate-800 mb-2">الخطوة 0: جاهزية البيانات</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>توحيد تواريخ الفواتير والمدفوعات</li>
@@ -185,7 +184,7 @@
                         <li>ربط عميل – برنامج – فرع – حاضنة</li>
                     </ul>
                 </div>
-                <div class="glass shape-cut p-5 border border-emerald-100">
+                <div class="card-gradient shape-cut p-5 border border-emerald-100">
                     <h4 class="font-bold text-slate-800 mb-2">الخطوة 1: توقع التدفقات النقدية</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>هدف: توقع التحصيل للأشهر 3–6 القادمة</li>
@@ -193,7 +192,7 @@
                         <li>قياس متوسط مدة السداد وتأثير المواسم</li>
                     </ul>
                 </div>
-                <div class="glass shape-rounded p-5 border border-amber-100">
+                <div class="card-gradient shape-rounded p-5 border border-amber-100">
                     <h4 class="font-bold text-slate-800 mb-2">مخرجات النموذج</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>توقع تحصيل كل شهر</li>
@@ -204,7 +203,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex border-b border-slate-200 mb-4">
                 <button class="tab-btn active flex-1 py-3 font-bold" onclick="switchTab('numbers')">Tab 1: الأرقام</button>
                 <button class="tab-btn flex-1 py-3 font-bold" onclick="switchTab('charts')">Tab 2: الرسوم البيانية</button>
@@ -213,7 +212,7 @@
 
             <div id="tab-numbers" class="tab-content">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div class="glass shape-rounded p-5 shadow-lg accent-sky">
+                    <div class="card-gradient shape-rounded p-5 shadow-lg accent-sky">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-lg font-bold text-slate-800">📄 إيرادات حسب الفروع</h3>
                             <span id="branchRevenueCount" class="text-sm text-slate-500"></span>
@@ -233,7 +232,7 @@
                             </table>
                         </div>
                     </div>
-                    <div class="glass shape-rounded p-5 shadow-lg accent-emerald">
+                    <div class="card-gradient shape-rounded p-5 shadow-lg accent-emerald">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-lg font-bold text-slate-800">📄 إيرادات حسب البرامج</h3>
                             <span id="programRevenueCount" class="text-sm text-slate-500"></span>
@@ -255,7 +254,7 @@
                     </div>
                 </div>
 
-                <div class="glass shape-rounded shadow-2xl p-6 mb-6 accent-rose">
+                <div class="card-gradient shape-rounded shadow-2xl p-6 mb-6 accent-rose">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-lg font-bold text-slate-800">⚠️ جدول الفواتير المتأخرة</h3>
                         <span id="overdueCount" class="text-sm text-slate-500"></span>
@@ -279,7 +278,7 @@
                     </div>
                 </div>
 
-                <div class="glass shape-rounded shadow-2xl p-6 accent-indigo">
+                <div class="card-gradient shape-rounded shadow-2xl p-6 accent-indigo">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-lg font-bold text-slate-800">🛡️ رادار المخاطر المالية</h3>
                         <span id="riskRadarCount" class="text-sm text-slate-500"></span>
@@ -319,19 +318,19 @@
 
             <div id="tab-charts" class="tab-content hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass shape-rounded p-5 shadow-lg accent-sky">
+                    <div class="card-gradient shape-rounded p-5 shadow-lg accent-sky">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">📈 توزيع الإيرادات حسب الفروع</h3>
                         <div class="chart-box"><canvas id="branchRevenueChart"></canvas></div>
                     </div>
-                    <div class="glass shape-rounded p-5 shadow-lg accent-emerald">
+                    <div class="card-gradient shape-rounded p-5 shadow-lg accent-emerald">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">🧭 توزيع مستويات المخاطر</h3>
                         <div class="chart-box"><canvas id="riskLevelChart"></canvas></div>
                     </div>
-                    <div class="glass shape-rounded p-5 shadow-lg accent-amber">
+                    <div class="card-gradient shape-rounded p-5 shadow-lg accent-amber">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">🔮 مسار التوقعات الذكية</h3>
                         <div class="chart-box"><canvas id="forecastChart"></canvas></div>
                     </div>
-                    <div class="glass shape-rounded p-5 shadow-lg accent-rose">
+                    <div class="card-gradient shape-rounded p-5 shadow-lg accent-rose">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">💧 التدفق النقدي الحالي</h3>
                         <div class="chart-box"><canvas id="cashflowChart"></canvas></div>
                     </div>
@@ -340,19 +339,19 @@
 
             <div id="tab-insights" class="tab-content hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="glass shape-angled p-5 shadow-lg accent-indigo">
+                    <div class="card-gradient shape-angled p-5 shadow-lg accent-indigo">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">📝 ملخص الذكاء</h3>
                         <div id="aiSummary" class="text-sm text-slate-600 space-y-2">
                             <div class="animate-pulse">جاري التحميل...</div>
                         </div>
                     </div>
-                    <div class="glass shape-cut p-5 shadow-lg accent-emerald">
+                    <div class="card-gradient shape-cut p-5 shadow-lg accent-emerald">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">🔍 تنبيهات المخاطر</h3>
                         <div id="aiRiskNotes" class="text-sm text-slate-600 space-y-2">
                             <div class="animate-pulse">جاري التحميل...</div>
                         </div>
                     </div>
-                    <div class="glass shape-pill p-5 shadow-lg accent-sky">
+                    <div class="card-gradient shape-pill p-5 shadow-lg accent-sky">
                         <h3 class="text-lg font-bold text-slate-800 mb-3">📌 توصيات تشغيلية</h3>
                         <div id="aiActions" class="text-sm text-slate-600 space-y-2">
                             <div class="animate-pulse">جاري التحميل...</div>
