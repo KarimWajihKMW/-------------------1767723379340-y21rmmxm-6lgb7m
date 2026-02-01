@@ -11,12 +11,13 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
         .card-gradient {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
-            backdrop-filter: blur(10px);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .stat-card {
             transition: transform 0.3s, box-shadow 0.3s;
@@ -34,32 +35,32 @@
 <body>
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📈 قائمة الدخل (Income Statement)</h1>
             <p class="text-lg opacity-90">الإيرادات والمصروفات وصافي الربح</p>
         </div>
 
         <!-- Action Buttons -->
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-purple-500 transition flex items-center gap-2">
+                <i class="fas fa-file-csv text-purple-600"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-green-500 transition flex items-center gap-2">
+                <i class="fas fa-file-code text-green-600"></i>
                 تنزيل JSON
             </button>
-            <button onclick="printStatement()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+            <button onclick="printStatement()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-blue-500 transition flex items-center gap-2">
+                <i class="fas fa-print text-blue-600"></i>
                 طباعة
             </button>
         </div>
 
         <!-- Summary Stats -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-green-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-arrow-up text-4xl opacity-70"></i>
+                    <i class="fas fa-arrow-up text-4xl opacity-70 text-green-500"></i>
                     <span class="text-sm opacity-90">إجمالي الإيرادات</span>
                 </div>
                 <div id="totalRevenue" class="text-4xl font-bold">
@@ -67,9 +68,9 @@
                 </div>
             </div>
 
-            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-red-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-arrow-down text-4xl opacity-70"></i>
+                    <i class="fas fa-arrow-down text-4xl opacity-70 text-red-500"></i>
                     <span class="text-sm opacity-90">إجمالي المصروفات</span>
                 </div>
                 <div id="totalExpenses" class="text-4xl font-bold">
@@ -77,9 +78,9 @@
                 </div>
             </div>
 
-            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-blue-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-coins text-4xl opacity-70"></i>
+                    <i class="fas fa-coins text-4xl opacity-70 text-blue-500"></i>
                     <span class="text-sm opacity-90">صافي الربح</span>
                 </div>
                 <div id="netIncome" class="text-4xl font-bold">
@@ -87,9 +88,9 @@
                 </div>
             </div>
 
-            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-purple-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-percentage text-4xl opacity-70"></i>
+                    <i class="fas fa-percentage text-4xl opacity-70 text-purple-500"></i>
                     <span class="text-sm opacity-90">هامش الربح</span>
                 </div>
                 <div id="profitMargin" class="text-4xl font-bold">
