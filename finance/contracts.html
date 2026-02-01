@@ -8,11 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #111827 0%, #2563eb 45%, #0ea5e9 100%);
-            min-height: 100vh;
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0f172a; }
         .card-glass {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -29,13 +25,20 @@
         .section-accent-rose { border-top: 4px solid #f43f5e; }
         .section-accent-slate { border-top: 4px solid #0f172a; }
         .chip { padding: 6px 12px; border-radius: 999px; font-weight: 700; }
+    
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    
     </style>
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📜 العقود</h1>
-            <p class="text-lg opacity-90">إدارة العقود والالتزامات والجدولة الذكية</p>
+            <p class="text-lg text-slate-600">إدارة العقود والالتزامات والجدولة الذكية</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
@@ -59,19 +62,19 @@
 
         <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="stat-pill bg-gradient-to-br from-slate-700 to-slate-900 text-white p-6">
+                <div class="stat-pill bg-gradient-to-br from-slate-700 to-slate-900 text-slate-900 p-6">
                     <div class="flex justify-between mb-3"><span>عدد العقود</span><i class="fas fa-file-contract text-2xl opacity-70"></i></div>
                     <div id="contractsCount" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-angled bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6">
+                <div class="stat-angled bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-900 p-6">
                     <div class="flex justify-between mb-3"><span>قيمة الالتزامات</span><i class="fas fa-scale-balanced text-2xl opacity-70"></i></div>
                     <div id="totalCommitments" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-rounded bg-gradient-to-br from-amber-500 to-orange-600 text-white p-6">
+                <div class="stat-rounded bg-gradient-to-br from-amber-500 to-orange-600 text-slate-900 p-6">
                     <div class="flex justify-between mb-3"><span>نسبة الإغلاق</span><i class="fas fa-percent text-2xl opacity-70"></i></div>
                     <div id="closureRate" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-cut bg-gradient-to-br from-violet-500 to-indigo-600 text-white p-6">
+                <div class="stat-cut bg-gradient-to-br from-violet-500 to-indigo-600 text-slate-900 p-6">
                     <div class="flex justify-between mb-3"><span>عقود نشطة</span><i class="fas fa-circle-check text-2xl opacity-70"></i></div>
                     <div id="activeContracts" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
