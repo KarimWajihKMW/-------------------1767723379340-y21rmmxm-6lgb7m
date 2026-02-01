@@ -176,6 +176,18 @@ async function createAccount(req, res) {
     const normal = normal_balance || (['ASSET', 'EXPENSE'].includes(String(account_type).toUpperCase()) ? 'DEBIT' : 'CREDIT');
 
     try {
+        const existingCode = await pool.query(
+            'SELECT account_id FROM finance_accounts WHERE account_code = $1 LIMIT 1',
+            [account_code]
+        );
+
+        if (existingCode.rows.length) {
+            return res.status(409).json({
+                success: false,
+                error: 'رمز الحساب مستخدم بالفعل'
+            });
+        }
+
         const query = `
             INSERT INTO finance_accounts (
                 account_code,
@@ -222,6 +234,12 @@ async function createAccount(req, res) {
         });
     } catch (error) {
         console.error('❌ Error creating account:', error);
+        if (error.code === '23505') {
+            return res.status(409).json({
+                success: false,
+                error: 'رمز الحساب مستخدم بالفعل'
+            });
+        }
         res.status(500).json({
             success: false,
             error: error.message
@@ -274,6 +292,18 @@ async function updateAccount(req, res) {
             });
         }
 
+        const codeCheck = await pool.query(
+            'SELECT account_id FROM finance_accounts WHERE account_code = $1 AND account_id <> $2 LIMIT 1',
+            [account_code, account_id]
+        );
+
+        if (codeCheck.rows.length) {
+            return res.status(409).json({
+                success: false,
+                error: 'رمز الحساب مستخدم بالفعل'
+            });
+        }
+
         const normal = normal_balance || (['ASSET', 'EXPENSE'].includes(String(account_type).toUpperCase()) ? 'DEBIT' : 'CREDIT');
 
         const query = `
@@ -317,6 +347,12 @@ async function updateAccount(req, res) {
         });
     } catch (error) {
         console.error('❌ Error updating account:', error);
+        if (error.code === '23505') {
+            return res.status(409).json({
+                success: false,
+                error: 'رمز الحساب مستخدم بالفعل'
+            });
+        }
         res.status(500).json({
             success: false,
             error: error.message
