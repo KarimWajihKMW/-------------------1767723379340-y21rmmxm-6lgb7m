@@ -374,6 +374,7 @@ async function createJournalEntry(req, res) {
         entry_type,
         description,
         reference_number,
+        status,
         fiscal_year,
         fiscal_period,
         lines
@@ -424,7 +425,7 @@ async function createJournalEntry(req, res) {
             entry_type || 'GENERAL',
             description,
             reference_number,
-            'DRAFT',
+            status || 'DRAFT',
             false,
             fiscal_year,
             fiscal_period,
@@ -588,6 +589,7 @@ async function updateJournalEntry(req, res) {
         entry_type,
         description,
         reference_number,
+        status,
         fiscal_year,
         fiscal_period,
         lines
@@ -635,6 +637,7 @@ async function updateJournalEntry(req, res) {
 
         const existingEntry = existingResult.rows[0];
         const entryTypeValue = entry_type || existingEntry.entry_type || 'GENERAL';
+        const statusValue = status || existingEntry.status || 'DRAFT';
 
         const updateResult = await client.query(
             `UPDATE finance_journal_entries
@@ -642,17 +645,19 @@ async function updateJournalEntry(req, res) {
                  entry_type = $2,
                  description = $3,
                  reference_number = $4,
-                 fiscal_year = $5,
-                 fiscal_period = $6,
+                 status = $5,
+                 fiscal_year = $6,
+                 fiscal_period = $7,
                  updated_at = NOW(),
-                 updated_by = $7
-             WHERE entry_id = $8 AND entity_id = $9
+                 updated_by = $8
+             WHERE entry_id = $9 AND entity_id = $10
              RETURNING *`,
             [
                 entry_date,
                 entryTypeValue,
                 description,
                 reference_number,
+                statusValue,
                 fiscal_year,
                 fiscal_period,
                 'SYSTEM',

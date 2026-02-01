@@ -442,6 +442,15 @@
                         <input id="newEntryReference" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="مرجع اختياري" />
                     </div>
                     <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+                        <select id="newEntryStatus" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="DRAFT">مسودة</option>
+                            <option value="APPROVED">معتمد</option>
+                            <option value="POSTED">مرحل</option>
+                            <option value="CANCELLED">ملغي</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">السنة المالية</label>
                         <input id="newEntryFiscalYear" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="2026" />
                     </div>
@@ -1393,6 +1402,7 @@
             document.getElementById('newEntryType').value = 'GENERAL';
             document.getElementById('newEntryDescription').value = '';
             document.getElementById('newEntryReference').value = '';
+            document.getElementById('newEntryStatus').value = 'DRAFT';
             document.getElementById('newEntryFiscalYear').value = new Date().getFullYear();
             document.getElementById('newEntryLines').innerHTML = `
                 <tr>
@@ -1510,6 +1520,7 @@
             const entryType = document.getElementById('newEntryType').value;
             const description = document.getElementById('newEntryDescription').value;
             const reference = document.getElementById('newEntryReference').value;
+            const status = document.getElementById('newEntryStatus').value;
             const fiscalYear = document.getElementById('newEntryFiscalYear').value;
 
             const rows = Array.from(document.querySelectorAll('#newEntryLines tr'))
@@ -1550,6 +1561,7 @@
                         entry_type: entryType,
                         description,
                         reference_number: reference,
+                        status,
                         fiscal_year: fiscalYear ? parseInt(fiscalYear, 10) : null,
                         lines
                     })
@@ -1592,6 +1604,7 @@
                 document.getElementById('newEntryType').value = entry.entry_type || 'GENERAL';
                 document.getElementById('newEntryDescription').value = entry.description || '';
                 document.getElementById('newEntryReference').value = entry.reference_number || '';
+                document.getElementById('newEntryStatus').value = entry.status || 'DRAFT';
                 document.getElementById('newEntryFiscalYear').value = entry.fiscal_year || new Date().getFullYear();
 
                 const tbody = document.getElementById('newEntryLines');
