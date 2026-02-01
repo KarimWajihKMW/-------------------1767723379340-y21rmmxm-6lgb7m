@@ -11,11 +11,11 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 45%, #10b981 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
             backdrop-filter: blur(10px);
         }
         .stat-card {
@@ -47,32 +47,32 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">🌐 لوحة النظام المحاسبي الشمولي</h1>
             <p class="text-lg opacity-90">ما تحقق لإمبراطورية نايوش + هيكل النظام + تغطية البيانات (الصفحة 28)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-rotate"></i>
+            <button onclick="refreshData()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-emerald-500 group">
+                <i class="fas fa-rotate text-xl text-emerald-600 group-hover:text-emerald-700 transition"></i>
                 تحديث البيانات
             </button>
-            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-indigo-500 group">
                 <i class="fas fa-file-code"></i>
                 تنزيل JSON شامل
             </button>
-            <button onclick="downloadCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
                 <i class="fas fa-file-csv"></i>
                 تنزيل CSV شامل
             </button>
-            <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print"></i>
                 طباعة
             </button>
         </div>
 
         <!-- What this dashboard achieves -->
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-sky">
             <h2 class="text-2xl font-bold text-slate-800 mb-6">✅ ماذا تحقق هذه اللوحة لإمبراطورية نايوش؟</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-slate-700">
                 <div class="flex items-center gap-3 bg-sky-50 p-4 rounded-2xl">
@@ -106,7 +106,7 @@
         </div>
 
         <!-- System Modules -->
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-indigo">
             <h2 class="text-2xl font-bold text-slate-800 mb-6">🧭 الهيكل العام للنظام المحاسبي الشمولي (7 وحدات)</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="stat-card shape-pill bg-gradient-to-br from-sky-500 to-blue-600 text-white p-5">
@@ -183,13 +183,13 @@
 
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="glass rounded-3xl shadow-2xl p-6 section-accent-emerald">
+            <div class="card-gradient rounded-xl shadow-2xl p-6 section-accent-emerald">
                 <h3 class="text-xl font-bold text-slate-800 mb-4">📊 تغطية الوحدات بالأرقام</h3>
                 <div class="chart-container">
                     <canvas id="coverageChart"></canvas>
                 </div>
             </div>
-            <div class="glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+            <div class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <h3 class="text-xl font-bold text-slate-800 mb-4">📈 مقارنة الميزانية والانحراف</h3>
                 <div class="chart-container">
                     <canvas id="budgetVarianceChart"></canvas>
@@ -199,7 +199,7 @@
 
         <!-- Data Tables -->
         <div class="space-y-6">
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-sky" open>
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-sky" open>
                 <summary class="text-xl font-bold text-slate-800">📚 دفتر الأستاذ العام</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -241,7 +241,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-emerald">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-emerald">
                 <summary class="text-xl font-bold text-slate-800">💳 الذمم المدينة والتحصيل</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -259,7 +259,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-rose">
                 <summary class="text-xl font-bold text-slate-800">🧾 المصروفات والموردون</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -273,7 +273,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <summary class="text-xl font-bold text-slate-800">🏗️ الأصول الثابتة والإهلاك</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -287,7 +287,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-violet">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-violet">
                 <summary class="text-xl font-bold text-slate-800">📑 الميزانيات والانحرافات</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -305,7 +305,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-sky">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-sky">
                 <summary class="text-xl font-bold text-slate-800">💧 التدفقات النقدية والتنبؤات</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -319,7 +319,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-rose">
                 <summary class="text-xl font-bold text-slate-800">🛡️ المخاطر المالية</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تقييمات المخاطر</h4><span id="riskCount" class="text-sm text-slate-500"></span></div>
@@ -327,7 +327,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <summary class="text-xl font-bold text-slate-800">📊 القوائم المالية</summary>
                 <div class="mt-4 space-y-6">
                     <div>

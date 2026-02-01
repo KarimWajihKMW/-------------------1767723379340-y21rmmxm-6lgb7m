@@ -11,11 +11,11 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(120deg, #0ea5e9 0%, #0f766e 45%, #7c3aed 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
         .card-gradient {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            background: #f9fafb; /* Slate-50 */
             backdrop-filter: blur(10px);
         }
         .stat-card {
@@ -46,18 +46,18 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">🧮 أعمار الذمم المدينة</h1>
             <p class="text-lg opacity-90">تحليل فئات الاستحقاق للأرصدة المدينة</p>
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-purple-700 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
+                <i class="fas fa-file-csv text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
                 تنزيل CSV
             </button>
-            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-purple-500 group">
+                <i class="fas fa-file-code text-xl text-purple-600 group-hover:text-purple-700 transition"></i>
                 تنزيل JSON
             </button>
             <button onclick="printReport()" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
