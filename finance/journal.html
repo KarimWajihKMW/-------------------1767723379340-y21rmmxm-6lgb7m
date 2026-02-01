@@ -365,6 +365,13 @@
 
                 <!-- Trial Balance Tab -->
                 <div id="content-trial-balance" class="hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-sm text-gray-600">إدارة الحسابات من ميزان المراجعة</div>
+                        <button onclick="openAccountModal('create')" class="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-purple-500 transition flex items-center gap-2">
+                            <i class="fas fa-plus text-purple-600"></i>
+                            إضافة حساب
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-100 text-gray-600 text-sm">
@@ -375,11 +382,12 @@
                                     <th class="px-4 py-3 text-right">المدين</th>
                                     <th class="px-4 py-3 text-right">الدائن</th>
                                     <th class="px-4 py-3 text-right">الرصيد</th>
+                                    <th class="px-4 py-3 text-right">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="trialBalanceTable" class="text-sm divide-y divide-gray-100">
                                 <tr>
-                                    <td colspan="6" class="px-4 py-12 text-center text-gray-500">
+                                    <td colspan="7" class="px-4 py-12 text-center text-gray-500">
                                         <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                         <div>جاري تحميل ميزان المراجعة...</div>
                                     </td>
@@ -496,6 +504,74 @@
         </div>
     </div>
 
+    <!-- Account Modal -->
+    <div id="accountModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h3 id="accountModalTitle" class="text-lg font-bold text-gray-800">إضافة حساب</h3>
+                <button onclick="closeAccountModal()" class="text-gray-400 hover:text-gray-700">
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">رمز الحساب</label>
+                        <input id="accountCode" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="مثال: 1100" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الحساب (عربي)</label>
+                        <input id="accountNameAr" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="اسم الحساب" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الحساب (إنجليزي)</label>
+                        <input id="accountNameEn" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" placeholder="Account name" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">نوع الحساب</label>
+                        <select id="accountType" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="ASSET">أصل</option>
+                            <option value="LIABILITY">التزام</option>
+                            <option value="EQUITY">حقوق ملكية</option>
+                            <option value="REVENUE">إيراد</option>
+                            <option value="EXPENSE">مصروف</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">الرصيد الطبيعي</label>
+                        <select id="normalBalance" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="DEBIT">مدين</option>
+                            <option value="CREDIT">دائن</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 text-sm font-bold text-gray-700">
+                            <input id="accountActive" type="checkbox" class="rounded" checked />
+                            نشط
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-bold text-gray-700">
+                            <input id="accountHeader" type="checkbox" class="rounded" />
+                            حساب تجميعي
+                        </label>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">وصف</label>
+                        <textarea id="accountDescription" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" rows="2"></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">ملاحظات</label>
+                        <textarea id="accountNotes" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3">
+                    <button onclick="closeAccountModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-600">إلغاء</button>
+                    <button id="accountModalSave" onclick="submitAccountForm()" class="px-6 py-2 rounded-lg bg-purple-600 text-white font-bold">حفظ الحساب</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
         const ENTITY_ID = '1';
@@ -509,6 +585,8 @@
         let filtersReady = false;
         let lastSyncAt = null;
         let editingEntryId = null;
+        let accountModalMode = 'create';
+        let editingAccountId = null;
 
         const journalFilters = {
             search: '',
@@ -765,6 +843,19 @@
                                 <td class="px-4 py-3 font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}">
                                     ${balance.toLocaleString('ar-SA')}
                                 </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="viewAccount(${bal.account_id})" class="text-purple-600 hover:text-purple-800" title="عرض">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button onclick="editAccount(${bal.account_id})" class="text-blue-600 hover:text-blue-800" title="تعديل">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button onclick="deleteAccount(${bal.account_id})" class="text-red-600 hover:text-red-800" title="حذف">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     }).join('');
@@ -772,19 +863,20 @@
                     // Add totals row
                     tbody.innerHTML = rows + `
                         <tr class="bg-gray-100 font-bold">
-                            <td colspan="3" class="px-4 py-3 text-right">الإجمالي</td>
+                            <td colspan="4" class="px-4 py-3 text-right">الإجمالي</td>
                             <td class="px-4 py-3 text-red-600">${totalDebit.toLocaleString('ar-SA')}</td>
                             <td class="px-4 py-3 text-green-600">${totalCredit.toLocaleString('ar-SA')}</td>
                             <td class="px-4 py-3 ${(totalDebit - totalCredit) >= 0 ? 'text-green-600' : 'text-red-600'}">
                                 ${(totalDebit - totalCredit).toLocaleString('ar-SA')}
                             </td>
+                            <td></td>
                         </tr>
                     `;
                 } else {
                     trialBalanceRows = [];
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-gray-500">
+                            <td colspan="7" class="px-4 py-12 text-center text-gray-500">
                                 <i class="fas fa-inbox text-4xl mb-3 opacity-30"></i>
                                 <div>لا توجد بيانات</div>
                             </td>
@@ -796,7 +888,7 @@
                 trialBalanceRows = [];
                 document.getElementById('trialBalanceTable').innerHTML = `
                     <tr>
-                        <td colspan="6" class="px-4 py-12 text-center text-red-500">
+                        <td colspan="7" class="px-4 py-12 text-center text-red-500">
                             <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                             <div>فشل تحميل ميزان المراجعة</div>
                         </td>
@@ -1383,6 +1475,192 @@
             modal.classList.remove('flex');
         }
 
+        function openAccountModal(mode = 'create', accountId = null) {
+            accountModalMode = mode;
+            editingAccountId = accountId;
+            const modal = document.getElementById('accountModal');
+            const title = document.getElementById('accountModalTitle');
+            const saveButton = document.getElementById('accountModalSave');
+
+            if (title) {
+                title.textContent = mode === 'view'
+                    ? 'عرض الحساب'
+                    : mode === 'edit'
+                        ? 'تعديل الحساب'
+                        : 'إضافة حساب';
+            }
+
+            if (saveButton) {
+                saveButton.textContent = mode === 'edit' ? 'حفظ التعديل' : 'حفظ الحساب';
+                saveButton.classList.toggle('hidden', mode === 'view');
+            }
+
+            setAccountFormDisabled(mode === 'view');
+
+            if (mode === 'create') {
+                resetAccountForm();
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                return;
+            }
+
+            fetchAccountDetails(accountId)
+                .then(account => {
+                    fillAccountForm(account);
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                })
+                .catch(error => {
+                    console.error('❌ خطأ في تحميل الحساب:', error);
+                    alert('تعذر تحميل بيانات الحساب');
+                });
+        }
+
+        function closeAccountModal() {
+            const modal = document.getElementById('accountModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            resetAccountForm();
+        }
+
+        function setAccountFormDisabled(disabled) {
+            const fields = [
+                'accountCode',
+                'accountNameAr',
+                'accountNameEn',
+                'accountType',
+                'normalBalance',
+                'accountActive',
+                'accountHeader',
+                'accountDescription',
+                'accountNotes'
+            ];
+
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = disabled;
+            });
+        }
+
+        function resetAccountForm() {
+            editingAccountId = null;
+            document.getElementById('accountCode').value = '';
+            document.getElementById('accountNameAr').value = '';
+            document.getElementById('accountNameEn').value = '';
+            document.getElementById('accountType').value = 'ASSET';
+            document.getElementById('normalBalance').value = 'DEBIT';
+            document.getElementById('accountActive').checked = true;
+            document.getElementById('accountHeader').checked = false;
+            document.getElementById('accountDescription').value = '';
+            document.getElementById('accountNotes').value = '';
+        }
+
+        function fillAccountForm(account) {
+            document.getElementById('accountCode').value = account.account_code || '';
+            document.getElementById('accountNameAr').value = account.account_name_ar || '';
+            document.getElementById('accountNameEn').value = account.account_name_en || '';
+            document.getElementById('accountType').value = account.account_type || 'ASSET';
+            document.getElementById('normalBalance').value = account.normal_balance || getDefaultNormalBalance(account.account_type);
+            document.getElementById('accountActive').checked = account.is_active !== false;
+            document.getElementById('accountHeader').checked = account.is_header === true;
+            document.getElementById('accountDescription').value = account.description || '';
+            document.getElementById('accountNotes').value = account.notes || '';
+        }
+
+        function getDefaultNormalBalance(type) {
+            const upper = String(type || '').toUpperCase();
+            return upper === 'ASSET' || upper === 'EXPENSE' ? 'DEBIT' : 'CREDIT';
+        }
+
+        function setupAccountForm() {
+            const typeSelect = document.getElementById('accountType');
+            if (!typeSelect) return;
+            typeSelect.addEventListener('change', () => {
+                document.getElementById('normalBalance').value = getDefaultNormalBalance(typeSelect.value);
+            });
+        }
+
+        async function fetchAccountDetails(accountId) {
+            const response = await fetch(`${API_BASE}/finance/chart-of-accounts/${accountId}?entity_id=${ENTITY_ID}`);
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.error || 'تعذر تحميل الحساب');
+            }
+            return data.account;
+        }
+
+        async function submitAccountForm() {
+            const payload = {
+                entity_id: ENTITY_ID,
+                account_code: document.getElementById('accountCode').value.trim(),
+                account_name_ar: document.getElementById('accountNameAr').value.trim(),
+                account_name_en: document.getElementById('accountNameEn').value.trim(),
+                account_type: document.getElementById('accountType').value,
+                normal_balance: document.getElementById('normalBalance').value,
+                is_active: document.getElementById('accountActive').checked,
+                is_header: document.getElementById('accountHeader').checked,
+                description: document.getElementById('accountDescription').value.trim(),
+                notes: document.getElementById('accountNotes').value.trim()
+            };
+
+            if (!payload.account_code || !payload.account_name_ar || !payload.account_type) {
+                alert('يرجى إدخال رمز الحساب واسم الحساب ونوع الحساب');
+                return;
+            }
+
+            try {
+                const isEdit = accountModalMode === 'edit' && Number.isInteger(editingAccountId);
+                const url = isEdit
+                    ? `${API_BASE}/finance/chart-of-accounts/${editingAccountId}?entity_id=${ENTITY_ID}`
+                    : `${API_BASE}/finance/chart-of-accounts`;
+
+                const response = await fetch(url, {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر حفظ الحساب');
+                }
+
+                closeAccountModal();
+                await loadAccountsList();
+                await loadTrialBalance();
+                alert(isEdit ? 'تم تعديل الحساب بنجاح' : 'تم إضافة الحساب بنجاح');
+            } catch (error) {
+                console.error('❌ خطأ في حفظ الحساب:', error);
+                alert(error.message || 'تعذر حفظ الحساب');
+            }
+        }
+
+        function viewAccount(accountId) {
+            openAccountModal('view', accountId);
+        }
+
+        function editAccount(accountId) {
+            openAccountModal('edit', accountId);
+        }
+
+        async function deleteAccount(accountId) {
+            if (!confirm('هل تريد حذف هذا الحساب؟')) return;
+            try {
+                const response = await fetch(`${API_BASE}/finance/chart-of-accounts/${accountId}?entity_id=${ENTITY_ID}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر حذف الحساب');
+                }
+                await loadAccountsList();
+                await loadTrialBalance();
+            } catch (error) {
+                console.error('❌ خطأ في حذف الحساب:', error);
+                alert(error.message || 'تعذر حذف الحساب');
+            }
+        }
+
         function setEntryFormMode(mode) {
             const title = document.getElementById('entryModalTitle');
             const button = document.getElementById('submitEntryButton');
@@ -1862,6 +2140,7 @@
         // Load data on page load
         document.addEventListener('DOMContentLoaded', () => {
             setupJournalFilters();
+            setupAccountForm();
             loadAllData();
         });
     </script>

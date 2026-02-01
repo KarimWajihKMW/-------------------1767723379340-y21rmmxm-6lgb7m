@@ -125,6 +125,10 @@ app.get('/finance/income-statement', incomeStatementAPI.getIncomeStatement);
 const chartOfAccountsAPI = require('./finance/api/chart-of-accounts');
 app.get('/finance/chart-of-accounts/test', chartOfAccountsAPI.testConnection);
 app.get('/finance/chart-of-accounts', chartOfAccountsAPI.getChartOfAccounts);
+app.get('/finance/chart-of-accounts/:account_id', chartOfAccountsAPI.getAccount);
+app.post('/finance/chart-of-accounts', chartOfAccountsAPI.createAccount);
+app.put('/finance/chart-of-accounts/:account_id', chartOfAccountsAPI.updateAccount);
+app.delete('/finance/chart-of-accounts/:account_id', chartOfAccountsAPI.deleteAccount);
 
 // Finance Payments API Routes (Page 6: Payments)
 const paymentsAPI = require('./finance/api/payments');
