@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="brand-theme.css">
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -317,7 +318,11 @@
             window.print();
         }
 
-        document.addEventListener('DOMContentLoaded', loadLines);
+        document.addEventListener('DOMContentLoaded', () => {
+             loadLines();
+             // Force refresh icons if needed
+        });
     </script>
+    <script src="brand-theme.js"></script>
 </body>
 </html>
