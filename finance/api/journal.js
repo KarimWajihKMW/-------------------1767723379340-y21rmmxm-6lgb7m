@@ -513,6 +513,71 @@ async function createJournalEntry(req, res) {
 }
 
 /**
+ * Delete journal entry with lines
+ */
+async function deleteJournalEntry(req, res) {
+    const { entry_id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!entity_id) {
+        return res.status(400).json({
+            success: false,
+            error: 'entity_id is required'
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const entryResult = await client.query(
+            `SELECT entry_id, entry_number, status
+             FROM finance_journal_entries
+             WHERE entry_id = $1 AND entity_id = $2`,
+            [entry_id, entity_id]
+        );
+
+        if (entryResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({
+                success: false,
+                error: 'Journal entry not found'
+            });
+        }
+
+        await client.query(
+            'DELETE FROM finance_journal_lines WHERE entry_id = $1',
+            [entry_id]
+        );
+
+        const deleteResult = await client.query(
+            `DELETE FROM finance_journal_entries
+             WHERE entry_id = $1 AND entity_id = $2
+             RETURNING entry_id, entry_number`,
+            [entry_id, entity_id]
+        );
+
+        await client.query('COMMIT');
+
+        res.json({
+            success: true,
+            entry: deleteResult.rows[0],
+            message: 'تم حذف القيد المحاسبي بنجاح'
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Error deleting journal entry:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    } finally {
+        client.release();
+    }
+}
+
+/**
  * Test database connection
  */
 async function testConnection(req, res) {
@@ -538,5 +603,6 @@ module.exports = {
     getAccountBalances,
     getAccountLedger,
     createJournalEntry,
+    deleteJournalEntry,
     testConnection
 };

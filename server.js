@@ -102,6 +102,7 @@ app.get('/finance/journal/test', journalAPI.testConnection);
 app.get('/finance/journal/entries/:entry_id', journalAPI.getJournalEntry);
 app.get('/finance/journal/entries', journalAPI.getJournalEntries);
 app.post('/finance/journal/entries', journalAPI.createJournalEntry);
+app.delete('/finance/journal/entries/:entry_id', journalAPI.deleteJournalEntry);
 app.get('/finance/journal/balances', journalAPI.getAccountBalances);
 app.get('/finance/journal/ledger/:account_id', journalAPI.getAccountLedger);
 
