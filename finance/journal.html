@@ -412,14 +412,14 @@
 
     <!-- Add Journal Entry Modal -->
     <div id="addEntryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between px-6 py-4 border-b">
                 <h3 id="entryModalTitle" class="text-lg font-bold text-gray-800">إضافة قيد محاسبي</h3>
                 <button onclick="closeAddEntryModal()" class="text-gray-400 hover:text-gray-700">
                     <i class="fas fa-xmark text-xl"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-6">
+            <div class="p-6 space-y-6 overflow-y-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ القيد</label>
