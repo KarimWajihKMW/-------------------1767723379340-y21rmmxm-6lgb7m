@@ -969,6 +969,18 @@
         "/^sleep 5 && node test-build\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^nohup npm start > server\\.log 2>&1 & sleep 10 && node test-build\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python3 update_journal\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python3 update_finance_batch_4\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

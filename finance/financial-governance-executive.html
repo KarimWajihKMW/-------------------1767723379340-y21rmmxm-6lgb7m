@@ -9,15 +9,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 55%, #14b8a6 100%);
-            min-height: 100vh;
+        body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0f172a; }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-        }
+    
         .shape-rounded { border-radius: 28px; }
         .shape-angled { border-radius: 32px 8px 32px 8px; }
         .shape-pill { border-radius: 999px; }
@@ -33,13 +32,13 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="text-white mb-8">
+        <div class="text-slate-900 mb-8">
             <h1 class="text-4xl font-bold mb-2">🛡️ الحوكمة المالية والصلاحيات والتقارير</h1>
-            <p class="text-lg opacity-90">بناء نظام الحوكمة المالية وربط الصلاحيات والموافقات والتقارير (الصفحة 36)</p>
+            <p class="text-lg text-slate-600">بناء نظام الحوكمة المالية وربط الصلاحيات والموافقات والتقارير (الصفحة 36)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="refreshData()" class="bg-white text-sky-700 border border-sky-100 shadow-sm px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
@@ -61,13 +60,13 @@
             </button>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
                 <h2 class="text-2xl font-bold text-slate-800">🧩 مستويات الصلاحيات</h2>
                 <span class="text-sm text-slate-500">ربط الوحدات وفق الأدوار والمسؤوليات</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-sky-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-sky-100">
                     <h3 class="font-bold text-slate-800 mb-2">المدير المالي للمجموعة</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>يرى كل الفروع والحاضنات والبرامج</li>
@@ -75,7 +74,7 @@
                         <li>يقرّ سياسات التحصيل والخصم وخطط الدفع</li>
                     </ul>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-indigo-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-indigo-100">
                     <h3 class="font-bold text-slate-800 mb-2">مدير مالية الفرع/الحاضنة</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>يرفع ميزانية مقترحة</li>
@@ -83,7 +82,7 @@
                         <li>يتعامل مع العملاء المتأخرين</li>
                     </ul>
                 </div>
-                <div class="glass shape-rounded p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-rounded p-5 shadow-lg border border-emerald-100">
                     <h3 class="font-bold text-slate-800 mb-2">محاسب</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>إدخال القيود المحاسبية</li>
@@ -91,7 +90,7 @@
                         <li>تسويات نهاية الشهر</li>
                     </ul>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h3 class="font-bold text-slate-800 mb-2">مسؤول التحصيل</h3>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>التعامل مع شاشة التحصيل وخطط الدفع</li>
@@ -102,34 +101,34 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
             <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
                 <h2 class="text-2xl font-bold text-slate-800">📜 سياسات العمل</h2>
                 <span class="text-sm text-slate-500">حوكمة الفوترة والتحصيل والإقفال والذكاء الاصطناعي</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-amber-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-amber-100">
                     <h4 class="font-bold text-slate-800 mb-2">سياسة الفوترة</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>لا تُصدر فاتورة إلا مرتبطة: عميل + برنامج/خدمة + حاضنة/فرع</li>
                         <li>لا تُعدّل فاتورة بعد إصدارها إلا بصلاحية أعلى مع أثر محاسبي واضح</li>
                     </ul>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-sky-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-sky-100">
                     <h4 class="font-bold text-slate-800 mb-2">سياسة التحصيل</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>نسبة خصم قصوى تشجيعية تعتمدها الإدارة المالية للمجموعة</li>
                         <li>لا يُنشأ خطة دفع إلا بعد تحقق الحد الأدنى وسياسة البرنامج</li>
                     </ul>
                 </div>
-                <div class="glass shape-rounded p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-rounded p-5 shadow-lg border border-emerald-100">
                     <h4 class="font-bold text-slate-800 mb-2">سياسة الإقفال الشهري</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>إيقاف إدخال القيود بعد يوم محدد من الشهر التالي إلا بسماح خاص</li>
                         <li>فرض تسويات بنك/ذمم/أصول قبل اعتماد التقارير الشهرية</li>
                     </ul>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h4 class="font-bold text-slate-800 mb-2">سياسة الذكاء الاصطناعي</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>الذكاء الاصطناعي يقدم توصيات ودرجات مخاطر فقط</li>
@@ -139,34 +138,34 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
                 <h2 class="text-2xl font-bold text-slate-800">✅ دورة الموافقات</h2>
                 <span class="text-sm text-slate-500">سير العمل المعتمد للموافقات</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-emerald-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-emerald-100">
                     <h4 class="font-bold text-slate-800 mb-2">فاتورة كبيرة فوق حد معين</h4>
                     <p class="text-sm text-slate-600">تحتاج موافقة مدير الفرع + المالية المركزية.</p>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-indigo-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-indigo-100">
                     <h4 class="font-bold text-slate-800 mb-2">خطة دفع لعميل عالي المخاطر</h4>
                     <p class="text-sm text-slate-600">موافقة مزدوجة: التحصيل + مدير المالية.</p>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-amber-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-amber-100">
                     <h4 class="font-bold text-slate-800 mb-2">تعديل ميزانية بعد الاعتماد</h4>
                     <p class="text-sm text-slate-600">طلب تغيير رسمي + سبب + أثر على التدفقات + موافقة الإدارة المالية للمجموعة.</p>
                 </div>
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-rose">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-rose">
             <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
                 <h2 class="text-2xl font-bold text-slate-800">📊 طبقات التقارير الذكية</h2>
                 <span class="text-sm text-slate-500">تشغيلية • تكتيكية • استراتيجية</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div class="glass shape-angled p-5 shadow-lg border border-sky-100">
+                <div class="card-gradient shape-angled p-5 shadow-lg border border-sky-100">
                     <h4 class="font-bold text-slate-800 mb-2">تقارير تشغيلية (يومي/أسبوعي)</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>تقرير التحصيل اليومي مقابل الهدف</li>
@@ -175,7 +174,7 @@
                         <li>تقرير أعمار الذمم حسب الفرع والحاضنة والبرنامج</li>
                     </ul>
                 </div>
-                <div class="glass shape-cut p-5 shadow-lg border border-indigo-100">
+                <div class="card-gradient shape-cut p-5 shadow-lg border border-indigo-100">
                     <h4 class="font-bold text-slate-800 mb-2">تقارير تكتيكية (شهري/ربع سنوي)</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>إيرادات فعلية مقابل الميزانية</li>
@@ -184,7 +183,7 @@
                         <li>نسبة التحصيل ونسبة التعثر</li>
                     </ul>
                 </div>
-                <div class="glass shape-pill p-5 shadow-lg border border-rose-100">
+                <div class="card-gradient shape-pill p-5 shadow-lg border border-rose-100">
                     <h4 class="font-bold text-slate-800 mb-2">تقارير استراتيجية (للإدارة العليا)</h4>
                     <ul class="text-sm text-slate-600 space-y-1">
                         <li>انحراف الميزانية لكل حساب رئيسي</li>
@@ -196,56 +195,56 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            <div class="glass shape-angled p-5 shadow-lg accent-sky">
+            <div class="card-gradient shape-angled p-5 shadow-lg accent-sky">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">إجمالي الفواتير</span>
                     <i class="fas fa-file-invoice text-sky-500 text-2xl"></i>
                 </div>
                 <div id="totalInvoices" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-cut p-5 shadow-lg accent-rose">
+            <div class="card-gradient shape-cut p-5 shadow-lg accent-rose">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">فواتير متأخرة</span>
                     <i class="fas fa-triangle-exclamation text-rose-500 text-2xl"></i>
                 </div>
                 <div id="overdueInvoices" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-rounded p-5 shadow-lg accent-emerald">
+            <div class="card-gradient shape-rounded p-5 shadow-lg accent-emerald">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">خطط سداد نشطة</span>
                     <i class="fas fa-calendar-check text-emerald-500 text-2xl"></i>
                 </div>
                 <div id="totalPlans" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-pill p-5 shadow-lg accent-indigo">
+            <div class="card-gradient shape-pill p-5 shadow-lg accent-indigo">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">تقييمات المخاطر</span>
                     <i class="fas fa-shield-halved text-indigo-500 text-2xl"></i>
                 </div>
                 <div id="totalRisks" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-angled p-5 shadow-lg accent-amber">
+            <div class="card-gradient shape-angled p-5 shadow-lg accent-amber">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">العملاء المرتبطون</span>
                     <i class="fas fa-users text-amber-500 text-2xl"></i>
                 </div>
                 <div id="totalCustomers" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-cut p-5 shadow-lg accent-sky">
+            <div class="card-gradient shape-cut p-5 shadow-lg accent-sky">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">إجمالي المدفوعات</span>
                     <i class="fas fa-credit-card text-sky-500 text-2xl"></i>
                 </div>
                 <div id="totalPayments" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-rounded p-5 shadow-lg accent-emerald">
+            <div class="card-gradient shape-rounded p-5 shadow-lg accent-emerald">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">الميزانيات المعتمدة</span>
                     <i class="fas fa-file-invoice-dollar text-emerald-500 text-2xl"></i>
                 </div>
                 <div id="totalBudgets" class="text-3xl font-bold text-slate-800">0</div>
             </div>
-            <div class="glass shape-pill p-5 shadow-lg accent-indigo">
+            <div class="card-gradient shape-pill p-5 shadow-lg accent-indigo">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-slate-600">التوقعات الذكية</span>
                     <i class="fas fa-brain text-indigo-500 text-2xl"></i>
@@ -255,17 +254,17 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="glass shape-rounded shadow-2xl p-6 accent-sky">
+            <div class="card-gradient shape-rounded shadow-2xl p-6 accent-sky">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">📈 توزيع حالات الفواتير</h3>
                 <div class="chart-box"><canvas id="invoiceStatusChart"></canvas></div>
             </div>
-            <div class="glass shape-rounded shadow-2xl p-6 accent-rose">
+            <div class="card-gradient shape-rounded shadow-2xl p-6 accent-rose">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">🧭 توزيع مستويات المخاطر</h3>
                 <div class="chart-box"><canvas id="riskLevelChart"></canvas></div>
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-sky">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير الخاضعة للحوكمة</h3>
                 <span id="invoicesCount" class="text-sm text-slate-500"></span>
@@ -295,7 +294,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">📑 جدول خطط السداد المعتمدة</h3>
                 <span id="plansCount" class="text-sm text-slate-500"></span>
@@ -326,7 +325,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">📌 جدول الميزانيات والانحرافات</h3>
                 <span id="budgetsCount" class="text-sm text-slate-500"></span>
@@ -379,7 +378,7 @@
             </div>
         </div>
 
-        <div class="glass shape-rounded shadow-2xl p-6 mb-8 accent-rose">
+        <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-rose">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">🛡️ جدول تقييمات المخاطر والتوقعات</h3>
                 <span id="risksCount" class="text-sm text-slate-500"></span>

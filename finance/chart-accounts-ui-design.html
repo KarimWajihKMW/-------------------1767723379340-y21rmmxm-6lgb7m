@@ -9,12 +9,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #10b981 100%);
-            min-height: 100vh;
+        body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0f172a; }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    
         .shape-a { border-radius: 26px 8px 26px 8px; }
         .shape-b { border-radius: 999px; }
         .shape-c { border-radius: 28px 28px 6px 28px; }
@@ -36,13 +38,13 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">🌳 تصميم شجرة الحسابات وواجهات النظام</h1>
-            <p class="text-lg opacity-90">شجرة حسابات تخدم 38+ حاضنة ومنصات متعددة مع واجهات تشغيلية كاملة (الصفحة 33)</p>
+            <p class="text-lg text-slate-600">شجرة حسابات تخدم 38+ حاضنة ومنصات متعددة مع واجهات تشغيلية كاملة (الصفحة 33)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="refreshData()" class="bg-white text-sky-700 border border-sky-100 shadow-sm px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
@@ -60,54 +62,54 @@
             </button>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">📌 مؤشرات لوحة التحكم</h2>
                 <span class="text-sm text-slate-500">قراءة موحدة من قاعدة البيانات</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="stat-card shape-b bg-gradient-to-br from-sky-500 to-blue-600 text-white p-5">
+                <div class="stat-card shape-b bg-gradient-to-br from-sky-500 to-blue-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>إجمالي الإيرادات</span><i class="fas fa-arrow-up text-2xl opacity-70"></i></div>
                     <div id="totalRevenue" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-a bg-gradient-to-br from-rose-500 to-red-600 text-white p-5">
+                <div class="stat-card shape-a bg-gradient-to-br from-rose-500 to-red-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>إجمالي المصروفات</span><i class="fas fa-arrow-down text-2xl opacity-70"></i></div>
                     <div id="totalExpenses" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-c bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-5">
+                <div class="stat-card shape-c bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>صافي الربح</span><i class="fas fa-chart-line text-2xl opacity-70"></i></div>
                     <div id="netProfit" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-d bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5">
+                <div class="stat-card shape-d bg-gradient-to-br from-indigo-500 to-purple-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>صافي التدفقات النقدية</span><i class="fas fa-water text-2xl opacity-70"></i></div>
                     <div id="netCashflow" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-e bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5">
+                <div class="stat-card shape-e bg-gradient-to-br from-amber-500 to-orange-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>الذمم المدينة</span><i class="fas fa-hand-holding-dollar text-2xl opacity-70"></i></div>
                     <div id="totalAR" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-b bg-gradient-to-br from-slate-600 to-slate-800 text-white p-5">
+                <div class="stat-card shape-b bg-gradient-to-br from-slate-600 to-slate-800 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>الذمم الدائنة</span><i class="fas fa-file-invoice-dollar text-2xl opacity-70"></i></div>
                     <div id="totalAP" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-a bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white p-5">
+                <div class="stat-card shape-a bg-gradient-to-br from-fuchsia-500 to-pink-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>عدد الحسابات</span><i class="fas fa-layer-group text-2xl opacity-70"></i></div>
                     <div id="accountsCount" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
-                <div class="stat-card shape-c bg-gradient-to-br from-cyan-500 to-sky-600 text-white p-5">
+                <div class="stat-card shape-c bg-gradient-to-br from-cyan-500 to-sky-600 text-slate-900 p-5">
                     <div class="flex justify-between mb-3"><span>إجمالي الأصول</span><i class="fas fa-building-columns text-2xl opacity-70"></i></div>
                     <div id="totalAssets" class="text-3xl font-bold"><div class="animate-pulse">...</div></div>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🌳 شجرة الحسابات مصممة لتخدم التوسع</h2>
                 <span class="text-sm text-slate-500">38+ حاضنة • منصات متعددة • برامج مختلفة</span>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">المستوى الأول (الفئات الرئيسية)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
                         <div class="bg-slate-50 p-3 rounded-xl">الأصول</div>
@@ -117,14 +119,14 @@
                         <div class="bg-slate-50 p-3 rounded-xl">المصروفات</div>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-indigo">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-indigo">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">توزيع الحسابات حسب النوع</h3>
                     <div class="chart-container"><canvas id="accountsChart"></canvas></div>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧩 المستوى الثاني (تفصيل الفئات)</h2>
                 <span class="text-sm text-slate-500">أمثلة عملية للمستويات التفصيلية</span>
@@ -132,7 +134,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-slate-700" id="levelTwoList"></div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧾 هيكل الإيرادات والمصروفات</h2>
                 <span class="text-sm text-slate-500">تصنيفات تشغيلية وإدارية وتقنية</span>
@@ -151,13 +153,13 @@
             </div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-amber">
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 section-accent-amber">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧠 تصميم واجهات النظام التشغيلية</h2>
                 <span class="text-sm text-slate-500">واجهة لوحة التحكم وواجهة القيود المحاسبية</span>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-sky">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-sky">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">واجهة لوحة التحكم</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
                         <div class="bg-slate-50 p-3 rounded-xl">إجمالي الإيرادات</div>
@@ -170,7 +172,7 @@
                         <div class="bg-slate-50 p-3 rounded-xl">العملاء الأعلى رصيدًا</div>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-emerald">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-emerald">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">واجهة القيود المحاسبية</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
                         <div>
@@ -211,7 +213,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="glass rounded-3xl shadow-2xl p-6 section-accent-sky">
+            <div class="card-gradient rounded-3xl shadow-2xl p-6 section-accent-sky">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-slate-800">🏢 أعلى الفروع أداءً</h3>
                     <span id="branchesCount" class="text-sm text-slate-500"></span>
@@ -229,7 +231,7 @@
                     </table>
                 </div>
             </div>
-            <div class="glass rounded-3xl shadow-2xl p-6 section-accent-emerald">
+            <div class="card-gradient rounded-3xl shadow-2xl p-6 section-accent-emerald">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-slate-800">👥 العملاء الأعلى رصيدًا</h3>
                     <span id="customersCount" class="text-sm text-slate-500"></span>
@@ -250,7 +252,7 @@
         </div>
 
         <div class="space-y-6">
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-indigo" open>
+            <details class="card-gradient rounded-3xl shadow-2xl p-6 section-accent-indigo" open>
                 <summary class="text-xl font-bold text-slate-800">📚 جدول شجرة الحسابات</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل الحسابات</h4><span id="accountsTableCount" class="text-sm text-slate-500"></span></div>
@@ -374,7 +376,7 @@
         function renderLevelTwo() {
             const container = document.getElementById('levelTwoList');
             container.innerHTML = levelTwoItems.map((section, idx) => `
-                <div class="glass p-4 shadow-lg ${idx % 2 === 0 ? 'shape-a' : 'shape-d'}">
+                <div class="card-gradient p-4 shadow-lg ${idx % 2 === 0 ? 'shape-a' : 'shape-d'}">
                     <div class="font-bold text-slate-800 mb-2">${section.label}</div>
                     <ul class="space-y-1 text-slate-700">
                         ${section.items.map(item => `<li>${item}</li>`).join('')}
