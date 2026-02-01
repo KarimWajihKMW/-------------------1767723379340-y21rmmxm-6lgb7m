@@ -16,6 +16,31 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+function normalizeAmount(value) {
+    if (value === null || value === undefined) return 0;
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    let text = String(value).trim();
+    if (!text) return 0;
+
+    const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+    const easternIndic = '۰۱۲۳۴۵۶۷۸۹';
+    text = text.replace(/[٠-٩]/g, (digit) => arabicIndic.indexOf(digit));
+    text = text.replace(/[۰-۹]/g, (digit) => easternIndic.indexOf(digit));
+
+    text = text.replace(/\s+/g, '');
+    text = text.replace(/٬/g, '');
+    if (text.includes(',') && !text.includes('.')) {
+        text = text.replace(',', '.');
+    } else {
+        text = text.replace(/,/g, '');
+    }
+    text = text.replace(/٫/g, '.');
+
+    const cleaned = text.replace(/[^0-9.-]/g, '');
+    const parsed = parseFloat(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
 /**
  * Get all journal entries with their lines
  */
@@ -349,8 +374,8 @@ async function createJournalEntry(req, res) {
     }
 
     // Validate that debits = credits
-    const totalDebit = lines.reduce((sum, line) => sum + parseFloat(line.debit_amount || 0), 0);
-    const totalCredit = lines.reduce((sum, line) => sum + parseFloat(line.credit_amount || 0), 0);
+    const totalDebit = lines.reduce((sum, line) => sum + normalizeAmount(line.debit_amount), 0);
+    const totalCredit = lines.reduce((sum, line) => sum + normalizeAmount(line.credit_amount), 0);
 
     if (Math.abs(totalDebit - totalCredit) > 0.01) {
         return res.status(400).json({
@@ -417,8 +442,8 @@ async function createJournalEntry(req, res) {
                 line.account_id,
                 line.account_code,
                 line.account_name,
-                line.debit_amount || 0,
-                line.credit_amount || 0,
+                normalizeAmount(line.debit_amount),
+                normalizeAmount(line.credit_amount),
                 line.description,
                 line.cost_center_id,
                 line.project_id
