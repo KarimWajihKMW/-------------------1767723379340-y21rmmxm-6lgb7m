@@ -11,12 +11,11 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
         .card-gradient {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
-            backdrop-filter: blur(10px);
+            background: #ffffff;
         }
         .stat-card {
             transition: transform 0.3s, box-shadow 0.3s;
@@ -33,11 +32,12 @@
             transform: translateX(-5px);
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(14px);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .kpi-glow {
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .chip {
             padding: 4px 10px;
@@ -77,31 +77,31 @@
 <body>
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📚 دفتر اليومية والأستاذ العام</h1>
             <p class="text-lg opacity-90">إدارة القيود المحاسبية وأرصدة الحسابات</p>
         </div>
 
         <!-- Action Buttons -->
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="showAddJournalEntry()" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-plus"></i>
+            <button onclick="showAddJournalEntry()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-red-500 transition flex items-center gap-2">
+                <i class="fas fa-plus text-red-600"></i>
                 إضافة قيد محاسبي
             </button>
-            <button onclick="generateReport()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-pdf"></i>
+            <button onclick="generateReport()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-green-500 transition flex items-center gap-2">
+                <i class="fas fa-file-pdf text-green-600"></i>
                 تقرير دفتر اليومية
             </button>
-            <button onclick="refreshAllData()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-rotate"></i>
+            <button onclick="refreshAllData()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-indigo-500 transition flex items-center gap-2">
+                <i class="fas fa-rotate text-indigo-600"></i>
                 تحديث ذكي شامل
             </button>
-            <button onclick="exportJournalCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="exportJournalCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-emerald-500 transition flex items-center gap-2">
+                <i class="fas fa-file-csv text-emerald-600"></i>
                 تصدير CSV متقدم
             </button>
-            <button onclick="downloadAdvancedReport()" class="bg-amber-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-bolt"></i>
+            <button onclick="downloadAdvancedReport()" class="bg-white text-gray-800 px-6 py-3 rounded-lg font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-amber-500 transition flex items-center gap-2">
+                <i class="fas fa-bolt text-amber-600"></i>
                 تقرير تعزيزات ذكي
             </button>
         </div>
@@ -109,9 +109,9 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- إجمالي القيود -->
-            <div class="stat-card bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-blue-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-book text-4xl opacity-70"></i>
+                    <i class="fas fa-book text-4xl opacity-70 text-blue-500"></i>
                     <span class="text-sm opacity-90">إجمالي القيود</span>
                 </div>
                 <div id="totalEntries" class="text-4xl font-bold">
@@ -120,9 +120,9 @@
             </div>
 
             <!-- إجمالي المدين -->
-            <div class="stat-card bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-red-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-arrow-up text-4xl opacity-70"></i>
+                    <i class="fas fa-arrow-up text-4xl opacity-70 text-red-500"></i>
                     <span class="text-sm opacity-90">إجمالي المدين</span>
                 </div>
                 <div id="totalDebit" class="text-4xl font-bold">
@@ -131,9 +131,9 @@
             </div>
 
             <!-- إجمالي الدائن -->
-            <div class="stat-card bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-green-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-arrow-down text-4xl opacity-70"></i>
+                    <i class="fas fa-arrow-down text-4xl opacity-70 text-green-500"></i>
                     <span class="text-sm opacity-90">إجمالي الدائن</span>
                 </div>
                 <div id="totalCredit" class="text-4xl font-bold">
@@ -142,9 +142,9 @@
             </div>
 
             <!-- عدد الحسابات -->
-            <div class="stat-card bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+            <div class="stat-card bg-white rounded-2xl p-6 text-slate-900 shadow-lg border-t-4 border-purple-500">
                 <div class="flex items-center justify-between mb-4">
-                    <i class="fas fa-list text-4xl opacity-70"></i>
+                    <i class="fas fa-list text-4xl opacity-70 text-purple-500"></i>
                     <span class="text-sm opacity-90">عدد الحسابات</span>
                 </div>
                 <div id="totalAccounts" class="text-4xl font-bold">
