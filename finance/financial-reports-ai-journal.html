@@ -11,11 +11,11 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(130deg, #0ea5e9 0%, #6366f1 50%, #10b981 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
             backdrop-filter: blur(10px);
         }
         .stat-card { transition: transform 0.3s, box-shadow 0.3s; }
@@ -37,32 +37,32 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📊 تقارير الوضع المالي والذكاء الاصطناعي</h1>
             <p class="text-lg opacity-90">صحة الإمبراطورية في لحظة واحدة + دمج الذكاء الاصطناعي + نموذج القيد الموحد (الصفحة 31)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-rotate"></i>
+            <button onclick="refreshData()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-emerald-500 group">
+                <i class="fas fa-rotate text-xl text-emerald-600 group-hover:text-emerald-700 transition"></i>
                 تحديث البيانات
             </button>
-            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-indigo-500 group">
+                <i class="fas fa-file-code text-xl text-indigo-600 group-hover:text-indigo-700 transition"></i>
                 تنزيل ملف بيانات
             </button>
-            <button onclick="downloadCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
+                <i class="fas fa-file-csv text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
                 تنزيل ملف جدولي
             </button>
             <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+                <i class="fas fa-print text-xl text-gray-600 group-hover:text-gray-700 transition"></i>
                 طباعة
             </button>
         </div>
 
         <!-- تقارير الوضع المالي -->
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">📌 تقارير الوضع المالي</h2>
                 <span class="text-sm text-slate-500">صحة الإمبراطورية لحظيًا</span>
@@ -91,15 +91,15 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-emerald">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-emerald">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">📈 الأداء المالي</h3>
                     <div id="performanceCards" class="space-y-3 text-sm text-slate-700"></div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">📊 أعمار الذمم</h3>
                     <div class="chart-container"><canvas id="agingChart"></canvas></div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-indigo">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-indigo">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">💧 التدفقات النقدية اللحظية</h3>
                     <div id="cashflowSnapshot" class="space-y-3 text-sm text-slate-700"></div>
                 </div>
@@ -107,7 +107,7 @@
         </div>
 
         <!-- تقارير المخاطر -->
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-rose">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-rose">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">⚠️ تقرير المخاطر المالية</h2>
                 <span class="text-sm text-slate-500">العملاء والفروع والبرامج عالية المخاطر</span>
@@ -131,11 +131,11 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">📊 توزيع مستويات المخاطر</h3>
                     <div class="chart-container"><canvas id="riskChart"></canvas></div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-indigo">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-indigo">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">🤖 توصيات الذكاء الاصطناعي</h3>
                     <div id="riskInsights" class="space-y-3 text-sm text-slate-700"></div>
                 </div>
@@ -143,7 +143,7 @@
         </div>
 
         <!-- دمج الذكاء الاصطناعي -->
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-emerald">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🤖 دمج الذكاء الاصطناعي في النظام المحاسبي</h2>
                 <span class="text-sm text-slate-500">توقع الإيرادات والمصروفات والتعثر</span>
@@ -152,13 +152,13 @@
         </div>
 
         <!-- نموذج القيد الموحد -->
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-indigo">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">📚 نموذج القيد المحاسبي الموحد</h2>
                 <span class="text-sm text-slate-500">كل عملية تُسجل وفق نموذج موحد</span>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">🧾 القيود المحاسبية</h3>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
@@ -168,7 +168,7 @@
                     </div>
                     <div id="entriesCount" class="text-sm text-slate-500 mt-2"></div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-rose">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-rose">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">🧾 سطور القيود</h3>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
@@ -183,7 +183,7 @@
 
         <!-- جداول التقارير -->
         <div class="space-y-6">
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-sky" open>
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-sky" open>
                 <summary class="text-xl font-bold text-slate-800">📊 تقارير الوضع المالي التفصيلية</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -205,7 +205,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-emerald">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-emerald">
                 <summary class="text-xl font-bold text-slate-800">📈 تقرير الأداء المالي</summary>
                 <div class="mt-4 space-y-6">
                     <div>
@@ -219,7 +219,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <summary class="text-xl font-bold text-slate-800">📋 تقرير أعمار الذمم</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل الذمم</h4><span id="agingCount" class="text-sm text-slate-500"></span></div>
@@ -227,7 +227,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-indigo">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-indigo">
                 <summary class="text-xl font-bold text-slate-800">💧 تقرير التدفقات النقدية اللحظي</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">التدفقات التشغيلية</h4><span id="operatingCount" class="text-sm text-slate-500"></span></div>
@@ -235,7 +235,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-rose">
                 <summary class="text-xl font-bold text-slate-800">🛡️ تقرير المخاطر المالية التفصيلي</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تقييمات المخاطر</h4><span id="riskCount" class="text-sm text-slate-500"></span></div>

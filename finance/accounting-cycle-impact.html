@@ -11,10 +11,13 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #10b981 100%);
+            background: #f9fafb; /* Slate-50 */
             min-height: 100vh;
         }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+            backdrop-filter: blur(10px);
+        }
         .shape-a { border-radius: 26px 8px 26px 8px; }
         .shape-b { border-radius: 999px; }
         .shape-c { border-radius: 28px 28px 6px 28px; }
@@ -34,31 +37,31 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8">
-        <div class="mb-8 text-white">
+        <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">🧩 أثر النظام المحاسبي والدورة الكاملة</h1>
             <p class="text-lg opacity-90">رؤية مالية موحدة + دورة محاسبية كاملة + شجرة حسابات تخدم التوسع (الصفحة 32)</p>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
-            <button onclick="refreshData()" class="bg-white text-sky-700 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-rotate"></i>
+            <button onclick="refreshData()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-emerald-500 group">
+                <i class="fas fa-rotate text-xl text-emerald-600 group-hover:text-emerald-700 transition"></i>
                 تحديث البيانات
             </button>
-            <button onclick="downloadJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-code"></i>
+            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-indigo-500 group">
+                <i class="fas fa-file-code text-xl text-indigo-600 group-hover:text-indigo-700 transition"></i>
                 تنزيل ملف بيانات
             </button>
-            <button onclick="downloadCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-file-csv"></i>
+            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
+                <i class="fas fa-file-csv text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
                 تنزيل ملف جدولي
             </button>
             <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
-                <i class="fas fa-print"></i>
+                <i class="fas fa-print text-xl text-gray-600 group-hover:text-gray-700 transition"></i>
                 طباعة
             </button>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">✅ ماذا يحقق هذا النظام لنايوش؟</h2>
                 <span class="text-sm text-slate-500">قيمة تشغيلية على مستوى الإمبراطورية</span>
@@ -84,49 +87,49 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass shape-e p-4 shadow-lg">
+                <div class="card-gradient shape-e p-4 shadow-lg">
                     <div class="font-bold text-slate-800">رؤية مالية موحدة</div>
                     <div class="text-sm text-slate-600">تجميع بيانات الفروع والحاضنات في لوحة واحدة</div>
                 </div>
-                <div class="glass shape-c p-4 shadow-lg">
+                <div class="card-gradient shape-c p-4 shadow-lg">
                     <div class="font-bold text-slate-800">قرارات دقيقة</div>
                     <div class="text-sm text-slate-600">مؤشرات لحظية تساعد الإدارة العليا</div>
                 </div>
-                <div class="glass shape-a p-4 shadow-lg">
+                <div class="card-gradient shape-a p-4 shadow-lg">
                     <div class="font-bold text-slate-800">تحكم في التدفقات</div>
                     <div class="text-sm text-slate-600">تحليل تلقائي للتدفقات والذمم</div>
                 </div>
-                <div class="glass shape-d p-4 shadow-lg">
+                <div class="card-gradient shape-d p-4 shadow-lg">
                     <div class="font-bold text-slate-800">ميزانيات ذكية</div>
                     <div class="text-sm text-slate-600">ربط الإنفاق بالتوقعات والتخطيط</div>
                 </div>
-                <div class="glass shape-b p-4 shadow-lg">
+                <div class="card-gradient shape-b p-4 shadow-lg">
                     <div class="font-bold text-slate-800">تقارير لحظية</div>
                     <div class="text-sm text-slate-600">تقارير للإدارة العليا فورًا</div>
                 </div>
-                <div class="glass shape-e p-4 shadow-lg">
+                <div class="card-gradient shape-e p-4 shadow-lg">
                     <div class="font-bold text-slate-800">قابل للتوسع</div>
                     <div class="text-sm text-slate-600">جاهز لنمو الإمبراطورية عالميًا</div>
                 </div>
-                <div class="glass shape-c p-4 shadow-lg">
+                <div class="card-gradient shape-c p-4 shadow-lg">
                     <div class="font-bold text-slate-800">ذكاء يحمي التدفق</div>
                     <div class="text-sm text-slate-600">تنبيهات مبكرة للتعثر والاختناقات</div>
                 </div>
-                <div class="glass shape-a p-4 shadow-lg">
+                <div class="card-gradient shape-a p-4 shadow-lg">
                     <div class="font-bold text-slate-800">خدمة 38+ حاضنة ومنصة</div>
                     <div class="text-sm text-slate-600">نظام محاسبي متكامل لكل الجهات</div>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-indigo">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-indigo">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🧭 الدورة المحاسبية الكاملة لنايوش</h2>
                 <span class="text-sm text-slate-500">من تسجيل العملية حتى القوائم الختامية</span>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber timeline-step">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber timeline-step">
                     <h3 class="font-bold text-slate-800 mb-3">١) تسجيل العمليات المالية</h3>
                     <ul class="text-sm text-slate-700 space-y-2">
                         <li>إدخال عملية مالية: مبيعات – مصروف – راتب – تحصيل – دفع</li>
@@ -138,7 +141,7 @@
                         <li>بوابة قرار: هل القيد صحيح؟ نعم متابعة / لا إرجاع للمحاسب</li>
                     </ul>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-emerald timeline-step">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-emerald timeline-step">
                     <h3 class="font-bold text-slate-800 mb-3">٢) الترحيل إلى الدفاتر</h3>
                     <ul class="text-sm text-slate-700 space-y-2">
                         <li>ترحيل القيد إلى الدفتر العام</li>
@@ -146,7 +149,7 @@
                         <li>تحديث الأرصدة اليومية</li>
                     </ul>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-rose timeline-step">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-rose timeline-step">
                     <h3 class="font-bold text-slate-800 mb-3">٣) التسويات</h3>
                     <ul class="text-sm text-slate-700 space-y-2">
                         <li>تسوية البنك</li>
@@ -156,7 +159,7 @@
                         <li>بوابة قرار: هل هناك فروقات؟ نعم معالجة / لا متابعة</li>
                     </ul>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber timeline-step">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber timeline-step">
                     <h3 class="font-bold text-slate-800 mb-3">٤) الإقفال الشهري</h3>
                     <ul class="text-sm text-slate-700 space-y-2">
                         <li>إقفال الإيرادات</li>
@@ -166,7 +169,7 @@
                         <li>بوابة قرار: هل ميزان المراجعة متوازن؟ نعم متابعة / لا تصحيح القيود</li>
                     </ul>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-indigo timeline-step">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-indigo timeline-step">
                     <h3 class="font-bold text-slate-800 mb-3">٥) إعداد القوائم المالية</h3>
                     <ul class="text-sm text-slate-700 space-y-2">
                         <li>إعداد قائمة الدخل</li>
@@ -176,21 +179,21 @@
                         <li>نهاية الدورة المحاسبية</li>
                     </ul>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-sky">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-sky">
                     <h3 class="font-bold text-slate-800 mb-3">📊 مؤشرات تنفيذ الدورة</h3>
                     <div class="space-y-3 text-sm text-slate-700" id="cycleMetrics"></div>
                 </div>
             </div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-emerald">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">🌳 تصميم شجرة الحسابات لنايوش</h2>
                 <span class="text-sm text-slate-500">تخدم 38+ حاضنة ومنصات متعددة وتوسع عالمي</span>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-amber">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-amber">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">المستوى الأول (الفئات الرئيسية)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
                         <div class="bg-slate-50 p-3 rounded-xl">الأصول</div>
@@ -200,7 +203,7 @@
                         <div class="bg-slate-50 p-3 rounded-xl">المصروفات</div>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-5 shadow-lg section-accent-indigo">
+                <div class="card-gradient rounded-2xl p-5 shadow-lg section-accent-indigo">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">توزيع الحسابات حسب النوع</h3>
                     <div class="chart-container"><canvas id="accountsChart"></canvas></div>
                 </div>
@@ -208,7 +211,7 @@
         </div>
 
         <div class="space-y-6">
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-sky" open>
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-sky" open>
                 <summary class="text-xl font-bold text-slate-800">📚 جدول شجرة الحسابات</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل الحسابات</h4><span id="accountsTableCount" class="text-sm text-slate-500"></span></div>
@@ -230,7 +233,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-amber">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <summary class="text-xl font-bold text-slate-800">🧾 جدول القيود المحاسبية</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">القيود المسجلة</h4><span id="entriesCount" class="text-sm text-slate-500"></span></div>
@@ -251,7 +254,7 @@
                 </div>
             </details>
 
-            <details class="glass rounded-3xl shadow-2xl p-6 section-accent-rose">
+            <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-rose">
                 <summary class="text-xl font-bold text-slate-800">🧾 جدول سطور القيود</summary>
                 <div class="mt-4">
                     <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل السطور</h4><span id="linesCount" class="text-sm text-slate-500"></span></div>
