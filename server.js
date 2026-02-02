@@ -146,6 +146,9 @@ app.delete('/finance/chart-of-accounts/:account_id', chartOfAccountsAPI.deleteAc
 const paymentsAPI = require('./finance/api/payments');
 app.get('/finance/payments/test', paymentsAPI.testConnection);
 app.get('/finance/payments', paymentsAPI.getPayments);
+app.post('/finance/payments', paymentsAPI.createPayment);
+app.put('/finance/payments/:payment_id', paymentsAPI.updatePayment);
+app.delete('/finance/payments/:payment_id', paymentsAPI.deletePayment);
 
 // Finance Customers API Routes (Page 7: Customers)
 const customersAPI = require('./finance/api/customers');

@@ -91,6 +91,179 @@ async function getPayments(req, res) {
 }
 
 /**
+ * Create payment
+ */
+async function createPayment(req, res) {
+    const {
+        entity_id,
+        payment_number,
+        payment_date,
+        customer_id,
+        customer_name,
+        payment_amount,
+        payment_method,
+        payment_type,
+        bank_name,
+        check_number,
+        transaction_reference,
+        status,
+        notes
+    } = req.body || {};
+
+    if (!entity_id || !payment_date || !customer_id || !payment_amount || !payment_method) {
+        return res.status(400).json({
+            success: false,
+            error: 'Missing required fields: entity_id, payment_date, customer_id, payment_amount, payment_method'
+        });
+    }
+
+    try {
+        const generatedNumber = payment_number || `PAY-${Date.now()}`;
+        const result = await pool.query(
+            `
+            INSERT INTO finance_payments
+                (payment_number, payment_date, customer_id, customer_name, payment_amount, payment_method, payment_type,
+                 bank_name, check_number, transaction_reference, status, notes, entity_id, created_by, created_at, updated_at)
+            VALUES
+                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW(),NOW())
+            RETURNING *
+            `,
+            [
+                generatedNumber,
+                payment_date,
+                customer_id,
+                customer_name || null,
+                payment_amount,
+                payment_method,
+                payment_type || 'FULL',
+                bank_name || null,
+                check_number || null,
+                transaction_reference || null,
+                status || 'COMPLETED',
+                notes || null,
+                entity_id,
+                'SYSTEM'
+            ]
+        );
+
+        res.json({ success: true, payment: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating payment:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Update payment
+ */
+async function updatePayment(req, res) {
+    const { payment_id } = req.params;
+    const {
+        entity_id,
+        payment_number,
+        payment_date,
+        customer_id,
+        customer_name,
+        payment_amount,
+        payment_method,
+        payment_type,
+        bank_name,
+        check_number,
+        transaction_reference,
+        status,
+        notes
+    } = req.body || {};
+
+    if (!payment_id || !entity_id || !payment_date || !customer_id || !payment_amount || !payment_method) {
+        return res.status(400).json({
+            success: false,
+            error: 'Missing required fields: payment_id, entity_id, payment_date, customer_id, payment_amount, payment_method'
+        });
+    }
+
+    try {
+        const existing = await pool.query('SELECT payment_id, entity_id FROM finance_payments WHERE payment_id = $1', [payment_id]);
+        if (!existing.rows.length) {
+            return res.status(404).json({ success: false, error: 'Payment not found' });
+        }
+
+        if (existing.rows[0].entity_id && existing.rows[0].entity_id !== entity_id) {
+            return res.status(403).json({ success: false, error: 'لا يمكن تعديل مدفوعة كيان آخر' });
+        }
+
+        const result = await pool.query(
+            `
+            UPDATE finance_payments
+            SET payment_number = $1,
+                payment_date = $2,
+                customer_id = $3,
+                customer_name = $4,
+                payment_amount = $5,
+                payment_method = $6,
+                payment_type = $7,
+                bank_name = $8,
+                check_number = $9,
+                transaction_reference = $10,
+                status = $11,
+                notes = $12,
+                updated_at = NOW()
+            WHERE payment_id = $13
+            RETURNING *
+            `,
+            [
+                payment_number,
+                payment_date,
+                customer_id,
+                customer_name || null,
+                payment_amount,
+                payment_method,
+                payment_type || 'FULL',
+                bank_name || null,
+                check_number || null,
+                transaction_reference || null,
+                status || 'COMPLETED',
+                notes || null,
+                payment_id
+            ]
+        );
+
+        res.json({ success: true, payment: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating payment:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Delete payment
+ */
+async function deletePayment(req, res) {
+    const { payment_id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!payment_id || !entity_id) {
+        return res.status(400).json({ success: false, error: 'payment_id and entity_id are required' });
+    }
+
+    try {
+        const existing = await pool.query('SELECT payment_id, entity_id FROM finance_payments WHERE payment_id = $1', [payment_id]);
+        if (!existing.rows.length) {
+            return res.status(404).json({ success: false, error: 'Payment not found' });
+        }
+
+        if (existing.rows[0].entity_id && existing.rows[0].entity_id !== entity_id) {
+            return res.status(403).json({ success: false, error: 'لا يمكن حذف مدفوعة كيان آخر' });
+        }
+
+        await pool.query('DELETE FROM finance_payments WHERE payment_id = $1', [payment_id]);
+        res.json({ success: true, message: 'تم حذف المدفوعة' });
+    } catch (error) {
+        console.error('❌ Error deleting payment:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
  * Test database connection
  */
 async function testConnection(req, res) {
@@ -112,5 +285,8 @@ async function testConnection(req, res) {
 
 module.exports = {
     getPayments,
+    createPayment,
+    updatePayment,
+    deletePayment,
     testConnection
 };
