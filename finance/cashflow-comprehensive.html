@@ -339,6 +339,7 @@
                     throw new Error(data.error || 'Failed to load transactions');
                 }
                 allTransactions = data.transactions || [];
+                renderTransactionsTable(allTransactions);
                 applyTransactionFilters();
             } catch (error) {
                 console.error('❌ خطأ في تحميل المعاملات:', error);
@@ -380,9 +381,18 @@
         }
 
         function applyTransactionFilters() {
-            const fromDate = document.getElementById('fromDate').value;
-            const toDate = document.getElementById('toDate').value;
-            const fiscalYear = document.getElementById('fiscalYear').value;
+            const fromInput = document.getElementById('fromDate');
+            const toInput = document.getElementById('toDate');
+            const fiscalInput = document.getElementById('fiscalYear');
+
+            if (!fromInput || !toInput || !fiscalInput) {
+                renderTransactionsTable(allTransactions);
+                return;
+            }
+
+            const fromDate = fromInput.value;
+            const toDate = toInput.value;
+            const fiscalYear = fiscalInput.value;
 
             const from = fromDate ? new Date(fromDate) : null;
             const to = toDate ? new Date(toDate) : null;
@@ -399,6 +409,8 @@
         }
 
         function renderTransactionsTable(transactions) {
+            const tableBody = document.getElementById('transactionsTable');
+            if (!tableBody) return;
             const rows = transactions.map(t => `
                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
                     <td class="px-4 py-3 text-slate-600">${formatDate(t.transaction_date)}</td>
@@ -425,12 +437,15 @@
                 </tr>
             `).join('');
 
-            document.getElementById('transactionsTable').innerHTML = rows.length ? rows : `
+            tableBody.innerHTML = rows.length ? rows : `
                 <tr>
                     <td colspan="9" class="px-4 py-12 text-center text-slate-500">لا توجد معاملات</td>
                 </tr>
             `;
-            document.getElementById('transactionsCount').textContent = `عدد المعاملات: ${transactions.length}`;
+            const countEl = document.getElementById('transactionsCount');
+            if (countEl) {
+                countEl.textContent = `عدد المعاملات: ${transactions.length}`;
+            }
         }
 
         function renderSummary(summary) {
