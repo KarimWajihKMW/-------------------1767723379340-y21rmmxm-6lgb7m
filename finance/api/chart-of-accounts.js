@@ -339,20 +339,34 @@ async function updateAccount(req, res) {
             RETURNING *
         `;
 
-        const values = [
-            account_code,
-            account_name_ar,
-            account_name_en || null,
-            account_type,
-            typeof is_active === 'boolean' ? is_active : true,
-            typeof is_header === 'boolean' ? is_header : false,
-            normal,
-            description || null,
-            notes || null,
-            'SYSTEM',
-            account_id,
-            entity_id
-        ];
+        const values = isGlobal
+            ? [
+                account_code,
+                account_name_ar,
+                account_name_en || null,
+                account_type,
+                typeof is_active === 'boolean' ? is_active : true,
+                typeof is_header === 'boolean' ? is_header : false,
+                normal,
+                description || null,
+                notes || null,
+                'SYSTEM',
+                account_id
+            ]
+            : [
+                account_code,
+                account_name_ar,
+                account_name_en || null,
+                account_type,
+                typeof is_active === 'boolean' ? is_active : true,
+                typeof is_header === 'boolean' ? is_header : false,
+                normal,
+                description || null,
+                notes || null,
+                'SYSTEM',
+                account_id,
+                entity_id
+            ];
 
         const result = await pool.query(query, values);
 
@@ -417,9 +431,13 @@ async function deleteAccount(req, res) {
         );
 
         if (usage.rows[0].count > 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'لا يمكن حذف الحساب المرتبط بقيود محاسبية'
+            await pool.query(
+                'UPDATE finance_accounts SET is_active = false, updated_by = $1, updated_at = NOW() WHERE account_id = $2',
+                ['SYSTEM', account_id]
+            );
+            return res.json({
+                success: true,
+                message: 'تم إلغاء تفعيل الحساب لأنه مرتبط بقيود محاسبية'
             });
         }
 
