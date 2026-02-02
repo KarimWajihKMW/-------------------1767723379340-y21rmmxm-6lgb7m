@@ -1051,11 +1051,19 @@ router.get('/customers', async (req, res) => {
     query += ` LIMIT $${params.length - 1} OFFSET $${params.length}`;
     
     const result = await db.query(query, params);
+    const customers = result.rows;
+    const summary = {
+      total_customers: customers.length,
+      active_customers: customers.filter(c => c.is_active && !c.is_blocked).length,
+      blocked_customers: customers.filter(c => c.is_blocked).length,
+      total_credit_limit: customers.reduce((sum, c) => sum + parseFloat(c.credit_limit || 0), 0)
+    };
     
     res.json({
       success: true,
-      count: result.rows.length,
-      customers: result.rows
+      count: customers.length,
+      customers,
+      summary
     });
   } catch (error) {
     console.error('Error fetching customers:', error);
