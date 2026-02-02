@@ -517,7 +517,18 @@
             }
 
             try {
-                const method = summaryModalMode === 'edit' ? 'PUT' : 'POST';
+                const existing = allRows.find(r =>
+                    String(r.flow_type) === String(payload.flow_type) &&
+                    String(r.fiscal_year) === String(payload.fiscal_year) &&
+                    String(r.fiscal_period) === String(payload.fiscal_period)
+                );
+                const shouldUpdate = summaryModalMode === 'edit' || !!existing;
+                if (existing && summaryModalMode === 'create') {
+                    const confirmUpdate = confirm('هذا السجل موجود بالفعل. هل تريد تحديثه؟');
+                    if (!confirmUpdate) return;
+                }
+
+                const method = shouldUpdate ? 'PUT' : 'POST';
                 const res = await fetch(`${API_BASE}/finance/cashflow-summary`, {
                     method,
                     headers: { 'Content-Type': 'application/json', ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {}) },
@@ -534,6 +545,7 @@
                 document.getElementById('periodFilter').value = '';
                 document.getElementById('typeFilter').value = '';
                 await loadSummary();
+                alert(shouldUpdate ? 'تم تحديث السجل بنجاح' : 'تم إضافة السجل بنجاح');
             } catch (error) {
                 console.error('❌ خطأ في حفظ السجل:', error);
                 alert(error.message || 'تعذر حفظ السجل');
