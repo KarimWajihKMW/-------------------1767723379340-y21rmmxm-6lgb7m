@@ -162,6 +162,9 @@ app.delete('/finance/customers/:customer_id', customersAPI.deleteCustomer);
 const aiForecastsAPI = require('./finance/api/ai-forecasts');
 app.get('/finance/ai-forecasts/test', aiForecastsAPI.testConnection);
 app.get('/finance/ai-forecasts', aiForecastsAPI.getForecasts);
+app.post('/finance/ai-forecasts', aiForecastsAPI.createForecast);
+app.put('/finance/ai-forecasts/:forecast_id', aiForecastsAPI.updateForecast);
+app.delete('/finance/ai-forecasts/:forecast_id', aiForecastsAPI.deleteForecast);
 
 // Finance Cashflow Summary API Routes (Page 9: Cashflow Summary)
 const cashflowSummaryAPI = require('./finance/api/cashflow-summary');
