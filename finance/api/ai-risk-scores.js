@@ -164,7 +164,7 @@ async function createRiskScore(req, res) {
                 entity_id,
                 model_version,
                 created_at
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
+            ) VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7,$8::jsonb,$9,$10,$11,NOW())
             RETURNING *
         `;
 
@@ -173,10 +173,10 @@ async function createRiskScore(req, res) {
             assessment_date,
             Number(risk_score),
             String(risk_level).toUpperCase(),
-            risk_factors || {},
-            calculation_details || {},
+            JSON.stringify(risk_factors || {}),
+            JSON.stringify(calculation_details || {}),
             recommendations || null,
-            suggested_actions || [],
+            JSON.stringify(suggested_actions || []),
             entityType,
             entityId,
             model_version || 'v1.0.0'
@@ -230,10 +230,10 @@ async function updateRiskScore(req, res) {
                 assessment_date = $2,
                 risk_score = $3,
                 risk_level = $4,
-                risk_factors = $5,
-                calculation_details = $6,
+                risk_factors = $5::jsonb,
+                calculation_details = $6::jsonb,
                 recommendations = $7,
-                suggested_actions = $8,
+                suggested_actions = $8::jsonb,
                 entity_type = $9,
                 entity_id = $10,
                 model_version = $11
@@ -246,10 +246,10 @@ async function updateRiskScore(req, res) {
             assessment_date,
             Number(risk_score),
             String(risk_level).toUpperCase(),
-            risk_factors || {},
-            calculation_details || {},
+            JSON.stringify(risk_factors || {}),
+            JSON.stringify(calculation_details || {}),
             recommendations || null,
-            suggested_actions || [],
+            JSON.stringify(suggested_actions || []),
             entityType,
             entityId,
             model_version || 'v1.0.0',
