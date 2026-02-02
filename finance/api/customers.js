@@ -14,6 +14,18 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+function normalizeRiskFactors(input) {
+    if (input === null || input === undefined) return null;
+    if (typeof input === 'object') return input;
+    const text = String(input).trim();
+    if (!text) return null;
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        return { notes: text };
+    }
+}
+
 async function generateNextNumber(prefix) {
     const result = await pool.query(
         `SELECT customer_code FROM finance_customers WHERE customer_code LIKE $1 ORDER BY customer_code DESC LIMIT 1`,
@@ -142,6 +154,7 @@ async function createCustomer(req, res) {
             ? customer_code.trim()
             : await generateNextNumber('CUST');
 
+        const normalizedRiskFactors = normalizeRiskFactors(risk_factors);
         const result = await pool.query(
             `INSERT INTO finance_customers
              (customer_code, customer_name_ar, customer_name_en, customer_type, email, phone, mobile, address, city, country,
@@ -167,7 +180,7 @@ async function createCustomer(req, res) {
                 payment_terms || null,
                 risk_score ?? null,
                 risk_level || null,
-                risk_factors || null,
+                normalizedRiskFactors ? JSON.stringify(normalizedRiskFactors) : null,
                 entity_id,
                 is_active !== false,
                 !!is_blocked,
@@ -229,6 +242,7 @@ async function updateCustomer(req, res) {
             return res.status(403).json({ success: false, error: 'لا يمكن تعديل عميل كيان آخر' });
         }
 
+        const normalizedRiskFactors = normalizeRiskFactors(risk_factors);
         const result = await pool.query(
             `UPDATE finance_customers
              SET customer_code = $1,
@@ -273,7 +287,7 @@ async function updateCustomer(req, res) {
                 payment_terms || null,
                 risk_score ?? null,
                 risk_level || null,
-                risk_factors || null,
+                normalizedRiskFactors ? JSON.stringify(normalizedRiskFactors) : null,
                 is_active !== false,
                 !!is_blocked,
                 blocked_reason || null,
@@ -308,15 +322,25 @@ async function deleteCustomer(req, res) {
             return res.status(403).json({ success: false, error: 'لا يمكن حذف عميل كيان آخر' });
         }
 
-        await pool.query(
-            `UPDATE finance_customers
-             SET is_active = false,
-                 updated_at = NOW()
-             WHERE customer_id = $1`,
-            [customer_id]
-        );
-
-        res.json({ success: true, message: 'تم حذف العميل' });
+        try {
+            const deleted = await pool.query(
+                'DELETE FROM finance_customers WHERE customer_id = $1 RETURNING customer_id',
+                [customer_id]
+            );
+            if (!deleted.rows.length) {
+                return res.status(404).json({ success: false, error: 'Customer not found' });
+            }
+            return res.json({ success: true, message: 'تم حذف العميل' });
+        } catch (deleteError) {
+            await pool.query(
+                `UPDATE finance_customers
+                 SET is_active = false,
+                     updated_at = NOW()
+                 WHERE customer_id = $1`,
+                [customer_id]
+            );
+            return res.json({ success: true, message: 'تم تعطيل العميل لوجود ارتباطات' });
+        }
     } catch (error) {
         console.error('❌ Error deleting customer:', error);
         res.status(500).json({ success: false, error: error.message });
