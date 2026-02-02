@@ -199,6 +199,9 @@ app.get('/finance/cashflow-comprehensive', cashflowComprehensiveAPI.getCashflowC
 const aiRiskScoresAPI = require('./finance/api/ai-risk-scores');
 app.get('/finance/ai-risk-scores/test', aiRiskScoresAPI.testConnection);
 app.get('/finance/ai-risk-scores', aiRiskScoresAPI.getRiskScores);
+app.post('/finance/ai-risk-scores', aiRiskScoresAPI.createRiskScore);
+app.put('/finance/ai-risk-scores/:risk_id', aiRiskScoresAPI.updateRiskScore);
+app.delete('/finance/ai-risk-scores/:risk_id', aiRiskScoresAPI.deleteRiskScore);
 
 // Finance Fixed Assets API Routes (Page 14: Fixed Assets & Depreciation)
 const fixedAssetsAPI = require('./finance/api/fixed-assets');
