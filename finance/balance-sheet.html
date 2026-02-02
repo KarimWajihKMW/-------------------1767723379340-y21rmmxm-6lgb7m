@@ -512,7 +512,7 @@
 
         function renderAssets() {
             const currentAssets = balanceState.assets.filter(a => a.asset_category === 'current');
-            const fixedAssets = balanceState.assets.filter(a => a.asset_category === 'fixed');
+            const fixedAssets = balanceState.assets.filter(a => a.asset_category === 'fixed' || a.asset_category === 'non_current');
 
             const currentAssetsHTML = currentAssets.length > 0 ? currentAssets.map(asset => `
                 <tr class="hover:bg-gray-50">
@@ -547,7 +547,7 @@
 
         function renderLiabilities() {
             const currentLiabilities = balanceState.liabilities.filter(l => l.liability_category === 'current');
-            const longTermLiabilities = balanceState.liabilities.filter(l => l.liability_category === 'long-term');
+            const longTermLiabilities = balanceState.liabilities.filter(l => l.liability_category === 'long-term' || l.liability_category === 'non_current');
 
             const currentLiabilitiesHTML = currentLiabilities.length > 0 ? currentLiabilities.map(liability => `
                 <tr class="hover:bg-gray-50">
@@ -795,7 +795,7 @@
             rows.push(['التصنيف', 'النوع', 'اسم الأصل', 'القيمة', 'الوصف']);
             balanceState.assets.forEach(asset => {
                 rows.push([
-                    asset.asset_category === 'current' ? 'متداولة' : (asset.asset_category === 'fixed' ? 'ثابتة' : 'أخرى'),
+                    asset.asset_category === 'current' ? 'متداولة' : ((asset.asset_category === 'fixed' || asset.asset_category === 'non_current') ? 'ثابتة' : 'أخرى'),
                     translateAssetType(asset.asset_type),
                     asset.asset_name,
                     asset.amount,
@@ -808,7 +808,7 @@
             rows.push(['التصنيف', 'النوع', 'اسم الالتزام', 'القيمة', 'الوصف']);
             balanceState.liabilities.forEach(liability => {
                 rows.push([
-                    liability.liability_category === 'current' ? 'متداولة' : (liability.liability_category === 'long-term' ? 'طويلة الأجل' : 'أخرى'),
+                    liability.liability_category === 'current' ? 'متداولة' : ((liability.liability_category === 'long-term' || liability.liability_category === 'non_current') ? 'طويلة الأجل' : 'أخرى'),
                     translateLiabilityType(liability.liability_type),
                     liability.liability_name,
                     liability.amount,
