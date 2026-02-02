@@ -207,6 +207,9 @@ app.delete('/finance/ai-risk-scores/:risk_id', aiRiskScoresAPI.deleteRiskScore);
 const fixedAssetsAPI = require('./finance/api/fixed-assets');
 app.get('/finance/fixed-assets/test', fixedAssetsAPI.testConnection);
 app.get('/finance/fixed-assets', fixedAssetsAPI.getFixedAssets);
+app.post('/finance/fixed-assets', fixedAssetsAPI.createFixedAsset);
+app.put('/finance/fixed-assets/:asset_id', fixedAssetsAPI.updateFixedAsset);
+app.delete('/finance/fixed-assets/:asset_id', fixedAssetsAPI.deleteFixedAsset);
 
 // Finance Budgets API Routes (Page 15: Budgets & Variances)
 const budgetsAPI = require('./finance/api/budgets');
