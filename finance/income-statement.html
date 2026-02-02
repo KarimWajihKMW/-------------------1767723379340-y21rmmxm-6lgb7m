@@ -406,13 +406,7 @@
                     <td class="px-4 py-3 font-bold text-gray-600">${formatMoney(acc.total_debit)}</td>
                     <td class="px-4 py-3 font-bold text-green-700">${formatMoney(acc.balance)}</td>
                     <td class="px-4 py-3">
-                        <div class="flex gap-2">
-                            <button onclick="openIncomeModal('view', 'REVENUE', ${acc.item_id || 'null'}, '${acc.source || 'system'}', '${acc.account_code}')" class="text-blue-600 hover:text-blue-800">معاينة</button>
-                            ${acc.source === 'manual' ? `
-                                <button onclick="openIncomeModal('edit', 'REVENUE', ${acc.item_id}, 'manual', '${acc.account_code}')" class="text-amber-600 hover:text-amber-800">تعديل</button>
-                                <button onclick="deleteIncomeItem(${acc.item_id})" class="text-red-600 hover:text-red-800">حذف</button>
-                            ` : '<span class="text-gray-400 text-sm">نظام</span>'}
-                        </div>
+                        ${renderActionButtons(acc, 'REVENUE')}
                     </td>
                 </tr>
             `).join('') : '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">لا توجد حسابات إيراد</td></tr>';
@@ -429,13 +423,7 @@
                     <td class="px-4 py-3 font-bold text-gray-600">${formatMoney(acc.total_credit)}</td>
                     <td class="px-4 py-3 font-bold text-red-700">${formatMoney(acc.balance)}</td>
                     <td class="px-4 py-3">
-                        <div class="flex gap-2">
-                            <button onclick="openIncomeModal('view', 'EXPENSE', ${acc.item_id || 'null'}, '${acc.source || 'system'}', '${acc.account_code}')" class="text-blue-600 hover:text-blue-800">معاينة</button>
-                            ${acc.source === 'manual' ? `
-                                <button onclick="openIncomeModal('edit', 'EXPENSE', ${acc.item_id}, 'manual', '${acc.account_code}')" class="text-amber-600 hover:text-amber-800">تعديل</button>
-                                <button onclick="deleteIncomeItem(${acc.item_id})" class="text-red-600 hover:text-red-800">حذف</button>
-                            ` : '<span class="text-gray-400 text-sm">نظام</span>'}
-                        </div>
+                        ${renderActionButtons(acc, 'EXPENSE')}
                     </td>
                 </tr>
             `).join('') : '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">لا توجد حسابات مصروف</td></tr>';
@@ -507,6 +495,22 @@
         function formatMoney(value) {
             const num = parseFloat(value || 0);
             return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function renderActionButtons(acc, type) {
+            const source = acc.source || 'system';
+            const itemId = acc.item_id || 'null';
+            const accountCode = acc.account_code || '';
+            const isManual = source === 'manual';
+            const disabledClass = 'opacity-40 cursor-not-allowed';
+            return `
+                <div class="flex gap-2 items-center">
+                    <button onclick="openIncomeModal('view', '${type}', ${itemId}, '${source}', '${accountCode}')" class="text-blue-600 hover:text-blue-800">معاينة</button>
+                    <button ${isManual ? '' : 'disabled'} onclick="openIncomeModal('edit', '${type}', ${itemId}, '${source}', '${accountCode}')" class="text-amber-600 hover:text-amber-800 ${isManual ? '' : disabledClass}">تعديل</button>
+                    <button ${isManual ? '' : 'disabled'} onclick="deleteIncomeItem(${itemId})" class="text-red-600 hover:text-red-800 ${isManual ? '' : disabledClass}">حذف</button>
+                    ${isManual ? '' : '<span class="text-xs text-gray-400">نظام</span>'}
+                </div>
+            `;
         }
 
         function updateHeaderMeta() {
