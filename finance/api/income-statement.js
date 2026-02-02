@@ -15,6 +15,22 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+async function ensureIncomeStatementItemsTable() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS finance_income_statement_items (
+            item_id SERIAL PRIMARY KEY,
+            entity_id VARCHAR(50) NOT NULL,
+            item_type VARCHAR(20) NOT NULL CHECK (item_type IN ('REVENUE', 'EXPENSE')),
+            account_code VARCHAR(50) NOT NULL,
+            account_name_ar VARCHAR(255) NOT NULL,
+            amount NUMERIC NOT NULL DEFAULT 0,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `);
+}
+
 /**
  * Get income statement (revenues, expenses, totals)
  */
@@ -29,6 +45,7 @@ async function getIncomeStatement(req, res) {
     }
 
     try {
+        await ensureIncomeStatementItemsTable();
         console.log(`📈 Fetching income statement for entity ${entity_id}...`);
 
         const query = `
@@ -42,18 +59,74 @@ async function getIncomeStatement(req, res) {
 
         const result = await pool.query(query, [entity_id]);
 
-        const revenueAccounts = result.rows.filter(a => a.account_type === 'REVENUE');
-        const expenseAccounts = result.rows.filter(a => a.account_type === 'EXPENSE');
+        const manualItemsResult = await pool.query(
+            `
+            SELECT item_id, entity_id, item_type, account_code, account_name_ar, amount, notes, created_at, updated_at
+            FROM finance_income_statement_items
+            WHERE entity_id = $1
+            ORDER BY item_id DESC
+            `,
+            [entity_id]
+        );
 
-        const totalRevenue = revenueAccounts.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);
-        const totalExpenses = expenseAccounts.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);
+        const revenueAccounts = result.rows
+            .filter(a => a.account_type === 'REVENUE')
+            .map(a => ({
+                ...a,
+                source: 'system'
+            }));
+        const expenseAccounts = result.rows
+            .filter(a => a.account_type === 'EXPENSE')
+            .map(a => ({
+                ...a,
+                source: 'system'
+            }));
+
+        const manualRevenue = manualItemsResult.rows
+            .filter(item => item.item_type === 'REVENUE')
+            .map(item => ({
+                account_id: null,
+                account_code: item.account_code,
+                account_name_ar: item.account_name_ar,
+                account_type: 'REVENUE',
+                total_debit: 0,
+                total_credit: item.amount,
+                balance: item.amount,
+                entity_id: item.entity_id,
+                source: 'manual',
+                item_id: item.item_id,
+                notes: item.notes
+            }));
+
+        const manualExpenses = manualItemsResult.rows
+            .filter(item => item.item_type === 'EXPENSE')
+            .map(item => ({
+                account_id: null,
+                account_code: item.account_code,
+                account_name_ar: item.account_name_ar,
+                account_type: 'EXPENSE',
+                total_debit: item.amount,
+                total_credit: 0,
+                balance: item.amount,
+                entity_id: item.entity_id,
+                source: 'manual',
+                item_id: item.item_id,
+                notes: item.notes
+            }));
+
+        const allRevenue = [...revenueAccounts, ...manualRevenue];
+        const allExpenses = [...expenseAccounts, ...manualExpenses];
+
+        const totalRevenue = allRevenue.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);
+        const totalExpenses = allExpenses.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);
         const netIncome = totalRevenue - totalExpenses;
         const profitMargin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
 
         res.json({
             success: true,
-            revenue_accounts: revenueAccounts,
-            expense_accounts: expenseAccounts,
+            revenue_accounts: allRevenue,
+            expense_accounts: allExpenses,
+            manual_items: manualItemsResult.rows,
             totals: {
                 total_revenue: totalRevenue,
                 total_expenses: totalExpenses,
@@ -61,9 +134,9 @@ async function getIncomeStatement(req, res) {
                 profit_margin: profitMargin
             },
             counts: {
-                revenue_accounts: revenueAccounts.length,
-                expense_accounts: expenseAccounts.length,
-                total_accounts: revenueAccounts.length + expenseAccounts.length
+                revenue_accounts: allRevenue.length,
+                expense_accounts: allExpenses.length,
+                total_accounts: allRevenue.length + allExpenses.length
             }
         });
 
@@ -73,6 +146,103 @@ async function getIncomeStatement(req, res) {
             success: false,
             error: error.message
         });
+    }
+}
+
+/**
+ * Create manual income statement item
+ */
+async function createIncomeItem(req, res) {
+    const { entity_id, item_type, account_code, account_name_ar, amount, notes } = req.body || {};
+
+    if (!entity_id || !item_type || !account_code || !account_name_ar) {
+        return res.status(400).json({ success: false, error: 'entity_id, item_type, account_code, account_name_ar are required' });
+    }
+
+    try {
+        await ensureIncomeStatementItemsTable();
+        const result = await pool.query(
+            `
+            INSERT INTO finance_income_statement_items
+                (entity_id, item_type, account_code, account_name_ar, amount, notes, created_at, updated_at)
+            VALUES
+                ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            RETURNING *
+            `,
+            [entity_id, item_type, account_code, account_name_ar, amount || 0, notes || null]
+        );
+        res.json({ success: true, item: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating income statement item:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Update manual income statement item
+ */
+async function updateIncomeItem(req, res) {
+    const { item_id } = req.params;
+    const { entity_id, item_type, account_code, account_name_ar, amount, notes } = req.body || {};
+
+    if (!item_id || !entity_id || !item_type || !account_code || !account_name_ar) {
+        return res.status(400).json({ success: false, error: 'item_id, entity_id, item_type, account_code, account_name_ar are required' });
+    }
+
+    try {
+        await ensureIncomeStatementItemsTable();
+        const result = await pool.query(
+            `
+            UPDATE finance_income_statement_items
+            SET item_type = $1,
+                account_code = $2,
+                account_name_ar = $3,
+                amount = $4,
+                notes = $5,
+                updated_at = NOW()
+            WHERE item_id = $6 AND entity_id = $7
+            RETURNING *
+            `,
+            [item_type, account_code, account_name_ar, amount || 0, notes || null, item_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Item not found' });
+        }
+
+        res.json({ success: true, item: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating income statement item:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Delete manual income statement item
+ */
+async function deleteIncomeItem(req, res) {
+    const { item_id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!item_id || !entity_id) {
+        return res.status(400).json({ success: false, error: 'item_id and entity_id are required' });
+    }
+
+    try {
+        await ensureIncomeStatementItemsTable();
+        const result = await pool.query(
+            `DELETE FROM finance_income_statement_items WHERE item_id = $1 AND entity_id = $2 RETURNING item_id`,
+            [item_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Item not found' });
+        }
+
+        res.json({ success: true, item_id: result.rows[0].item_id });
+    } catch (error) {
+        console.error('❌ Error deleting income statement item:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 }
 
@@ -98,5 +268,8 @@ async function testConnection(req, res) {
 
 module.exports = {
     getIncomeStatement,
+    createIncomeItem,
+    updateIncomeItem,
+    deleteIncomeItem,
     testConnection
 };

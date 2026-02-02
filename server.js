@@ -129,6 +129,9 @@ app.get('/finance/balance-sheet/complete', balanceSheetAPI.getCompleteBalanceShe
 const incomeStatementAPI = require('./finance/api/income-statement');
 app.get('/finance/income-statement/test', incomeStatementAPI.testConnection);
 app.get('/finance/income-statement', incomeStatementAPI.getIncomeStatement);
+app.post('/finance/income-statement/items', incomeStatementAPI.createIncomeItem);
+app.put('/finance/income-statement/items/:item_id', incomeStatementAPI.updateIncomeItem);
+app.delete('/finance/income-statement/items/:item_id', incomeStatementAPI.deleteIncomeItem);
 
 // Finance Chart of Accounts API Routes (Page 5: Chart of Accounts)
 const chartOfAccountsAPI = require('./finance/api/chart-of-accounts');
