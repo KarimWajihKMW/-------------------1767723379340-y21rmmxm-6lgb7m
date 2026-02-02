@@ -186,6 +186,9 @@ app.delete('/finance/journal-lines/:line_id', journalLinesAPI.deleteJournalLine)
 const cashflowTransactionsAPI = require('./finance/api/cashflow-transactions');
 app.get('/finance/cashflow-transactions/test', cashflowTransactionsAPI.testConnection);
 app.get('/finance/cashflow-transactions', cashflowTransactionsAPI.getCashflowTransactions);
+app.post('/finance/cashflow-transactions', cashflowTransactionsAPI.createCashflowTransaction);
+app.put('/finance/cashflow-transactions/:cashflow_id', cashflowTransactionsAPI.updateCashflowTransaction);
+app.delete('/finance/cashflow-transactions/:cashflow_id', cashflowTransactionsAPI.deleteCashflowTransaction);
 
 // Finance Cashflow Comprehensive API Routes (Page 12: Comprehensive Cashflow Report)
 const cashflowComprehensiveAPI = require('./finance/api/cashflow-comprehensive');
