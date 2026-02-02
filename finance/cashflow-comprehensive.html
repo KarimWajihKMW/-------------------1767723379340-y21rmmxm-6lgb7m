@@ -487,7 +487,7 @@
                     <td class="px-4 py-3">${translateType(r.flow_type)}</td>
                     <td class="px-4 py-3 font-semibold text-slate-700">${r.flow_category || '-'}</td>
                     <td class="px-4 py-3">${translateDirection(r.flow_direction)}</td>
-                    <td class="px-4 py-3 font-bold ${r.flow_direction === 'IN' ? 'text-green-600' : 'text-red-600'}">${formatMoney(r.total_amount)}</td>
+                    <td class="px-4 py-3 font-bold ${(r.flow_direction || '').toUpperCase() === 'IN' ? 'text-green-600' : 'text-red-600'}">${formatMoney(r.total_amount)}</td>
                     <td class="px-4 py-3 text-slate-600">${r.transaction_count || 0}</td>
                 </tr>
             `).join('');
@@ -578,6 +578,11 @@
         function formatMoney(value) {
             const num = parseFloat(value || 0);
             return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('ar-SA');
         }
 
         function downloadCSV() {
