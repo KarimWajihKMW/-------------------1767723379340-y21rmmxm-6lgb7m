@@ -16,6 +16,38 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+async function ensureBalanceSheet(entityId) {
+    const existing = await pool.query(
+        `SELECT sheet_id FROM finance_balance_sheet WHERE entity_id = $1 ORDER BY sheet_date DESC LIMIT 1`,
+        [entityId]
+    );
+    if (existing.rows.length > 0) {
+        return existing.rows[0].sheet_id;
+    }
+
+    const today = new Date();
+    const sheetDate = today.toISOString().slice(0, 10);
+    const fiscalYear = today.getFullYear();
+
+    const insert = await pool.query(
+        `
+        INSERT INTO finance_balance_sheet
+            (entity_id, sheet_date, period_type, fiscal_year, notes, created_at, updated_at, created_by)
+        VALUES
+            ($1, $2, $3, $4, $5, NOW(), NOW(), $6)
+        RETURNING sheet_id
+        `,
+        [entityId, sheetDate, 'yearly', fiscalYear, 'Auto-created', 'system']
+    );
+    return insert.rows[0].sheet_id;
+}
+
+function normalizeCategory(value, allowed, fallback) {
+    if (!value) return fallback;
+    if (value === 'fixed' || value === 'long-term') return 'non_current';
+    return allowed.includes(value) ? value : fallback;
+}
+
 /**
  * Get balance sheet header info
  */
@@ -327,6 +359,294 @@ async function getCompleteBalanceSheet(req, res) {
 }
 
 /**
+ * Create asset
+ */
+async function createAsset(req, res) {
+    const { entity_id, asset_category, asset_type, asset_name, amount, description } = req.body || {};
+
+    if (!entity_id || !asset_type || !asset_name) {
+        return res.status(400).json({ success: false, error: 'entity_id, asset_type, asset_name are required' });
+    }
+
+    try {
+        const sheetId = await ensureBalanceSheet(entity_id);
+        const category = normalizeCategory(asset_category, ['current', 'non_current'], 'current');
+        const result = await pool.query(
+            `
+            INSERT INTO finance_assets
+                (sheet_id, entity_id, asset_category, asset_type, asset_name, amount, description, created_at, updated_at)
+            VALUES
+                ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+            RETURNING *
+            `,
+            [sheetId, entity_id, category, asset_type, asset_name, amount || 0, description || null]
+        );
+        res.json({ success: true, asset: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating asset:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Update asset
+ */
+async function updateAsset(req, res) {
+    const { asset_id } = req.params;
+    const { entity_id, asset_category, asset_type, asset_name, amount, description } = req.body || {};
+
+    if (!asset_id || !entity_id || !asset_type || !asset_name) {
+        return res.status(400).json({ success: false, error: 'asset_id, entity_id, asset_type, asset_name are required' });
+    }
+
+    try {
+        const category = normalizeCategory(asset_category, ['current', 'non_current'], 'current');
+        const result = await pool.query(
+            `
+            UPDATE finance_assets
+            SET asset_category = $1,
+                asset_type = $2,
+                asset_name = $3,
+                amount = $4,
+                description = $5,
+                updated_at = NOW()
+            WHERE asset_id = $6 AND entity_id = $7
+            RETURNING *
+            `,
+            [category, asset_type, asset_name, amount || 0, description || null, asset_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Asset not found' });
+        }
+
+        res.json({ success: true, asset: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating asset:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Delete asset
+ */
+async function deleteAsset(req, res) {
+    const { asset_id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!asset_id || !entity_id) {
+        return res.status(400).json({ success: false, error: 'asset_id and entity_id are required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `DELETE FROM finance_assets WHERE asset_id = $1 AND entity_id = $2 RETURNING asset_id`,
+            [asset_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Asset not found' });
+        }
+
+        res.json({ success: true, asset_id: result.rows[0].asset_id });
+    } catch (error) {
+        console.error('❌ Error deleting asset:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Create liability
+ */
+async function createLiability(req, res) {
+    const { entity_id, liability_category, liability_type, liability_name, amount, description } = req.body || {};
+
+    if (!entity_id || !liability_type || !liability_name) {
+        return res.status(400).json({ success: false, error: 'entity_id, liability_type, liability_name are required' });
+    }
+
+    try {
+        const sheetId = await ensureBalanceSheet(entity_id);
+        const category = normalizeCategory(liability_category, ['current', 'non_current'], 'current');
+        const result = await pool.query(
+            `
+            INSERT INTO finance_liabilities
+                (sheet_id, entity_id, liability_category, liability_type, liability_name, amount, description, created_at, updated_at)
+            VALUES
+                ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+            RETURNING *
+            `,
+            [sheetId, entity_id, category, liability_type, liability_name, amount || 0, description || null]
+        );
+        res.json({ success: true, liability: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating liability:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Update liability
+ */
+async function updateLiability(req, res) {
+    const { liability_id } = req.params;
+    const { entity_id, liability_category, liability_type, liability_name, amount, description } = req.body || {};
+
+    if (!liability_id || !entity_id || !liability_type || !liability_name) {
+        return res.status(400).json({ success: false, error: 'liability_id, entity_id, liability_type, liability_name are required' });
+    }
+
+    try {
+        const category = normalizeCategory(liability_category, ['current', 'non_current'], 'current');
+        const result = await pool.query(
+            `
+            UPDATE finance_liabilities
+            SET liability_category = $1,
+                liability_type = $2,
+                liability_name = $3,
+                amount = $4,
+                description = $5,
+                updated_at = NOW()
+            WHERE liability_id = $6 AND entity_id = $7
+            RETURNING *
+            `,
+            [category, liability_type, liability_name, amount || 0, description || null, liability_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Liability not found' });
+        }
+
+        res.json({ success: true, liability: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating liability:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Delete liability
+ */
+async function deleteLiability(req, res) {
+    const { liability_id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!liability_id || !entity_id) {
+        return res.status(400).json({ success: false, error: 'liability_id and entity_id are required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `DELETE FROM finance_liabilities WHERE liability_id = $1 AND entity_id = $2 RETURNING liability_id`,
+            [liability_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Liability not found' });
+        }
+
+        res.json({ success: true, liability_id: result.rows[0].liability_id });
+    } catch (error) {
+        console.error('❌ Error deleting liability:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Create equity item
+ */
+async function createEquity(req, res) {
+    const { entity_id, equity_type, equity_name, amount, description } = req.body || {};
+
+    if (!entity_id || !equity_type || !equity_name) {
+        return res.status(400).json({ success: false, error: 'entity_id, equity_type, equity_name are required' });
+    }
+
+    try {
+        const sheetId = await ensureBalanceSheet(entity_id);
+        const result = await pool.query(
+            `
+            INSERT INTO finance_equity
+                (sheet_id, entity_id, equity_type, equity_name, amount, description, created_at, updated_at)
+            VALUES
+                ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            RETURNING *
+            `,
+            [sheetId, entity_id, equity_type, equity_name, amount || 0, description || null]
+        );
+        res.json({ success: true, equity: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating equity:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Update equity item
+ */
+async function updateEquity(req, res) {
+    const { equity_id } = req.params;
+    const { entity_id, equity_type, equity_name, amount, description } = req.body || {};
+
+    if (!equity_id || !entity_id || !equity_type || !equity_name) {
+        return res.status(400).json({ success: false, error: 'equity_id, entity_id, equity_type, equity_name are required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `
+            UPDATE finance_equity
+            SET equity_type = $1,
+                equity_name = $2,
+                amount = $3,
+                description = $4,
+                updated_at = NOW()
+            WHERE equity_id = $5 AND entity_id = $6
+            RETURNING *
+            `,
+            [equity_type, equity_name, amount || 0, description || null, equity_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Equity item not found' });
+        }
+
+        res.json({ success: true, equity: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating equity:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
+ * Delete equity item
+ */
+async function deleteEquity(req, res) {
+    const { equity_id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!equity_id || !entity_id) {
+        return res.status(400).json({ success: false, error: 'equity_id and entity_id are required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `DELETE FROM finance_equity WHERE equity_id = $1 AND entity_id = $2 RETURNING equity_id`,
+            [equity_id, entity_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Equity item not found' });
+        }
+
+        res.json({ success: true, equity_id: result.rows[0].equity_id });
+    } catch (error) {
+        console.error('❌ Error deleting equity:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+/**
  * Test database connection
  */
 async function testConnection(req, res) {
@@ -352,5 +672,14 @@ module.exports = {
     getLiabilities,
     getEquity,
     getCompleteBalanceSheet,
+    createAsset,
+    updateAsset,
+    deleteAsset,
+    createLiability,
+    updateLiability,
+    deleteLiability,
+    createEquity,
+    updateEquity,
+    deleteEquity,
     testConnection
 };

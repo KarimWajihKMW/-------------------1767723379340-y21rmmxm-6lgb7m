@@ -112,8 +112,17 @@ const balanceSheetAPI = require('./finance/api/balance-sheet');
 app.get('/finance/balance-sheet/test', balanceSheetAPI.testConnection);
 app.get('/finance/balance-sheet', balanceSheetAPI.getBalanceSheet);
 app.get('/finance/balance-sheet/assets', balanceSheetAPI.getAssets);
+app.post('/finance/balance-sheet/assets', balanceSheetAPI.createAsset);
+app.put('/finance/balance-sheet/assets/:asset_id', balanceSheetAPI.updateAsset);
+app.delete('/finance/balance-sheet/assets/:asset_id', balanceSheetAPI.deleteAsset);
 app.get('/finance/balance-sheet/liabilities', balanceSheetAPI.getLiabilities);
+app.post('/finance/balance-sheet/liabilities', balanceSheetAPI.createLiability);
+app.put('/finance/balance-sheet/liabilities/:liability_id', balanceSheetAPI.updateLiability);
+app.delete('/finance/balance-sheet/liabilities/:liability_id', balanceSheetAPI.deleteLiability);
 app.get('/finance/balance-sheet/equity', balanceSheetAPI.getEquity);
+app.post('/finance/balance-sheet/equity', balanceSheetAPI.createEquity);
+app.put('/finance/balance-sheet/equity/:equity_id', balanceSheetAPI.updateEquity);
+app.delete('/finance/balance-sheet/equity/:equity_id', balanceSheetAPI.deleteEquity);
 app.get('/finance/balance-sheet/complete', balanceSheetAPI.getCompleteBalanceSheet);
 
 // Finance Income Statement API Routes (Page 4: Income Statement - Revenue & Expenses)
