@@ -256,6 +256,7 @@
         let allTransactions = [];
         let transactionModalMode = 'create';
         let editingTransactionId = null;
+        let editingTransactionEntityId = null;
 
         async function loadTransactions() {
             try {
@@ -415,6 +416,7 @@
         function openTransactionModal(mode, transactionId = null) {
             transactionModalMode = mode;
             editingTransactionId = transactionId;
+            editingTransactionEntityId = null;
             const modal = document.getElementById('transactionModal');
             const title = document.getElementById('transactionModalTitle');
             const saveButton = document.getElementById('transactionModalSave');
@@ -428,7 +430,10 @@
 
             if (mode !== 'create' && transactionId) {
                 const tx = allTransactions.find(t => t.cashflow_id === transactionId);
-                if (tx) fillTransactionForm(tx);
+                if (tx) {
+                    editingTransactionEntityId = tx.entity_id || ENTITY_ID;
+                    fillTransactionForm(tx);
+                }
             }
 
             modal.classList.remove('hidden');
@@ -477,7 +482,7 @@
 
         async function submitTransaction() {
             const payload = {
-                entity_id: ENTITY_ID,
+                entity_id: transactionModalMode === 'edit' ? (editingTransactionEntityId || ENTITY_ID) : ENTITY_ID,
                 transaction_date: document.getElementById('transactionDate').value,
                 flow_type: document.getElementById('flowType').value,
                 flow_direction: document.getElementById('flowDirection').value,
