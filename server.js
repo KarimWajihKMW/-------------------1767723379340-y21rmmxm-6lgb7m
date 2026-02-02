@@ -154,6 +154,9 @@ app.delete('/finance/payments/:payment_id', paymentsAPI.deletePayment);
 const customersAPI = require('./finance/api/customers');
 app.get('/finance/customers/test', customersAPI.testConnection);
 app.get('/finance/customers', customersAPI.getCustomers);
+app.post('/finance/customers', customersAPI.createCustomer);
+app.put('/finance/customers/:customer_id', customersAPI.updateCustomer);
+app.delete('/finance/customers/:customer_id', customersAPI.deleteCustomer);
 
 // Finance AI Forecasts API Routes (Page 8: AI Forecasts)
 const aiForecastsAPI = require('./finance/api/ai-forecasts');
