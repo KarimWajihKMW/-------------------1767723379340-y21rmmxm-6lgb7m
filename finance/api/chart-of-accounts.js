@@ -285,10 +285,11 @@ async function updateAccount(req, res) {
             });
         }
 
-        if (!existing.rows[0].entity_id || existing.rows[0].entity_id !== entity_id) {
+        const isGlobal = !existing.rows[0].entity_id;
+        if (!isGlobal && existing.rows[0].entity_id !== entity_id) {
             return res.status(403).json({
                 success: false,
-                error: 'لا يمكن تعديل الحسابات العامة'
+                error: 'لا يمكن تعديل حسابات كيان آخر'
             });
         }
 
@@ -306,7 +307,22 @@ async function updateAccount(req, res) {
 
         const normal = normal_balance || (['ASSET', 'EXPENSE'].includes(String(account_type).toUpperCase()) ? 'DEBIT' : 'CREDIT');
 
-        const query = `
+        const query = isGlobal ? `
+            UPDATE finance_accounts
+            SET account_code = $1,
+                account_name_ar = $2,
+                account_name_en = $3,
+                account_type = $4,
+                is_active = $5,
+                is_header = $6,
+                normal_balance = $7,
+                description = $8,
+                notes = $9,
+                updated_by = $10,
+                updated_at = NOW()
+            WHERE account_id = $11
+            RETURNING *
+        ` : `
             UPDATE finance_accounts
             SET account_code = $1,
                 account_name_ar = $2,
@@ -387,10 +403,11 @@ async function deleteAccount(req, res) {
             });
         }
 
-        if (!existing.rows[0].entity_id || existing.rows[0].entity_id !== entity_id) {
+        const isGlobal = !existing.rows[0].entity_id;
+        if (!isGlobal && existing.rows[0].entity_id !== entity_id) {
             return res.status(403).json({
                 success: false,
-                error: 'لا يمكن حذف الحسابات العامة'
+                error: 'لا يمكن حذف حسابات كيان آخر'
             });
         }
 
@@ -406,7 +423,11 @@ async function deleteAccount(req, res) {
             });
         }
 
-        await pool.query('DELETE FROM finance_accounts WHERE account_id = $1 AND entity_id = $2', [account_id, entity_id]);
+        if (isGlobal) {
+            await pool.query('DELETE FROM finance_accounts WHERE account_id = $1', [account_id]);
+        } else {
+            await pool.query('DELETE FROM finance_accounts WHERE account_id = $1 AND entity_id = $2', [account_id, entity_id]);
+        }
 
         res.json({
             success: true,
