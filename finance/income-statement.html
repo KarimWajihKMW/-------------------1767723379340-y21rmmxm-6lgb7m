@@ -501,16 +501,30 @@
             const source = acc.source || 'system';
             const itemId = acc.item_id || 'null';
             const accountCode = acc.account_code || '';
-            const isManual = source === 'manual';
-            const disabledClass = 'opacity-40 cursor-not-allowed';
             return `
                 <div class="flex gap-2 items-center">
                     <button onclick="openIncomeModal('view', '${type}', ${itemId}, '${source}', '${accountCode}')" class="text-blue-600 hover:text-blue-800">معاينة</button>
-                    <button ${isManual ? '' : 'disabled'} onclick="openIncomeModal('edit', '${type}', ${itemId}, '${source}', '${accountCode}')" class="text-amber-600 hover:text-amber-800 ${isManual ? '' : disabledClass}">تعديل</button>
-                    <button ${isManual ? '' : 'disabled'} onclick="deleteIncomeItem(${itemId})" class="text-red-600 hover:text-red-800 ${isManual ? '' : disabledClass}">حذف</button>
-                    ${isManual ? '' : '<span class="text-xs text-gray-400">نظام</span>'}
+                    <button onclick="handleEditIncome('${type}', ${itemId}, '${source}', '${accountCode}')" class="text-amber-600 hover:text-amber-800">تعديل</button>
+                    <button onclick="handleDeleteIncome(${itemId}, '${source}')" class="text-red-600 hover:text-red-800">حذف</button>
+                    ${source === 'manual' ? '' : '<span class="text-xs text-gray-400">نظام</span>'}
                 </div>
             `;
+        }
+
+        function handleEditIncome(type, itemId, source, accountCode) {
+            if (source !== 'manual') {
+                alert('هذا بند نظامي ولا يمكن تعديله.');
+                return;
+            }
+            openIncomeModal('edit', type, itemId, source, accountCode);
+        }
+
+        function handleDeleteIncome(itemId, source) {
+            if (source !== 'manual') {
+                alert('هذا بند نظامي ولا يمكن حذفه.');
+                return;
+            }
+            deleteIncomeItem(itemId);
         }
 
         function updateHeaderMeta() {
