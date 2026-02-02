@@ -722,7 +722,7 @@ router.post('/invoices', async (req, res) => {
 router.get('/payments', async (req, res) => {
   try {
     const userEntity = req.userEntity || { type: 'HQ', id: 'HQ001' };
-    const { status, customer_id, from_date, to_date, limit = 100, offset = 0 } = req.query;
+    const { status, customer_id, from_date, to_date, entity_id, limit = 100, offset = 0 } = req.query;
     
     let query = `
       SELECT 
@@ -736,6 +736,11 @@ router.get('/payments', async (req, res) => {
     
     const params = [];
     
+    if (entity_id) {
+      params.push(entity_id);
+      query += ` AND p.entity_id = $${params.length}`;
+    }
+
     if (status) {
       params.push(status);
       query += ` AND p.status = $${params.length}`;
@@ -783,6 +788,7 @@ router.post('/payments', async (req, res) => {
     
     const {
       customer_id,
+      customer_name,
       payment_date,
       payment_amount,
       payment_method,
@@ -797,30 +803,58 @@ router.post('/payments', async (req, res) => {
       notes,
       allocations = [] // [{ invoice_id, allocated_amount }]
     } = req.body;
+    const resolvedEntityId = entity_id || (req.userEntity ? req.userEntity.id : 'HQ001');
+    const resolvedEntityType = entity_type || (req.userEntity ? req.userEntity.type : 'HQ');
     
     // Get customer info
-    const customerResult = await client.query(
-      'SELECT * FROM finance_customers WHERE customer_id = $1',
-      [customer_id]
-    );
-    
-    if (customerResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ success: false, error: 'Customer not found' });
+    let customer = null;
+    if (customer_id) {
+      const customerResult = await client.query(
+        'SELECT * FROM finance_customers WHERE customer_id = $1',
+        [customer_id]
+      );
+      customer = customerResult.rows[0] || null;
+    }
+
+    if (!customer) {
+      const nameValue = (customer_name || '').trim();
+      if (!nameValue) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Customer not found' });
+      }
+
+      const customerCode = await generateNextNumber('CUST', 'finance_customers', 'customer_code');
+      const created = await client.query(
+        `INSERT INTO finance_customers
+         (customer_code, customer_name_ar, customer_name_en, entity_type, entity_id, branch_id, incubator_id, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING *`,
+        [
+          customerCode,
+          nameValue,
+          nameValue,
+          resolvedEntityType,
+          resolvedEntityId,
+          branch_id || null,
+          incubator_id || null,
+          req.headers['x-user-id'] || 'system'
+        ]
+      );
+      customer = created.rows[0];
     }
     
-    const customer = customerResult.rows[0];
-    
     // Validate allocation total
-    const totalAllocated = allocations.reduce((sum, a) => sum + parseFloat(a.allocated_amount), 0);
-    if (Math.abs(totalAllocated - payment_amount) > 0.01) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        success: false,
-        error: 'Total allocated amount must equal payment amount',
-        payment_amount,
-        totalAllocated
-      });
+    if (allocations.length) {
+      const totalAllocated = allocations.reduce((sum, a) => sum + parseFloat(a.allocated_amount), 0);
+      if (Math.abs(totalAllocated - payment_amount) > 0.01) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Total allocated amount must equal payment amount',
+          payment_amount,
+          totalAllocated
+        });
+      }
     }
     
     // Generate payment number
@@ -834,9 +868,9 @@ router.post('/payments', async (req, res) => {
         entity_type, entity_id, branch_id, incubator_id, notes, status, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'APPROVED', $16)
        RETURNING *`,
-      [payment_number, payment_date, customer_id, customer.customer_name_ar, payment_amount, payment_method,
+      [payment_number, payment_date, customer.customer_id, customer.customer_name_ar, payment_amount, payment_method,
        payment_type, bank_name, check_number, transaction_reference,
-       entity_type, entity_id, branch_id, incubator_id, notes, req.headers['x-user-id'] || 'system']
+       resolvedEntityType, resolvedEntityId, branch_id, incubator_id, notes, req.headers['x-user-id'] || 'system']
     );
     
     const payment_id = paymentResult.rows[0].payment_id;
