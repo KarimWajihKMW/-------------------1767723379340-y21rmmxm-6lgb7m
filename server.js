@@ -170,6 +170,9 @@ app.delete('/finance/ai-forecasts/:forecast_id', aiForecastsAPI.deleteForecast);
 const cashflowSummaryAPI = require('./finance/api/cashflow-summary');
 app.get('/finance/cashflow-summary/test', cashflowSummaryAPI.testConnection);
 app.get('/finance/cashflow-summary', cashflowSummaryAPI.getCashflowSummary);
+app.post('/finance/cashflow-summary', cashflowSummaryAPI.createCashflowSummary);
+app.put('/finance/cashflow-summary', cashflowSummaryAPI.updateCashflowSummary);
+app.delete('/finance/cashflow-summary', cashflowSummaryAPI.deleteCashflowSummary);
 
 // Finance Journal Lines API Routes (Page 10: Journal Lines)
 const journalLinesAPI = require('./finance/api/journal-lines');

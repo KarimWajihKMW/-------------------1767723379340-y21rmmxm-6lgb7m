@@ -36,6 +36,10 @@
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="openSummaryModal('create')" class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-green-700 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-plus"></i>
+                إضافة سجل
+            </button>
             <button onclick="downloadCSV()" class="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-2 shadow-sm">
                 <i class="fas fa-file-csv text-green-600"></i>
                 تنزيل CSV
@@ -167,11 +171,12 @@
                                 <th class="px-6 py-4 text-right">الداخل</th>
                                 <th class="px-6 py-4 text-right">الخارج</th>
                                 <th class="px-6 py-4 text-right">الصافي</th>
+                                <th class="px-6 py-4 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="summaryTable" class="text-sm divide-y divide-slate-200 bg-white">
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                                <td colspan="7" class="px-6 py-12 text-center text-slate-500">
                                     <i class="fas fa-spinner fa-spin text-3xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل الملخص...</div>
                                 </td>
@@ -184,15 +189,76 @@
         </div>
     </div>
 
+    <!-- Summary Modal -->
+    <div id="summaryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h3 id="summaryModalTitle" class="text-lg font-bold text-gray-800">إضافة سجل</h3>
+                <button onclick="closeSummaryModal()" class="text-gray-400 hover:text-gray-700">
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-1">نوع التدفق</label>
+                        <select id="flowType" class="w-full border rounded-lg px-3 py-2">
+                            <option value="operating">تشغيلي</option>
+                            <option value="investing">استثماري</option>
+                            <option value="financing">تمويلي</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-1">السنة المالية</label>
+                        <input id="fiscalYear" type="number" class="w-full border rounded-lg px-3 py-2" placeholder="2026">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-1">الفترة</label>
+                        <select id="fiscalPeriod" class="w-full border rounded-lg px-3 py-2">
+                            <option value="1">الربع الأول</option>
+                            <option value="2">الربع الثاني</option>
+                            <option value="3">الربع الثالث</option>
+                            <option value="4">الربع الرابع</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-1">الداخل</label>
+                        <input id="cashIn" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="0">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-1">الخارج</label>
+                        <input id="cashOut" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-700 mb-1">الصافي (اختياري)</label>
+                        <input id="netCashflow" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="يحسب تلقائيًا">
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 border-t flex items-center justify-end gap-2">
+                <button onclick="closeSummaryModal()" class="px-4 py-2 rounded-lg border">إلغاء</button>
+                <button id="summaryModalSave" onclick="submitSummary()" class="px-4 py-2 rounded-lg bg-green-600 text-white">حفظ</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
         let allRows = [];
         let chartInstance = null;
+        let summaryModalMode = 'create';
+        let editingSummaryKey = null;
 
         async function loadSummary() {
             try {
-                const response = await fetch(`${API_BASE}/finance/cashflow-summary?entity_id=${ENTITY_ID}`);
+                const response = await fetch(`${API_BASE}/finance/cashflow-summary?entity_id=${ENTITY_ID}`, {
+                    headers: window.getFinanceHeaders ? window.getFinanceHeaders() : {}
+                });
                 const data = await response.json();
 
                 if (!data.success) {
@@ -268,23 +334,36 @@
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-6 py-4 text-slate-800 text-sm border-b border-slate-100">${translateType(r.flow_type)}</td>
                     <td class="px-6 py-4 font-mono text-slate-600 text-sm border-b border-slate-100">${r.fiscal_year || '-'}</td>
-                    <td class="px-6 py-4 text-slate-700 text-sm border-b border-slate-100">${r.fiscal_period || '-'}</td>
+                    <td class="px-6 py-4 text-slate-700 text-sm border-b border-slate-100">${formatPeriod(r.fiscal_period)}</td>
                     <td class="px-6 py-4 font-bold text-green-600 text-sm border-b border-slate-100">${formatMoney(r.cash_in)}</td>
                     <td class="px-6 py-4 font-bold text-red-600 text-sm border-b border-slate-100">${formatMoney(r.cash_out)}</td>
                     <td class="px-6 py-4 font-bold text-slate-800 text-sm border-b border-slate-100">${formatMoney(r.net_cashflow)}</td>
+                    <td class="px-6 py-4 text-slate-500 text-sm border-b border-slate-100">
+                        <div class="flex gap-2">
+                            <button onclick="openSummaryModal('view', '${r.flow_type}', ${r.fiscal_year}, ${r.fiscal_period})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="معاينة">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openSummaryModal('edit', '${r.flow_type}', ${r.fiscal_year}, ${r.fiscal_period})" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition" title="تعديل">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button onclick="deleteSummary('${r.flow_type}', ${r.fiscal_year}, ${r.fiscal_period})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('summaryTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">لا توجد بيانات</td>
+                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('tableCount').textContent = `عدد الصفوف المعروضة: ${rows.length}`;
         }
 
         function renderChart(rows) {
-            const labels = rows.map(r => `${translateType(r.flow_type)} ${r.fiscal_period}`);
+            const labels = rows.map(r => `${translateType(r.flow_type)} ${formatPeriod(r.fiscal_period)}`);
             const net = rows.map(r => parseFloat(r.net_cashflow || 0));
 
             const ctx = document.getElementById('summaryChart').getContext('2d');
@@ -326,7 +405,7 @@
 
             const filtered = allRows.filter(r => {
                 const matchesYear = !year || String(r.fiscal_year) === String(year);
-                const matchesPeriod = !period || (r.fiscal_period || '').toUpperCase() === period;
+                const matchesPeriod = !period || `Q${r.fiscal_period}` === period;
                 const matchesType = !type || (r.flow_type || '').toLowerCase() === type;
                 return matchesYear && matchesPeriod && matchesType;
             });
@@ -354,6 +433,129 @@
             return map[(type || '').toLowerCase()] || (type || '-');
         }
 
+        function formatPeriod(period) {
+            if (!period) return '-';
+            return `Q${period}`;
+        }
+
+        function openSummaryModal(mode, flowType = null, fiscalYear = null, fiscalPeriod = null) {
+            summaryModalMode = mode;
+            editingSummaryKey = { flowType, fiscalYear, fiscalPeriod };
+            const modal = document.getElementById('summaryModal');
+            const title = document.getElementById('summaryModalTitle');
+            const saveButton = document.getElementById('summaryModalSave');
+
+            title.textContent = mode === 'view' ? 'معاينة السجل' : mode === 'edit' ? 'تعديل السجل' : 'إضافة سجل';
+            saveButton.textContent = mode === 'edit' ? 'حفظ التعديل' : 'حفظ';
+            saveButton.classList.toggle('hidden', mode === 'view');
+
+            resetSummaryForm();
+            setSummaryFormDisabled(mode === 'view');
+
+            if (mode !== 'create' && flowType !== null) {
+                const row = allRows.find(r =>
+                    String(r.flow_type) === String(flowType) &&
+                    String(r.fiscal_year) === String(fiscalYear) &&
+                    String(r.fiscal_period) === String(fiscalPeriod)
+                );
+                if (row) fillSummaryForm(row);
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeSummaryModal() {
+            const modal = document.getElementById('summaryModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function resetSummaryForm() {
+            document.getElementById('flowType').value = 'operating';
+            document.getElementById('fiscalYear').value = '';
+            document.getElementById('fiscalPeriod').value = '1';
+            document.getElementById('cashIn').value = '';
+            document.getElementById('cashOut').value = '';
+            document.getElementById('netCashflow').value = '';
+        }
+
+        function fillSummaryForm(row) {
+            document.getElementById('flowType').value = (row.flow_type || 'operating').toLowerCase();
+            document.getElementById('fiscalYear').value = row.fiscal_year || '';
+            document.getElementById('fiscalPeriod').value = row.fiscal_period || '1';
+            document.getElementById('cashIn').value = row.cash_in || '';
+            document.getElementById('cashOut').value = row.cash_out || '';
+            document.getElementById('netCashflow').value = row.net_cashflow || '';
+        }
+
+        function setSummaryFormDisabled(disabled) {
+            ['flowType', 'fiscalYear', 'fiscalPeriod', 'cashIn', 'cashOut', 'netCashflow']
+                .forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.disabled = disabled;
+                });
+        }
+
+        async function submitSummary() {
+            const payload = {
+                entity_id: ENTITY_ID,
+                flow_type: document.getElementById('flowType').value,
+                fiscal_year: parseInt(document.getElementById('fiscalYear').value || 0, 10),
+                fiscal_period: parseInt(document.getElementById('fiscalPeriod').value || 0, 10),
+                cash_in: parseFloat(document.getElementById('cashIn').value || 0),
+                cash_out: parseFloat(document.getElementById('cashOut').value || 0),
+                net_cashflow: document.getElementById('netCashflow').value !== ''
+                    ? parseFloat(document.getElementById('netCashflow').value || 0)
+                    : null
+            };
+
+            if (!payload.fiscal_year || !payload.fiscal_period) {
+                alert('يرجى إدخال السنة والفترة');
+                return;
+            }
+
+            try {
+                const method = summaryModalMode === 'edit' ? 'PUT' : 'POST';
+                const res = await fetch(`${API_BASE}/finance/cashflow-summary`, {
+                    method,
+                    headers: { 'Content-Type': 'application/json', ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {}) },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر حفظ السجل');
+                }
+
+                closeSummaryModal();
+                await loadSummary();
+            } catch (error) {
+                console.error('❌ خطأ في حفظ السجل:', error);
+                alert(error.message || 'تعذر حفظ السجل');
+            }
+        }
+
+        async function deleteSummary(flowType, fiscalYear, fiscalPeriod) {
+            if (!confirm('هل تريد حذف هذا السجل؟')) return;
+            const params = new URLSearchParams({
+                entity_id: ENTITY_ID,
+                flow_type: flowType,
+                fiscal_year: fiscalYear,
+                fiscal_period: fiscalPeriod
+            });
+            const res = await fetch(`${API_BASE}/finance/cashflow-summary?${params.toString()}`, {
+                method: 'DELETE',
+                headers: window.getFinanceHeaders ? window.getFinanceHeaders() : {}
+            });
+            if (res.ok) {
+                await loadSummary();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'تعذر حذف السجل');
+            }
+        }
+
         function formatMoney(value) {
             const num = parseFloat(value || 0);
             return num.toLocaleString('ar-SA') + ' ر.س';
@@ -368,7 +570,7 @@
                 rows.push([
                     translateType(r.flow_type),
                     r.fiscal_year,
-                    r.fiscal_period,
+                    formatPeriod(r.fiscal_period),
                     r.cash_in,
                     r.cash_out,
                     r.net_cashflow
