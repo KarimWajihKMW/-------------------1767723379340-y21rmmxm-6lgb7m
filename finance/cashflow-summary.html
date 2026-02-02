@@ -253,7 +253,6 @@
         let chartInstance = null;
         let summaryModalMode = 'create';
         let editingSummaryKey = null;
-        let lastAddedFilter = null;
 
         async function loadSummary() {
             try {
@@ -269,14 +268,8 @@
                 allRows = data.rows || [];
                 renderSummary(data.summary || {});
                 renderFilters(allRows);
-                if (lastAddedFilter) {
-                    setFilters(lastAddedFilter);
-                    applyFilters();
-                    lastAddedFilter = null;
-                } else {
-                    renderTable(allRows);
-                    renderChart(allRows);
-                }
+                renderTable(allRows);
+                renderChart(allRows);
                 renderInfo(data.summary || {});
             } catch (error) {
                 console.error('❌ خطأ في تحميل الملخص:', error);
@@ -336,11 +329,6 @@
             yearSelect.innerHTML = '<option value="">الكل</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
         }
 
-        function setFilters({ year, period, type }) {
-            if (year) document.getElementById('yearFilter').value = String(year);
-            if (period) document.getElementById('periodFilter').value = period;
-            if (type) document.getElementById('typeFilter').value = type;
-        }
 
         function renderTable(rows) {
             const body = rows.map(r => `
@@ -541,12 +529,10 @@
                     throw new Error(data.error || 'تعذر حفظ السجل');
                 }
 
-                lastAddedFilter = {
-                    year: payload.fiscal_year,
-                    period: `Q${payload.fiscal_period}`,
-                    type: payload.flow_type
-                };
                 closeSummaryModal();
+                document.getElementById('yearFilter').value = '';
+                document.getElementById('periodFilter').value = '';
+                document.getElementById('typeFilter').value = '';
                 await loadSummary();
             } catch (error) {
                 console.error('❌ خطأ في حفظ السجل:', error);
