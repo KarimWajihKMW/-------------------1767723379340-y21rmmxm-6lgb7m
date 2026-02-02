@@ -39,11 +39,18 @@ async function getCashflowSummary(req, res) {
         console.log(`💧 Fetching cashflow summary for entity ${entity_id}...`);
 
         const query = `
-            SELECT flow_type, fiscal_year, fiscal_period,
-                   cash_in, cash_out, net_cashflow,
-                   entity_id
-            FROM finance_cashflow_summary
-            WHERE entity_id = $1 OR entity_id IS NULL
+            SELECT
+                flow_type,
+                fiscal_year,
+                fiscal_period,
+                entity_id,
+                SUM(CASE WHEN flow_direction = 'IN' THEN amount ELSE 0 END) AS cash_in,
+                SUM(CASE WHEN flow_direction = 'OUT' THEN amount ELSE 0 END) AS cash_out,
+                SUM(CASE WHEN flow_direction = 'IN' THEN amount ELSE -amount END) AS net_cashflow
+            FROM finance_cashflow
+            WHERE (entity_id = $1 OR entity_id IS NULL)
+              AND flow_category = 'SUMMARY'
+            GROUP BY flow_type, fiscal_year, fiscal_period, entity_id
             ORDER BY fiscal_year DESC, fiscal_period, flow_type
         `;
 
