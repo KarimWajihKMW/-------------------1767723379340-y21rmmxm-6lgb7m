@@ -353,6 +353,9 @@
                                 <button onclick="openCustomerModal('edit', ${c.customer_id})" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition" title="تعديل">
                                     <i class="fas fa-pen"></i>
                                 </button>
+                                <button onclick="toggleBlockCustomer(${c.customer_id})" class="p-2 ${c.is_blocked ? 'text-green-600 hover:bg-green-50' : 'text-orange-600 hover:bg-orange-50'} rounded-lg transition" title="${c.is_blocked ? 'إلغاء الحظر' : 'حظر'}">
+                                    <i class="fas ${c.is_blocked ? 'fa-unlock' : 'fa-ban'}"></i>
+                                </button>
                                 <button onclick="deleteCustomer(${c.customer_id})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -588,6 +591,53 @@
                 const data = await res.json();
                 alert(data.error || 'تعذر حذف العميل');
             }
+        }
+
+        async function toggleBlockCustomer(customerId) {
+            const customer = allCustomers.find(c => c.customer_id === customerId);
+            if (!customer) return;
+            const shouldBlock = !customer.is_blocked;
+            const confirmMsg = shouldBlock ? 'هل تريد حظر هذا العميل؟' : 'هل تريد إلغاء حظر هذا العميل؟';
+            if (!confirm(confirmMsg)) return;
+
+            const payload = {
+                entity_id: ENTITY_ID,
+                customer_code: customer.customer_code,
+                customer_type: customer.customer_type,
+                customer_name_ar: customer.customer_name_ar,
+                customer_name_en: customer.customer_name_en,
+                email: customer.email,
+                phone: customer.phone,
+                mobile: customer.mobile,
+                address: customer.address,
+                city: customer.city,
+                country: customer.country,
+                tax_number: customer.tax_number,
+                commercial_registration: customer.commercial_registration,
+                payment_terms: customer.payment_terms,
+                credit_limit: customer.credit_limit,
+                credit_period_days: customer.credit_period_days,
+                risk_level: customer.risk_level,
+                risk_score: customer.risk_score,
+                risk_factors: customer.risk_factors,
+                is_active: customer.is_active !== false,
+                is_blocked: shouldBlock,
+                blocked_reason: shouldBlock ? 'تم الحظر من لوحة العملاء' : null
+            };
+
+            const res = await fetch(`${API_BASE}/finance/customers/${customerId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {}) },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر تحديث حالة العميل');
+                return;
+            }
+
+            await loadCustomers();
         }
 
         function formatMoney(value) {
