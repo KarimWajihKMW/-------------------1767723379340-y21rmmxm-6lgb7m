@@ -16,8 +16,9 @@ const pool = new Pool({
 
 async function getRiskScores(req, res) {
     const { entity_id, from_date, to_date, risk_level, customer_id } = req.query;
+    const entityId = entity_id || req.headers['x-entity-id'] || 'HQ001';
 
-    if (!entity_id) {
+    if (!entityId) {
         return res.status(400).json({
             success: false,
             error: 'entity_id is required'
@@ -25,10 +26,10 @@ async function getRiskScores(req, res) {
     }
 
     try {
-        console.log(`🛡️ Fetching AI risk scores for entity ${entity_id}...`);
+        console.log(`🛡️ Fetching AI risk scores for entity ${entityId}...`);
 
         const conditions = ['(entity_id = $1 OR entity_id IS NULL)'];
-        const values = [entity_id];
+        const values = [entityId];
         let paramIndex = 2;
 
         if (from_date) {
@@ -79,13 +80,17 @@ async function getRiskScores(req, res) {
         const rows = result.rows;
 
         const summary = rows.reduce((acc, r) => {
+            const score = parseFloat(r.risk_score || 0);
             acc.total_scores += 1;
-            acc.total_score_value += parseFloat(r.risk_score || 0);
-            acc.max_score = Math.max(acc.max_score, parseFloat(r.risk_score || 0));
-            acc.min_score = Math.min(acc.min_score, parseFloat(r.risk_score || 0));
+            acc.total_score_value += score;
+            acc.max_score = Math.max(acc.max_score, score);
+            acc.min_score = Math.min(acc.min_score, score);
             acc.levels[(r.risk_level || 'Unknown').toUpperCase()] =
                 (acc.levels[(r.risk_level || 'Unknown').toUpperCase()] || 0) + 1;
             acc.customers.add(r.customer_id);
+            acc.latest_assessment = acc.latest_assessment
+                ? (new Date(r.assessment_date) > new Date(acc.latest_assessment) ? r.assessment_date : acc.latest_assessment)
+                : r.assessment_date;
             return acc;
         }, {
             total_scores: 0,
@@ -93,12 +98,15 @@ async function getRiskScores(req, res) {
             max_score: 0,
             min_score: rows.length ? Number.MAX_SAFE_INTEGER : 0,
             levels: {},
-            customers: new Set()
+            customers: new Set(),
+            latest_assessment: null
         });
 
         summary.avg_score = summary.total_scores ? (summary.total_score_value / summary.total_scores) : 0;
+        summary.min_score = summary.total_scores ? summary.min_score : 0;
         summary.unique_customers = summary.customers.size;
         summary.customers = undefined;
+        summary.latest_assessment = summary.latest_assessment;
 
         res.json({
             success: true,
