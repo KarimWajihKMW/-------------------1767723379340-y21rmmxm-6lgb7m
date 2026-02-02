@@ -69,20 +69,18 @@ async function getIncomeStatement(req, res) {
             [entity_id]
         );
 
-        const revenueAccounts = result.rows
-            .filter(a => a.account_type === 'REVENUE')
-            .map(a => ({
-                ...a,
-                source: 'system'
-            }));
-        const expenseAccounts = result.rows
-            .filter(a => a.account_type === 'EXPENSE')
-            .map(a => ({
-                ...a,
-                source: 'system'
-            }));
+        const manualOverrideMap = new Map();
+        manualItemsResult.rows.forEach(item => {
+            const key = `${item.item_type}::${item.account_code}`;
+            const existing = manualOverrideMap.get(key);
+            if (!existing || item.item_id > existing.item_id) {
+                manualOverrideMap.set(key, item);
+            }
+        });
 
-        const manualRevenue = manualItemsResult.rows
+        const overrideItems = Array.from(manualOverrideMap.values());
+
+        const manualRevenue = overrideItems
             .filter(item => item.item_type === 'REVENUE')
             .map(item => ({
                 account_id: null,
@@ -98,7 +96,7 @@ async function getIncomeStatement(req, res) {
                 notes: item.notes
             }));
 
-        const manualExpenses = manualItemsResult.rows
+        const manualExpenses = overrideItems
             .filter(item => item.item_type === 'EXPENSE')
             .map(item => ({
                 account_id: null,
@@ -114,8 +112,24 @@ async function getIncomeStatement(req, res) {
                 notes: item.notes
             }));
 
-        const allRevenue = [...revenueAccounts, ...manualRevenue];
-        const allExpenses = [...expenseAccounts, ...manualExpenses];
+        const systemRevenue = result.rows
+            .filter(a => a.account_type === 'REVENUE')
+            .filter(a => !manualOverrideMap.has(`REVENUE::${a.account_code}`))
+            .map(a => ({
+                ...a,
+                source: 'system'
+            }));
+
+        const systemExpenses = result.rows
+            .filter(a => a.account_type === 'EXPENSE')
+            .filter(a => !manualOverrideMap.has(`EXPENSE::${a.account_code}`))
+            .map(a => ({
+                ...a,
+                source: 'system'
+            }));
+
+        const allRevenue = [...systemRevenue, ...manualRevenue];
+        const allExpenses = [...systemExpenses, ...manualExpenses];
 
         const totalRevenue = allRevenue.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);
         const totalExpenses = allExpenses.reduce((sum, a) => sum + parseFloat(a.balance || 0), 0);

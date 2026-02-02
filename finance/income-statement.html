@@ -500,28 +500,37 @@
         function renderActionButtons(acc, type) {
             const source = acc.source || 'system';
             const itemId = acc.item_id || 'null';
-            const accountCode = acc.account_code || '';
+            const accountCode = String(acc.account_code || '').replace(/'/g, "\\'");
+            const accountName = String(acc.account_name_ar || '').replace(/'/g, "\\'");
             return `
                 <div class="flex gap-2 items-center">
                     <button onclick="openIncomeModal('view', '${type}', ${itemId}, '${source}', '${accountCode}')" class="text-blue-600 hover:text-blue-800">معاينة</button>
-                    <button onclick="handleEditIncome('${type}', ${itemId}, '${source}', '${accountCode}')" class="text-amber-600 hover:text-amber-800">تعديل</button>
-                    <button onclick="handleDeleteIncome(${itemId}, '${source}')" class="text-red-600 hover:text-red-800">حذف</button>
+                    <button onclick="handleEditIncome('${type}', ${itemId}, '${source}', '${accountCode}', '${accountName}')" class="text-amber-600 hover:text-amber-800">تعديل</button>
+                    <button onclick="handleDeleteIncome('${type}', ${itemId}, '${source}', '${accountCode}', '${accountName}')" class="text-red-600 hover:text-red-800">حذف</button>
                     ${source === 'manual' ? '' : '<span class="text-xs text-gray-400">نظام</span>'}
                 </div>
             `;
         }
 
-        function handleEditIncome(type, itemId, source, accountCode) {
-            if (source !== 'manual') {
-                alert('هذا بند نظامي ولا يمكن تعديله.');
+        function handleEditIncome(type, itemId, source, accountCode, accountName) {
+            if (source === 'system') {
+                openIncomeModal('edit', type, null, source, accountCode);
+                const item = findIncomeItem(type, null, accountCode, source);
+                if (item) {
+                    fillIncomeForm(item);
+                } else {
+                    document.getElementById('itemType').value = type;
+                    document.getElementById('accountCode').value = accountCode;
+                    document.getElementById('accountName').value = accountName;
+                }
                 return;
             }
             openIncomeModal('edit', type, itemId, source, accountCode);
         }
 
-        function handleDeleteIncome(itemId, source) {
-            if (source !== 'manual') {
-                alert('هذا بند نظامي ولا يمكن حذفه.');
+        function handleDeleteIncome(type, itemId, source, accountCode, accountName) {
+            if (source === 'system') {
+                suppressSystemItem(type, accountCode, accountName);
                 return;
             }
             deleteIncomeItem(itemId);
@@ -598,7 +607,7 @@
                     : 'إضافة بند';
 
             saveButton.textContent = mode === 'edit' ? 'حفظ التعديل' : 'حفظ';
-            saveButton.classList.toggle('hidden', mode === 'view' || source === 'system');
+            saveButton.classList.toggle('hidden', mode === 'view');
 
             resetIncomeForm();
 
@@ -609,7 +618,7 @@
                 document.getElementById('itemType').value = itemType;
             }
 
-            setIncomeFormDisabled(mode === 'view' || source === 'system');
+            setIncomeFormDisabled(mode === 'view');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
@@ -653,8 +662,6 @@
         }
 
         async function submitIncomeItem() {
-            if (modalState.source === 'system') return;
-
             const payload = {
                 entity_id: currentEntityId,
                 item_type: document.getElementById('itemType').value,
@@ -670,10 +677,15 @@
             }
 
             try {
-                const url = modalState.mode === 'edit'
+                const isSystemOverride = modalState.source === 'system';
+                const url = (!isSystemOverride && modalState.mode === 'edit')
                     ? `${API_BASE}/finance/income-statement/items/${modalState.itemId}`
                     : `${API_BASE}/finance/income-statement/items`;
-                const method = modalState.mode === 'edit' ? 'PUT' : 'POST';
+                const method = (!isSystemOverride && modalState.mode === 'edit') ? 'PUT' : 'POST';
+
+                if (isSystemOverride && !payload.notes) {
+                    payload.notes = 'override-system';
+                }
 
                 const response = await fetch(url, {
                     method,
@@ -708,6 +720,33 @@
             } catch (error) {
                 console.error('❌ خطأ في حذف البند:', error);
                 alert(error.message || 'تعذر حذف البند');
+            }
+        }
+
+        async function suppressSystemItem(type, accountCode, accountName) {
+            if (!confirm('هل تريد حذف هذا البند النظامي من التقرير؟')) return;
+            try {
+                const payload = {
+                    entity_id: currentEntityId,
+                    item_type: type,
+                    account_code: accountCode,
+                    account_name_ar: accountName,
+                    amount: 0,
+                    notes: 'suppressed-system'
+                };
+                const response = await fetch(`${API_BASE}/finance/income-statement/items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر حذف البند النظامي');
+                }
+                await loadAllData();
+            } catch (error) {
+                console.error('❌ خطأ في حذف البند النظامي:', error);
+                alert(error.message || 'تعذر حذف البند النظامي');
             }
         }
 
