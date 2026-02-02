@@ -178,6 +178,9 @@ app.delete('/finance/cashflow-summary', cashflowSummaryAPI.deleteCashflowSummary
 const journalLinesAPI = require('./finance/api/journal-lines');
 app.get('/finance/journal-lines/test', journalLinesAPI.testConnection);
 app.get('/finance/journal-lines', journalLinesAPI.getJournalLines);
+app.post('/finance/journal-lines', journalLinesAPI.createJournalLine);
+app.put('/finance/journal-lines/:line_id', journalLinesAPI.updateJournalLine);
+app.delete('/finance/journal-lines/:line_id', journalLinesAPI.deleteJournalLine);
 
 // Finance Cashflow Transactions API Routes (Page 11: Cashflow Transactions)
 const cashflowTransactionsAPI = require('./finance/api/cashflow-transactions');
