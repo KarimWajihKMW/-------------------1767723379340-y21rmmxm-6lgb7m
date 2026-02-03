@@ -285,6 +285,10 @@ async function createDepreciation(req, res) {
             ) RETURNING *
         `;
 
+        const normalizedJournalEntryId = journal_entry_id !== undefined && journal_entry_id !== null && journal_entry_id !== ''
+            ? Number(journal_entry_id)
+            : null;
+
         const values = [
             Number(asset_id),
             depreciation_date,
@@ -293,7 +297,7 @@ async function createDepreciation(req, res) {
             Number(depreciation_amount),
             accumulated_depreciation !== undefined && accumulated_depreciation !== null && accumulated_depreciation !== '' ? Number(accumulated_depreciation) : null,
             net_book_value !== undefined && net_book_value !== null && net_book_value !== '' ? Number(net_book_value) : null,
-            journal_entry_id !== undefined && journal_entry_id !== null && journal_entry_id !== '' ? Number(journal_entry_id) : null,
+            normalizedJournalEntryId && normalizedJournalEntryId > 0 ? normalizedJournalEntryId : null,
             notes || null
         ];
 
@@ -341,6 +345,10 @@ async function updateDepreciation(req, res) {
             RETURNING *
         `;
 
+        const normalizedJournalEntryId = journal_entry_id !== undefined && journal_entry_id !== null && journal_entry_id !== ''
+            ? Number(journal_entry_id)
+            : null;
+
         const values = [
             Number(asset_id),
             depreciation_date,
@@ -349,7 +357,7 @@ async function updateDepreciation(req, res) {
             Number(depreciation_amount),
             accumulated_depreciation !== undefined && accumulated_depreciation !== null && accumulated_depreciation !== '' ? Number(accumulated_depreciation) : null,
             net_book_value !== undefined && net_book_value !== null && net_book_value !== '' ? Number(net_book_value) : null,
-            journal_entry_id !== undefined && journal_entry_id !== null && journal_entry_id !== '' ? Number(journal_entry_id) : null,
+            normalizedJournalEntryId && normalizedJournalEntryId > 0 ? normalizedJournalEntryId : null,
             notes || null,
             Number(depreciationId)
         ];

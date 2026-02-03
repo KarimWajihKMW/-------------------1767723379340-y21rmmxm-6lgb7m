@@ -890,6 +890,9 @@
                 payload.accumulated_depreciation = payload.accumulated_depreciation === '' ? null : Number(payload.accumulated_depreciation);
                 payload.net_book_value = payload.net_book_value === '' ? null : Number(payload.net_book_value);
                 payload.journal_entry_id = payload.journal_entry_id === '' ? null : Number(payload.journal_entry_id);
+                if (payload.journal_entry_id !== null && payload.journal_entry_id <= 0) {
+                    payload.journal_entry_id = null;
+                }
 
                 return payload;
             } catch (err) {
