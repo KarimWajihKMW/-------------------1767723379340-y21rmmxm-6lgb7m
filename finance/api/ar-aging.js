@@ -14,13 +14,77 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+const STATUS_MAP = {
+    'مصدرة': 'ISSUED',
+    'مدفوعة جزئياً': 'PARTIAL',
+    'مدفوعة جزئيا': 'PARTIAL',
+    'متأخرة': 'OVERDUE',
+    'مسودة': 'DRAFT',
+    'ملغاة': 'CANCELLED',
+    'مدفوعة': 'PAID'
+};
+
+const AGING_MAP = {
+    'غير مستحقة': 'CURRENT',
+    '1-30 يوم': '1-30_DAYS',
+    '31-60 يوم': '31-60_DAYS',
+    '61-90 يوم': '61-90_DAYS',
+    'أكثر من 90 يوم': 'OVER_90_DAYS'
+};
+
+const PAYMENT_STATUS_MAP = {
+    'غير مدفوعة': 'UNPAID',
+    'مدفوعة جزئياً': 'PARTIAL',
+    'مدفوعة جزئيا': 'PARTIAL',
+    'مدفوعة': 'PAID'
+};
+
+function normalizeStatus(value) {
+    if (!value) return value;
+    const trimmed = String(value).trim();
+    return STATUS_MAP[trimmed] || trimmed;
+}
+
+function normalizeAging(value) {
+    if (!value) return value;
+    const trimmed = String(value).trim();
+    return AGING_MAP[trimmed] || trimmed;
+}
+
+function normalizePaymentStatus(value) {
+    if (!value) return value;
+    const trimmed = String(value).trim();
+    return PAYMENT_STATUS_MAP[trimmed] || trimmed;
+}
+
+function buildInvoiceNumber() {
+    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `AR-${stamp}-${rand}`;
+}
+
+function derivePaymentStatus(totalAmount, paidAmount, provided) {
+    if (provided) return normalizePaymentStatus(provided);
+    if (paidAmount >= totalAmount) return 'PAID';
+    if (paidAmount > 0) return 'PARTIAL';
+    return 'UNPAID';
+}
+
+function deriveInvoiceStatus(totalAmount, paidAmount, dueDate, provided) {
+    if (provided) return normalizeStatus(provided);
+    if (paidAmount >= totalAmount) return 'PAID';
+    if (paidAmount > 0) return 'PARTIAL';
+    if (dueDate && new Date(dueDate) < new Date()) return 'OVERDUE';
+    return 'ISSUED';
+}
+
 async function getARAging(req, res) {
     const { entity_id, status, aging_category, from_date, to_date, invoice_number, customer_name, customer_code } = req.query;
 
     if (!entity_id) {
         return res.status(400).json({
             success: false,
-            error: 'entity_id is required'
+            error: 'معرّف الكيان مطلوب'
         });
     }
 
@@ -32,8 +96,9 @@ async function getARAging(req, res) {
         let index = 2;
 
         if (status) {
+            const normalizedStatus = normalizeStatus(status);
             conditions.push(`LOWER(status) = LOWER($${index})`);
-            values.push(status);
+            values.push(normalizedStatus);
             index++;
         }
         if (invoice_number) {
@@ -52,8 +117,9 @@ async function getARAging(req, res) {
             index++;
         }
         if (aging_category) {
+            const normalizedAging = normalizeAging(aging_category);
             conditions.push(`LOWER(aging_category) = LOWER($${index})`);
-            values.push(aging_category);
+            values.push(normalizedAging);
             index++;
         }
         if (from_date) {
@@ -141,8 +207,202 @@ async function getARAging(req, res) {
         console.error('❌ Error fetching AR aging:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: 'تعذر تحميل تقرير أعمار الذمم المدينة'
         });
+    }
+}
+
+async function createARAgingInvoice(req, res) {
+    try {
+        const {
+            invoice_number,
+            invoice_date,
+            due_date,
+            customer_id,
+            total_amount,
+            paid_amount = 0,
+            status,
+            payment_status,
+            entity_type = 'HQ',
+            entity_id = 'HQ001',
+            branch_id = null,
+            incubator_id = null,
+            notes = null,
+            created_by = 'لوحة التحكم'
+        } = req.body || {};
+
+        if (!customer_id || !invoice_date || !due_date || total_amount == null) {
+            return res.status(400).json({
+                success: false,
+                error: 'رقم العميل وتاريخ الفاتورة وتاريخ الاستحقاق وإجمالي المبلغ مطلوبة'
+            });
+        }
+
+        const customerResult = await pool.query(
+            'SELECT customer_name_ar FROM finance_customers WHERE customer_id = $1',
+            [customer_id]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'العميل غير موجود' });
+        }
+
+        const parsedTotal = parseFloat(total_amount || 0);
+        const parsedPaid = Math.min(parseFloat(paid_amount || 0), parsedTotal);
+        const remaining_amount = Math.max(parsedTotal - parsedPaid, 0);
+
+        const resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, status);
+        const resolvedPaymentStatus = derivePaymentStatus(parsedTotal, parsedPaid, payment_status);
+
+        const insertQuery = `
+            INSERT INTO finance_invoices (
+                invoice_number,
+                invoice_date,
+                due_date,
+                customer_id,
+                customer_name,
+                subtotal,
+                tax_amount,
+                discount_amount,
+                total_amount,
+                paid_amount,
+                remaining_amount,
+                status,
+                payment_status,
+                entity_type,
+                entity_id,
+                branch_id,
+                incubator_id,
+                notes,
+                created_by
+            ) VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
+            )
+            RETURNING *;
+        `;
+
+        const result = await pool.query(insertQuery, [
+            invoice_number || buildInvoiceNumber(),
+            invoice_date,
+            due_date,
+            customer_id,
+            customerResult.rows[0].customer_name_ar,
+            parsedTotal,
+            0,
+            0,
+            parsedTotal,
+            parsedPaid,
+            remaining_amount,
+            resolvedStatus,
+            resolvedPaymentStatus,
+            entity_type,
+            entity_id,
+            branch_id,
+            incubator_id,
+            notes,
+            created_by
+        ]);
+
+        res.status(201).json({ success: true, invoice: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating AR aging invoice:', error);
+        res.status(500).json({ success: false, error: 'تعذر إضافة الفاتورة' });
+    }
+}
+
+async function updateARAgingInvoice(req, res) {
+    const { id } = req.params;
+    try {
+        const {
+            invoice_date,
+            due_date,
+            total_amount,
+            paid_amount,
+            status,
+            payment_status,
+            notes
+        } = req.body || {};
+
+        const existingResult = await pool.query(
+            'SELECT * FROM finance_invoices WHERE invoice_id = $1',
+            [id]
+        );
+
+        if (existingResult.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'الفاتورة غير موجودة' });
+        }
+
+        const existing = existingResult.rows[0];
+        const nextTotal = total_amount != null ? parseFloat(total_amount) : parseFloat(existing.total_amount || 0);
+        const nextPaid = paid_amount != null ? Math.min(parseFloat(paid_amount || 0), nextTotal) : parseFloat(existing.paid_amount || 0);
+        const nextRemaining = Math.max(nextTotal - nextPaid, 0);
+        const nextDueDate = due_date || existing.due_date;
+
+        const resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, status);
+        const resolvedPaymentStatus = payment_status
+            ? normalizePaymentStatus(payment_status)
+            : derivePaymentStatus(nextTotal, nextPaid, payment_status);
+
+        const result = await pool.query(
+            `UPDATE finance_invoices
+             SET invoice_date = COALESCE($1, invoice_date),
+                 due_date = COALESCE($2, due_date),
+                 total_amount = COALESCE($3, total_amount),
+                 paid_amount = COALESCE($4, paid_amount),
+                 remaining_amount = $5,
+                 status = $6,
+                 payment_status = $7,
+                 notes = COALESCE($8, notes),
+                 updated_at = NOW()
+             WHERE invoice_id = $9
+             RETURNING *`,
+            [invoice_date || null, due_date || null, total_amount ?? null, paid_amount ?? null, nextRemaining,
+             resolvedStatus, resolvedPaymentStatus, notes || null, id]
+        );
+
+        res.json({ success: true, invoice: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating AR aging invoice:', error);
+        res.status(500).json({ success: false, error: 'تعذر تحديث الفاتورة' });
+    }
+}
+
+async function deleteARAgingInvoice(req, res) {
+    const { id } = req.params;
+    try {
+        const allocations = await pool.query(
+            'SELECT COUNT(*)::int AS count FROM finance_payment_allocations WHERE invoice_id = $1',
+            [id]
+        );
+        if (allocations.rows[0]?.count > 0) {
+            return res.status(409).json({
+                success: false,
+                error: 'لا يمكن حذف الفاتورة لأنها مرتبطة بتوزيعات مدفوعات.'
+            });
+        }
+
+        const plans = await pool.query(
+            'SELECT COUNT(*)::int AS count FROM finance_payment_plans WHERE invoice_id = $1',
+            [id]
+        );
+        if (plans.rows[0]?.count > 0) {
+            return res.status(409).json({
+                success: false,
+                error: 'لا يمكن حذف الفاتورة لأنها مرتبطة بخطط سداد.'
+            });
+        }
+
+        await pool.query('DELETE FROM finance_invoice_lines WHERE invoice_id = $1', [id]);
+        const result = await pool.query('DELETE FROM finance_invoices WHERE invoice_id = $1 RETURNING *', [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'الفاتورة غير موجودة' });
+        }
+
+        res.json({ success: true, invoice: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error deleting AR aging invoice:', error);
+        res.status(500).json({ success: false, error: 'تعذر حذف الفاتورة' });
     }
 }
 
@@ -165,5 +425,8 @@ async function testConnection(req, res) {
 
 module.exports = {
     getARAging,
-    testConnection
+    testConnection,
+    createARAgingInvoice,
+    updateARAgingInvoice,
+    deleteARAgingInvoice
 };

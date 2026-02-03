@@ -254,6 +254,9 @@ app.delete('/finance/vendors/:id', expensesAPI.deleteVendor);
 const arAgingAPI = require('./finance/api/ar-aging');
 app.get('/finance/ar-aging/test', arAgingAPI.testConnection);
 app.get('/finance/ar-aging', arAgingAPI.getARAging);
+app.post('/finance/ar-aging/invoices', arAgingAPI.createARAgingInvoice);
+app.put('/finance/ar-aging/invoices/:id', arAgingAPI.updateARAgingInvoice);
+app.delete('/finance/ar-aging/invoices/:id', arAgingAPI.deleteARAgingInvoice);
 
 // Finance Plan Installments API Routes (Page 19: Plan Installments)
 const planInstallmentsAPI = require('./finance/api/plan-installments');
