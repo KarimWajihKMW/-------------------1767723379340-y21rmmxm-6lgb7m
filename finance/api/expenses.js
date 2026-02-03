@@ -196,6 +196,84 @@ async function testConnection(req, res) {
     }
 }
 
+async function createExpense(req, res) {
+    try {
+        const {
+            expense_number,
+            expense_date,
+            expense_category,
+            expense_type,
+            vendor_id,
+            vendor_name,
+            amount,
+            tax_amount = 0,
+            status = 'approved',
+            entity_type = 'HQ',
+            entity_id = 'HQ001',
+            branch_id = null,
+            incubator_id = null,
+            platform_id = null,
+            invoice_number = null,
+            receipt_file = null,
+            attachments = null,
+            description = null,
+            notes = null,
+            created_by = 'النظام'
+        } = req.body || {};
+
+        if (!expense_number || !expense_date || !expense_category || !expense_type || !vendor_id || !vendor_name || amount == null) {
+            return res.status(400).json({
+                success: false,
+                error: 'رقم المصروف وتاريخ المصروف والفئة والنوع ورقم المورد واسم المورد والمبلغ مطلوبة'
+            });
+        }
+
+        const parsedAmount = parseFloat(amount);
+        const parsedTax = parseFloat(tax_amount || 0);
+        const total_amount = parsedAmount + parsedTax;
+
+        const insertQuery = `
+            INSERT INTO finance_expenses (
+                expense_number, expense_date, expense_category, expense_type, vendor_id, vendor_name,
+                amount, tax_amount, total_amount, status, entity_type, entity_id, branch_id, incubator_id,
+                platform_id, invoice_number, receipt_file, attachments, description, notes, created_by
+            ) VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
+            )
+            RETURNING *;
+        `;
+
+        const result = await pool.query(insertQuery, [
+            expense_number,
+            expense_date,
+            expense_category,
+            expense_type,
+            vendor_id,
+            vendor_name,
+            parsedAmount,
+            parsedTax,
+            total_amount,
+            status,
+            entity_type,
+            entity_id,
+            branch_id,
+            incubator_id,
+            platform_id,
+            invoice_number,
+            receipt_file,
+            attachments ? JSON.stringify(attachments) : null,
+            description,
+            notes,
+            created_by
+        ]);
+
+        res.status(201).json({ success: true, expense: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating expense:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 async function updateExpense(req, res) {
     const { id } = req.params;
     const { expense_date, amount, tax_amount, status, notes } = req.body;
@@ -225,12 +303,98 @@ async function updateExpense(req, res) {
     }
 }
 
+async function createVendor(req, res) {
+    try {
+        const {
+            vendor_code,
+            vendor_name_ar,
+            vendor_name_en = null,
+            vendor_type = null,
+            email = null,
+            phone = null,
+            mobile = null,
+            address = null,
+            city = null,
+            country = 'المملكة العربية السعودية',
+            tax_number = null,
+            commercial_registration = null,
+            payment_terms = null,
+            payment_term_days = 30,
+            entity_type = 'HQ',
+            entity_id = 'HQ001',
+            is_active = true,
+            created_by = 'النظام'
+        } = req.body || {};
+
+        if (!vendor_code || !vendor_name_ar) {
+            return res.status(400).json({ success: false, error: 'كود المورد واسم المورد (عربي) مطلوبان' });
+        }
+
+        const insertQuery = `
+            INSERT INTO finance_vendors (
+                vendor_code, vendor_name_ar, vendor_name_en, vendor_type, email, phone, mobile,
+                address, city, country, tax_number, commercial_registration, payment_terms, payment_term_days,
+                entity_type, entity_id, is_active, created_by
+            ) VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
+            )
+            ON CONFLICT (vendor_code) DO UPDATE SET
+                vendor_name_ar = EXCLUDED.vendor_name_ar,
+                vendor_name_en = EXCLUDED.vendor_name_en,
+                vendor_type = EXCLUDED.vendor_type,
+                email = EXCLUDED.email,
+                phone = EXCLUDED.phone,
+                mobile = EXCLUDED.mobile,
+                address = EXCLUDED.address,
+                city = EXCLUDED.city,
+                country = EXCLUDED.country,
+                tax_number = EXCLUDED.tax_number,
+                commercial_registration = EXCLUDED.commercial_registration,
+                payment_terms = EXCLUDED.payment_terms,
+                payment_term_days = EXCLUDED.payment_term_days,
+                entity_type = EXCLUDED.entity_type,
+                entity_id = EXCLUDED.entity_id,
+                is_active = EXCLUDED.is_active,
+                updated_at = NOW()
+            RETURNING *;
+        `;
+
+        const result = await pool.query(insertQuery, [
+            vendor_code,
+            vendor_name_ar,
+            vendor_name_en,
+            vendor_type,
+            email,
+            phone,
+            mobile,
+            address,
+            city,
+            country,
+            tax_number,
+            commercial_registration,
+            payment_terms,
+            payment_term_days,
+            entity_type,
+            entity_id,
+            typeof is_active === 'string'
+                ? ['true', 'نعم', '1'].includes(is_active.toLowerCase())
+                : !!is_active,
+            created_by
+        ]);
+
+        res.status(201).json({ success: true, vendor: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating vendor:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 async function deleteExpense(req, res) {
     const { id } = req.params;
     try {
         const result = await pool.query('DELETE FROM finance_expenses WHERE expense_id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Expense not found' });
+            return res.status(404).json({ success: false, error: 'المصروف غير موجود' });
         }
         res.json({ success: true, expense: result.rows[0] });
     } catch (error) {
@@ -242,7 +406,9 @@ async function deleteExpense(req, res) {
 async function updateVendor(req, res) {
     const { id } = req.params;
     const { vendor_name_ar, email, phone, is_active } = req.body;
-    const parsedActive = typeof is_active === 'string' ? is_active.toLowerCase() === 'true' : is_active;
+    const parsedActive = typeof is_active === 'string'
+        ? ['true', 'نعم', '1'].includes(is_active.toLowerCase())
+        : is_active;
 
     try {
         const result = await pool.query(
@@ -258,7 +424,7 @@ async function updateVendor(req, res) {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Vendor not found' });
+            return res.status(404).json({ success: false, error: 'المورد غير موجود' });
         }
 
         res.json({ success: true, vendor: result.rows[0] });
@@ -273,7 +439,7 @@ async function deleteVendor(req, res) {
     try {
         const result = await pool.query('DELETE FROM finance_vendors WHERE vendor_id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Vendor not found' });
+            return res.status(404).json({ success: false, error: 'المورد غير موجود' });
         }
         res.json({ success: true, vendor: result.rows[0] });
     } catch (error) {
@@ -285,8 +451,10 @@ async function deleteVendor(req, res) {
 module.exports = {
     getExpenses,
     testConnection,
+    createExpense,
     updateExpense,
     deleteExpense,
+    createVendor,
     updateVendor,
     deleteVendor
 };

@@ -243,8 +243,10 @@ app.delete('/finance/payment-allocations/:allocation_id', paymentPlansAPI.delete
 const expensesAPI = require('./finance/api/expenses');
 app.get('/finance/expenses/test', expensesAPI.testConnection);
 app.get('/finance/expenses', expensesAPI.getExpenses);
+app.post('/finance/expenses', expensesAPI.createExpense);
 app.put('/finance/expenses/:id', expensesAPI.updateExpense);
 app.delete('/finance/expenses/:id', expensesAPI.deleteExpense);
+app.post('/finance/vendors', expensesAPI.createVendor);
 app.put('/finance/vendors/:id', expensesAPI.updateVendor);
 app.delete('/finance/vendors/:id', expensesAPI.deleteVendor);
 
