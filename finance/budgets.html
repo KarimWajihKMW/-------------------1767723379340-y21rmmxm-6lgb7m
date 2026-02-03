@@ -57,6 +57,25 @@
             </button>
         </div>
 
+        <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="openBudgetForm()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                إضافة ميزانية جديدة
+            </button>
+            <button onclick="openLineForm()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition flex items-center gap-2">
+                <i class="fas fa-layer-group"></i>
+                إضافة بند ميزانية
+            </button>
+            <button onclick="openVarianceForm()" class="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition flex items-center gap-2">
+                <i class="fas fa-scale-balanced"></i>
+                إضافة انحراف جديد
+            </button>
+            <button onclick="loadReport()" class="bg-white text-gray-800 px-5 py-3 rounded-xl font-bold shadow-sm hover:shadow-md border border-gray-200 hover:border-slate-400 transition flex items-center gap-2">
+                <i class="fas fa-rotate"></i>
+                تحديث البيانات
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="stat-card bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
                 <div class="flex items-center justify-between mb-4">
@@ -167,11 +186,12 @@
                                 <th class="px-3 py-2 text-right">created_by</th>
                                 <th class="px-3 py-2 text-right">approved_by</th>
                                 <th class="px-3 py-2 text-right">approved_at</th>
+                                <th class="px-3 py-2 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="budgetsTable" class="text-xs divide-y divide-gray-100">
                             <tr>
-                                <td colspan="21" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="22" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -216,11 +236,12 @@
                                 <th class="px-3 py-2 text-right">incubator_id</th>
                                 <th class="px-3 py-2 text-right">notes</th>
                                 <th class="px-3 py-2 text-right">created_at</th>
+                                <th class="px-3 py-2 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="linesTable" class="text-xs divide-y divide-gray-100">
                             <tr>
-                                <td colspan="24" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="25" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -261,11 +282,12 @@
                                 <th class="px-3 py-2 text-right">incubator_id</th>
                                 <th class="px-3 py-2 text-right">created_at</th>
                                 <th class="px-3 py-2 text-right">analyzed_at</th>
+                                <th class="px-3 py-2 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="variancesTable" class="text-xs divide-y divide-gray-100">
                             <tr>
-                                <td colspan="20" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="21" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -273,6 +295,273 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="budgetModal" class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 space-y-4 overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">إدارة الميزانية</p>
+                    <h3 id="budgetModalTitle" class="text-2xl font-bold text-gray-800">إضافة ميزانية</h3>
+                </div>
+                <button onclick="closeModal('budgetModal')" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="budgetForm" class="space-y-4" onsubmit="saveBudget(event)">
+                <input type="hidden" id="budgetId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">كود الميزانية</label>
+                        <input id="budgetCode" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="BUD-2024-OPS">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">نوع الميزانية</label>
+                        <input id="budgetFormType" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="operational">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الاسم بالعربية</label>
+                        <input id="budgetNameAr" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="ميزانية التشغيل">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الاسم بالإنجليزية</label>
+                        <input id="budgetNameEn" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="Operating Budget">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">السنة المالية</label>
+                        <input id="budgetYear" type="number" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="2024">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">السيناريو</label>
+                        <input id="budgetScenario" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="base">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الحالة</label>
+                        <input id="budgetStatus" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="approved">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">المسار/البرنامج</label>
+                        <input id="budgetProgram" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="101">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">نوع الكيان</label>
+                        <input id="budgetEntityType" value="HQ" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="HQ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الكيان</label>
+                        <input id="budgetEntityId" value="1" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الفرع</label>
+                        <input id="budgetBranch" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="BR-HQ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">المسرعة/الحاضنة</label>
+                        <input id="budgetIncubator" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="INC-HEAD">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">المنصة</label>
+                        <input id="budgetPlatform" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="PLAT-CORE">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">أُنشئت بواسطة</label>
+                        <input id="budgetCreatedBy" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="system">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">اعتمدت بواسطة</label>
+                        <input id="budgetApprovedBy" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="cfo">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">الوصف</label>
+                    <textarea id="budgetDescription" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="شرح مختصر"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">الافتراضات</label>
+                    <textarea id="budgetAssumptions" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500" placeholder="افتراضات رئيسية"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeModal('budgetModal')" class="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">إلغاء</button>
+                    <button type="submit" class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="lineModal" class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full p-6 space-y-4 overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">إدارة بنود الميزانية</p>
+                    <h3 id="lineModalTitle" class="text-2xl font-bold text-gray-800">إضافة بند</h3>
+                </div>
+                <button onclick="closeModal('lineModal')" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="lineForm" class="space-y-4" onsubmit="saveLine(event)">
+                <input type="hidden" id="lineId">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الميزانية</label>
+                        <select id="lineBudgetId" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الحساب</label>
+                        <input id="lineAccountId" required type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="287">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">كود الحساب</label>
+                        <input id="lineAccountCode" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="5210">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">اسم الحساب</label>
+                        <input id="lineAccountName" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="الرواتب والأجور">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">المبلغ السنوي</label>
+                        <input id="lineAnnual" required type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="1200000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">نوع الكيان</label>
+                        <input id="lineEntityType" value="HQ" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="HQ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الكيان</label>
+                        <input id="lineEntityId" value="1" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الفرع</label>
+                        <input id="lineBranch" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="BR-HQ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الحاضنة</label>
+                        <input id="lineIncubator" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="INC-HEAD">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">توزيع شهري</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                        <input id="month1" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="1" />
+                        <input id="month2" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="2" />
+                        <input id="month3" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="3" />
+                        <input id="month4" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="4" />
+                        <input id="month5" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="5" />
+                        <input id="month6" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="6" />
+                        <input id="month7" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="7" />
+                        <input id="month8" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="8" />
+                        <input id="month9" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="9" />
+                        <input id="month10" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="10" />
+                        <input id="month11" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="11" />
+                        <input id="month12" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500" placeholder="12" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">ملاحظات</label>
+                    <textarea id="lineNotes" rows="2" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500" placeholder="ملاحظات داخلية"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeModal('lineModal')" class="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">إلغاء</button>
+                    <button type="submit" class="px-6 py-3 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="varianceModal" class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 space-y-4 overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">إدارة الانحرافات</p>
+                    <h3 id="varianceModalTitle" class="text-2xl font-bold text-gray-800">إضافة انحراف</h3>
+                </div>
+                <button onclick="closeModal('varianceModal')" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="varianceForm" class="space-y-4" onsubmit="saveVariance(event)">
+                <input type="hidden" id="varianceId">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">السنة المالية</label>
+                        <input id="varianceYear" type="number" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="2024">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الفترة المالية</label>
+                        <input id="variancePeriod" type="number" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="3">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">اسم الفترة</label>
+                        <input id="variancePeriodName" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="مارس 2024">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الحساب</label>
+                        <input id="varianceAccountId" type="number" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="287">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">كود الحساب</label>
+                        <input id="varianceAccountCode" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="5210">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">المبلغ الموازني</label>
+                        <input id="varianceBudgeted" type="number" step="0.01" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="300000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">المبلغ الفعلي</label>
+                        <input id="varianceActual" type="number" step="0.01" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="320000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">نوع الانحراف</label>
+                        <input id="varianceType" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="favorable/unfavorable">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">مستوى الأهمية</label>
+                        <input id="varianceSignificance" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="high/medium/low">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">نوع الكيان</label>
+                        <input id="varianceEntityType" value="HQ" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="HQ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الكيان</label>
+                        <input id="varianceEntityId" value="1" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الفرع</label>
+                        <input id="varianceBranch" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="BR-HQ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">الحاضنة</label>
+                        <input id="varianceIncubator" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="INC-HEAD">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">تفسير ذكي</label>
+                        <textarea id="varianceExplanation" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="شرح الآلة"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">توصيات</label>
+                        <textarea id="varianceRecommendations" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-rose-500" placeholder="توصيات مقترحة"></textarea>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeModal('varianceModal')" class="px-4 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">إلغاء</button>
+                    <button type="submit" class="px-6 py-3 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 space-y-4 overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">معاينة</p>
+                    <h3 id="detailsModalTitle" class="text-2xl font-bold text-gray-800">التفاصيل</h3>
+                </div>
+                <button onclick="closeModal('detailsModal')" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times"></i></button>
+            </div>
+            <pre id="detailsContent" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left whitespace-pre-wrap text-sm"></pre>
+            <div class="flex justify-end">
+                <button onclick="closeModal('detailsModal')" class="px-6 py-3 rounded-lg bg-slate-800 text-white font-bold hover:bg-slate-900">إغلاق</button>
             </div>
         </div>
     </div>
@@ -286,9 +575,14 @@
         let typeChartInstance = null;
         let varianceChartInstance = null;
 
-        async function loadReport() {
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReport();
+        });
+
+        async function loadReport(queryString) {
+            const query = queryString || `entity_id=${ENTITY_ID}`;
             try {
-                const response = await fetch(`${API_BASE}/finance/budgets?entity_id=${ENTITY_ID}`);
+                const response = await fetch(`${API_BASE}/finance/budgets?${query}`);
                 const data = await response.json();
 
                 if (!data.success) throw new Error(data.error || 'Failed to load report');
@@ -302,11 +596,12 @@
                 renderLinesTable(lines);
                 renderVariancesTable(variances);
                 renderCharts(data.summary || {});
+                populateBudgetSelects();
             } catch (error) {
                 console.error('❌ خطأ في تحميل التقرير:', error);
                 document.getElementById('budgetsTable').innerHTML = `
                     <tr>
-                        <td colspan="21" class="px-4 py-12 text-center text-red-500">
+                        <td colspan="22" class="px-4 py-12 text-center text-red-500">
                             <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                             <div>فشل تحميل بيانات الميزانيات</div>
                         </td>
@@ -329,20 +624,7 @@
             if (status) params.append('status', status);
             if (fiscalPeriod) params.append('fiscal_period', fiscalPeriod);
 
-            fetch(`${API_BASE}/finance/budgets?${params.toString()}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) throw new Error(data.error || 'Failed to load report');
-                    budgets = data.budgets || [];
-                    lines = data.lines || [];
-                    variances = data.variances || [];
-                    renderSummary(data.summary || {});
-                    renderBudgetsTable(budgets);
-                    renderLinesTable(lines);
-                    renderVariancesTable(variances);
-                    renderCharts(data.summary || {});
-                })
-                .catch(err => console.error('❌', err));
+            loadReport(params.toString());
         }
 
         function renderSummary(summary) {
@@ -353,7 +635,7 @@
         }
 
         function renderBudgetsTable(rows) {
-            const body = rows.map(r => `
+            const body = rows.map((r, idx) => `
                 <tr class="hover:bg-slate-50">
                     <td class="px-3 py-2">${r.budget_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.budget_code ?? '-'}</td>
@@ -376,19 +658,26 @@
                     <td class="px-3 py-2">${r.created_by ?? '-'}</td>
                     <td class="px-3 py-2">${r.approved_by ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(r.approved_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="px-3 py-2 rounded-lg bg-white border border-slate-200 hover:border-slate-400 text-xs" onclick="openDetailsModal('تفاصيل الميزانية', budgets[${idx}])">معاينة</button>
+                            <button class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs hover:bg-indigo-700" onclick="openBudgetForm(budgets[${idx}])">تعديل</button>
+                            <button class="px-3 py-2 rounded-lg bg-rose-600 text-white text-xs hover:bg-rose-700" onclick="confirmDeleteBudget(${r.budget_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('budgetsTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="21" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                    <td colspan="22" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('budgetsCount').textContent = `عدد الصفوف: ${rows.length}`;
         }
 
         function renderLinesTable(rows) {
-            const body = rows.map(r => `
+            const body = rows.map((r, idx) => `
                 <tr class="hover:bg-emerald-50">
                     <td class="px-3 py-2">${r.line_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.budget_id ?? '-'}</td>
@@ -414,19 +703,26 @@
                     <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.notes ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="px-3 py-2 rounded-lg bg-white border border-slate-200 hover:border-slate-400 text-xs" onclick="openDetailsModal('تفاصيل البند', lines[${idx}])">معاينة</button>
+                            <button class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs hover:bg-emerald-700" onclick="openLineForm(lines[${idx}])">تعديل</button>
+                            <button class="px-3 py-2 rounded-lg bg-rose-600 text-white text-xs hover:bg-rose-700" onclick="confirmDeleteLine(${r.line_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('linesTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="24" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                    <td colspan="25" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('linesCount').textContent = `عدد الصفوف: ${rows.length}`;
         }
 
         function renderVariancesTable(rows) {
-            const body = rows.map(r => `
+            const body = rows.map((r, idx) => `
                 <tr class="hover:bg-rose-50">
                     <td class="px-3 py-2">${r.variance_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.fiscal_year ?? '-'}</td>
@@ -448,12 +744,19 @@
                     <td class="px-3 py-2">${r.incubator_id ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
                     <td class="px-3 py-2">${formatDateTime(r.analyzed_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="px-3 py-2 rounded-lg bg-white border border-slate-200 hover:border-slate-400 text-xs" onclick="openDetailsModal('تفاصيل الانحراف', variances[${idx}])">معاينة</button>
+                            <button class="px-3 py-2 rounded-lg bg-rose-600 text-white text-xs hover:bg-rose-700" onclick="openVarianceForm(variances[${idx}])">تعديل</button>
+                            <button class="px-3 py-2 rounded-lg bg-slate-800 text-white text-xs hover:bg-slate-900" onclick="confirmDeleteVariance(${r.variance_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('variancesTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="20" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                    <td colspan="21" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('variancesCount').textContent = `عدد الصفوف: ${rows.length}`;
@@ -566,7 +869,297 @@
             window.print();
         }
 
-        document.addEventListener('DOMContentLoaded', loadReport);
+        function populateBudgetSelects() {
+            const select = document.getElementById('lineBudgetId');
+            if (!select) return;
+            select.innerHTML = '<option value="">اختر الميزانية</option>';
+            budgets.forEach(b => {
+                const option = document.createElement('option');
+                option.value = b.budget_id;
+                option.textContent = `${b.budget_code} - ${b.budget_name_ar || ''}`;
+                select.appendChild(option);
+            });
+        }
+
+        function showModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function openDetailsModal(title, payload) {
+            document.getElementById('detailsModalTitle').textContent = title;
+            document.getElementById('detailsContent').textContent = JSON.stringify(payload, null, 2);
+            showModal('detailsModal');
+        }
+
+        function resetForm(formId) {
+            const form = document.getElementById(formId);
+            if (form) form.reset();
+        }
+
+        function fillMonths(data) {
+            for (let i = 1; i <= 12; i++) {
+                const el = document.getElementById(`month${i}`);
+                if (el) el.value = data ? (data[`month_${i}`] ?? '') : '';
+            }
+        }
+
+        function collectMonths() {
+            const months = {};
+            for (let i = 1; i <= 12; i++) {
+                const value = document.getElementById(`month${i}`).value;
+                if (value !== '') months[`month_${i}`] = parseFloat(value);
+            }
+            return months;
+        }
+
+        function openBudgetForm(budget = null) {
+            resetForm('budgetForm');
+            document.getElementById('budgetEntityType').value = 'HQ';
+            document.getElementById('budgetEntityId').value = ENTITY_ID;
+
+            if (budget) {
+                document.getElementById('budgetModalTitle').textContent = 'تعديل ميزانية';
+                document.getElementById('budgetId').value = budget.budget_id || '';
+                document.getElementById('budgetCode').value = budget.budget_code || '';
+                document.getElementById('budgetFormType').value = budget.budget_type || '';
+                document.getElementById('budgetNameAr').value = budget.budget_name_ar || '';
+                document.getElementById('budgetNameEn').value = budget.budget_name_en || '';
+                document.getElementById('budgetYear').value = budget.fiscal_year || '';
+                document.getElementById('budgetScenario').value = budget.scenario || '';
+                document.getElementById('budgetStatus').value = budget.status || '';
+                document.getElementById('budgetProgram').value = budget.program_id || '';
+                document.getElementById('budgetEntityType').value = budget.entity_type || 'HQ';
+                document.getElementById('budgetEntityId').value = budget.entity_id || ENTITY_ID;
+                document.getElementById('budgetBranch').value = budget.branch_id || '';
+                document.getElementById('budgetIncubator').value = budget.incubator_id || '';
+                document.getElementById('budgetPlatform').value = budget.platform_id || '';
+                document.getElementById('budgetCreatedBy').value = budget.created_by || '';
+                document.getElementById('budgetApprovedBy').value = budget.approved_by || '';
+                document.getElementById('budgetDescription').value = budget.description || '';
+                document.getElementById('budgetAssumptions').value = budget.assumptions || '';
+            } else {
+                document.getElementById('budgetModalTitle').textContent = 'إضافة ميزانية';
+                document.getElementById('budgetFormType').value = 'operational';
+                document.getElementById('budgetStatus').value = 'approved';
+                document.getElementById('budgetScenario').value = 'base';
+                document.getElementById('budgetYear').value = new Date().getFullYear();
+                const nextCode = `BUD-${new Date().getFullYear()}-${String((budgets.length || 0) + 1).padStart(3, '0')}`;
+                document.getElementById('budgetCode').value = nextCode;
+            }
+            showModal('budgetModal');
+        }
+
+        async function saveBudget(event) {
+            event.preventDefault();
+            const budgetId = document.getElementById('budgetId').value;
+            const payload = {
+                budget_code: document.getElementById('budgetCode').value,
+                budget_type: document.getElementById('budgetFormType').value,
+                budget_name_ar: document.getElementById('budgetNameAr').value,
+                budget_name_en: document.getElementById('budgetNameEn').value,
+                fiscal_year: document.getElementById('budgetYear').value,
+                scenario: document.getElementById('budgetScenario').value,
+                status: document.getElementById('budgetStatus').value,
+                program_id: document.getElementById('budgetProgram').value,
+                entity_type: document.getElementById('budgetEntityType').value,
+                entity_id: document.getElementById('budgetEntityId').value,
+                branch_id: document.getElementById('budgetBranch').value,
+                incubator_id: document.getElementById('budgetIncubator').value,
+                platform_id: document.getElementById('budgetPlatform').value,
+                description: document.getElementById('budgetDescription').value,
+                assumptions: document.getElementById('budgetAssumptions').value,
+                created_by: document.getElementById('budgetCreatedBy').value,
+                approved_by: document.getElementById('budgetApprovedBy').value
+            };
+
+            const method = budgetId ? 'PUT' : 'POST';
+            const url = budgetId ? `${API_BASE}/finance/budgets/${budgetId}` : `${API_BASE}/finance/budgets`;
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر حفظ الميزانية');
+                return;
+            }
+            closeModal('budgetModal');
+            await loadReport();
+        }
+
+        async function confirmDeleteBudget(id) {
+            if (!id) return;
+            if (!confirm('هل تريد حذف هذه الميزانية؟ سيتم حذف البنود التابعة أيضاً.')) return;
+            const response = await fetch(`${API_BASE}/finance/budgets/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر حذف الميزانية');
+                return;
+            }
+            await loadReport();
+        }
+
+        function openLineForm(line = null) {
+            resetForm('lineForm');
+            document.getElementById('lineEntityType').value = 'HQ';
+            document.getElementById('lineEntityId').value = ENTITY_ID;
+            fillMonths(null);
+            populateBudgetSelects();
+
+            if (line) {
+                document.getElementById('lineModalTitle').textContent = 'تعديل بند';
+                document.getElementById('lineId').value = line.line_id || '';
+                document.getElementById('lineBudgetId').value = line.budget_id || '';
+                document.getElementById('lineAccountId').value = line.account_id || '';
+                document.getElementById('lineAccountCode').value = line.account_code || '';
+                document.getElementById('lineAccountName').value = line.account_name || '';
+                document.getElementById('lineAnnual').value = line.annual_amount || '';
+                document.getElementById('lineEntityType').value = line.entity_type || 'HQ';
+                document.getElementById('lineEntityId').value = line.entity_id || ENTITY_ID;
+                document.getElementById('lineBranch').value = line.branch_id || '';
+                document.getElementById('lineIncubator').value = line.incubator_id || '';
+                document.getElementById('lineNotes').value = line.notes || '';
+                fillMonths(line);
+            } else {
+                document.getElementById('lineModalTitle').textContent = 'إضافة بند';
+            }
+            showModal('lineModal');
+        }
+
+        async function saveLine(event) {
+            event.preventDefault();
+            const lineId = document.getElementById('lineId').value;
+            const payload = {
+                budget_id: document.getElementById('lineBudgetId').value,
+                account_id: document.getElementById('lineAccountId').value,
+                account_code: document.getElementById('lineAccountCode').value,
+                account_name: document.getElementById('lineAccountName').value,
+                annual_amount: document.getElementById('lineAnnual').value,
+                entity_type: document.getElementById('lineEntityType').value,
+                entity_id: document.getElementById('lineEntityId').value,
+                branch_id: document.getElementById('lineBranch').value,
+                incubator_id: document.getElementById('lineIncubator').value,
+                notes: document.getElementById('lineNotes').value,
+                ...collectMonths()
+            };
+
+            const method = lineId ? 'PUT' : 'POST';
+            const url = lineId ? `${API_BASE}/finance/budget-lines/${lineId}` : `${API_BASE}/finance/budget-lines`;
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر حفظ البند');
+                return;
+            }
+            closeModal('lineModal');
+            await loadReport();
+        }
+
+        async function confirmDeleteLine(id) {
+            if (!id) return;
+            if (!confirm('هل تريد حذف بند الميزانية؟')) return;
+            const response = await fetch(`${API_BASE}/finance/budget-lines/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر حذف البند');
+                return;
+            }
+            await loadReport();
+        }
+
+        function openVarianceForm(variance = null) {
+            resetForm('varianceForm');
+            document.getElementById('varianceEntityType').value = 'HQ';
+            document.getElementById('varianceEntityId').value = ENTITY_ID;
+
+            if (variance) {
+                document.getElementById('varianceModalTitle').textContent = 'تعديل انحراف';
+                document.getElementById('varianceId').value = variance.variance_id || '';
+                document.getElementById('varianceYear').value = variance.fiscal_year || '';
+                document.getElementById('variancePeriod').value = variance.fiscal_period || '';
+                document.getElementById('variancePeriodName').value = variance.period_name || '';
+                document.getElementById('varianceAccountId').value = variance.account_id || '';
+                document.getElementById('varianceAccountCode').value = variance.account_code || '';
+                document.getElementById('varianceBudgeted').value = variance.budgeted_amount || '';
+                document.getElementById('varianceActual').value = variance.actual_amount || '';
+                document.getElementById('varianceType').value = variance.variance_type || '';
+                document.getElementById('varianceSignificance').value = variance.significance_level || '';
+                document.getElementById('varianceEntityType').value = variance.entity_type || 'HQ';
+                document.getElementById('varianceEntityId').value = variance.entity_id || ENTITY_ID;
+                document.getElementById('varianceBranch').value = variance.branch_id || '';
+                document.getElementById('varianceIncubator').value = variance.incubator_id || '';
+                document.getElementById('varianceExplanation').value = variance.ai_explanation || '';
+                document.getElementById('varianceRecommendations').value = variance.ai_recommendations || '';
+            } else {
+                document.getElementById('varianceModalTitle').textContent = 'إضافة انحراف';
+            }
+            showModal('varianceModal');
+        }
+
+        async function saveVariance(event) {
+            event.preventDefault();
+            const varianceId = document.getElementById('varianceId').value;
+            const payload = {
+                fiscal_year: document.getElementById('varianceYear').value,
+                fiscal_period: document.getElementById('variancePeriod').value,
+                period_name: document.getElementById('variancePeriodName').value,
+                account_id: document.getElementById('varianceAccountId').value,
+                account_code: document.getElementById('varianceAccountCode').value,
+                budgeted_amount: document.getElementById('varianceBudgeted').value,
+                actual_amount: document.getElementById('varianceActual').value,
+                variance_type: document.getElementById('varianceType').value,
+                significance_level: document.getElementById('varianceSignificance').value,
+                entity_type: document.getElementById('varianceEntityType').value,
+                entity_id: document.getElementById('varianceEntityId').value,
+                branch_id: document.getElementById('varianceBranch').value,
+                incubator_id: document.getElementById('varianceIncubator').value,
+                ai_explanation: document.getElementById('varianceExplanation').value,
+                ai_recommendations: document.getElementById('varianceRecommendations').value
+            };
+
+            const method = varianceId ? 'PUT' : 'POST';
+            const url = varianceId ? `${API_BASE}/finance/budget-variances/${varianceId}` : `${API_BASE}/finance/budget-variances`;
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر حفظ الانحراف');
+                return;
+            }
+            closeModal('varianceModal');
+            await loadReport();
+        }
+
+        async function confirmDeleteVariance(id) {
+            if (!id) return;
+            if (!confirm('هل تريد حذف الانحراف؟')) return;
+            const response = await fetch(`${API_BASE}/finance/budget-variances/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || 'تعذر حذف الانحراف');
+                return;
+            }
+            await loadReport();
+        }
     </script>
 </body>
 </html>

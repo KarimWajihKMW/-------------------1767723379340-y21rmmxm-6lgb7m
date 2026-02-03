@@ -218,6 +218,15 @@ app.delete('/finance/fixed-assets/depreciation/:depreciation_id', fixedAssetsAPI
 const budgetsAPI = require('./finance/api/budgets');
 app.get('/finance/budgets/test', budgetsAPI.testConnection);
 app.get('/finance/budgets', budgetsAPI.getBudgets);
+app.post('/finance/budgets', budgetsAPI.createBudget);
+app.put('/finance/budgets/:budget_id', budgetsAPI.updateBudget);
+app.delete('/finance/budgets/:budget_id', budgetsAPI.deleteBudget);
+app.post('/finance/budget-lines', budgetsAPI.createBudgetLine);
+app.put('/finance/budget-lines/:line_id', budgetsAPI.updateBudgetLine);
+app.delete('/finance/budget-lines/:line_id', budgetsAPI.deleteBudgetLine);
+app.post('/finance/budget-variances', budgetsAPI.createVariance);
+app.put('/finance/budget-variances/:variance_id', budgetsAPI.updateVariance);
+app.delete('/finance/budget-variances/:variance_id', budgetsAPI.deleteVariance);
 
 // Finance Payment Plans API Routes (Page 16: Payment Plans & Allocations)
 const paymentPlansAPI = require('./finance/api/payment-plans');
