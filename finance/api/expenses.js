@@ -437,6 +437,18 @@ async function updateVendor(req, res) {
 async function deleteVendor(req, res) {
     const { id } = req.params;
     try {
+        const usageCheck = await pool.query(
+            'SELECT COUNT(*)::int AS count FROM finance_expenses WHERE vendor_id = $1',
+            [id]
+        );
+
+        if (usageCheck.rows[0]?.count > 0) {
+            return res.status(409).json({
+                success: false,
+                error: 'لا يمكن حذف المورد لأنه مرتبط بمصروفات مسجلة.'
+            });
+        }
+
         const result = await pool.query('DELETE FROM finance_vendors WHERE vendor_id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'المورد غير موجود' });

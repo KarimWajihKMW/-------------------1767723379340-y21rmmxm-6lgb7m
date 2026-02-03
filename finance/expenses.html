@@ -975,7 +975,14 @@
                 if (res.ok) {
                     await loadReport();
                 } else {
-                    alert('تعذر حذف المورد');
+                    let message = 'تعذر حذف المورد';
+                    try {
+                        const data = await res.json();
+                        if (data && data.error) message = data.error;
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    alert(message);
                 }
             }
 
