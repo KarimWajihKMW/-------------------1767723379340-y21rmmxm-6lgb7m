@@ -205,7 +205,10 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-800">📉 جدول الإهلاك</h3>
-                    <span id="depreciationCount" class="text-sm text-gray-600"></span>
+                    <div class="flex items-center gap-3">
+                        <span id="depreciationCount" class="text-sm text-gray-600"></span>
+                        <button onclick="openDepreciationModal('create')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700">إضافة إهلاك</button>
+                    </div>
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
@@ -814,7 +817,12 @@
             const saveBtn = document.getElementById('saveDepreciationBtn');
             const title = document.getElementById('depreciationModalTitle');
 
-            if (mode === 'edit') {
+            if (mode === 'create') {
+                title.textContent = 'إضافة إهلاك';
+                deleteBtn.classList.add('hidden');
+                saveBtn.textContent = 'حفظ';
+                setDepreciationReadOnly(false);
+            } else if (mode === 'edit') {
                 title.textContent = 'تعديل الإهلاك';
                 deleteBtn.classList.remove('hidden');
                 saveBtn.textContent = 'تحديث';
@@ -898,8 +906,10 @@
             const payload = getDepreciationPayload();
             if (!payload) return;
 
-            const url = `${API_BASE}/finance/fixed-assets/depreciation/${editingDepreciationId}`;
-            const method = 'PUT';
+            const url = depreciationModalMode === 'create'
+                ? `${API_BASE}/finance/fixed-assets/depreciation`
+                : `${API_BASE}/finance/fixed-assets/depreciation/${editingDepreciationId}`;
+            const method = depreciationModalMode === 'create' ? 'POST' : 'PUT';
 
             try {
                 const res = await fetch(url, {
