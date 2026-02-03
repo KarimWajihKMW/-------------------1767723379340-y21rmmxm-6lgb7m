@@ -232,6 +232,9 @@ app.delete('/finance/budget-variances/:variance_id', budgetsAPI.deleteVariance);
 const paymentPlansAPI = require('./finance/api/payment-plans');
 app.get('/finance/payment-plans/test', paymentPlansAPI.testConnection);
 app.get('/finance/payment-plans', paymentPlansAPI.getPaymentPlans);
+app.post('/finance/payment-plans', paymentPlansAPI.createPaymentPlan);
+app.put('/finance/payment-plans/:plan_id', paymentPlansAPI.updatePaymentPlan);
+app.delete('/finance/payment-plans/:plan_id', paymentPlansAPI.deletePaymentPlan);
 
 // Finance Expenses API Routes (Page 17: Expenses & Vendors)
 const expensesAPI = require('./finance/api/expenses');

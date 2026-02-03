@@ -68,6 +68,10 @@
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
+            <button onclick="openPlanModal()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                إضافة خطة سداد
+            </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -117,11 +121,11 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
-                    <input id="status" type="text" placeholder="active" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" oninput="applyFilters()">
+                    <input id="status" type="text" placeholder="نشط" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">رقم الخطة</label>
-                    <input id="planNumber" type="text" placeholder="PLAN-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" oninput="applyFilters()">
+                    <input id="planNumberFilter" type="text" placeholder="خطة-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">اسم العميل</label>
@@ -129,7 +133,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">رقم الفاتورة</label>
-                    <input id="invoiceNumber" type="text" placeholder="INV-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" oninput="applyFilters()">
+                    <input id="invoiceNumber" type="text" placeholder="فاتورة-0001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" oninput="applyFilters()">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">من تاريخ البداية</label>
@@ -167,43 +171,44 @@
                     <table class="w-full">
                         <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
-                                <th class="px-3 py-2 text-right">plan_id</th>
-                                <th class="px-3 py-2 text-right">plan_number</th>
-                                <th class="px-3 py-2 text-right">customer_id</th>
-                                <th class="px-3 py-2 text-right">customer_name_ar</th>
-                                <th class="px-3 py-2 text-right">customer_name_en</th>
-                                <th class="px-3 py-2 text-right">customer_code</th>
-                                <th class="px-3 py-2 text-right">customer_type</th>
-                                <th class="px-3 py-2 text-right">invoice_id</th>
-                                <th class="px-3 py-2 text-right">invoice_number</th>
-                                <th class="px-3 py-2 text-right">invoice_date</th>
-                                <th class="px-3 py-2 text-right">invoice_status</th>
-                                <th class="px-3 py-2 text-right">invoice_payment_status</th>
-                                <th class="px-3 py-2 text-right">start_date</th>
-                                <th class="px-3 py-2 text-right">end_date</th>
-                                <th class="px-3 py-2 text-right">total_amount</th>
-                                <th class="px-3 py-2 text-right">paid_amount</th>
-                                <th class="px-3 py-2 text-right">remaining_amount</th>
-                                <th class="px-3 py-2 text-right">number_of_installments</th>
-                                <th class="px-3 py-2 text-right">installment_amount</th>
-                                <th class="px-3 py-2 text-right">installment_frequency</th>
-                                <th class="px-3 py-2 text-right">status</th>
-                                <th class="px-3 py-2 text-right">risk_score_at_creation</th>
-                                <th class="px-3 py-2 text-right">risk_level_at_creation</th>
-                                <th class="px-3 py-2 text-right">entity_type</th>
-                                <th class="px-3 py-2 text-right">entity_id</th>
-                                <th class="px-3 py-2 text-right">branch_id</th>
-                                <th class="px-3 py-2 text-right">incubator_id</th>
-                                <th class="px-3 py-2 text-right">created_at</th>
-                                <th class="px-3 py-2 text-right">updated_at</th>
-                                <th class="px-3 py-2 text-right">created_by</th>
-                                <th class="px-3 py-2 text-right">approved_by</th>
-                                <th class="px-3 py-2 text-right">approved_at</th>
+                                <th class="px-3 py-2 text-right">معرّف الخطة</th>
+                                <th class="px-3 py-2 text-right">رقم الخطة</th>
+                                <th class="px-3 py-2 text-right">رقم العميل</th>
+                                <th class="px-3 py-2 text-right">اسم العميل (عربي)</th>
+                                <th class="px-3 py-2 text-right">اسم العميل (إنجليزي)</th>
+                                <th class="px-3 py-2 text-right">كود العميل</th>
+                                <th class="px-3 py-2 text-right">نوع العميل</th>
+                                <th class="px-3 py-2 text-right">رقم الفاتورة</th>
+                                <th class="px-3 py-2 text-right">رقم الفاتورة الداخلي</th>
+                                <th class="px-3 py-2 text-right">تاريخ الفاتورة</th>
+                                <th class="px-3 py-2 text-right">حالة الفاتورة</th>
+                                <th class="px-3 py-2 text-right">حالة السداد للفاتورة</th>
+                                <th class="px-3 py-2 text-right">تاريخ البداية</th>
+                                <th class="px-3 py-2 text-right">تاريخ النهاية</th>
+                                <th class="px-3 py-2 text-right">إجمالي المبلغ</th>
+                                <th class="px-3 py-2 text-right">المبلغ المدفوع</th>
+                                <th class="px-3 py-2 text-right">المتبقي</th>
+                                <th class="px-3 py-2 text-right">عدد الأقساط</th>
+                                <th class="px-3 py-2 text-right">مبلغ القسط</th>
+                                <th class="px-3 py-2 text-right">دورية السداد</th>
+                                <th class="px-3 py-2 text-right">حالة الخطة</th>
+                                <th class="px-3 py-2 text-right">درجة المخاطر</th>
+                                <th class="px-3 py-2 text-right">مستوى المخاطر</th>
+                                <th class="px-3 py-2 text-right">نوع الكيان</th>
+                                <th class="px-3 py-2 text-right">معرّف الكيان</th>
+                                <th class="px-3 py-2 text-right">الفرع</th>
+                                <th class="px-3 py-2 text-right">الحاضنة</th>
+                                <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                                <th class="px-3 py-2 text-right">آخر تحديث</th>
+                                <th class="px-3 py-2 text-right">منشأ بواسطة</th>
+                                <th class="px-3 py-2 text-right">مُعتمد بواسطة</th>
+                                <th class="px-3 py-2 text-right">تاريخ الاعتماد</th>
+                                <th class="px-3 py-2 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="plansTable" class="text-xs divide-y divide-gray-100">
                             <tr>
-                                <td colspan="32" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="33" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -224,22 +229,22 @@
                     <table class="w-full">
                         <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
-                                <th class="px-3 py-2 text-right">allocation_id</th>
-                                <th class="px-3 py-2 text-right">payment_id</th>
-                                <th class="px-3 py-2 text-right">payment_number</th>
-                                <th class="px-3 py-2 text-right">payment_date</th>
-                                <th class="px-3 py-2 text-right">payment_amount</th>
-                                <th class="px-3 py-2 text-right">payment_method</th>
-                                <th class="px-3 py-2 text-right">payment_status</th>
-                                <th class="px-3 py-2 text-right">invoice_id</th>
-                                <th class="px-3 py-2 text-right">invoice_number</th>
-                                <th class="px-3 py-2 text-right">invoice_date</th>
-                                <th class="px-3 py-2 text-right">invoice_status</th>
-                                <th class="px-3 py-2 text-right">customer_id</th>
-                                <th class="px-3 py-2 text-right">customer_name_ar</th>
-                                <th class="px-3 py-2 text-right">customer_name_en</th>
-                                <th class="px-3 py-2 text-right">allocated_amount</th>
-                                <th class="px-3 py-2 text-right">created_at</th>
+                                <th class="px-3 py-2 text-right">معرّف التوزيع</th>
+                                <th class="px-3 py-2 text-right">معرّف الدفعة</th>
+                                <th class="px-3 py-2 text-right">رقم الدفعة</th>
+                                <th class="px-3 py-2 text-right">تاريخ الدفعة</th>
+                                <th class="px-3 py-2 text-right">مبلغ الدفعة</th>
+                                <th class="px-3 py-2 text-right">طريقة الدفع</th>
+                                <th class="px-3 py-2 text-right">حالة الدفعة</th>
+                                <th class="px-3 py-2 text-right">معرّف الفاتورة</th>
+                                <th class="px-3 py-2 text-right">رقم الفاتورة</th>
+                                <th class="px-3 py-2 text-right">تاريخ الفاتورة</th>
+                                <th class="px-3 py-2 text-right">حالة الفاتورة</th>
+                                <th class="px-3 py-2 text-right">رقم العميل</th>
+                                <th class="px-3 py-2 text-right">اسم العميل (عربي)</th>
+                                <th class="px-3 py-2 text-right">اسم العميل (إنجليزي)</th>
+                                <th class="px-3 py-2 text-right">المبلغ الموزع</th>
+                                <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
                             </tr>
                         </thead>
                         <tbody id="allocTable" class="text-xs divide-y divide-gray-100">
@@ -256,19 +261,159 @@
         </div>
     </div>
 
+    <!-- Plan Form Modal -->
+    <div id="planModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-800" id="planModalTitle">إضافة خطة سداد</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('planModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="planForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="planId">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">رقم الخطة</label>
+                    <input id="planNumberInput" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">رقم العميل</label>
+                    <input id="customerId" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">رقم الفاتورة</label>
+                    <input id="invoiceId" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">تاريخ البداية</label>
+                    <input id="startDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">تاريخ النهاية</label>
+                    <input id="endDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">إجمالي المبلغ</label>
+                    <input id="totalAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">المبلغ المدفوع</label>
+                    <input id="paidAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-3" value="0">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">عدد الأقساط</label>
+                    <input id="installments" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">مبلغ القسط</label>
+                    <input id="installmentAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">دورية السداد</label>
+                    <select id="installmentFrequency" class="w-full border border-gray-300 rounded-lg px-4 py-3">
+                        <option value="MONTHLY">شهري</option>
+                        <option value="WEEKLY">أسبوعي</option>
+                        <option value="QUARTERLY">ربع سنوي</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">الحالة</label>
+                    <select id="statusField" class="w-full border border-gray-300 rounded-lg px-4 py-3">
+                        <option value="active">نشط</option>
+                        <option value="in_progress">قيد التنفيذ</option>
+                        <option value="completed">مكتمل</option>
+                        <option value="overdue">متأخر</option>
+                        <option value="cancelled">ملغي</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">تقييم المخاطر</label>
+                    <input id="riskScore" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3" placeholder="مثال: 75">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">مستوى المخاطر</label>
+                    <input id="riskLevel" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3" placeholder="LOW / MEDIUM / HIGH">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">الفرع</label>
+                    <input id="branchId" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3" value="BR001">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">الحاضنة</label>
+                    <input id="incubatorId" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-3" value="INC01">
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-3 mt-2">
+                    <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700" onclick="closeModal('planModal')">إلغاء</button>
+                    <button type="submit" class="px-6 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-800" id="detailsTitle">تفاصيل الخطة</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('detailsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="detailsContent" class="space-y-2 text-sm text-gray-800"></div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = 'HQ001';
+        const DEFAULT_BRANCH_ID = 'BR001';
+        const DEFAULT_INCUBATOR_ID = 'INC01';
+        const PLAN_STATUS_LABELS = {
+            active: 'نشط',
+            in_progress: 'قيد التنفيذ',
+            completed: 'مكتمل',
+            overdue: 'متأخر',
+            cancelled: 'ملغي'
+        };
+        const INVOICE_STATUS_LABELS = {
+            ISSUED: 'صادرة',
+            DRAFT: 'مسودة',
+            PAID: 'مدفوعة',
+            PARTIAL: 'مدفوعة جزئياً',
+            CANCELLED: 'ملغاة'
+        };
+        const PAYMENT_STATUS_LABELS = {
+            UNPAID: 'غير مدفوعة',
+            PARTIAL: 'مدفوعة جزئياً',
+            PAID: 'مدفوعة',
+            PENDING: 'قيد الانتظار',
+            COMPLETED: 'مكتملة',
+            completed: 'مكتملة',
+            APPROVED: 'معتمدة'
+        };
+        const PAYMENT_METHOD_LABELS = {
+            CASH: 'نقداً',
+            CARD: 'بطاقة',
+            BANK_TRANSFER: 'حوالة بنكية',
+            BANK: 'بنك'
+        };
+        const RISK_LEVEL_LABELS = {
+            LOW: 'منخفض',
+            MEDIUM: 'متوسط',
+            HIGH: 'مرتفع'
+        };
+        const FREQUENCY_LABELS = {
+            MONTHLY: 'شهري',
+            WEEKLY: 'أسبوعي',
+            QUARTERLY: 'ربع سنوي'
+        };
         let plans = [];
         let allocations = [];
         let statusChartInstance = null;
+        let currentPlanId = null;
 
         async function loadReport() {
             try {
                 const response = await fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`);
                 const data = await response.json();
 
-                if (!data.success) throw new Error(data.error || 'Failed to load report');
+                if (!data.success) throw new Error(data.error || 'تعذر تحميل التقرير');
 
                 plans = data.plans || [];
                 allocations = data.allocations || [];
@@ -282,7 +427,7 @@
                 console.error('❌ خطأ في تحميل التقرير:', error);
                 document.getElementById('plansTable').innerHTML = `
                     <tr>
-                        <td colspan="24" class="px-4 py-12 text-center text-red-500">
+                        <td colspan="33" class="px-4 py-12 text-center text-red-500">
                             <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                             <div>فشل تحميل بيانات الخطط</div>
                         </td>
@@ -294,7 +439,7 @@
         function applyFilters() {
             const params = new URLSearchParams({ entity_id: ENTITY_ID });
             const status = document.getElementById('status').value;
-            const planNumber = document.getElementById('planNumber').value;
+            const planNumber = document.getElementById('planNumberFilter').value;
             const customerName = document.getElementById('customerName').value;
             const invoiceNumber = document.getElementById('invoiceNumber').value;
             const fromDate = document.getElementById('fromDate').value;
@@ -310,7 +455,7 @@
             fetch(`${API_BASE}/finance/payment-plans?${params.toString()}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (!data.success) throw new Error(data.error || 'Failed to load report');
+                    if (!data.success) throw new Error(data.error || 'تعذر تحميل التقرير');
                     plans = data.plans || [];
                     allocations = data.allocations || [];
                     renderSummary(data.summary || {});
@@ -324,7 +469,7 @@
 
         function resetFilters() {
             document.getElementById('status').value = '';
-            document.getElementById('planNumber').value = '';
+            document.getElementById('planNumberFilter').value = '';
             document.getElementById('customerName').value = '';
             document.getElementById('invoiceNumber').value = '';
             document.getElementById('fromDate').value = '';
@@ -352,8 +497,8 @@
                     <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
                     <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
-                    <td class="px-3 py-2">${r.invoice_status ?? '-'}</td>
-                    <td class="px-3 py-2">${r.invoice_payment_status ?? '-'}</td>
+                    <td class="px-3 py-2">${translateInvoiceStatus(r.invoice_status)}</td>
+                    <td class="px-3 py-2">${translatePaymentStatus(r.invoice_payment_status)}</td>
                     <td class="px-3 py-2">${formatDate(r.start_date)}</td>
                     <td class="px-3 py-2">${formatDate(r.end_date)}</td>
                     <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(r.total_amount)}</td>
@@ -361,10 +506,10 @@
                     <td class="px-3 py-2">${formatMoney(r.remaining_amount)}</td>
                     <td class="px-3 py-2">${r.number_of_installments ?? '-'}</td>
                     <td class="px-3 py-2">${formatMoney(r.installment_amount)}</td>
-                    <td class="px-3 py-2">${r.installment_frequency ?? '-'}</td>
-                    <td class="px-3 py-2">${r.status ?? '-'}</td>
+                    <td class="px-3 py-2">${translateFrequency(r.installment_frequency)}</td>
+                    <td class="px-3 py-2">${translatePlanStatus(r.status)}</td>
                     <td class="px-3 py-2">${r.risk_score_at_creation ?? '-'}</td>
-                    <td class="px-3 py-2">${r.risk_level_at_creation ?? '-'}</td>
+                    <td class="px-3 py-2">${translateRiskLevel(r.risk_level_at_creation)}</td>
                     <td class="px-3 py-2">${r.entity_type ?? '-'}</td>
                     <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.branch_id ?? '-'}</td>
@@ -374,12 +519,19 @@
                     <td class="px-3 py-2">${r.created_by ?? '-'}</td>
                     <td class="px-3 py-2">${r.approved_by ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(r.approved_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <button class="text-blue-600 hover:text-blue-800" title="معاينة" onclick="viewPlanById(${r.plan_id})"><i class="fas fa-eye"></i></button>
+                            <button class="text-emerald-600 hover:text-emerald-800" title="تعديل" onclick="openPlanModalById(${r.plan_id})"><i class="fas fa-pen-to-square"></i></button>
+                            <button class="text-rose-600 hover:text-rose-800" title="حذف" onclick="deletePlan(${r.plan_id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('plansTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="24" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                    <td colspan="33" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('plansCount').textContent = `عدد الصفوف: ${rows.length}`;
@@ -393,12 +545,12 @@
                     <td class="px-3 py-2">${r.payment_number ?? '-'}</td>
                     <td class="px-3 py-2">${formatDate(r.payment_date)}</td>
                     <td class="px-3 py-2">${formatMoney(r.payment_amount)}</td>
-                    <td class="px-3 py-2">${r.payment_method ?? '-'}</td>
-                    <td class="px-3 py-2">${r.payment_status ?? '-'}</td>
+                    <td class="px-3 py-2">${translatePaymentMethod(r.payment_method)}</td>
+                    <td class="px-3 py-2">${translatePaymentStatus(r.payment_status)}</td>
                     <td class="px-3 py-2">${r.invoice_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.invoice_number ?? '-'}</td>
                     <td class="px-3 py-2">${formatDate(r.invoice_date)}</td>
-                    <td class="px-3 py-2">${r.invoice_status ?? '-'}</td>
+                    <td class="px-3 py-2">${translateInvoiceStatus(r.invoice_status)}</td>
                     <td class="px-3 py-2">${r.customer_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.customer_name_ar ?? '-'}</td>
                     <td class="px-3 py-2">${r.customer_name_en ?? '-'}</td>
@@ -417,8 +569,9 @@
 
         function renderCharts(summary) {
             const statusData = summary.by_status || {};
-            const statusLabels = Object.keys(statusData);
-            const statusValues = statusLabels.map(k => statusData[k]);
+            const statusKeys = Object.keys(statusData);
+            const statusLabels = statusKeys.map(k => PLAN_STATUS_LABELS[k] || PLAN_STATUS_LABELS[k.toLowerCase()] || k);
+            const statusValues = statusKeys.map(k => statusData[k]);
 
             const ctx = document.getElementById('statusChart').getContext('2d');
             if (statusChartInstance) statusChartInstance.destroy();
@@ -468,6 +621,169 @@
             `;
         }
 
+        function translatePlanStatus(value) {
+            if (!value) return '-';
+            return PLAN_STATUS_LABELS[value.toLowerCase()] || value;
+        }
+
+        function translateInvoiceStatus(value) {
+            if (!value) return '-';
+            return INVOICE_STATUS_LABELS[value] || INVOICE_STATUS_LABELS[value.toUpperCase()] || value;
+        }
+
+        function translatePaymentStatus(value) {
+            if (!value) return '-';
+            return PAYMENT_STATUS_LABELS[value] || PAYMENT_STATUS_LABELS[value.toUpperCase()] || value;
+        }
+
+        function translatePaymentMethod(value) {
+            if (!value) return '-';
+            return PAYMENT_METHOD_LABELS[value] || PAYMENT_METHOD_LABELS[value.toUpperCase()] || value;
+        }
+
+        function translateFrequency(value) {
+            if (!value) return '-';
+            return FREQUENCY_LABELS[value] || FREQUENCY_LABELS[value.toUpperCase()] || value;
+        }
+
+        function translateRiskLevel(value) {
+            if (!value) return '-';
+            return RISK_LEVEL_LABELS[value] || RISK_LEVEL_LABELS[value.toUpperCase()] || value;
+        }
+
+        function showModal(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+
+        function openPlanModal(plan) {
+            currentPlanId = plan?.plan_id || null;
+            document.getElementById('planModalTitle').textContent = currentPlanId ? 'تعديل خطة سداد' : 'إضافة خطة سداد';
+            document.getElementById('planId').value = plan?.plan_id || '';
+            document.getElementById('planNumberInput').value = plan?.plan_number || `خطة-${Date.now()}`;
+            document.getElementById('customerId').value = plan?.customer_id || '';
+            document.getElementById('invoiceId').value = plan?.invoice_id || '';
+            document.getElementById('startDate').value = plan?.start_date ? plan.start_date.slice(0, 10) : '';
+            document.getElementById('endDate').value = plan?.end_date ? plan.end_date.slice(0, 10) : '';
+            document.getElementById('totalAmount').value = plan?.total_amount || '';
+            document.getElementById('paidAmount').value = plan?.paid_amount || 0;
+            document.getElementById('installments').value = plan?.number_of_installments || '';
+            document.getElementById('installmentAmount').value = plan?.installment_amount || '';
+            document.getElementById('installmentFrequency').value = plan?.installment_frequency || 'MONTHLY';
+            document.getElementById('statusField').value = plan?.status || 'active';
+            document.getElementById('riskScore').value = plan?.risk_score_at_creation || '';
+            document.getElementById('riskLevel').value = plan?.risk_level_at_creation || '';
+            document.getElementById('branchId').value = plan?.branch_id || DEFAULT_BRANCH_ID;
+            document.getElementById('incubatorId').value = plan?.incubator_id || DEFAULT_INCUBATOR_ID;
+            showModal('planModal');
+        }
+
+        function openPlanModalById(planId) {
+            const plan = plans.find(p => p.plan_id === planId);
+            openPlanModal(plan);
+        }
+
+        function viewPlan(plan) {
+            if (!plan) return;
+            const details = [
+                ['رقم الخطة', plan.plan_number],
+                ['رقم الفاتورة', plan.invoice_number || plan.invoice_id],
+                ['العميل', plan.customer_name_ar || plan.customer_name_en || plan.customer_id],
+                ['إجمالي المبلغ', formatMoney(plan.total_amount)],
+                ['المدفوع', formatMoney(plan.paid_amount)],
+                ['المتبقي', formatMoney(plan.remaining_amount)],
+                ['عدد الأقساط', plan.number_of_installments],
+                ['مبلغ القسط', formatMoney(plan.installment_amount)],
+                ['الدورية', translateFrequency(plan.installment_frequency)],
+                ['الحالة', translatePlanStatus(plan.status)],
+                ['تاريخ البدء', formatDate(plan.start_date)],
+                ['تاريخ النهاية', formatDate(plan.end_date)],
+                ['المخاطر', translateRiskLevel(plan.risk_level_at_creation)],
+                ['المستخدم المنشئ', plan.created_by || '-'],
+                ['آخر تحديث', formatDateTime(plan.updated_at)]
+            ];
+
+            document.getElementById('detailsContent').innerHTML = details.map(([label, value]) => `
+                <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+                    <span class="font-semibold text-gray-700">${label}</span>
+                    <span class="text-gray-900">${value ?? '-'}</span>
+                </div>
+            `).join('');
+
+            showModal('detailsModal');
+        }
+
+        function viewPlanById(planId) {
+            const plan = plans.find(p => p.plan_id === planId);
+            viewPlan(plan);
+        }
+
+        async function savePlan(event) {
+            event.preventDefault();
+
+            const payload = {
+                plan_number: document.getElementById('planNumberInput').value.trim(),
+                customer_id: Number(document.getElementById('customerId').value),
+                invoice_id: Number(document.getElementById('invoiceId').value),
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value || null,
+                total_amount: parseFloat(document.getElementById('totalAmount').value || 0),
+                paid_amount: parseFloat(document.getElementById('paidAmount').value || 0),
+                number_of_installments: Number(document.getElementById('installments').value || 0),
+                installment_amount: parseFloat(document.getElementById('installmentAmount').value || 0),
+                installment_frequency: document.getElementById('installmentFrequency').value,
+                status: document.getElementById('statusField').value,
+                risk_score_at_creation: document.getElementById('riskScore').value || null,
+                risk_level_at_creation: document.getElementById('riskLevel').value || null,
+                entity_type: 'HQ',
+                entity_id: ENTITY_ID,
+                branch_id: document.getElementById('branchId').value || null,
+                incubator_id: document.getElementById('incubatorId').value || null,
+                created_by: 'dashboard'
+            };
+
+            const method = currentPlanId ? 'PUT' : 'POST';
+            const url = currentPlanId ? `${API_BASE}/finance/payment-plans/${currentPlanId}` : `${API_BASE}/finance/payment-plans`;
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            if (!result.success) {
+                alert(result.error || 'فشل حفظ الخطة');
+                return;
+            }
+
+            closeModal('planModal');
+            await loadReport();
+        }
+
+        async function deletePlan(planId) {
+            if (!planId) return;
+            const confirmDelete = confirm('هل أنت متأكد من حذف الخطة؟');
+            if (!confirmDelete) return;
+
+            const res = await fetch(`${API_BASE}/finance/payment-plans/${planId}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (!result.success) {
+                alert(result.error || 'فشل حذف الخطة');
+                return;
+            }
+            await loadReport();
+        }
+
         function formatMoney(value) {
             const num = parseFloat(value || 0);
             return num.toLocaleString('ar-SA') + ' ر.س';
@@ -485,8 +801,8 @@
 
         function downloadCSV() {
             const rows = [
-                ['PAYMENT PLANS TABLE'],
-                ['plan_id','plan_number','customer_id','customer_name_ar','customer_name_en','customer_code','customer_type','invoice_id','invoice_number','invoice_date','invoice_status','invoice_payment_status','start_date','end_date','total_amount','paid_amount','remaining_amount','number_of_installments','installment_amount','installment_frequency','status','risk_score_at_creation','risk_level_at_creation','entity_type','entity_id','branch_id','incubator_id','created_at','updated_at','created_by','approved_by','approved_at']
+                ['جدول خطط السداد'],
+                ['معرّف الخطة','رقم الخطة','رقم العميل','اسم العميل (عربي)','اسم العميل (إنجليزي)','كود العميل','نوع العميل','رقم الفاتورة','رقم الفاتورة الداخلي','تاريخ الفاتورة','حالة الفاتورة','حالة السداد للفاتورة','تاريخ البداية','تاريخ النهاية','إجمالي المبلغ','المبلغ المدفوع','المتبقي','عدد الأقساط','مبلغ القسط','دورية السداد','حالة الخطة','درجة المخاطر','مستوى المخاطر','نوع الكيان','معرّف الكيان','الفرع','الحاضنة','تاريخ الإنشاء','آخر تحديث','منشأ بواسطة','مُعتمد بواسطة','تاريخ الاعتماد']
             ];
             plans.forEach(p => rows.push([
                 p.plan_id, p.plan_number, p.customer_id, p.customer_name_ar, p.customer_name_en, p.customer_code,
@@ -498,8 +814,8 @@
             ]));
 
             rows.push([]);
-            rows.push(['ALLOCATIONS TABLE']);
-            rows.push(['allocation_id','payment_id','payment_number','payment_date','payment_amount','payment_method','payment_status','invoice_id','invoice_number','invoice_date','invoice_status','customer_id','customer_name_ar','customer_name_en','allocated_amount','created_at']);
+            rows.push(['جدول التوزيعات']);
+            rows.push(['معرّف التوزيع','معرّف الدفعة','رقم الدفعة','تاريخ الدفعة','مبلغ الدفعة','طريقة الدفع','حالة الدفعة','معرّف الفاتورة','رقم الفاتورة','تاريخ الفاتورة','حالة الفاتورة','رقم العميل','اسم العميل (عربي)','اسم العميل (إنجليزي)','المبلغ الموزع','تاريخ الإنشاء']);
             allocations.forEach(a => rows.push([
                 a.allocation_id, a.payment_id, a.payment_number, a.payment_date, a.payment_amount, a.payment_method,
                 a.payment_status, a.invoice_id, a.invoice_number, a.invoice_date, a.invoice_status, a.customer_id,
@@ -511,7 +827,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'payment-plans-report.csv';
+            link.download = 'تقرير-خطط-السداد.csv';
             link.click();
             URL.revokeObjectURL(url);
         }
@@ -522,7 +838,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'payment-plans-report.json';
+            link.download = 'تقرير-خطط-السداد.json';
             link.click();
             URL.revokeObjectURL(url);
         }
@@ -535,7 +851,11 @@
             loadReport();
         }
 
-        document.addEventListener('DOMContentLoaded', loadReport);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReport();
+            const form = document.getElementById('planForm');
+            if (form) form.addEventListener('submit', savePlan);
+        });
     </script>
 </body>
 </html>

@@ -190,7 +190,154 @@ async function testConnection(req, res) {
     }
 }
 
+async function createPaymentPlan(req, res) {
+    try {
+        const {
+            plan_number,
+            customer_id,
+            invoice_id,
+            start_date,
+            end_date,
+            total_amount,
+            paid_amount = 0,
+            number_of_installments,
+            installment_amount,
+            installment_frequency = 'MONTHLY',
+            status = 'active',
+            risk_score_at_creation = null,
+            risk_level_at_creation = null,
+            entity_type = 'HQ',
+            entity_id = 'HQ001',
+            branch_id = null,
+            incubator_id = null,
+            created_by = 'system'
+        } = req.body || {};
+
+        if (!plan_number || !customer_id || !invoice_id || !start_date || !total_amount || !number_of_installments || !installment_amount) {
+            return res.status(400).json({ success: false, error: 'plan_number, customer_id, invoice_id, start_date, total_amount, number_of_installments, and installment_amount are required' });
+        }
+
+        const remaining_amount = parseFloat(total_amount) - parseFloat(paid_amount || 0);
+
+        const insertQuery = `
+            INSERT INTO finance_payment_plans (
+                plan_number, customer_id, invoice_id, start_date, end_date, total_amount, paid_amount, remaining_amount,
+                number_of_installments, installment_amount, installment_frequency, status, risk_score_at_creation, risk_level_at_creation,
+                entity_type, entity_id, branch_id, incubator_id, created_by
+            ) VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
+            )
+            ON CONFLICT (plan_number) DO UPDATE SET
+                customer_id = EXCLUDED.customer_id,
+                invoice_id = EXCLUDED.invoice_id,
+                start_date = EXCLUDED.start_date,
+                end_date = EXCLUDED.end_date,
+                total_amount = EXCLUDED.total_amount,
+                paid_amount = EXCLUDED.paid_amount,
+                remaining_amount = EXCLUDED.remaining_amount,
+                number_of_installments = EXCLUDED.number_of_installments,
+                installment_amount = EXCLUDED.installment_amount,
+                installment_frequency = EXCLUDED.installment_frequency,
+                status = EXCLUDED.status,
+                risk_score_at_creation = EXCLUDED.risk_score_at_creation,
+                risk_level_at_creation = EXCLUDED.risk_level_at_creation,
+                entity_type = EXCLUDED.entity_type,
+                entity_id = EXCLUDED.entity_id,
+                branch_id = EXCLUDED.branch_id,
+                incubator_id = EXCLUDED.incubator_id,
+                created_by = EXCLUDED.created_by,
+                updated_at = NOW()
+            RETURNING *;
+        `;
+
+        const result = await pool.query(insertQuery, [
+            plan_number,
+            customer_id,
+            invoice_id,
+            start_date,
+            end_date,
+            total_amount,
+            paid_amount,
+            remaining_amount,
+            number_of_installments,
+            installment_amount,
+            installment_frequency,
+            status,
+            risk_score_at_creation,
+            risk_level_at_creation,
+            entity_type,
+            entity_id,
+            branch_id,
+            incubator_id,
+            created_by
+        ]);
+
+        res.status(201).json({ success: true, plan: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating payment plan:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function updatePaymentPlan(req, res) {
+    try {
+        const { plan_id } = req.params;
+        if (!plan_id) return res.status(400).json({ success: false, error: 'plan_id is required' });
+
+        const fields = [
+            'plan_number', 'customer_id', 'invoice_id', 'start_date', 'end_date', 'total_amount', 'paid_amount',
+            'remaining_amount', 'number_of_installments', 'installment_amount', 'installment_frequency', 'status',
+            'risk_score_at_creation', 'risk_level_at_creation', 'entity_type', 'entity_id', 'branch_id', 'incubator_id', 'updated_at'
+        ];
+
+        const payload = { ...req.body, updated_at: new Date() };
+        const setClauses = [];
+        const values = [];
+        let idx = 1;
+
+        for (const field of fields) {
+            if (field in payload) {
+                setClauses.push(`${field} = $${idx}`);
+                values.push(payload[field]);
+                idx++;
+            }
+        }
+
+        if (!setClauses.length) {
+            return res.status(400).json({ success: false, error: 'No fields provided to update' });
+        }
+
+        values.push(plan_id);
+        const updateQuery = `UPDATE finance_payment_plans SET ${setClauses.join(', ')} WHERE plan_id = $${idx} RETURNING *`;
+        const result = await pool.query(updateQuery, values);
+
+        if (!result.rows.length) return res.status(404).json({ success: false, error: 'Plan not found' });
+        res.json({ success: true, plan: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating payment plan:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function deletePaymentPlan(req, res) {
+    try {
+        const { plan_id } = req.params;
+        if (!plan_id) return res.status(400).json({ success: false, error: 'plan_id is required' });
+
+        const result = await pool.query('DELETE FROM finance_payment_plans WHERE plan_id = $1 RETURNING plan_id', [plan_id]);
+        if (!result.rows.length) return res.status(404).json({ success: false, error: 'Plan not found' });
+
+        res.json({ success: true, deleted: result.rows[0].plan_id });
+    } catch (error) {
+        console.error('❌ Error deleting payment plan:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 module.exports = {
     getPaymentPlans,
-    testConnection
+    testConnection,
+    createPaymentPlan,
+    updatePaymentPlan,
+    deletePaymentPlan
 };

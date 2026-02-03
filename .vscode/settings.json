@@ -1085,6 +1085,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{\n  host: 'crossover\\.proxy\\.rlwy\\.net',\n  port: 44255,\n  database: 'railway',\n  user: 'postgres',\n  password: 'PddzJpAQYezqknsntSzmCUlQYuYJldcT',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\\(async \\(\\) => \\{\n  const \\{ rows \\} = await pool\\.query\\(`SELECT asset_id, asset_code, asset_name_ar, status FROM finance_fixed_assets WHERE entity_id='HQ001' ORDER BY asset_id ASC LIMIT 5`\\);\n  console\\.table\\(rows\\);\n  await pool\\.end\\(\\);\n\\}\\)\\(\\);\nNODE$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node - <<'NODE'\nconst \\{ Client \\} = require\\('pg'\\);\n\\(async \\(\\) => \\{\n  const client = new Client\\(\\{\n    connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n    ssl: \\{ rejectUnauthorized: false \\}\n  \\}\\);\n  await client\\.connect\\(\\);\n  const res = await client\\.query\\(`\n    SELECT column_name, data_type, is_nullable, column_default\n    FROM information_schema\\.columns\n    WHERE table_name = 'finance_budgets'\n    ORDER BY ordinal_position\n  `\\);\n  console\\.table\\(res\\.rows\\);\n  await client\\.end\\(\\);\n\\}\\)\\(\\);\nNODE$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
