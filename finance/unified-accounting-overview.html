@@ -59,11 +59,11 @@
             </button>
             <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-indigo-500 group">
                 <i class="fas fa-file-code"></i>
-                تنزيل JSON شامل
+                تنزيل ملف البيانات الشامل
             </button>
             <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
                 <i class="fas fa-file-csv"></i>
-                تنزيل CSV شامل
+                تنزيل ملف الجدول الشامل
             </button>
             <button onclick="printReport()" class="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print"></i>
@@ -110,11 +110,11 @@
             <h2 class="text-2xl font-bold text-slate-800 mb-6">🧭 الهيكل العام للنظام المحاسبي الشمولي (7 وحدات)</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="stat-card shape-pill bg-gradient-to-br from-sky-500 to-blue-600 text-white p-5">
-                    <div class="flex justify-between mb-3"><span>دفتر عام GL</span><i class="fas fa-book text-2xl opacity-70"></i></div>
+                    <div class="flex justify-between mb-3"><span>دفتر عام</span><i class="fas fa-book text-2xl opacity-70"></i></div>
                     <a href="/finance/journal.html" class="text-sm underline">فتح الوحدة</a>
                 </div>
                 <div class="stat-card shape-angle bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-5">
-                    <div class="flex justify-between mb-3"><span>الذمم AR/AP</span><i class="fas fa-file-invoice-dollar text-2xl opacity-70"></i></div>
+                    <div class="flex justify-between mb-3"><span>الذمم والتحصيل</span><i class="fas fa-file-invoice-dollar text-2xl opacity-70"></i></div>
                     <a href="/finance/receivables-collections.html" class="text-sm underline">فتح الوحدة</a>
                 </div>
                 <div class="stat-card shape-wave bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5">
@@ -331,7 +331,7 @@
                 <summary class="text-xl font-bold text-slate-800">📊 القوائم المالية</summary>
                 <div class="mt-4 space-y-6">
                     <div>
-                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">الميزانية العمومية (Sheet)</h4><span id="sheetCount" class="text-sm text-slate-500"></span></div>
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">الميزانية العمومية</h4><span id="sheetCount" class="text-sm text-slate-500"></span></div>
                         <div class="table-scroll"><table class="w-full text-xs"><thead id="sheetHead" class="bg-amber-50 text-amber-700"></thead><tbody id="sheetTable" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                     <div>
@@ -361,8 +361,9 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const PRIMARY_ENTITY_ID = '1';
-        const SECONDARY_ENTITY_ID = 'HQ001';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const ENTITY_TYPE = window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ';
+        const FALLBACK_ENTITY_ID = 'HQ001';
 
         let dataStore = {
             entries: [],
@@ -392,8 +393,13 @@
         let coverageChartInstance = null;
         let budgetVarianceChartInstance = null;
 
-        async function fetchJson(url) {
-            const res = await fetch(url);
+        function getFinanceHeaders() {
+            return window.getFinanceHeaders ? window.getFinanceHeaders() : { 'x-entity-id': ENTITY_ID, 'x-entity-type': ENTITY_TYPE };
+        }
+
+        async function fetchJson(url, options = {}) {
+            const headers = { ...(options.headers || {}), ...getFinanceHeaders() };
+            const res = await fetch(url, { ...options, headers });
             const data = await res.json();
             return { ok: res.ok, status: res.status, data };
         }
@@ -414,20 +420,20 @@
         async function loadData() {
             try {
                 const [journalRes, linesRes, balancesRes, expensesRes, fixedRes, budgetsRes, cashflowRes, forecastRes, riskRes, bsRes, incomeRes, invoicesRes, paymentsRes, arRes] = await Promise.all([
-                    fetchWithFallback(`${API_BASE}/finance/journal/entries?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/journal/entries?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/journal-lines?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/journal-lines?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/account-balances?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/account-balances?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/expenses?entity_id=${SECONDARY_ENTITY_ID}`, `${API_BASE}/finance/expenses?entity_id=${PRIMARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/fixed-assets?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/fixed-assets?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/budgets?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/budgets?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/cashflow/operating?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/operating?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/ai-forecasts?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/ai-forecasts?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/ai-risk-scores?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/ai-risk-scores?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/balance-sheet/complete?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/balance-sheet/complete?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchWithFallback(`${API_BASE}/finance/income-statement?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/income-statement?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/invoices`),
-                    fetchJson(`${API_BASE}/finance/payments`),
-                    fetchWithFallback(`${API_BASE}/finance/ar-aging?entity_id=${SECONDARY_ENTITY_ID}`, `${API_BASE}/finance/ar-aging?entity_id=${PRIMARY_ENTITY_ID}`)
+                    fetchWithFallback(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/journal/entries?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/journal-lines?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/journal-lines?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/account-balances?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/account-balances?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/expenses?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/expenses?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/fixed-assets?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/fixed-assets?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/budgets?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/budgets?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/cashflow/operating?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/cashflow/operating?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/ai-forecasts?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/ai-risk-scores?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/balance-sheet/complete?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/balance-sheet/complete?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/income-statement?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/income-statement?entity_id=${FALLBACK_ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/invoices?entity_id=${ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`),
+                    fetchWithFallback(`${API_BASE}/finance/ar-aging?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/ar-aging?entity_id=${FALLBACK_ENTITY_ID}`)
                 ]);
 
                 dataStore.entries = journalRes.data.entries || [];
@@ -442,9 +448,9 @@
                 dataStore.budgetVariances = budgetsRes.data.variances || [];
 
                 const cashflowOperating = cashflowRes.data.cashflows || [];
-                const investingRes = await fetchWithFallback(`${API_BASE}/finance/cashflow/investing?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/investing?entity_id=${SECONDARY_ENTITY_ID}`);
-                const financingRes = await fetchWithFallback(`${API_BASE}/finance/cashflow/financing?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/financing?entity_id=${SECONDARY_ENTITY_ID}`);
-                const overviewRes = await fetchWithFallback(`${API_BASE}/finance/cashflow/overview?entity_id=${PRIMARY_ENTITY_ID}`, `${API_BASE}/finance/cashflow/overview?entity_id=${SECONDARY_ENTITY_ID}`);
+                const investingRes = await fetchWithFallback(`${API_BASE}/finance/cashflow/investing?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/cashflow/investing?entity_id=${FALLBACK_ENTITY_ID}`);
+                const financingRes = await fetchWithFallback(`${API_BASE}/finance/cashflow/financing?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/cashflow/financing?entity_id=${FALLBACK_ENTITY_ID}`);
+                const overviewRes = await fetchWithFallback(`${API_BASE}/finance/cashflow/overview?entity_id=${ENTITY_ID}`, `${API_BASE}/finance/cashflow/overview?entity_id=${FALLBACK_ENTITY_ID}`);
 
                 dataStore.cashflow = mergeCashflows(cashflowOperating, investingRes.data.cashflows || [], financingRes.data.cashflows || []);
                 dataStore.forecasts = forecastRes.data.forecasts || [];
@@ -529,56 +535,316 @@
             });
         }
 
+        const TABLE_CONFIGS = {
+            entries: { endpoint: '/finance/journal/entries', idField: 'entry_id' },
+            lines: { endpoint: '/finance/journal-lines', idField: 'line_id' },
+            balances: { readOnly: true },
+            invoices: { endpoint: '/finance/invoices', idField: 'invoice_id' },
+            payments: { endpoint: '/finance/payments', idField: 'payment_id' },
+            arAging: { endpoint: '/finance/ar-aging/invoices', idField: 'invoice_id' },
+            expenses: { endpoint: '/finance/expenses', idField: 'expense_id' },
+            vendors: { endpoint: '/finance/vendors', idField: 'vendor_id' },
+            fixedAssets: { endpoint: '/finance/fixed-assets', idField: 'asset_id' },
+            depreciation: { endpoint: '/finance/fixed-assets/depreciation', idField: 'depreciation_id' },
+            budgets: { endpoint: '/finance/budgets', idField: 'budget_id' },
+            budgetLines: { endpoint: '/finance/budget-lines', idField: 'line_id' },
+            budgetVariances: { endpoint: '/finance/budget-variances', idField: 'variance_id' },
+            cashflow: { readOnly: true },
+            forecasts: { endpoint: '/finance/ai-forecasts', idField: 'forecast_id' },
+            riskScores: { endpoint: '/finance/ai-risk-scores', idField: 'risk_id' },
+            balanceSheet: { readOnly: true },
+            balanceSheetAssets: { readOnly: true },
+            balanceSheetLiabilities: { readOnly: true },
+            balanceSheetEquity: { readOnly: true },
+            incomeRevenue: { readOnly: true },
+            incomeExpense: { readOnly: true }
+        };
+
+        const COLUMN_LABELS = {
+            entry_id: 'معرّف القيد',
+            entry_number: 'رقم القيد',
+            entry_date: 'تاريخ القيد',
+            entry_type: 'نوع القيد',
+            description: 'الوصف',
+            reference_number: 'رقم المرجع',
+            reference_type: 'نوع المرجع',
+            reference_id: 'معرّف المرجع',
+            status: 'الحالة',
+            created_at: 'تاريخ الإنشاء',
+            updated_at: 'تاريخ التحديث',
+            posted_at: 'تاريخ الترحيل',
+            posted_by: 'مرحل بواسطة',
+            line_id: 'معرّف السطر',
+            line_number: 'رقم السطر',
+            account_id: 'معرّف الحساب',
+            account_code: 'كود الحساب',
+            account_name_ar: 'اسم الحساب بالعربية',
+            account_name_en: 'اسم الحساب بالإنجليزية',
+            debit_amount: 'المبلغ المدين',
+            credit_amount: 'المبلغ الدائن',
+            balance: 'الرصيد',
+            customer_id: 'معرّف العميل',
+            customer_code: 'كود العميل',
+            customer_name_ar: 'اسم العميل بالعربية',
+            customer_name_en: 'اسم العميل بالإنجليزية',
+            customer_name: 'اسم العميل',
+            invoice_id: 'معرّف الفاتورة',
+            invoice_number: 'رقم الفاتورة',
+            invoice_date: 'تاريخ الفاتورة',
+            due_date: 'تاريخ الاستحقاق',
+            total_amount: 'إجمالي المبلغ',
+            paid_amount: 'المبلغ المدفوع',
+            remaining_amount: 'المبلغ المتبقي',
+            payment_status: 'حالة السداد',
+            payment_id: 'معرّف الدفعة',
+            payment_number: 'رقم الدفعة',
+            payment_date: 'تاريخ السداد',
+            payment_amount: 'مبلغ السداد',
+            payment_method: 'طريقة السداد',
+            payment_type: 'نوع السداد',
+            bank_name: 'اسم البنك',
+            check_number: 'رقم الشيك',
+            transaction_reference: 'مرجع العملية',
+            vendor_id: 'معرّف المورد',
+            vendor_name: 'اسم المورد',
+            expense_id: 'معرّف المصروف',
+            expense_date: 'تاريخ المصروف',
+            expense_amount: 'مبلغ المصروف',
+            category: 'الفئة',
+            asset_id: 'معرّف الأصل',
+            asset_name: 'اسم الأصل',
+            acquisition_date: 'تاريخ الاستحواذ',
+            acquisition_cost: 'تكلفة الاستحواذ',
+            depreciation_id: 'معرّف الإهلاك',
+            depreciation_date: 'تاريخ الإهلاك',
+            depreciation_amount: 'مبلغ الإهلاك',
+            budget_id: 'معرّف الميزانية',
+            budget_name: 'اسم الميزانية',
+            fiscal_year: 'السنة المالية',
+            fiscal_period: 'الفترة المالية',
+            budgeted_amount: 'مبلغ الميزانية',
+            actual_amount: 'المبلغ الفعلي',
+            variance_amount: 'مبلغ الانحراف',
+            variance_percentage: 'نسبة الانحراف',
+            variance_id: 'معرّف الانحراف',
+            forecast_id: 'معرّف التوقع',
+            forecast_date: 'تاريخ التوقع',
+            forecast_amount: 'مبلغ التوقع',
+            risk_id: 'معرّف المخاطر',
+            risk_score: 'درجة المخاطر',
+            risk_level: 'مستوى المخاطر',
+            assessment_date: 'تاريخ التقييم',
+            model_version: 'إصدار النموذج',
+            entity_type: 'نوع الكيان',
+            entity_id: 'معرّف الكيان',
+            branch_id: 'معرّف الفرع',
+            incubator_id: 'معرّف الحاضنة',
+            platform_id: 'معرّف المنصة',
+            office_id: 'معرّف المكتب',
+            notes: 'ملاحظات'
+        };
+
+        const STATUS_LABELS = {
+            APPROVED: 'معتمدة',
+            COMPLETED: 'مكتملة',
+            PENDING: 'معلقة',
+            CANCELLED: 'ملغاة',
+            FAILED: 'فاشلة',
+            PAID: 'مدفوعة',
+            UNPAID: 'غير مدفوعة',
+            PARTIAL: 'مدفوعة جزئياً',
+            DRAFT: 'مسودة',
+            ISSUED: 'مصدرة',
+            OVERDUE: 'متأخرة',
+            ACTIVE: 'نشطة',
+            INACTIVE: 'غير نشطة',
+            OPEN: 'مفتوحة',
+            CLOSED: 'مغلقة',
+            HIGH: 'مرتفع',
+            MEDIUM: 'متوسط',
+            LOW: 'منخفض',
+            MONTHLY: 'شهري',
+            WEEKLY: 'أسبوعي',
+            QUARTERLY: 'ربع سنوي',
+            YEARLY: 'سنوي',
+            HQ: 'الإدارة العامة',
+            BRANCH: 'فرع',
+            INCUBATOR: 'حاضنة',
+            PLATFORM: 'منصة',
+            OFFICE: 'مكتب'
+        };
+
+        const PAYMENT_METHOD_LABELS = {
+            CASH: 'نقدي',
+            BANK: 'تحويل بنكي',
+            CARD: 'بطاقة',
+            CHECK: 'شيك',
+            ONLINE: 'دفع إلكتروني'
+        };
+
+        const PAYMENT_TYPE_LABELS = {
+            FULL: 'كاملة',
+            PARTIAL: 'جزئية',
+            ADVANCE: 'مقدمة'
+        };
+
+        const WORD_TRANSLATIONS = {
+            id: 'معرّف',
+            number: 'رقم',
+            date: 'تاريخ',
+            due: 'استحقاق',
+            customer: 'عميل',
+            name: 'اسم',
+            ar: 'عربي',
+            en: 'إنجليزي',
+            type: 'نوع',
+            status: 'حالة',
+            payment: 'سداد',
+            amount: 'مبلغ',
+            total: 'إجمالي',
+            paid: 'مدفوع',
+            remaining: 'متبقي',
+            notes: 'ملاحظات',
+            created: 'إنشاء',
+            updated: 'تحديث',
+            approved: 'اعتماد',
+            cancelled: 'إلغاء',
+            reason: 'سبب',
+            branch: 'فرع',
+            incubator: 'حاضنة',
+            platform: 'منصة',
+            office: 'مكتب',
+            account: 'حساب',
+            balance: 'رصيد',
+            debit: 'مدين',
+            credit: 'دائن',
+            description: 'وصف',
+            quantity: 'كمية',
+            price: 'سعر',
+            tax: 'ضريبة',
+            discount: 'خصم',
+            risk: 'مخاطر',
+            score: 'درجة',
+            level: 'مستوى',
+            forecast: 'توقع',
+            budget: 'ميزانية',
+            variance: 'انحراف',
+            cashflow: 'تدفق',
+            asset: 'أصل',
+            depreciation: 'إهلاك',
+            journal: 'قيد',
+            entry: 'يومية',
+            line: 'سطر',
+            code: 'كود',
+            method: 'طريقة',
+            frequency: 'تكرار',
+            period: 'فترة',
+            year: 'سنة',
+            month: 'شهر',
+            bank: 'بنك',
+            check: 'شيك',
+            reference: 'مرجع',
+            entity: 'كيان',
+            program: 'برنامج',
+            service: 'خدمة',
+            category: 'فئة',
+            invoice: 'فاتورة',
+            vendor: 'مورد',
+            expense: 'مصروف',
+            revenue: 'إيراد',
+            equity: 'حقوق الملكية',
+            liability: 'التزام',
+            income: 'دخل',
+            model: 'نموذج',
+            version: 'إصدار',
+            actions: 'إجراءات'
+        };
+
+        const TABLE_ROWS_MAP = {};
+        const TABLE_COLUMNS_MAP = {};
+
         function renderTables() {
-            renderDynamicTable('entriesHead', 'entriesTable', dataStore.entries, 'entriesCount');
-            renderDynamicTable('linesHead', 'linesTable', dataStore.lines, 'linesCount');
-            renderDynamicTable('balancesHead', 'balancesTable', dataStore.balances, 'balancesCount');
+            renderDynamicTable('entriesHead', 'entriesTable', dataStore.entries, 'entriesCount', 'entries');
+            renderDynamicTable('linesHead', 'linesTable', dataStore.lines, 'linesCount', 'lines');
+            renderDynamicTable('balancesHead', 'balancesTable', dataStore.balances, 'balancesCount', 'balances');
 
-            renderDynamicTable('invoicesHead', 'invoicesTable', dataStore.invoices, 'invoicesCount');
-            renderDynamicTable('paymentsHead', 'paymentsTable', dataStore.payments, 'paymentsCount');
-            renderDynamicTable('arHead', 'arTable', dataStore.arAging, 'arCount');
+            renderDynamicTable('invoicesHead', 'invoicesTable', dataStore.invoices, 'invoicesCount', 'invoices');
+            renderDynamicTable('paymentsHead', 'paymentsTable', dataStore.payments, 'paymentsCount', 'payments');
+            renderDynamicTable('arHead', 'arTable', dataStore.arAging, 'arCount', 'arAging');
 
-            renderDynamicTable('expensesHead', 'expensesTable', dataStore.expenses, 'expensesCount');
-            renderDynamicTable('vendorsHead', 'vendorsTable', dataStore.vendors, 'vendorsCount');
+            renderDynamicTable('expensesHead', 'expensesTable', dataStore.expenses, 'expensesCount', 'expenses');
+            renderDynamicTable('vendorsHead', 'vendorsTable', dataStore.vendors, 'vendorsCount', 'vendors');
 
-            renderDynamicTable('fixedAssetsHead', 'fixedAssetsTable', dataStore.fixedAssets, 'fixedAssetsCount');
-            renderDynamicTable('depreciationHead', 'depreciationTable', dataStore.depreciation, 'depreciationCount');
+            renderDynamicTable('fixedAssetsHead', 'fixedAssetsTable', dataStore.fixedAssets, 'fixedAssetsCount', 'fixedAssets');
+            renderDynamicTable('depreciationHead', 'depreciationTable', dataStore.depreciation, 'depreciationCount', 'depreciation');
 
-            renderDynamicTable('budgetsHead', 'budgetsTable', dataStore.budgets, 'budgetsCount');
-            renderDynamicTable('budgetLinesHead', 'budgetLinesTable', dataStore.budgetLines, 'budgetLinesCount');
-            renderDynamicTable('budgetVarianceHead', 'budgetVarianceTable', dataStore.budgetVariances, 'budgetVarianceCount');
+            renderDynamicTable('budgetsHead', 'budgetsTable', dataStore.budgets, 'budgetsCount', 'budgets');
+            renderDynamicTable('budgetLinesHead', 'budgetLinesTable', dataStore.budgetLines, 'budgetLinesCount', 'budgetLines');
+            renderDynamicTable('budgetVarianceHead', 'budgetVarianceTable', dataStore.budgetVariances, 'budgetVarianceCount', 'budgetVariances');
 
-            renderDynamicTable('cashflowHead', 'cashflowTable', dataStore.cashflow, 'cashflowCount');
-            renderDynamicTable('forecastHead', 'forecastTable', dataStore.forecasts, 'forecastCount');
+            renderDynamicTable('cashflowHead', 'cashflowTable', dataStore.cashflow, 'cashflowCount', 'cashflow');
+            renderDynamicTable('forecastHead', 'forecastTable', dataStore.forecasts, 'forecastCount', 'forecasts');
 
-            renderDynamicTable('riskHead', 'riskTable', dataStore.riskScores, 'riskCount');
+            renderDynamicTable('riskHead', 'riskTable', dataStore.riskScores, 'riskCount', 'riskScores');
 
-            renderDynamicTable('sheetHead', 'sheetTable', dataStore.balanceSheet ? [dataStore.balanceSheet] : [], 'sheetCount');
-            renderDynamicTable('bsAssetsHead', 'bsAssetsTable', dataStore.balanceSheetAssets, 'bsAssetsCount');
-            renderDynamicTable('bsLiabilitiesHead', 'bsLiabilitiesTable', dataStore.balanceSheetLiabilities, 'bsLiabilitiesCount');
-            renderDynamicTable('bsEquityHead', 'bsEquityTable', dataStore.balanceSheetEquity, 'bsEquityCount');
-            renderDynamicTable('incomeRevenueHead', 'incomeRevenueTable', dataStore.incomeRevenue, 'incomeRevenueCount');
-            renderDynamicTable('incomeExpenseHead', 'incomeExpenseTable', dataStore.incomeExpenses, 'incomeExpenseCount');
+            renderDynamicTable('sheetHead', 'sheetTable', dataStore.balanceSheet ? [dataStore.balanceSheet] : [], 'sheetCount', 'balanceSheet');
+            renderDynamicTable('bsAssetsHead', 'bsAssetsTable', dataStore.balanceSheetAssets, 'bsAssetsCount', 'balanceSheetAssets');
+            renderDynamicTable('bsLiabilitiesHead', 'bsLiabilitiesTable', dataStore.balanceSheetLiabilities, 'bsLiabilitiesCount', 'balanceSheetLiabilities');
+            renderDynamicTable('bsEquityHead', 'bsEquityTable', dataStore.balanceSheetEquity, 'bsEquityCount', 'balanceSheetEquity');
+            renderDynamicTable('incomeRevenueHead', 'incomeRevenueTable', dataStore.incomeRevenue, 'incomeRevenueCount', 'incomeRevenue');
+            renderDynamicTable('incomeExpenseHead', 'incomeExpenseTable', dataStore.incomeExpenses, 'incomeExpenseCount', 'incomeExpense');
         }
 
-        function renderDynamicTable(headId, bodyId, rows, countId) {
+        function renderDynamicTable(headId, bodyId, rows, countId, tableKey) {
             const head = document.getElementById(headId);
             const body = document.getElementById(bodyId);
             const count = document.getElementById(countId);
+            const config = TABLE_CONFIGS[tableKey] || { readOnly: true };
 
             count.textContent = `عدد الصفوف: ${rows.length}`;
+            const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
+            TABLE_ROWS_MAP[tableKey] = rows;
+            TABLE_COLUMNS_MAP[tableKey] = columns;
+
+            const addButton = config.readOnly
+                ? `<button class="px-3 py-1 rounded-lg border text-slate-400 cursor-not-allowed" disabled>إضافة</button>`
+                : `<button onclick="openAddModal('${tableKey}')" class="px-3 py-1 rounded-lg bg-slate-900 text-white">إضافة</button>`;
+
+            const headerLabels = columns.length
+                ? columns.map((c, idx) => `<th class="px-3 py-2 text-right">${getArabicLabel(c, idx)}</th>`).join('')
+                : '';
+
+            head.innerHTML = `
+                <tr>
+                    ${headerLabels}
+                    <th class="px-3 py-2 text-right">إجراءات</th>
+                </tr>
+                <tr>
+                    <th colspan="${columns.length + 1}" class="px-3 py-2 text-left">${addButton}</th>
+                </tr>
+            `;
+
             if (!rows.length) {
-                head.innerHTML = '';
-                body.innerHTML = `<tr><td class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+                body.innerHTML = `<tr><td colspan="${columns.length + 1}" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
                 return;
             }
 
-            const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
-
-            head.innerHTML = `<tr>${columns.map(c => `<th class="px-3 py-2 text-right">${c}</th>`).join('')}</tr>`;
-            body.innerHTML = rows.map(row => `
+            body.innerHTML = rows.map((row, rowIndex) => `
                 <tr class="hover:bg-slate-50">
-                    ${columns.map(c => `<td class="px-3 py-2">${formatValue(row[c])}</td>`).join('')}
+                    ${columns.map(c => `<td class="px-3 py-2">${formatValue(row[c], c)}</td>`).join('')}
+                    <td class="px-3 py-2">
+                        <div class="flex gap-2">
+                            <button onclick="openViewModal('${tableKey}', ${rowIndex})" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="معاينة">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openEditModal('${tableKey}', ${rowIndex})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition ${config.readOnly ? 'opacity-50 cursor-not-allowed' : ''}" title="تعديل" ${config.readOnly ? 'disabled' : ''}>
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button onclick="deleteRow('${tableKey}', ${rowIndex})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition ${config.readOnly ? 'opacity-50 cursor-not-allowed' : ''}" title="حذف" ${config.readOnly ? 'disabled' : ''}>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -598,43 +864,349 @@
             return num.toLocaleString('ar-SA') + ' ر.س';
         }
 
-        function formatValue(value) {
+        function formatDateValue(value) {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return String(value);
+            return d.toLocaleDateString('ar-SA');
+        }
+
+        function formatDateTimeValue(value) {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return String(value);
+            return d.toLocaleString('ar-SA');
+        }
+
+        function translateValue(value) {
             if (value === null || value === undefined || value === '') return '-';
+            const key = String(value).toUpperCase();
+            return STATUS_LABELS[key] || PAYMENT_METHOD_LABELS[key] || PAYMENT_TYPE_LABELS[key] || value;
+        }
+
+        function getArabicLabel(key, index) {
+            if (!key) return `حقل ${index + 1}`;
+            if (COLUMN_LABELS[key]) return COLUMN_LABELS[key];
+
+            if (key.endsWith('_en')) {
+                const base = key.replace(/_en$/, '');
+                return `${getArabicLabel(base, index)} بالإنجليزية`;
+            }
+            if (key.endsWith('_ar')) {
+                const base = key.replace(/_ar$/, '');
+                return `${getArabicLabel(base, index)} بالعربية`;
+            }
+
+            const parts = key.split('_');
+            const mapped = parts.map(part => WORD_TRANSLATIONS[part]).filter(Boolean);
+            if (!mapped.length) return `حقل ${index + 1}`;
+            return mapped.join(' ');
+        }
+
+        function formatValue(value, key) {
+            if (value === null || value === undefined || value === '') return '-';
+            if (key && /_en$/i.test(key)) return '-';
+
+            if (typeof value === 'boolean') return value ? 'نعم' : 'لا';
+
+            if (key && /(date|_at)$/i.test(key)) {
+                return key.endsWith('_at') ? formatDateTimeValue(value) : formatDateValue(value);
+            }
+
+            if (key && /(amount|total|paid|remaining|cost|price|value|balance|debit|credit)/i.test(key)) {
+                const num = parseFloat(value);
+                return Number.isFinite(num) ? formatMoney(num) : translateValue(value);
+            }
+
+            if (key && /(status|level|method|type)/i.test(key)) {
+                return translateValue(value);
+            }
+
             if (typeof value === 'number') return value.toLocaleString('ar-SA');
-            if (typeof value === 'boolean') return value ? 'true' : 'false';
-            if (typeof value === 'object') return JSON.stringify(value);
+            if (typeof value === 'object') return 'تفاصيل';
+            if (typeof value === 'string') {
+                const translated = translateValue(value);
+                if (typeof translated === 'string' && /[A-Za-z]/.test(translated)) return '-';
+                return translated;
+            }
             return String(value);
+        }
+
+        function createModal(title, contentHtml, footerHtml = '') {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 overflow-y-auto';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-6">
+                    <div class="p-5 border-b flex items-center justify-between">
+                        <h3 class="font-bold text-lg">${title}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="p-5 space-y-3 text-sm">${contentHtml}</div>
+                    ${footerHtml ? `<div class="p-5 border-t flex items-center justify-end gap-2">${footerHtml}</div>` : ''}
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function getEditableColumns(tableKey, columns) {
+            const config = TABLE_CONFIGS[tableKey] || {};
+            const excluded = new Set([
+                config.idField,
+                'created_at',
+                'updated_at',
+                'approved_at',
+                'cancelled_at',
+                'posted_at',
+                'posted_by'
+            ].filter(Boolean));
+            return columns.filter(col => !excluded.has(col));
+        }
+
+        function formatInputDate(value, withTime) {
+            if (!value) return '';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return '';
+            return withTime ? d.toISOString().slice(0, 16) : d.toISOString().slice(0, 10);
+        }
+
+        function buildInputField(key, value) {
+            const label = getArabicLabel(key, 0);
+            const isDateTime = key.endsWith('_at');
+            const isDate = !isDateTime && /date/i.test(key);
+            const isNumber = /amount|total|paid|remaining|cost|price|value|balance|debit|credit|score|count|ratio|percentage/i.test(key);
+
+            if (value && typeof value === 'object') {
+                return `
+                    <div>
+                        <label class="block mb-1 text-gray-600">${label}</label>
+                        <textarea data-field="${key}" data-type="json" class="w-full border rounded-lg px-3 py-2" rows="2">${JSON.stringify(value)}</textarea>
+                    </div>
+                `;
+            }
+
+            if (isDateTime) {
+                return `
+                    <div>
+                        <label class="block mb-1 text-gray-600">${label}</label>
+                        <input data-field="${key}" type="datetime-local" class="w-full border rounded-lg px-3 py-2" value="${formatInputDate(value, true)}">
+                    </div>
+                `;
+            }
+
+            if (isDate) {
+                return `
+                    <div>
+                        <label class="block mb-1 text-gray-600">${label}</label>
+                        <input data-field="${key}" type="date" class="w-full border rounded-lg px-3 py-2" value="${formatInputDate(value, false)}">
+                    </div>
+                `;
+            }
+
+            if (typeof value === 'boolean') {
+                return `
+                    <div>
+                        <label class="block mb-1 text-gray-600">${label}</label>
+                        <select data-field="${key}" class="w-full border rounded-lg px-3 py-2">
+                            <option value="true" ${value ? 'selected' : ''}>نعم</option>
+                            <option value="false" ${!value ? 'selected' : ''}>لا</option>
+                        </select>
+                    </div>
+                `;
+            }
+
+            return `
+                <div>
+                    <label class="block mb-1 text-gray-600">${label}</label>
+                    <input data-field="${key}" type="${isNumber ? 'number' : 'text'}" ${isNumber ? 'step="0.01"' : ''} class="w-full border rounded-lg px-3 py-2" value="${value ?? ''}">
+                </div>
+            `;
+        }
+
+        function collectFormValues(form, columns) {
+            const payload = {};
+            columns.forEach(key => {
+                const input = form.querySelector(`[data-field="${key}"]`);
+                if (!input) return;
+                let value = input.value;
+                if (value === '') return;
+                if (input.dataset.type === 'json') {
+                    try {
+                        value = JSON.parse(value);
+                    } catch {
+                        value = value;
+                    }
+                } else if (input.type === 'number') {
+                    const num = parseFloat(value);
+                    value = Number.isFinite(num) ? num : value;
+                } else if (input.tagName === 'SELECT' && (value === 'true' || value === 'false')) {
+                    value = value === 'true';
+                }
+                payload[key] = value;
+            });
+
+            if (!('entity_id' in payload)) payload.entity_id = ENTITY_ID;
+            if (!('entity_type' in payload)) payload.entity_type = ENTITY_TYPE;
+            return payload;
+        }
+
+        function openViewModal(tableKey, rowIndex) {
+            const rows = TABLE_ROWS_MAP[tableKey] || [];
+            const row = rows[rowIndex];
+            if (!row) return;
+            const columns = TABLE_COLUMNS_MAP[tableKey] || Object.keys(row);
+            const content = columns.map((key, idx) => `
+                <div class="flex items-center justify-between border-b pb-2">
+                    <span class="font-semibold text-gray-700">${getArabicLabel(key, idx)}</span>
+                    <span class="text-gray-900">${formatValue(row[key], key)}</span>
+                </div>
+            `).join('');
+            createModal('تفاصيل السجل', content);
+        }
+
+        function openAddModal(tableKey) {
+            const config = TABLE_CONFIGS[tableKey] || { readOnly: true };
+            if (config.readOnly || !config.endpoint) {
+                alert('هذه البيانات للعرض فقط داخل هذه الصفحة.');
+                return;
+            }
+            const columns = TABLE_COLUMNS_MAP[tableKey] || [];
+            const editable = getEditableColumns(tableKey, columns);
+            const fields = editable.length
+                ? editable.map(key => buildInputField(key, ''))
+                : `<div class="text-slate-500">لا توجد حقول جاهزة للإضافة حالياً.</div>`;
+
+            const content = `<form id="modal-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">${fields}</form>`;
+            const footer = `
+                <button onclick="this.closest('.modal-overlay').remove()" class="px-4 py-2 rounded-lg border">إلغاء</button>
+                <button onclick="submitModal('${tableKey}', 'add')" class="px-4 py-2 rounded-lg bg-slate-900 text-white">حفظ</button>
+            `;
+            createModal('إضافة سجل جديد', content, footer);
+        }
+
+        function openEditModal(tableKey, rowIndex) {
+            const config = TABLE_CONFIGS[tableKey] || { readOnly: true };
+            if (config.readOnly || !config.endpoint) {
+                alert('هذه البيانات للعرض فقط داخل هذه الصفحة.');
+                return;
+            }
+            const rows = TABLE_ROWS_MAP[tableKey] || [];
+            const row = rows[rowIndex];
+            if (!row) return;
+            const columns = TABLE_COLUMNS_MAP[tableKey] || Object.keys(row);
+            const editable = getEditableColumns(tableKey, columns);
+            const fields = editable.map(key => buildInputField(key, row[key])).join('');
+            const content = `<form id="modal-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">${fields}</form>`;
+            const footer = `
+                <button onclick="this.closest('.modal-overlay').remove()" class="px-4 py-2 rounded-lg border">إلغاء</button>
+                <button onclick="submitModal('${tableKey}', 'edit', ${rowIndex})" class="px-4 py-2 rounded-lg bg-slate-900 text-white">حفظ</button>
+            `;
+            createModal('تعديل السجل', content, footer);
+        }
+
+        async function submitModal(tableKey, mode, rowIndex) {
+            const config = TABLE_CONFIGS[tableKey] || {};
+            if (!config.endpoint) return;
+            const form = document.getElementById('modal-form');
+            if (!form) return;
+            const columns = TABLE_COLUMNS_MAP[tableKey] || [];
+            const editable = getEditableColumns(tableKey, columns);
+            const payload = collectFormValues(form, editable);
+
+            let url = `${API_BASE}${config.endpoint}`;
+            let method = 'POST';
+            if (mode === 'edit') {
+                const row = (TABLE_ROWS_MAP[tableKey] || [])[rowIndex];
+                const id = row ? row[config.idField] : null;
+                if (!id) {
+                    alert('تعذر تحديد المعرّف للتعديل');
+                    return;
+                }
+                url = `${API_BASE}${config.endpoint}/${id}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json', ...getFinanceHeaders() },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                document.querySelector('.modal-overlay')?.remove();
+                await loadData();
+            } else {
+                let message = mode === 'edit' ? 'تعذر تحديث السجل' : 'تعذر إضافة السجل';
+                try {
+                    const data = await res.json();
+                    if (data && data.error) message = data.error;
+                } catch (e) {
+                    // ignore
+                }
+                alert(message);
+            }
+        }
+
+        async function deleteRow(tableKey, rowIndex) {
+            const config = TABLE_CONFIGS[tableKey] || {};
+            if (config.readOnly || !config.endpoint) {
+                alert('هذه البيانات للعرض فقط داخل هذه الصفحة.');
+                return;
+            }
+            if (!confirm('هل تريد حذف هذا السجل؟')) return;
+            const row = (TABLE_ROWS_MAP[tableKey] || [])[rowIndex];
+            const id = row ? row[config.idField] : null;
+            if (!id) {
+                alert('تعذر تحديد المعرّف للحذف');
+                return;
+            }
+            const res = await fetch(`${API_BASE}${config.endpoint}/${id}`, {
+                method: 'DELETE',
+                headers: getFinanceHeaders()
+            });
+
+            if (res.ok) {
+                await loadData();
+            } else {
+                let message = 'تعذر حذف السجل';
+                try {
+                    const data = await res.json();
+                    if (data && data.error) message = data.error;
+                } catch (e) {
+                    // ignore
+                }
+                alert(message);
+            }
         }
 
         function downloadJSON() {
             const payload = { ...dataStore };
-            downloadBlob(JSON.stringify(payload, null, 2), 'unified-accounting-overview.json', 'application/json');
+            downloadBlob(JSON.stringify(payload, null, 2), 'لوحة-المحاسبة-الشمولية.json', 'application/json');
         }
 
         function downloadCSV() {
             const sections = [
-                ['JOURNAL_ENTRIES', dataStore.entries],
-                ['JOURNAL_LINES', dataStore.lines],
-                ['ACCOUNT_BALANCES', dataStore.balances],
-                ['INVOICES', dataStore.invoices],
-                ['PAYMENTS', dataStore.payments],
-                ['AR_AGING', dataStore.arAging],
-                ['EXPENSES', dataStore.expenses],
-                ['VENDORS', dataStore.vendors],
-                ['FIXED_ASSETS', dataStore.fixedAssets],
-                ['ASSET_DEPRECIATION', dataStore.depreciation],
-                ['BUDGETS', dataStore.budgets],
-                ['BUDGET_LINES', dataStore.budgetLines],
-                ['BUDGET_VARIANCES', dataStore.budgetVariances],
-                ['CASHFLOW_TRANSACTIONS', dataStore.cashflow],
-                ['AI_FORECASTS', dataStore.forecasts],
-                ['AI_RISK_SCORES', dataStore.riskScores],
-                ['BALANCE_SHEET', dataStore.balanceSheet ? [dataStore.balanceSheet] : []],
-                ['BALANCE_SHEET_ASSETS', dataStore.balanceSheetAssets],
-                ['BALANCE_SHEET_LIABILITIES', dataStore.balanceSheetLiabilities],
-                ['BALANCE_SHEET_EQUITY', dataStore.balanceSheetEquity],
-                ['INCOME_REVENUE', dataStore.incomeRevenue],
-                ['INCOME_EXPENSE', dataStore.incomeExpenses]
+                ['قيود اليومية', dataStore.entries],
+                ['سطور القيود', dataStore.lines],
+                ['أرصدة الحسابات', dataStore.balances],
+                ['الفواتير', dataStore.invoices],
+                ['المدفوعات', dataStore.payments],
+                ['أعمار الذمم', dataStore.arAging],
+                ['المصروفات', dataStore.expenses],
+                ['الموردون', dataStore.vendors],
+                ['الأصول الثابتة', dataStore.fixedAssets],
+                ['إهلاك الأصول', dataStore.depreciation],
+                ['الميزانيات', dataStore.budgets],
+                ['خطوط الميزانية', dataStore.budgetLines],
+                ['انحرافات الميزانية', dataStore.budgetVariances],
+                ['معاملات التدفق النقدي', dataStore.cashflow],
+                ['التوقعات الذكية', dataStore.forecasts],
+                ['تقييمات المخاطر', dataStore.riskScores],
+                ['الميزانية العمومية', dataStore.balanceSheet ? [dataStore.balanceSheet] : []],
+                ['أصول الميزانية العمومية', dataStore.balanceSheetAssets],
+                ['التزامات الميزانية العمومية', dataStore.balanceSheetLiabilities],
+                ['حقوق الملكية', dataStore.balanceSheetEquity],
+                ['قائمة الدخل - الإيرادات', dataStore.incomeRevenue],
+                ['قائمة الدخل - المصروفات', dataStore.incomeExpenses]
             ];
 
             const rows = [];
@@ -642,14 +1214,14 @@
                 rows.push([title]);
                 if (data.length) {
                     const cols = Array.from(new Set(data.flatMap(row => Object.keys(row))));
-                    rows.push(cols);
-                    data.forEach(row => rows.push(cols.map(c => row[c])));
+                    rows.push(cols.map((c, idx) => getArabicLabel(c, idx)));
+                    data.forEach(row => rows.push(cols.map(c => formatValue(row[c], c))));
                 }
                 rows.push([]);
             });
 
             const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
-            downloadBlob(csvContent, 'unified-accounting-overview.csv', 'text/csv;charset=utf-8;');
+            downloadBlob(csvContent, 'لوحة-المحاسبة-الشمولية.csv', 'text/csv;charset=utf-8;');
         }
 
         function downloadBlob(content, filename, type) {
