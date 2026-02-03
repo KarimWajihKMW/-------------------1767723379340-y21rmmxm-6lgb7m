@@ -334,10 +334,76 @@ async function deletePaymentPlan(req, res) {
     }
 }
 
+async function createPaymentAllocation(req, res) {
+    try {
+        const { payment_id, invoice_id, allocated_amount } = req.body || {};
+
+        if (!payment_id || !invoice_id || !allocated_amount) {
+            return res.status(400).json({ success: false, error: 'payment_id, invoice_id, and allocated_amount are required' });
+        }
+
+        const insertQuery = `
+            INSERT INTO finance_payment_allocations (payment_id, invoice_id, allocated_amount)
+            VALUES ($1,$2,$3)
+            RETURNING *;
+        `;
+
+        const result = await pool.query(insertQuery, [payment_id, invoice_id, allocated_amount]);
+        res.status(201).json({ success: true, allocation: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating payment allocation:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function updatePaymentAllocation(req, res) {
+    try {
+        const { allocation_id } = req.params;
+        if (!allocation_id) return res.status(400).json({ success: false, error: 'allocation_id is required' });
+
+        const { payment_id, invoice_id, allocated_amount } = req.body || {};
+        if (!payment_id || !invoice_id || !allocated_amount) {
+            return res.status(400).json({ success: false, error: 'payment_id, invoice_id, and allocated_amount are required' });
+        }
+
+        const updateQuery = `
+            UPDATE finance_payment_allocations
+            SET payment_id = $1, invoice_id = $2, allocated_amount = $3
+            WHERE allocation_id = $4
+            RETURNING *;
+        `;
+
+        const result = await pool.query(updateQuery, [payment_id, invoice_id, allocated_amount, allocation_id]);
+        if (!result.rows.length) return res.status(404).json({ success: false, error: 'Allocation not found' });
+        res.json({ success: true, allocation: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating payment allocation:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function deletePaymentAllocation(req, res) {
+    try {
+        const { allocation_id } = req.params;
+        if (!allocation_id) return res.status(400).json({ success: false, error: 'allocation_id is required' });
+
+        const result = await pool.query('DELETE FROM finance_payment_allocations WHERE allocation_id = $1 RETURNING allocation_id', [allocation_id]);
+        if (!result.rows.length) return res.status(404).json({ success: false, error: 'Allocation not found' });
+
+        res.json({ success: true, deleted: result.rows[0].allocation_id });
+    } catch (error) {
+        console.error('❌ Error deleting payment allocation:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 module.exports = {
     getPaymentPlans,
     testConnection,
     createPaymentPlan,
     updatePaymentPlan,
-    deletePaymentPlan
+    deletePaymentPlan,
+    createPaymentAllocation,
+    updatePaymentAllocation,
+    deletePaymentAllocation
 };

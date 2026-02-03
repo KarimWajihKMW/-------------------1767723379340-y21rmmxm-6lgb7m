@@ -227,7 +227,13 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-800">🔗 جدول توزيع المدفوعات</h3>
-                    <span id="allocCount" class="text-sm text-gray-600"></span>
+                    <div class="flex items-center gap-3">
+                        <span id="allocCount" class="text-sm text-gray-600"></span>
+                        <button onclick="openAllocationModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                            <i class="fas fa-plus"></i>
+                            إضافة توزيع
+                        </button>
+                    </div>
                 </div>
                 <div class="table-scroll">
                     <table class="w-full">
@@ -249,11 +255,12 @@
                                 <th class="px-3 py-2 text-right">اسم العميل (إنجليزي)</th>
                                 <th class="px-3 py-2 text-right">المبلغ الموزع</th>
                                 <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                                <th class="px-3 py-2 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="allocTable" class="text-xs divide-y divide-gray-100">
                             <tr>
-                                <td colspan="16" class="px-4 py-12 text-center text-gray-500">
+                                <td colspan="17" class="px-4 py-12 text-center text-gray-500">
                                     <i class="fas fa-spinner fa-spin text-4xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -363,6 +370,46 @@
         </div>
     </div>
 
+    <!-- Allocation Form Modal -->
+    <div id="allocationModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-start justify-center z-50 overflow-y-auto p-4 py-6">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-800" id="allocationModalTitle">إضافة توزيع</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('allocationModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="allocationForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="allocationId">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">معرّف الدفعة</label>
+                    <input id="allocationPaymentId" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">معرّف الفاتورة</label>
+                    <input id="allocationInvoiceId" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">المبلغ الموزع</label>
+                    <input id="allocationAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-4 py-3" required>
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-3 mt-2">
+                    <button type="button" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700" onclick="closeModal('allocationModal')">إلغاء</button>
+                    <button type="submit" class="px-6 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Allocation Details Modal -->
+    <div id="allocationDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-start justify-center z-50 overflow-y-auto p-4 py-6">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-800" id="allocationDetailsTitle">تفاصيل التوزيع</h3>
+                <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('allocationDetailsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="allocationDetailsContent" class="space-y-2 text-sm text-gray-800"></div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
         const ENTITY_ID = 'HQ001';
@@ -411,6 +458,7 @@
         let allocations = [];
         let statusChartInstance = null;
         let currentPlanId = null;
+        let currentAllocationId = null;
 
         async function loadReport() {
             try {
@@ -560,12 +608,19 @@
                     <td class="px-3 py-2">${r.customer_name_en ?? '-'}</td>
                     <td class="px-3 py-2 font-semibold text-orange-700">${formatMoney(r.allocated_amount)}</td>
                     <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <button class="text-blue-600 hover:text-blue-800" title="معاينة" onclick="viewAllocationById(${r.allocation_id})"><i class="fas fa-eye"></i></button>
+                            <button class="text-emerald-600 hover:text-emerald-800" title="تعديل" onclick="openAllocationModalById(${r.allocation_id})"><i class="fas fa-pen-to-square"></i></button>
+                            <button class="text-rose-600 hover:text-rose-800" title="حذف" onclick="deleteAllocation(${r.allocation_id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('allocTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="16" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
+                    <td colspan="17" class="px-4 py-12 text-center text-gray-500">لا توجد بيانات</td>
                 </tr>
             `;
             document.getElementById('allocCount').textContent = `عدد الصفوف: ${rows.length}`;
@@ -731,6 +786,55 @@
             viewPlan(plan);
         }
 
+        function openAllocationModal(allocation) {
+            currentAllocationId = allocation?.allocation_id || null;
+            document.getElementById('allocationModalTitle').textContent = currentAllocationId ? 'تعديل توزيع' : 'إضافة توزيع';
+            document.getElementById('allocationId').value = allocation?.allocation_id || '';
+            document.getElementById('allocationPaymentId').value = allocation?.payment_id || '';
+            document.getElementById('allocationInvoiceId').value = allocation?.invoice_id || '';
+            document.getElementById('allocationAmount').value = allocation?.allocated_amount || '';
+            showModal('allocationModal');
+        }
+
+        function openAllocationModalById(allocationId) {
+            const allocation = allocations.find(a => a.allocation_id === allocationId);
+            openAllocationModal(allocation);
+        }
+
+        function viewAllocation(allocation) {
+            if (!allocation) return;
+            const details = [
+                ['معرّف التوزيع', allocation.allocation_id],
+                ['معرّف الدفعة', allocation.payment_id],
+                ['رقم الدفعة', allocation.payment_number],
+                ['تاريخ الدفعة', formatDate(allocation.payment_date)],
+                ['مبلغ الدفعة', formatMoney(allocation.payment_amount)],
+                ['طريقة الدفع', translatePaymentMethod(allocation.payment_method)],
+                ['حالة الدفعة', translatePaymentStatus(allocation.payment_status)],
+                ['معرّف الفاتورة', allocation.invoice_id],
+                ['رقم الفاتورة', allocation.invoice_number],
+                ['تاريخ الفاتورة', formatDate(allocation.invoice_date)],
+                ['حالة الفاتورة', translateInvoiceStatus(allocation.invoice_status)],
+                ['العميل', allocation.customer_name_ar || allocation.customer_name_en || allocation.customer_id],
+                ['المبلغ الموزع', formatMoney(allocation.allocated_amount)],
+                ['تاريخ الإنشاء', formatDateTime(allocation.created_at)]
+            ];
+
+            document.getElementById('allocationDetailsContent').innerHTML = details.map(([label, value]) => `
+                <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+                    <span class="font-semibold text-gray-700">${label}</span>
+                    <span class="text-gray-900">${value ?? '-'}</span>
+                </div>
+            `).join('');
+
+            showModal('allocationDetailsModal');
+        }
+
+        function viewAllocationById(allocationId) {
+            const allocation = allocations.find(a => a.allocation_id === allocationId);
+            viewAllocation(allocation);
+        }
+
         async function savePlan(event) {
             event.preventDefault();
 
@@ -783,6 +887,50 @@
             const result = await res.json();
             if (!result.success) {
                 alert(result.error || 'فشل حذف الخطة');
+                return;
+            }
+            await loadReport();
+        }
+
+        async function saveAllocation(event) {
+            event.preventDefault();
+
+            const payload = {
+                payment_id: Number(document.getElementById('allocationPaymentId').value),
+                invoice_id: Number(document.getElementById('allocationInvoiceId').value),
+                allocated_amount: parseFloat(document.getElementById('allocationAmount').value || 0)
+            };
+
+            const method = currentAllocationId ? 'PUT' : 'POST';
+            const url = currentAllocationId
+                ? `${API_BASE}/finance/payment-allocations/${currentAllocationId}`
+                : `${API_BASE}/finance/payment-allocations`;
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            if (!result.success) {
+                alert(result.error || 'فشل حفظ التوزيع');
+                return;
+            }
+
+            closeModal('allocationModal');
+            await loadReport();
+        }
+
+        async function deleteAllocation(allocationId) {
+            if (!allocationId) return;
+            const confirmDelete = confirm('هل أنت متأكد من حذف التوزيع؟');
+            if (!confirmDelete) return;
+
+            const res = await fetch(`${API_BASE}/finance/payment-allocations/${allocationId}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (!result.success) {
+                alert(result.error || 'فشل حذف التوزيع');
                 return;
             }
             await loadReport();
@@ -859,6 +1007,8 @@
             loadReport();
             const form = document.getElementById('planForm');
             if (form) form.addEventListener('submit', savePlan);
+            const allocationForm = document.getElementById('allocationForm');
+            if (allocationForm) allocationForm.addEventListener('submit', saveAllocation);
         });
     </script>
 </body>
