@@ -221,6 +221,174 @@ function validateAssetPayload(payload) {
     }
 }
 
+function validateDepreciationPayload(payload) {
+    const required = ['asset_id', 'depreciation_date', 'depreciation_amount'];
+    for (const key of required) {
+        if (payload[key] === undefined || payload[key] === null || payload[key] === '') {
+            throw new Error(`حقل ${key} مطلوب`);
+        }
+    }
+
+    if (Number.isNaN(Number(payload.asset_id))) {
+        throw new Error('معرف الأصل يجب أن يكون رقمياً');
+    }
+    if (Number.isNaN(Number(payload.depreciation_amount))) {
+        throw new Error('قيمة الإهلاك يجب أن تكون رقمية');
+    }
+    if (payload.accumulated_depreciation !== undefined && payload.accumulated_depreciation !== null && payload.accumulated_depreciation !== '' && Number.isNaN(Number(payload.accumulated_depreciation))) {
+        throw new Error('الإهلاك المتراكم يجب أن يكون رقمياً');
+    }
+    if (payload.net_book_value !== undefined && payload.net_book_value !== null && payload.net_book_value !== '' && Number.isNaN(Number(payload.net_book_value))) {
+        throw new Error('القيمة الدفترية يجب أن تكون رقمية');
+    }
+    if (payload.fiscal_year !== undefined && payload.fiscal_year !== null && payload.fiscal_year !== '' && Number.isNaN(Number(payload.fiscal_year))) {
+        throw new Error('السنة المالية يجب أن تكون رقمية');
+    }
+    if (payload.fiscal_period !== undefined && payload.fiscal_period !== null && payload.fiscal_period !== '' && Number.isNaN(Number(payload.fiscal_period))) {
+        throw new Error('الفترة المالية يجب أن تكون رقمية');
+    }
+    if (payload.journal_entry_id !== undefined && payload.journal_entry_id !== null && payload.journal_entry_id !== '' && Number.isNaN(Number(payload.journal_entry_id))) {
+        throw new Error('رقم القيد يجب أن يكون رقمياً');
+    }
+}
+
+async function createDepreciation(req, res) {
+    try {
+        validateDepreciationPayload(req.body);
+
+        const {
+            asset_id,
+            depreciation_date,
+            fiscal_year,
+            fiscal_period,
+            depreciation_amount,
+            accumulated_depreciation,
+            net_book_value,
+            journal_entry_id,
+            notes
+        } = req.body;
+
+        const insertQuery = `
+            INSERT INTO finance_asset_depreciation (
+                asset_id,
+                depreciation_date,
+                fiscal_year,
+                fiscal_period,
+                depreciation_amount,
+                accumulated_depreciation,
+                net_book_value,
+                journal_entry_id,
+                notes,
+                created_at
+            ) VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()
+            ) RETURNING *
+        `;
+
+        const values = [
+            Number(asset_id),
+            depreciation_date,
+            fiscal_year !== undefined && fiscal_year !== null && fiscal_year !== '' ? Number(fiscal_year) : null,
+            fiscal_period !== undefined && fiscal_period !== null && fiscal_period !== '' ? Number(fiscal_period) : null,
+            Number(depreciation_amount),
+            accumulated_depreciation !== undefined && accumulated_depreciation !== null && accumulated_depreciation !== '' ? Number(accumulated_depreciation) : null,
+            net_book_value !== undefined && net_book_value !== null && net_book_value !== '' ? Number(net_book_value) : null,
+            journal_entry_id !== undefined && journal_entry_id !== null && journal_entry_id !== '' ? Number(journal_entry_id) : null,
+            notes || null
+        ];
+
+        const result = await pool.query(insertQuery, values);
+        res.json({ success: true, depreciation: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error creating depreciation:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function updateDepreciation(req, res) {
+    const depreciationId = req.params.depreciation_id;
+    if (!depreciationId) {
+        return res.status(400).json({ success: false, error: 'depreciation_id is required' });
+    }
+
+    try {
+        validateDepreciationPayload(req.body);
+
+        const {
+            asset_id,
+            depreciation_date,
+            fiscal_year,
+            fiscal_period,
+            depreciation_amount,
+            accumulated_depreciation,
+            net_book_value,
+            journal_entry_id,
+            notes
+        } = req.body;
+
+        const updateQuery = `
+            UPDATE finance_asset_depreciation SET
+                asset_id = $1,
+                depreciation_date = $2,
+                fiscal_year = $3,
+                fiscal_period = $4,
+                depreciation_amount = $5,
+                accumulated_depreciation = $6,
+                net_book_value = $7,
+                journal_entry_id = $8,
+                notes = $9
+            WHERE depreciation_id = $10
+            RETURNING *
+        `;
+
+        const values = [
+            Number(asset_id),
+            depreciation_date,
+            fiscal_year !== undefined && fiscal_year !== null && fiscal_year !== '' ? Number(fiscal_year) : null,
+            fiscal_period !== undefined && fiscal_period !== null && fiscal_period !== '' ? Number(fiscal_period) : null,
+            Number(depreciation_amount),
+            accumulated_depreciation !== undefined && accumulated_depreciation !== null && accumulated_depreciation !== '' ? Number(accumulated_depreciation) : null,
+            net_book_value !== undefined && net_book_value !== null && net_book_value !== '' ? Number(net_book_value) : null,
+            journal_entry_id !== undefined && journal_entry_id !== null && journal_entry_id !== '' ? Number(journal_entry_id) : null,
+            notes || null,
+            Number(depreciationId)
+        ];
+
+        const result = await pool.query(updateQuery, values);
+        if (!result.rowCount) {
+            return res.status(404).json({ success: false, error: 'لم يتم العثور على بند الإهلاك' });
+        }
+
+        res.json({ success: true, depreciation: result.rows[0] });
+    } catch (error) {
+        console.error('❌ Error updating depreciation:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+async function deleteDepreciation(req, res) {
+    const depreciationId = req.params.depreciation_id;
+    if (!depreciationId) {
+        return res.status(400).json({ success: false, error: 'depreciation_id is required' });
+    }
+
+    try {
+        const result = await pool.query(
+            'DELETE FROM finance_asset_depreciation WHERE depreciation_id = $1',
+            [Number(depreciationId)]
+        );
+
+        if (!result.rowCount) {
+            return res.status(404).json({ success: false, error: 'لم يتم العثور على بند الإهلاك' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Error deleting depreciation:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 async function createFixedAsset(req, res) {
     const entityId = req.body.entity_id || req.headers['x-entity-id'] || 'HQ001';
     const entityType = req.body.entity_type || req.headers['x-entity-type'] || 'HQ';
@@ -509,17 +677,26 @@ async function deleteFixedAsset(req, res) {
     }
 
     try {
+        await pool.query('BEGIN');
+        await pool.query(
+            'DELETE FROM finance_asset_depreciation WHERE asset_id = $1',
+            [Number(assetId)]
+        );
+
         const result = await pool.query(
             'DELETE FROM finance_fixed_assets WHERE asset_id = $1 AND entity_id = $2',
             [Number(assetId), entityId]
         );
 
         if (!result.rowCount) {
+            await pool.query('ROLLBACK');
             return res.status(404).json({ success: false, error: 'لم يتم العثور على الأصل لهذا الكيان' });
         }
 
+        await pool.query('COMMIT');
         res.json({ success: true });
     } catch (error) {
+        try { await pool.query('ROLLBACK'); } catch (rollbackError) { console.error('❌ Rollback error:', rollbackError); }
         console.error('❌ Error deleting fixed asset:', error);
         res.status(500).json({ success: false, error: error.message });
     }
@@ -547,5 +724,8 @@ module.exports = {
     createFixedAsset,
     updateFixedAsset,
     deleteFixedAsset,
+    createDepreciation,
+    updateDepreciation,
+    deleteDepreciation,
     testConnection
 };

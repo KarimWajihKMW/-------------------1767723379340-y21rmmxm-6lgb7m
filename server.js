@@ -210,6 +210,9 @@ app.get('/finance/fixed-assets', fixedAssetsAPI.getFixedAssets);
 app.post('/finance/fixed-assets', fixedAssetsAPI.createFixedAsset);
 app.put('/finance/fixed-assets/:asset_id', fixedAssetsAPI.updateFixedAsset);
 app.delete('/finance/fixed-assets/:asset_id', fixedAssetsAPI.deleteFixedAsset);
+app.post('/finance/fixed-assets/depreciation', fixedAssetsAPI.createDepreciation);
+app.put('/finance/fixed-assets/depreciation/:depreciation_id', fixedAssetsAPI.updateDepreciation);
+app.delete('/finance/fixed-assets/depreciation/:depreciation_id', fixedAssetsAPI.deleteDepreciation);
 
 // Finance Budgets API Routes (Page 15: Budgets & Variances)
 const budgetsAPI = require('./finance/api/budgets');
