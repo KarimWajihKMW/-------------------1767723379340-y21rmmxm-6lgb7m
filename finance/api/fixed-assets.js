@@ -428,6 +428,7 @@ async function createFixedAsset(req, res) {
             disposal_value,
             location,
             custodian_employee_id,
+            entity_type,
             branch_id,
             incubator_id,
             office_id,
