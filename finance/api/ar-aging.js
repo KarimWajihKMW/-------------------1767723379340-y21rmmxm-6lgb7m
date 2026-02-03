@@ -18,10 +18,17 @@ const STATUS_MAP = {
     'مصدرة': 'ISSUED',
     'مدفوعة جزئياً': 'PARTIAL',
     'مدفوعة جزئيا': 'PARTIAL',
+    'مدفوعة جزئياً ': 'PARTIAL',
+    'مدفوعة جزئيا ': 'PARTIAL',
     'متأخرة': 'OVERDUE',
+    'متاخر': 'OVERDUE',
+    'متأخر': 'OVERDUE',
+    'متاخره': 'OVERDUE',
+    'متأخرة ': 'OVERDUE',
     'مسودة': 'DRAFT',
     'ملغاة': 'CANCELLED',
-    'مدفوعة': 'PAID'
+    'مدفوعة': 'PAID',
+    'مدفوعه': 'PAID'
 };
 
 const AGING_MAP = {
@@ -34,10 +41,16 @@ const AGING_MAP = {
 
 const PAYMENT_STATUS_MAP = {
     'غير مدفوعة': 'UNPAID',
+    'غير مدفوعه': 'UNPAID',
+    'غير مدفوع': 'UNPAID',
+    'غير': 'UNPAID',
     'مدفوعة جزئياً': 'PARTIAL',
     'مدفوعة جزئيا': 'PARTIAL',
     'مدفوعة': 'PAID'
 };
+
+const ALLOWED_STATUS = new Set(['ISSUED', 'PARTIAL', 'OVERDUE', 'DRAFT', 'CANCELLED', 'PAID']);
+const ALLOWED_PAYMENT_STATUS = new Set(['UNPAID', 'PARTIAL', 'PAID']);
 
 function normalizeStatus(value) {
     if (!value) return value;
@@ -273,11 +286,17 @@ async function createARAgingInvoice(req, res) {
 
         const remaining_amount = Math.max(parsedTotal - parsedPaid, 0);
 
-        let resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, status);
+        let resolvedStatus = normalizeStatus(status);
+        if (!ALLOWED_STATUS.has(resolvedStatus)) {
+            resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, null);
+        }
         if (remaining_amount > 0 && ['PAID', 'CANCELLED'].includes(resolvedStatus)) {
             resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, null);
         }
-        const resolvedPaymentStatus = derivePaymentStatus(parsedTotal, parsedPaid, payment_status);
+        let resolvedPaymentStatus = normalizePaymentStatus(payment_status);
+        if (!ALLOWED_PAYMENT_STATUS.has(resolvedPaymentStatus)) {
+            resolvedPaymentStatus = derivePaymentStatus(parsedTotal, parsedPaid, null);
+        }
 
         const insertQuery = `
             INSERT INTO finance_invoices (
@@ -363,13 +382,17 @@ async function updateARAgingInvoice(req, res) {
         const nextRemaining = Math.max(nextTotal - nextPaid, 0);
         const nextDueDate = due_date || existing.due_date;
 
-        let resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, status);
+        let resolvedStatus = normalizeStatus(status);
+        if (!ALLOWED_STATUS.has(resolvedStatus)) {
+            resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, null);
+        }
         if (nextRemaining > 0 && ['PAID', 'CANCELLED'].includes(resolvedStatus)) {
             resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, null);
         }
-        const resolvedPaymentStatus = payment_status
-            ? normalizePaymentStatus(payment_status)
-            : derivePaymentStatus(nextTotal, nextPaid, payment_status);
+        let resolvedPaymentStatus = normalizePaymentStatus(payment_status);
+        if (!ALLOWED_PAYMENT_STATUS.has(resolvedPaymentStatus)) {
+            resolvedPaymentStatus = derivePaymentStatus(nextTotal, nextPaid, null);
+        }
 
         const result = await pool.query(
             `UPDATE finance_invoices
