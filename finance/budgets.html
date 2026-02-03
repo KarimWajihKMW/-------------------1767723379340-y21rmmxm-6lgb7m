@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -36,20 +37,20 @@
     </style>
 </head>
 <body>
-    <div class="container mx-auto px-4 py-8">
+    <div id="reportContainer" class="container mx-auto px-4 py-8">
         <div class="mb-8 text-slate-900">
             <h1 class="text-4xl font-bold mb-2">📑 الميزانيات والانحرافات</h1>
             <p class="text-lg opacity-90">عرض شامل للميزانيات، البنود، وتحليل الانحرافات</p>
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
-            <button onclick="downloadCSV()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
-                <i class="fas fa-file-csv text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
-                تنزيل CSV
+            <button onclick="downloadPDF()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-blue-500 group">
+                <i class="fas fa-file-pdf text-xl text-blue-600 group-hover:text-blue-700 transition"></i>
+                تنزيل PDF
             </button>
-            <button onclick="downloadJSON()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-purple-500 group">
-                <i class="fas fa-file-code text-xl text-purple-600 group-hover:text-purple-700 transition"></i>
-                تنزيل JSON
+            <button onclick="downloadPDF()" class="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition flex items-center gap-3 border border-gray-200 hover:border-purple-500 group">
+                <i class="fas fa-file-pdf text-xl text-purple-600 group-hover:text-purple-700 transition"></i>
+                تنزيل PDF
             </button>
             <button onclick="printReport()" class="bg-amber-500 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print text-xl text-gray-600 group-hover:text-gray-700 transition"></i>
@@ -939,57 +940,22 @@
             }
         };
 
-        function downloadCSV() {
-            const rows = [
-                ['جدول الميزانيات'],
-                ['رقم الميزانية','كود الميزانية','اسم الميزانية (ع)','اسم الميزانية (إنجليزي)','نوع الميزانية','السنة المالية','السيناريو','الحالة','نوع الكيان','رقم الكيان','الفرع','الحاضنة','المنصة','البرنامج','الوصف','الافتراضات','تاريخ الإنشاء','آخر تحديث','منشئ السجل','المعتمد','تاريخ الاعتماد']
-            ];
-            budgets.forEach(b => rows.push([
-                b.budget_id, b.budget_code, b.budget_name_ar, b.budget_name_en, mapBudgetType(b.budget_type), b.fiscal_year,
-                mapScenario(b.scenario), mapStatus(b.status), mapEntityType(b.entity_type), b.entity_id, b.branch_id, b.incubator_id, b.platform_id,
-                b.program_id, b.description, b.assumptions, formatDateTime(b.created_at), formatDateTime(b.updated_at), b.created_by,
-                b.approved_by, formatDateTime(b.approved_at)
-            ]));
+        function downloadPDF() {
+            const element = document.getElementById('reportContainer');
+            if (!element || typeof html2pdf === 'undefined') {
+                window.print();
+                return;
+            }
 
-            rows.push([]);
-            rows.push(['جدول بنود الميزانية']);
-            rows.push(['رقم البند','رقم الميزانية','رقم الحساب','كود الحساب','اسم الحساب','المبلغ السنوي','شهر ١','شهر ٢','شهر ٣','شهر ٤','شهر ٥','شهر ٦','شهر ٧','شهر ٨','شهر ٩','شهر ١٠','شهر ١١','شهر ١٢','نوع الكيان','رقم الكيان','الفرع','الحاضنة','ملاحظات','تاريخ الإنشاء']);
-            lines.forEach(l => rows.push([
-                l.line_id, l.budget_id, l.account_id, l.account_code, l.account_name, l.annual_amount,
-                l.month_1, l.month_2, l.month_3, l.month_4, l.month_5, l.month_6, l.month_7, l.month_8,
-                l.month_9, l.month_10, l.month_11, l.month_12, mapEntityType(l.entity_type), l.entity_id, l.branch_id,
-                l.incubator_id, l.notes, formatDateTime(l.created_at)
-            ]));
+            const options = {
+                margin: 6,
+                filename: 'تقرير-الميزانيات.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
 
-            rows.push([]);
-            rows.push(['جدول الانحرافات']);
-            rows.push(['رقم الانحراف','السنة المالية','الفترة المالية','اسم الفترة','رقم الحساب','كود الحساب','المبلغ الموازني','المبلغ الفعلي','قيمة الانحراف','نسبة الانحراف','نوع الانحراف','مستوى الأهمية','تفسير ذكي','توصيات','نوع الكيان','رقم الكيان','الفرع','الحاضنة','تاريخ الإنشاء','تاريخ التحليل']);
-            variances.forEach(v => rows.push([
-                v.variance_id, v.fiscal_year, v.fiscal_period, v.period_name, v.account_id, v.account_code,
-                v.budgeted_amount, v.actual_amount, v.variance_amount, v.variance_percentage, mapVarianceType(v.variance_type),
-                mapSignificance(v.significance_level), v.ai_explanation, v.ai_recommendations, mapEntityType(v.entity_type), v.entity_id,
-                v.branch_id, v.incubator_id, formatDateTime(v.created_at), formatDateTime(v.analyzed_at)
-            ]));
-
-            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'تقرير-الميزانيات.csv';
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function downloadJSON() {
-            const payload = { budgets, lines, variances };
-            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'تقرير-الميزانيات.json';
-            link.click();
-            URL.revokeObjectURL(url);
+            html2pdf().set(options).from(element).save();
         }
 
         function printReport() {
