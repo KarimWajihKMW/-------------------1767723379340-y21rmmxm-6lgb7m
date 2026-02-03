@@ -397,6 +397,7 @@ async function updateFixedAsset(req, res) {
             asset_account_id,
             depreciation_account_id,
             accumulated_depreciation_account_id,
+            entity_type,
             serial_number,
             warranty_expiry_date,
             maintenance_schedule,
