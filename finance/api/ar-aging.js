@@ -238,6 +238,30 @@ async function createARAgingInvoice(req, res) {
             });
         }
 
+        const parsedTotal = parseFloat(total_amount || 0);
+        const parsedPaid = parseFloat(paid_amount || 0);
+
+        if (!Number.isFinite(parsedTotal) || parsedTotal <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'إجمالي المبلغ يجب أن يكون أكبر من صفر'
+            });
+        }
+
+        if (!Number.isFinite(parsedPaid) || parsedPaid < 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'قيمة المدفوع غير صحيحة'
+            });
+        }
+
+        if (parsedPaid >= parsedTotal) {
+            return res.status(400).json({
+                success: false,
+                error: 'قيمة المدفوع يجب أن تكون أقل من الإجمالي ليظهر في جدول أعمار الذمم'
+            });
+        }
+
         const customerResult = await pool.query(
             'SELECT customer_name_ar FROM finance_customers WHERE customer_id = $1',
             [customer_id]
@@ -247,11 +271,12 @@ async function createARAgingInvoice(req, res) {
             return res.status(404).json({ success: false, error: 'العميل غير موجود' });
         }
 
-        const parsedTotal = parseFloat(total_amount || 0);
-        const parsedPaid = Math.min(parseFloat(paid_amount || 0), parsedTotal);
         const remaining_amount = Math.max(parsedTotal - parsedPaid, 0);
 
-        const resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, status);
+        let resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, status);
+        if (remaining_amount > 0 && ['PAID', 'CANCELLED'].includes(resolvedStatus)) {
+            resolvedStatus = deriveInvoiceStatus(parsedTotal, parsedPaid, due_date, null);
+        }
         const resolvedPaymentStatus = derivePaymentStatus(parsedTotal, parsedPaid, payment_status);
 
         const insertQuery = `
@@ -338,7 +363,10 @@ async function updateARAgingInvoice(req, res) {
         const nextRemaining = Math.max(nextTotal - nextPaid, 0);
         const nextDueDate = due_date || existing.due_date;
 
-        const resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, status);
+        let resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, status);
+        if (nextRemaining > 0 && ['PAID', 'CANCELLED'].includes(resolvedStatus)) {
+            resolvedStatus = deriveInvoiceStatus(nextTotal, nextPaid, nextDueDate, null);
+        }
         const resolvedPaymentStatus = payment_status
             ? normalizePaymentStatus(payment_status)
             : derivePaymentStatus(nextTotal, nextPaid, payment_status);

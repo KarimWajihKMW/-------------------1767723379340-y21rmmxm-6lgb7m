@@ -600,12 +600,39 @@
         }
 
         async function submitAddInvoice() {
+            const customerIdValue = document.getElementById('add-customer-id').value;
+            const invoiceDateValue = document.getElementById('add-invoice-date').value;
+            const dueDateValue = document.getElementById('add-due-date').value;
+            const totalValue = parseFloat(document.getElementById('add-total-amount').value || 0);
+            const paidValue = parseFloat(document.getElementById('add-paid-amount').value || 0);
+
+            if (!customerIdValue) {
+                alert('اختر العميل أولاً');
+                return;
+            }
+            if (!invoiceDateValue || !dueDateValue) {
+                alert('أدخل تاريخ الفاتورة وتاريخ الاستحقاق');
+                return;
+            }
+            if (!Number.isFinite(totalValue) || totalValue <= 0) {
+                alert('إجمالي الفاتورة يجب أن يكون أكبر من صفر');
+                return;
+            }
+            if (!Number.isFinite(paidValue) || paidValue < 0) {
+                alert('قيمة المدفوع غير صحيحة');
+                return;
+            }
+            if (paidValue >= totalValue) {
+                alert('قيمة المدفوع يجب أن تكون أقل من الإجمالي ليظهر في جدول أعمار الذمم');
+                return;
+            }
+
             const payload = {
-                customer_id: Number(document.getElementById('add-customer-id').value),
-                invoice_date: document.getElementById('add-invoice-date').value,
-                due_date: document.getElementById('add-due-date').value,
-                total_amount: parseFloat(document.getElementById('add-total-amount').value || 0),
-                paid_amount: parseFloat(document.getElementById('add-paid-amount').value || 0),
+                customer_id: Number(customerIdValue),
+                invoice_date: invoiceDateValue,
+                due_date: dueDateValue,
+                total_amount: totalValue,
+                paid_amount: paidValue,
                 status: normalizeStatus(document.getElementById('add-status').value),
                 payment_status: normalizePaymentStatus(document.getElementById('add-payment-status').value),
                 entity_id: ENTITY_ID,
