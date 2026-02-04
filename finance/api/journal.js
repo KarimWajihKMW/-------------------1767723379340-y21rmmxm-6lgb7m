@@ -548,6 +548,11 @@ async function deleteJournalEntry(req, res) {
         }
 
         await client.query(
+            'UPDATE finance_payments SET journal_entry_id = NULL WHERE journal_entry_id = $1',
+            [entry_id]
+        );
+
+        await client.query(
             'DELETE FROM finance_journal_lines WHERE entry_id = $1',
             [entry_id]
         );
