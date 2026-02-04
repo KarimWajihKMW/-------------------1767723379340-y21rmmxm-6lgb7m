@@ -395,6 +395,21 @@
             return { ok: true, count: plans.length };
         }
 
+        async function deleteInvoiceAllocations(invoiceId, entityId) {
+            const allocationsRes = await fetchJson(`${API_BASE}/finance/payment-plans?entity_id=${encodeURIComponent(entityId)}`);
+            if (!allocationsRes.ok) {
+                return { ok: false, error: 'تعذر تحميل تخصيصات التحصيل المرتبطة بالفاتورة.' };
+            }
+            const allocations = (allocationsRes.data.allocations || []).filter(a => String(a.invoice_id) === String(invoiceId));
+            for (const allocation of allocations) {
+                const delRes = await fetchJson(`${API_BASE}/finance/payment-allocations/${allocation.allocation_id}`, { method: 'DELETE' });
+                if (!delRes.ok) {
+                    return { ok: false, error: 'تعذر حذف تخصيصات التحصيل المرتبطة بالفاتورة.' };
+                }
+            }
+            return { ok: true, count: allocations.length };
+        }
+
         function hasRows(data) {
             const arrays = ['entries','lines','rows','invoices','payments','expenses','revenue_accounts','expense_accounts','assets','liabilities','equity'];
             return arrays.some(key => Array.isArray(data[key]) && data[key].length > 0);
@@ -1214,6 +1229,14 @@
             const columns = TABLE_COLUMNS_MAP[tableKey] || [];
             const editable = getEditableColumns(tableKey, columns);
             let payload = collectFormValues(form, editable);
+            if (mode === 'edit') {
+                const row = (TABLE_ROWS_MAP[tableKey] || [])[rowIndex] || {};
+                editable.forEach(key => {
+                    if (payload[key] === undefined && row[key] !== undefined) {
+                        payload[key] = row[key];
+                    }
+                });
+            }
 
             const normalized = await normalizePayload(tableKey, payload);
             if (!normalized.ok) {
@@ -1274,6 +1297,11 @@
             }
             if (tableKey === 'invoices') {
                 const entityId = row?.entity_id || ENTITY_ID;
+                const allocCleanup = await deleteInvoiceAllocations(id, entityId);
+                if (!allocCleanup.ok) {
+                    alert(allocCleanup.error || 'تعذر حذف السجل');
+                    return;
+                }
                 const cleanup = await deleteInvoicePlans(id, entityId);
                 if (!cleanup.ok) {
                     alert(cleanup.error || 'تعذر حذف السجل');
