@@ -263,6 +263,8 @@ app.delete('/finance/ar-aging/invoices/:id', arAgingAPI.deleteARAgingInvoice);
 const planInstallmentsAPI = require('./finance/api/plan-installments');
 app.get('/finance/plan-installments/test', planInstallmentsAPI.testConnection);
 app.get('/finance/plan-installments', planInstallmentsAPI.getPlanInstallments);
+app.put('/finance/plan-installments/:id', planInstallmentsAPI.updatePlanInstallment);
+app.delete('/finance/plan-installments/:id', planInstallmentsAPI.deletePlanInstallment);
 
 // Finance Account Balances API Routes (Page 20: Account Balances)
 const accountBalancesAPI = require('./finance/api/account-balances');

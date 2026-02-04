@@ -179,7 +179,144 @@ async function testConnection(req, res) {
     }
 }
 
+async function updatePlanInstallment(req, res) {
+    const { id } = req.params;
+    const { entity_id } = req.query;
+    const { due_date, amount, paid_amount, status, paid_date, payment_id } = req.body || {};
+
+    if (!entity_id) {
+        return res.status(400).json({
+            success: false,
+            error: 'entity_id is required'
+        });
+    }
+
+    const updates = [];
+    const values = [];
+    let index = 1;
+
+    if (due_date !== undefined) {
+        updates.push(`due_date = $${index}`);
+        values.push(due_date);
+        index++;
+    }
+    if (amount !== undefined) {
+        updates.push(`amount = $${index}`);
+        values.push(amount);
+        index++;
+    }
+    if (paid_amount !== undefined) {
+        updates.push(`paid_amount = $${index}`);
+        values.push(paid_amount);
+        index++;
+    }
+    if (status !== undefined) {
+        updates.push(`status = $${index}`);
+        values.push(status);
+        index++;
+    }
+    if (paid_date !== undefined) {
+        updates.push(`paid_date = $${index}`);
+        values.push(paid_date || null);
+        index++;
+    }
+    if (payment_id !== undefined) {
+        updates.push(`payment_id = $${index}`);
+        values.push(payment_id || null);
+        index++;
+    }
+
+    if (!updates.length) {
+        return res.status(400).json({
+            success: false,
+            error: 'no fields provided to update'
+        });
+    }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+
+    try {
+        const query = `
+            UPDATE finance_plan_installments i
+            SET ${updates.join(', ')}
+            FROM finance_payment_plans p
+            WHERE i.plan_id = p.plan_id
+              AND i.installment_id = $${index}
+              AND (p.entity_id = $${index + 1} OR p.entity_id IS NULL)
+            RETURNING i.*
+        `;
+
+        values.push(id, entity_id);
+
+        const result = await pool.query(query, values);
+
+        if (!result.rows.length) {
+            return res.status(404).json({
+                success: false,
+                error: 'installment not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            installment: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error updating plan installment:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+async function deletePlanInstallment(req, res) {
+    const { id } = req.params;
+    const { entity_id } = req.query;
+
+    if (!entity_id) {
+        return res.status(400).json({
+            success: false,
+            error: 'entity_id is required'
+        });
+    }
+
+    try {
+        const result = await pool.query(
+            `
+            DELETE FROM finance_plan_installments i
+            USING finance_payment_plans p
+            WHERE i.plan_id = p.plan_id
+              AND i.installment_id = $1
+              AND (p.entity_id = $2 OR p.entity_id IS NULL)
+            RETURNING i.*
+            `,
+            [id, entity_id]
+        );
+
+        if (!result.rows.length) {
+            return res.status(404).json({
+                success: false,
+                error: 'installment not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            installment: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error deleting plan installment:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     getPlanInstallments,
-    testConnection
+    testConnection,
+    updatePlanInstallment,
+    deletePlanInstallment
 };
