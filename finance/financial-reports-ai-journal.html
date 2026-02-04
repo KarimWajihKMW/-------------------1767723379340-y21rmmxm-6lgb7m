@@ -37,6 +37,13 @@
         .action-btn.view { background: #e0f2fe; color: #0ea5e9; }
         .action-btn.edit { background: #ecfeff; color: #0d9488; }
         .action-btn.delete { background: #fef2f2; color: #dc2626; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+        .modal-card { background: #fff; width: min(960px, 96vw); max-height: 90vh; border-radius: 18px; box-shadow: 0 20px 80px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .modal-body { padding: 16px 20px; overflow-y: auto; }
+        .modal-footer { padding: 12px 20px 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-input { width: 100%; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+        .modal-label { font-weight: 700; color: #0f172a; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -331,6 +338,20 @@
         </div>
     </div>
 
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-900">لوحة</h3>
+                <button id="modalClose" class="text-slate-500 hover:text-slate-800 text-xl">✕</button>
+            </div>
+            <div id="modalBody" class="modal-body text-sm text-slate-800"></div>
+            <div class="modal-footer">
+                <button id="modalCancel" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200">إلغاء</button>
+                <button id="modalConfirm" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
         const ENTITY_ID = '1';
@@ -374,10 +395,125 @@
         let riskChartInstance = null;
         let cashflowChartInstance = null;
 
+        const modalState = {
+            overlay: null,
+            title: null,
+            body: null,
+            confirmBtn: null,
+            cancelBtn: null,
+            closeBtn: null,
+            onConfirm: null,
+            confirmVisible: true
+        };
+
         async function fetchJson(url) {
             const res = await fetch(url);
             const data = await res.json();
             return { ok: res.ok, data };
+        }
+
+        function initModal() {
+            modalState.overlay = document.getElementById('modalOverlay');
+            modalState.title = document.getElementById('modalTitle');
+            modalState.body = document.getElementById('modalBody');
+            modalState.confirmBtn = document.getElementById('modalConfirm');
+            modalState.cancelBtn = document.getElementById('modalCancel');
+            modalState.closeBtn = document.getElementById('modalClose');
+
+            const closeFn = () => closeModal();
+            modalState.cancelBtn.addEventListener('click', closeFn);
+            modalState.closeBtn.addEventListener('click', closeFn);
+            modalState.confirmBtn.addEventListener('click', () => {
+                if (typeof modalState.onConfirm === 'function') {
+                    modalState.onConfirm();
+                }
+            });
+        }
+
+        function openModal({ title, body, showConfirm = false, confirmLabel = 'تأكيد', onConfirm = null }) {
+            if (!modalState.overlay) initModal();
+            modalState.title.textContent = title || 'لوحة';
+            modalState.body.innerHTML = body || '';
+            modalState.onConfirm = onConfirm;
+            modalState.confirmBtn.style.display = showConfirm ? 'inline-flex' : 'none';
+            modalState.confirmBtn.textContent = confirmLabel;
+            modalState.overlay.style.display = 'flex';
+        }
+
+        function closeModal() {
+            if (!modalState.overlay) return;
+            modalState.overlay.style.display = 'none';
+            modalState.body.innerHTML = '';
+            modalState.onConfirm = null;
+        }
+
+        function escapeHtml(str) {
+            if (str === undefined || str === null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function openViewModal(row) {
+            const pretty = escapeHtml(JSON.stringify(row, null, 2));
+            openModal({
+                title: 'عرض السطر',
+                body: `<pre class="bg-slate-50 p-4 rounded-xl text-xs leading-6 whitespace-pre-wrap">${pretty}</pre>`,
+                showConfirm: false
+            });
+        }
+
+        function openConfirmModal(message, onConfirm) {
+            openModal({
+                title: 'تأكيد العملية',
+                body: `<div class="text-slate-800 text-sm">${escapeHtml(message || 'تأكيد؟')}</div>`,
+                showConfirm: true,
+                confirmLabel: 'تأكيد',
+                onConfirm: () => { closeModal(); if (onConfirm) onConfirm(); }
+            });
+        }
+
+        function inputTemplate(key, value) {
+            const label = translateHeader(key);
+            const val = value === null || value === undefined ? '' : value;
+            return `
+                <label class="block space-y-1">
+                    <span class="modal-label">${label}</span>
+                    <input data-key="${escapeHtml(key)}" class="modal-input" value="${escapeHtml(val)}" />
+                </label>
+            `;
+        }
+
+        function openEditModal(tableId, row) {
+            const fields = Object.keys(row || {});
+            const body = fields.length ? fields.map(k => inputTemplate(k, row[k])).join('') : '<div class="text-slate-500">لا توجد حقول للتحرير</div>';
+            openModal({
+                title: 'تعديل السطر',
+                body: `<div class="space-y-3">${body}</div>`,
+                showConfirm: true,
+                confirmLabel: 'حفظ',
+                onConfirm: async () => {
+                    const updates = collectFormValues();
+                    await handleModalEdit(tableId, row, updates);
+                    closeModal();
+                }
+            });
+        }
+
+        function collectFormValues() {
+            if (!modalState.body) return {};
+            const inputs = modalState.body.querySelectorAll('[data-key]');
+            const result = {};
+            inputs.forEach(input => {
+                const key = input.getAttribute('data-key');
+                const val = input.value;
+                const num = Number(val);
+                result[key] = !Number.isNaN(num) && val !== '' ? num : val;
+            });
+            return result;
         }
 
         function setContextLabels() {
@@ -409,23 +545,6 @@
                 throw new Error(payload?.error || 'فشل في الاتصال بالخادم');
             }
             return payload;
-        }
-
-        function promptValue(label, current) {
-            const val = prompt(label, current ?? '');
-            if (val === null) return null;
-            return val.trim();
-        }
-
-        function promptNumber(label, current) {
-            const val = prompt(label, current ?? '');
-            if (val === null) return null;
-            const num = parseFloat(val);
-            if (Number.isNaN(num)) {
-                alert('القيمة يجب أن تكون رقمية');
-                return null;
-            }
-            return num;
         }
 
         function normalizeJsonField(value) {
@@ -810,55 +929,58 @@
             const rows = tableDataCache[tableId] || [];
             const row = rows[index];
             if (!row) return;
-            if (action === 'view') return viewRow(row);
+            if (action === 'view') return openViewModal(row);
 
-            try {
-                switch (tableId) {
-                    case 'assetsTable':
-                        return await assetAction(action, row);
-                    case 'liabilitiesTable':
-                        return await liabilityAction(action, row);
-                    case 'equityTable':
-                        return await equityAction(action, row);
-                    case 'operatingTable':
-                        return await operatingAction(action, row);
-                    case 'agingTable':
-                        return await agingAction(action, row);
-                    case 'riskTable':
-                        return await riskAction(action, row);
-                    case 'entriesTable':
-                        return await entryAction(action, row);
-                    case 'linesTable':
-                        return await lineAction(action, row);
-                    default:
-                        alert('لم يتم ربط هذا الجدول بإجراءات بعد');
-                }
-            } catch (error) {
-                alert(`خطأ: ${error.message}`);
+            if (action === 'edit') return openEditModal(tableId, row);
+
+            if (action === 'delete') {
+                return openConfirmModal('سيتم حذف هذا السطر، هل أنت متأكد؟', async () => {
+                    await handleModalEdit(tableId, row, null, true);
+                });
             }
         }
 
-        function viewRow(row) {
-            alert(JSON.stringify(row, null, 2));
+        async function handleModalEdit(tableId, row, updates, isDelete = false) {
+            try {
+                switch (tableId) {
+                    case 'assetsTable':
+                        return await assetAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'liabilitiesTable':
+                        return await liabilityAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'equityTable':
+                        return await equityAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'operatingTable':
+                        return await operatingAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'agingTable':
+                        return await agingAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'riskTable':
+                        return await riskAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'entriesTable':
+                        return await entryAction(isDelete ? 'delete' : 'edit', row, updates);
+                    case 'linesTable':
+                        return await lineAction(isDelete ? 'delete' : 'edit', row, updates);
+                    default:
+                        setStatus('لم يتم ربط هذا الجدول بإجراءات بعد', true);
+                }
+            } catch (error) {
+                setStatus(`❌ ${error.message}`, true);
+            }
         }
 
-        async function assetAction(action, row) {
+        async function assetAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('هل تريد حذف الأصل؟')) return;
                 await callApi(`/finance/balance-sheet/assets/${row.asset_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف الأصل');
                 return loadData();
             }
             if (action === 'edit') {
-                const asset_name = promptValue('اسم الأصل', row.asset_name);
-                if (asset_name === null) return;
-                const amount = promptNumber('المبلغ', row.amount);
-                if (amount === null) return;
-                const description = promptValue('الوصف', row.description);
+                const asset_name = updates.asset_name ?? row.asset_name;
+                const amount = parseFloat(updates.amount ?? row.amount ?? 0);
+                const description = updates.description ?? row.description;
                 await callApi(`/finance/balance-sheet/assets/${row.asset_id}`, 'PUT', {
                     entity_id: row.entity_id,
-                    asset_category: row.asset_category,
-                    asset_type: row.asset_type,
+                    asset_category: updates.asset_category ?? row.asset_category,
+                    asset_type: updates.asset_type ?? row.asset_type,
                     asset_name,
                     amount,
                     description
@@ -868,141 +990,129 @@
             }
         }
 
-        async function liabilityAction(action, row) {
+        async function liabilityAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('حذف الالتزام؟')) return;
                 await callApi(`/finance/balance-sheet/liabilities/${row.liability_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف الالتزام');
                 return loadData();
             }
             if (action === 'edit') {
-                const liability_name = promptValue('اسم الالتزام', row.liability_name);
-                if (liability_name === null) return;
-                const amount = promptNumber('المبلغ', row.amount);
-                if (amount === null) return;
+                const liability_name = updates.liability_name ?? row.liability_name;
+                const amount = parseFloat(updates.amount ?? row.amount ?? 0);
                 await callApi(`/finance/balance-sheet/liabilities/${row.liability_id}`, 'PUT', {
                     entity_id: row.entity_id,
-                    liability_category: row.liability_category,
-                    liability_type: row.liability_type,
+                    liability_category: updates.liability_category ?? row.liability_category,
+                    liability_type: updates.liability_type ?? row.liability_type,
                     liability_name,
                     amount,
-                    description: row.description
+                    description: updates.description ?? row.description
                 });
                 setStatus('تم تعديل الالتزام');
                 return loadData();
             }
         }
 
-        async function equityAction(action, row) {
+        async function equityAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('حذف بند حقوق الملكية؟')) return;
                 await callApi(`/finance/balance-sheet/equity/${row.equity_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف البند');
                 return loadData();
             }
             if (action === 'edit') {
-                const equity_name = promptValue('اسم البند', row.equity_name);
-                if (equity_name === null) return;
-                const amount = promptNumber('المبلغ', row.amount);
-                if (amount === null) return;
+                const equity_name = updates.equity_name ?? row.equity_name;
+                const amount = parseFloat(updates.amount ?? row.amount ?? 0);
                 await callApi(`/finance/balance-sheet/equity/${row.equity_id}`, 'PUT', {
                     entity_id: row.entity_id,
-                    equity_type: row.equity_type,
+                    equity_type: updates.equity_type ?? row.equity_type,
                     equity_name,
                     amount,
-                    description: row.description
+                    description: updates.description ?? row.description
                 });
                 setStatus('تم تعديل حقوق الملكية');
                 return loadData();
             }
         }
 
-        async function operatingAction(action, row) {
+        async function operatingAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('حذف التدفق التشغيلي؟')) return;
                 await callApi(`/finance/cashflow/operating/${row.flow_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف التدفق');
                 return loadData();
             }
             if (action === 'edit') {
-                const amount = promptNumber('المبلغ', row.amount);
-                if (amount === null) return;
-                const description = promptValue('الوصف', row.description);
-                const flow_date = promptValue('تاريخ التدفق (YYYY-MM-DD)', row.flow_date?.slice(0, 10));
+                const amount = parseFloat(updates.amount ?? row.amount ?? 0);
+                const description = updates.description ?? row.description;
+                const flow_date = updates.flow_date ?? row.flow_date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
                 await callApi(`/finance/cashflow/operating/${row.flow_id}`, 'PUT', {
                     amount,
                     description,
                     flow_date,
-                    entity_id: row.entity_id
+                    entity_id: row.entity_id,
+                    flow_type: updates.flow_type ?? row.flow_type,
+                    flow_direction: updates.flow_direction ?? row.flow_direction
                 });
                 setStatus('تم تعديل التدفق التشغيلي');
                 return loadData();
             }
         }
 
-        async function agingAction(action, row) {
+        async function agingAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('سيتم حذف الفاتورة. هل أنت متأكد؟')) return;
                 await callApi(`/finance/ar-aging/invoices/${row.invoice_id}`, 'DELETE');
                 setStatus('تم حذف الفاتورة');
                 return loadData();
             }
             if (action === 'edit') {
-                const paid_amount = promptNumber('المبلغ المدفوع', row.paid_amount || 0);
-                if (paid_amount === null) return;
-                const status = promptValue('حالة الفاتورة', row.status || 'ISSUED');
+                const paid_amount = parseFloat(updates.paid_amount ?? row.paid_amount ?? 0);
+                const status = updates.status ?? row.status ?? 'ISSUED';
                 await callApi(`/finance/ar-aging/invoices/${row.invoice_id}`, 'PUT', {
                     paid_amount,
-                    total_amount: row.total_amount,
+                    total_amount: parseFloat(updates.total_amount ?? row.total_amount ?? 0),
                     status,
-                    payment_status: row.payment_status
+                    payment_status: updates.payment_status ?? row.payment_status
                 });
                 setStatus('تم تحديث بيانات الذمم');
                 return loadData();
             }
         }
 
-        async function riskAction(action, row) {
+        async function riskAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('حذف تقييم المخاطر؟')) return;
                 await callApi(`/finance/ai-risk-scores/${row.risk_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف تقييم المخاطر');
                 return loadData();
             }
             if (action === 'edit') {
-                const risk_score = promptNumber('درجة المخاطر', row.risk_score);
-                if (risk_score === null) return;
-                const risk_level = promptValue('مستوى المخاطر (HIGH/MEDIUM/LOW)', row.risk_level || 'MEDIUM');
+                const risk_score = parseFloat(updates.risk_score ?? row.risk_score ?? 0);
+                const risk_level = updates.risk_level ?? row.risk_level || 'MEDIUM';
                 await callApi(`/finance/ai-risk-scores/${row.risk_id}`, 'PUT', {
-                    customer_id: row.customer_id,
-                    assessment_date: row.assessment_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+                    customer_id: updates.customer_id ?? row.customer_id,
+                    assessment_date: updates.assessment_date ?? row.assessment_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
                     risk_score,
                     risk_level,
-                    risk_factors: normalizeJsonField(row.risk_factors),
-                    calculation_details: normalizeJsonField(row.calculation_details),
-                    recommendations: row.recommendations,
-                    suggested_actions: normalizeJsonField(row.suggested_actions),
-                    entity_type: row.entity_type || 'HQ',
-                    entity_id: row.entity_id,
-                    model_version: row.model_version || 'v1.0.0'
+                    risk_factors: normalizeJsonField(updates.risk_factors ?? row.risk_factors),
+                    calculation_details: normalizeJsonField(updates.calculation_details ?? row.calculation_details),
+                    recommendations: updates.recommendations ?? row.recommendations,
+                    suggested_actions: normalizeJsonField(updates.suggested_actions ?? row.suggested_actions),
+                    entity_type: updates.entity_type ?? row.entity_type || 'HQ',
+                    entity_id: updates.entity_id ?? row.entity_id,
+                    model_version: updates.model_version ?? row.model_version || 'v1.0.0'
                 });
                 setStatus('تم تعديل تقييم المخاطر');
                 return loadData();
             }
         }
 
-        async function entryAction(action, row) {
+        async function entryAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('حذف القيد المحاسبي؟')) return;
                 await callApi(`/finance/journal/entries/${row.entry_id}`, 'DELETE');
                 setStatus('تم حذف القيد');
                 return loadData();
             }
         }
 
-        async function lineAction(action, row) {
+        async function lineAction(action, row, updates = {}) {
             if (action === 'delete') {
-                if (!confirm('حذف السطر؟')) return;
                 await callApi(`/finance/journal-lines/${row.line_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف السطر');
                 return loadData();
