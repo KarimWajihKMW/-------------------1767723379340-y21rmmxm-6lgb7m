@@ -214,7 +214,13 @@
             <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-sky" open>
                 <summary class="text-xl font-bold text-slate-800">📚 جدول شجرة الحسابات</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل الحسابات</h4><span id="accountsTableCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2 flex-wrap gap-2">
+                        <h4 class="font-bold text-slate-700">تفاصيل الحسابات</h4>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addAccount()" class="bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-emerald-700 transition">إضافة حساب</button>
+                            <span id="accountsTableCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    </div>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
                             <thead class="bg-sky-50 text-sky-700">
@@ -225,6 +231,7 @@
                                     <th class="px-3 py-2 text-right">نوع الحساب</th>
                                     <th class="px-3 py-2 text-right">الرصيد</th>
                                     <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                                    <th class="px-3 py-2 text-right">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="accountsTable" class="divide-y divide-slate-100"></tbody>
@@ -236,7 +243,13 @@
             <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <summary class="text-xl font-bold text-slate-800">🧾 جدول القيود المحاسبية</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">القيود المسجلة</h4><span id="entriesCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2 flex-wrap gap-2">
+                        <h4 class="font-bold text-slate-700">القيود المسجلة</h4>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addEntry()" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-indigo-700 transition">إضافة قيد</button>
+                            <span id="entriesCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    </div>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
                             <thead class="bg-amber-50 text-amber-700">
@@ -246,6 +259,7 @@
                                     <th class="px-3 py-2 text-right">تاريخ القيد</th>
                                     <th class="px-3 py-2 text-right">نوع القيد</th>
                                     <th class="px-3 py-2 text-right">الحالة</th>
+                                    <th class="px-3 py-2 text-right">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="entriesTable" class="divide-y divide-slate-100"></tbody>
@@ -257,7 +271,13 @@
             <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-rose">
                 <summary class="text-xl font-bold text-slate-800">🧾 جدول سطور القيود</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل السطور</h4><span id="linesCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2 flex-wrap gap-2">
+                        <h4 class="font-bold text-slate-700">تفاصيل السطور</h4>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addLine()" class="bg-amber-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-amber-700 transition">إضافة سطر</button>
+                            <span id="linesCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    </div>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
                             <thead class="bg-rose-50 text-rose-700">
@@ -268,6 +288,7 @@
                                     <th class="px-3 py-2 text-right">مدين</th>
                                     <th class="px-3 py-2 text-right">دائن</th>
                                     <th class="px-3 py-2 text-right">الوصف</th>
+                                    <th class="px-3 py-2 text-right">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="linesTable" class="divide-y divide-slate-100"></tbody>
@@ -401,6 +422,13 @@
                     <td class="px-3 py-2">${translateAccountType(a.account_type)}</td>
                     <td class="px-3 py-2">${formatMoney(a.balance)}</td>
                     <td class="px-3 py-2">${formatDateTime(a.created_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex gap-2 flex-wrap text-xs">
+                            <button class="px-2 py-1 bg-slate-100 rounded" onclick="viewAccount(${a.account_id})">معاينة</button>
+                            <button class="px-2 py-1 bg-amber-100 text-amber-700 rounded" onclick="editAccount(${a.account_id})">تعديل</button>
+                            <button class="px-2 py-1 bg-rose-100 text-rose-700 rounded" onclick="deleteAccount(${a.account_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -422,6 +450,13 @@
                     <td class="px-3 py-2">${formatDate(e.entry_date)}</td>
                     <td class="px-3 py-2">${translateEntryType(e.entry_type)}</td>
                     <td class="px-3 py-2">${translateStatus(e.status)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex gap-2 flex-wrap text-xs">
+                            <button class="px-2 py-1 bg-slate-100 rounded" onclick="viewEntry(${e.entry_id})">معاينة</button>
+                            <button class="px-2 py-1 bg-amber-100 text-amber-700 rounded" onclick="editEntry(${e.entry_id})">تعديل</button>
+                            <button class="px-2 py-1 bg-rose-100 text-rose-700 rounded" onclick="deleteEntry(${e.entry_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -444,8 +479,284 @@
                     <td class="px-3 py-2">${formatMoney(l.debit_amount)}</td>
                     <td class="px-3 py-2">${formatMoney(l.credit_amount)}</td>
                     <td class="px-3 py-2">${sanitizeText(l.description)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex gap-2 flex-wrap text-xs">
+                            <button class="px-2 py-1 bg-slate-100 rounded" onclick="viewLine(${l.line_id})">معاينة</button>
+                            <button class="px-2 py-1 bg-amber-100 text-amber-700 rounded" onclick="editLine(${l.line_id})">تعديل</button>
+                            <button class="px-2 py-1 bg-rose-100 text-rose-700 rounded" onclick="deleteLine(${l.line_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
+        }
+
+        function toNumber(value) {
+            const num = Number(value || 0);
+            return Number.isFinite(num) ? num : 0;
+        }
+
+        async function addAccount() {
+            const account_code = prompt('أدخل كود الحساب الجديد (مثال: 1500)');
+            if (!account_code) return;
+            const account_name_ar = prompt('أدخل اسم الحساب بالعربية', 'حساب جديد');
+            const account_type = (prompt('نوع الحساب (ASSET/LIABILITY/EQUITY/REVENUE/EXPENSE)', 'ASSET') || '').toUpperCase();
+            const normal_balance = ['ASSET', 'EXPENSE'].includes(account_type) ? 'DEBIT' : 'CREDIT';
+
+            const payload = {
+                account_code,
+                account_name_ar: account_name_ar || account_code,
+                account_name_en: account_name_ar || account_code,
+                account_type,
+                level: 1,
+                is_header: false,
+                normal_balance,
+                entity_type: 'HQ',
+                entity_id: ENTITY_ID
+            };
+
+            const res = await fetch('/finance/chart-of-accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر إضافة الحساب: ${data.error || res.status}`);
+                return;
+            }
+            alert('تمت إضافة الحساب بنجاح');
+            await loadData();
+        }
+
+        async function editAccount(accountId) {
+            const current = store.accounts.find(a => a.account_id === accountId);
+            if (!current) return alert('الحساب غير موجود');
+
+            const account_name_ar = prompt('اسم الحساب', current.account_name_ar || current.account_name || '');
+            const account_type = (prompt('نوع الحساب (ASSET/LIABILITY/EQUITY/REVENUE/EXPENSE)', current.account_type || 'ASSET') || '').toUpperCase();
+            const normal_balance = ['ASSET', 'EXPENSE'].includes(account_type) ? 'DEBIT' : 'CREDIT';
+
+            const res = await fetch(`/finance/chart-of-accounts/${accountId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    account_code: current.account_code,
+                    account_name_ar,
+                    account_name_en: account_name_ar,
+                    account_type,
+                    normal_balance,
+                    is_header: false,
+                    is_active: true,
+                    entity_id: ENTITY_ID
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر تعديل الحساب: ${data.error || res.status}`);
+                return;
+            }
+            alert('تم تعديل الحساب');
+            await loadData();
+        }
+
+        async function deleteAccount(accountId) {
+            if (!confirm('تأكيد حذف الحساب أو إلغاء تفعيله؟')) return;
+            const res = await fetch(`/finance/chart-of-accounts/${accountId}?entity_id=${encodeURIComponent(ENTITY_ID)}`, { method: 'DELETE' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر الحذف: ${data.error || res.status}`);
+                return;
+            }
+            alert(data.message || 'تم الحذف');
+            await loadData();
+        }
+
+        function viewAccount(accountId) {
+            const current = store.accounts.find(a => a.account_id === accountId);
+            if (!current) return alert('الحساب غير موجود');
+            alert(JSON.stringify(current, null, 2));
+        }
+
+        function resolveAccountByCode(code) {
+            const cleaned = String(code || '').trim();
+            return store.accounts.find(a => String(a.account_code) === cleaned);
+        }
+
+        async function addEntry() {
+            const description = prompt('وصف القيد', 'قيد يدوي سريع');
+            if (!description) return;
+            const debitCode = prompt('كود الحساب المدين', '1130');
+            const creditCode = prompt('كود الحساب الدائن', '4100');
+            const amount = toNumber(prompt('المبلغ', '1000'));
+
+            const debitAcc = resolveAccountByCode(debitCode);
+            const creditAcc = resolveAccountByCode(creditCode);
+            if (!debitAcc || !creditAcc) return alert('تعذر إيجاد الأكواد المدخلة');
+
+            const payload = {
+                entry_date: new Date().toISOString().slice(0, 10),
+                entry_type: 'MANUAL',
+                description,
+                reference_number: `REF-${Date.now()}`,
+                entity_type: 'HQ',
+                entity_id: ENTITY_ID,
+                lines: [
+                    { account_id: debitAcc.account_id, account_code: debitAcc.account_code, debit_amount: amount, credit_amount: 0, description },
+                    { account_id: creditAcc.account_id, account_code: creditAcc.account_code, debit_amount: 0, credit_amount: amount, description }
+                ]
+            };
+
+            const res = await fetch('/finance/journal/entries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر إضافة القيد: ${data.error || res.status}`);
+                return;
+            }
+            alert('تم إنشاء القيد');
+            await loadData();
+        }
+
+        async function editEntry(entryId) {
+            const entry = store.entries.find(e => e.entry_id === entryId);
+            if (!entry) return alert('القيد غير موجود');
+            const newDesc = prompt('وصف القيد', entry.description || '') ?? entry.description;
+            const newStatus = prompt('حالة القيد (DRAFT/APPROVED/POSTED)', entry.status || 'DRAFT') || entry.status;
+
+            const lines = (entry.lines || []).map(l => ({
+                account_id: l.account_id,
+                account_code: l.account_code,
+                debit_amount: l.debit_amount,
+                credit_amount: l.credit_amount,
+                description: l.description
+            }));
+
+            const payload = {
+                entity_id: ENTITY_ID,
+                entry_date: (entry.entry_date || '').slice(0, 10) || new Date().toISOString().slice(0, 10),
+                entry_type: entry.entry_type || 'GENERAL',
+                description: newDesc,
+                reference_number: entry.reference_number,
+                status: newStatus,
+                fiscal_year: entry.fiscal_year,
+                fiscal_period: entry.fiscal_period,
+                lines
+            };
+
+            const res = await fetch(`/finance/journal/entries/${entryId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر تعديل القيد: ${data.error || res.status}`);
+                return;
+            }
+            alert('تم تعديل القيد');
+            await loadData();
+        }
+
+        async function deleteEntry(entryId) {
+            if (!confirm('تأكيد حذف القيد وكل سطوره؟')) return;
+            const res = await fetch(`/finance/journal/entries/${entryId}?entity_id=${encodeURIComponent(ENTITY_ID)}`, { method: 'DELETE' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر الحذف: ${data.error || res.status}`);
+                return;
+            }
+            alert('تم حذف القيد');
+            await loadData();
+        }
+
+        function viewEntry(entryId) {
+            const entry = store.entries.find(e => e.entry_id === entryId);
+            if (!entry) return alert('القيد غير موجود');
+            alert(JSON.stringify(entry, null, 2));
+        }
+
+        async function addLine() {
+            const entryRef = prompt('أدخل رقم القيد أو المعرف', store.entries[0]?.entry_number || '');
+            if (!entryRef) return;
+            const target = store.entries.find(e => String(e.entry_id) === String(entryRef) || String(e.entry_number) === String(entryRef));
+            if (!target) return alert('لم يتم العثور على القيد');
+
+            const accountCode = prompt('كود الحساب', '1130');
+            const debit = toNumber(prompt('المبلغ المدين (اتركه صفر إن وجد دائن فقط)', '0'));
+            const credit = toNumber(prompt('المبلغ الدائن (اتركه صفر إن وجد مدين فقط)', debit ? '0' : '1000'));
+            const description = prompt('وصف السطر', 'سطر جديد');
+
+            const payload = {
+                entity_id: ENTITY_ID,
+                entry_id: target.entry_id,
+                account_code: accountCode,
+                debit_amount: debit,
+                credit_amount: credit,
+                description
+            };
+
+            const res = await fetch('/finance/journal-lines', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر إضافة السطر: ${data.error || res.status}`);
+                return;
+            }
+            alert('تمت إضافة السطر');
+            await loadData();
+        }
+
+        async function editLine(lineId) {
+            const line = store.lines.find(l => l.line_id === lineId);
+            if (!line) return alert('السطر غير موجود');
+            const accountCode = prompt('كود الحساب', line.account_code || '') || line.account_code;
+            const debit = toNumber(prompt('المبلغ المدين', line.debit_amount || '0'));
+            const credit = toNumber(prompt('المبلغ الدائن', line.credit_amount || '0'));
+            const description = prompt('الوصف', line.line_description || line.description || '') || line.line_description || line.description;
+
+            const res = await fetch(`/finance/journal-lines/${lineId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    entity_id: ENTITY_ID,
+                    account_code: accountCode,
+                    debit_amount: debit,
+                    credit_amount: credit,
+                    description
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر تعديل السطر: ${data.error || res.status}`);
+                return;
+            }
+            alert('تم تعديل السطر');
+            await loadData();
+        }
+
+        async function deleteLine(lineId) {
+            if (!confirm('تأكيد حذف السطر؟')) return;
+            const res = await fetch(`/finance/journal-lines/${lineId}?entity_id=${encodeURIComponent(ENTITY_ID)}`, { method: 'DELETE' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(`تعذر الحذف: ${data.error || res.status}`);
+                return;
+            }
+            alert('تم حذف السطر');
+            await loadData();
+        }
+
+        function viewLine(lineId) {
+            const line = store.lines.find(l => l.line_id === lineId);
+            if (!line) return alert('السطر غير موجود');
+            alert(JSON.stringify(line, null, 2));
         }
 
         function translateAccountType(value) {
