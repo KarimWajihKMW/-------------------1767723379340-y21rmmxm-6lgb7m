@@ -328,6 +328,8 @@
 
         function parseMetadata(description) {
             if (!description) return {};
+            if (typeof description === 'object') return description;
+            if (typeof description !== 'string') return {};
             try {
                 return JSON.parse(description);
             } catch {
@@ -378,8 +380,9 @@
                         const code = String(account.account_code || '');
                         const metadata = parseMetadata(account.description);
                         const bankName = String(metadata.bank_name || '');
+                        const hasMetadata = Boolean(metadata.bank_name || metadata.account_name || metadata.iban || metadata.swift);
                         const isAsset = String(account.account_type || '').toUpperCase() === 'ASSET';
-                        return isAsset && (name.includes('بنك') || bankName.includes('بنك') || code.startsWith('112'));
+                        return isAsset && (hasMetadata || name.includes('بنك') || bankName.includes('بنك') || code.startsWith('112'));
                     })
                     .map(account => {
                         const metadata = parseMetadata(account.description);
