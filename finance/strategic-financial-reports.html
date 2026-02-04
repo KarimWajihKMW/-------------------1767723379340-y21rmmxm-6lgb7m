@@ -36,6 +36,7 @@
         <div class="text-slate-900 mb-8">
             <h1 class="text-4xl font-bold mb-2">📊 التقارير الاستراتيجية والذكاء المالي</h1>
             <p class="text-lg text-slate-600">تقارير الإدارة العليا والرادار المالي وخارطة الحوكمة (الصفحة 37)</p>
+            <div id="lastUpdated" class="text-sm text-slate-500 mt-2">آخر تحديث: -</div>
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
@@ -205,16 +206,16 @@
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex border-b border-slate-200 mb-4">
-                <button class="tab-btn active flex-1 py-3 font-bold" onclick="switchTab('numbers')">Tab 1: الأرقام</button>
-                <button class="tab-btn flex-1 py-3 font-bold" onclick="switchTab('charts')">Tab 2: الرسوم البيانية</button>
-                <button class="tab-btn flex-1 py-3 font-bold" onclick="switchTab('insights')">Tab 3: ملخصات الذكاء</button>
+                <button class="tab-btn active flex-1 py-3 font-bold" onclick="switchTab('numbers')">التبويب ١: الأرقام</button>
+                <button class="tab-btn flex-1 py-3 font-bold" onclick="switchTab('charts')">التبويب ٢: الرسوم البيانية</button>
+                <button class="tab-btn flex-1 py-3 font-bold" onclick="switchTab('insights')">التبويب ٣: ملخصات الذكاء</button>
             </div>
 
             <div id="tab-numbers" class="tab-content">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div class="card-gradient shape-rounded p-5 shadow-lg accent-sky">
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-lg font-bold text-slate-800">📄 إيرادات حسب الفروع</h3>
+                            <h3 class="text-lg font-bold text-slate-800">📄 فواتير حسب الفروع</h3>
                             <span id="branchRevenueCount" class="text-sm text-slate-500"></span>
                         </div>
                         <div class="table-scroll">
@@ -222,19 +223,21 @@
                                 <thead class="bg-sky-50 text-sky-700">
                                     <tr>
                                         <th class="px-3 py-2 text-right">الفرع</th>
-                                        <th class="px-3 py-2 text-right">إجمالي الإيرادات</th>
-                                        <th class="px-3 py-2 text-right">عدد الفواتير</th>
+                                        <th class="px-3 py-2 text-right">رقم الفاتورة</th>
+                                        <th class="px-3 py-2 text-right">قيمة الفاتورة</th>
+                                        <th class="px-3 py-2 text-right">الحالة</th>
+                                        <th class="px-3 py-2 text-right">إجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="branchRevenueTable" class="divide-y divide-slate-100">
-                                    <tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
+                                    <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="card-gradient shape-rounded p-5 shadow-lg accent-emerald">
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-lg font-bold text-slate-800">📄 إيرادات حسب البرامج</h3>
+                            <h3 class="text-lg font-bold text-slate-800">📄 فواتير حسب البرامج</h3>
                             <span id="programRevenueCount" class="text-sm text-slate-500"></span>
                         </div>
                         <div class="table-scroll">
@@ -242,12 +245,14 @@
                                 <thead class="bg-emerald-50 text-emerald-700">
                                     <tr>
                                         <th class="px-3 py-2 text-right">البرنامج</th>
-                                        <th class="px-3 py-2 text-right">إجمالي الإيرادات</th>
-                                        <th class="px-3 py-2 text-right">عدد الفواتير</th>
+                                        <th class="px-3 py-2 text-right">رقم الفاتورة</th>
+                                        <th class="px-3 py-2 text-right">قيمة الفاتورة</th>
+                                        <th class="px-3 py-2 text-right">الحالة</th>
+                                        <th class="px-3 py-2 text-right">إجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="programRevenueTable" class="divide-y divide-slate-100">
-                                    <tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
+                                    <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -269,10 +274,11 @@
                                     <th class="px-3 py-2 text-right">المتبقي</th>
                                     <th class="px-3 py-2 text-right">الفرع</th>
                                     <th class="px-3 py-2 text-right">البرنامج</th>
+                                        <th class="px-3 py-2 text-right">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="overdueTable" class="divide-y divide-slate-100">
-                                <tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
+                                    <tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -291,10 +297,12 @@
                                         <th class="px-3 py-2 text-right">عميل مخاطرة</th>
                                         <th class="px-3 py-2 text-right">درجة المخاطرة</th>
                                         <th class="px-3 py-2 text-right">المستوى</th>
+                                        <th class="px-3 py-2 text-right">التاريخ</th>
+                                        <th class="px-3 py-2 text-right">إجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="topRiskCustomersTable" class="divide-y divide-slate-100">
-                                    <tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
+                                    <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -302,13 +310,15 @@
                             <table class="w-full text-xs">
                                 <thead class="bg-indigo-100 text-indigo-800">
                                     <tr>
-                                        <th class="px-3 py-2 text-right">تصنيف</th>
-                                        <th class="px-3 py-2 text-right">عدد الحالات</th>
-                                        <th class="px-3 py-2 text-right">مؤشر المخاطر</th>
+                                        <th class="px-3 py-2 text-right">فترة التوقع</th>
+                                        <th class="px-3 py-2 text-right">نوع التوقع</th>
+                                        <th class="px-3 py-2 text-right">قيمة التوقع</th>
+                                        <th class="px-3 py-2 text-right">الثقة</th>
+                                        <th class="px-3 py-2 text-right">إجراءات</th>
                                     </tr>
                                 </thead>
-                                <tbody id="riskSegmentsTable" class="divide-y divide-slate-100">
-                                    <tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
+                                <tbody id="forecastTable" class="divide-y divide-slate-100">
+                                    <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">جاري التحميل...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -362,10 +372,24 @@
         </div>
     </div>
 
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold text-slate-800"></h3>
+                <button onclick="closeModal()" class="text-slate-500 hover:text-slate-700">
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div id="modalBody" class="space-y-3 text-sm text-slate-700"></div>
+            <div id="modalActions" class="flex flex-wrap gap-3 justify-end mt-6"></div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
         const ENTITY_ID = '1';
         const AR_ENTITY_ID = 'HQ001';
+        const CONTEXT_HEADERS = window.getFinanceHeaders ? window.getFinanceHeaders() : {};
 
         let store = {
             invoices: [],
@@ -385,23 +409,23 @@
         async function loadData() {
             try {
                 const [invoiceRes, paymentRes, riskRes, forecastRes, customerRes, cashflowRes, arRes] = await Promise.all([
-                    fetch(`${API_BASE}/finance/invoices`),
-                    fetch(`${API_BASE}/finance/payments`),
-                    fetch(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/customers`),
-                    fetch(`${API_BASE}/finance/cashflow/overview?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/ar-aging?entity_id=${AR_ENTITY_ID}`)
+                    fetch(`${API_BASE}/finance/invoices`, { headers: CONTEXT_HEADERS }),
+                    fetch(`${API_BASE}/finance/payments`, { headers: CONTEXT_HEADERS }),
+                    fetch(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`, { headers: CONTEXT_HEADERS }),
+                    fetch(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`, { headers: CONTEXT_HEADERS }),
+                    fetch(`${API_BASE}/finance/customers?entity_id=${ENTITY_ID}`, { headers: CONTEXT_HEADERS }),
+                    fetch(`${API_BASE}/finance/cashflow/overview?entity_id=${ENTITY_ID}`, { headers: CONTEXT_HEADERS }),
+                    fetch(`${API_BASE}/finance/ar-aging?entity_id=${AR_ENTITY_ID}`, { headers: CONTEXT_HEADERS })
                 ]);
 
                 const [invoiceData, paymentData, riskData, forecastData, customerData, cashflowData, arData] = await Promise.all([
-                    invoiceRes.json(),
-                    paymentRes.json(),
-                    riskRes.json(),
-                    forecastRes.json(),
-                    customerRes.json(),
-                    cashflowRes.json(),
-                    arRes.json()
+                    safeJson(invoiceRes),
+                    safeJson(paymentRes),
+                    safeJson(riskRes),
+                    safeJson(forecastRes),
+                    safeJson(customerRes),
+                    safeJson(cashflowRes),
+                    safeJson(arRes)
                 ]);
 
                 store.invoices = invoiceData.invoices || [];
@@ -416,6 +440,7 @@
                 renderTables();
                 renderCharts();
                 renderInsights();
+                updateLastUpdated();
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
             }
@@ -436,33 +461,41 @@
         }
 
         function renderTables() {
-            const branchGroups = groupSum(store.invoices, 'branch_id', 'total_amount');
-            const branchRows = Object.entries(branchGroups).map(([key, value]) => {
-                const count = store.invoices.filter(i => String(i.branch_id) === String(key)).length;
-                return `
-                    <tr class="hover:bg-sky-50">
-                        <td class="px-3 py-2">${sanitizeText(key)}</td>
-                        <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(value)}</td>
-                        <td class="px-3 py-2">${count.toLocaleString('ar-SA')}</td>
-                    </tr>
-                `;
-            }).join('');
-            document.getElementById('branchRevenueTable').innerHTML = branchRows || `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
-            document.getElementById('branchRevenueCount').textContent = `عدد الصفوف: ${Object.keys(branchGroups).length}`;
+            const branchInvoices = store.invoices
+                .filter(i => i.branch_id)
+                .sort((a, b) => parseFloat(b.total_amount || 0) - parseFloat(a.total_amount || 0))
+                .slice(0, 50);
+            const branchRows = branchInvoices.map(inv => `
+                <tr class="hover:bg-sky-50">
+                    <td class="px-3 py-2">${sanitizeText(inv.branch_id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(inv.invoice_number)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(inv.total_amount)}</td>
+                    <td class="px-3 py-2">${translateInvoiceStatus(inv.status)}</td>
+                    <td class="px-3 py-2">
+                        ${renderInvoiceActions(inv)}
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('branchRevenueTable').innerHTML = branchRows || `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('branchRevenueCount').textContent = `عدد الصفوف: ${branchInvoices.length}`;
 
-            const programGroups = groupSum(store.invoices, 'program_id', 'total_amount');
-            const programRows = Object.entries(programGroups).map(([key, value]) => {
-                const count = store.invoices.filter(i => String(i.program_id) === String(key)).length;
-                return `
-                    <tr class="hover:bg-emerald-50">
-                        <td class="px-3 py-2">${sanitizeText(key)}</td>
-                        <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(value)}</td>
-                        <td class="px-3 py-2">${count.toLocaleString('ar-SA')}</td>
-                    </tr>
-                `;
-            }).join('');
-            document.getElementById('programRevenueTable').innerHTML = programRows || `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
-            document.getElementById('programRevenueCount').textContent = `عدد الصفوف: ${Object.keys(programGroups).length}`;
+            const programInvoices = store.invoices
+                .filter(i => i.program_id)
+                .sort((a, b) => parseFloat(b.total_amount || 0) - parseFloat(a.total_amount || 0))
+                .slice(0, 50);
+            const programRows = programInvoices.map(inv => `
+                <tr class="hover:bg-emerald-50">
+                    <td class="px-3 py-2">${formatProgram(inv.program_id)}</td>
+                    <td class="px-3 py-2">${sanitizeText(inv.invoice_number)}</td>
+                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(inv.total_amount)}</td>
+                    <td class="px-3 py-2">${translateInvoiceStatus(inv.status)}</td>
+                    <td class="px-3 py-2">
+                        ${renderInvoiceActions(inv)}
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('programRevenueTable').innerHTML = programRows || `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('programRevenueCount').textContent = `عدد الصفوف: ${programInvoices.length}`;
 
             const overdueInvoices = store.invoices.filter(i => String(i.status || '').toUpperCase() === 'OVERDUE');
             const overdueRows = overdueInvoices.map(inv => `
@@ -472,37 +505,40 @@
                     <td class="px-3 py-2">${formatDate(inv.invoice_date)}</td>
                     <td class="px-3 py-2 font-semibold text-rose-700">${formatMoney(inv.remaining_amount)}</td>
                     <td class="px-3 py-2">${sanitizeText(inv.branch_id)}</td>
-                    <td class="px-3 py-2">${sanitizeText(inv.program_id)}</td>
+                    <td class="px-3 py-2">${formatProgram(inv.program_id)}</td>
+                    <td class="px-3 py-2">${renderInvoiceActions(inv)}</td>
                 </tr>
             `).join('');
-            document.getElementById('overdueTable').innerHTML = overdueRows || `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('overdueTable').innerHTML = overdueRows || `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('overdueCount').textContent = `عدد الصفوف: ${overdueInvoices.length}`;
 
             const topRiskCustomers = [...store.risks].sort((a, b) => parseFloat(b.risk_score || 0) - parseFloat(a.risk_score || 0)).slice(0, 20);
             const riskRows = topRiskCustomers.map(r => `
                 <tr class="hover:bg-indigo-50">
-                    <td class="px-3 py-2">${sanitizeText(r.customer_id)}</td>
+                    <td class="px-3 py-2">${formatCustomerLabel(r.customer_id)}</td>
                     <td class="px-3 py-2">${formatPercent(r.risk_score)}</td>
                     <td class="px-3 py-2">${translateRiskLevel(r.risk_level)}</td>
+                    <td class="px-3 py-2">${formatDate(r.assessment_date)}</td>
+                    <td class="px-3 py-2">${renderRiskActions(r)}</td>
                 </tr>
             `).join('');
-            document.getElementById('topRiskCustomersTable').innerHTML = riskRows || `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('topRiskCustomersTable').innerHTML = riskRows || `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
 
-            const branchRisk = groupRisk(store.invoices, 'branch_id');
-            const programRisk = groupRisk(store.invoices, 'program_id');
-            const segments = [
-                { label: 'فروع مخاطرة', data: branchRisk.slice(0, 10) },
-                { label: 'برامج مخاطرة', data: programRisk.slice(0, 10) }
-            ];
-            const segmentRows = segments.flatMap(segment => segment.data.map(item => `
-                <tr class="hover:bg-indigo-50">
-                    <td class="px-3 py-2">${segment.label}: ${sanitizeText(item.key)}</td>
-                    <td class="px-3 py-2">${item.count.toLocaleString('ar-SA')}</td>
-                    <td class="px-3 py-2">${formatPercent(item.score)}</td>
-                </tr>
-            `)).join('');
-            document.getElementById('riskSegmentsTable').innerHTML = segmentRows || `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
-            document.getElementById('riskRadarCount').textContent = `العملاء: ${topRiskCustomers.length} | القطاعات: ${segmentRows ? segments.length : 0}`;
+            const forecastRows = [...store.forecasts]
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .slice(0, 20)
+                .map(f => `
+                    <tr class="hover:bg-indigo-50">
+                        <td class="px-3 py-2">${sanitizeText(f.forecast_period)}</td>
+                        <td class="px-3 py-2">${sanitizeText(f.forecast_type)}</td>
+                        <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(f.forecast_amount)}</td>
+                        <td class="px-3 py-2">${formatConfidence(f.confidence_level)}</td>
+                        <td class="px-3 py-2">${renderForecastActions(f)}</td>
+                    </tr>
+                `).join('');
+            document.getElementById('forecastTable').innerHTML = forecastRows || `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+
+            document.getElementById('riskRadarCount').textContent = `تقييمات المخاطر: ${topRiskCustomers.length} | التوقعات: ${store.forecasts.length}`;
         }
 
         function renderCharts() {
@@ -619,6 +655,16 @@
             return map[String(value || '').toUpperCase()] || 'غير محدد';
         }
 
+        function translateInvoiceStatus(value) {
+            const map = { ISSUED: 'مصدرة', PARTIAL: 'مدفوعة جزئياً', PAID: 'مدفوعة', OVERDUE: 'متأخرة', DRAFT: 'مسودة', CANCELLED: 'ملغاة' };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function translatePaymentStatus(value) {
+            const map = { UNPAID: 'غير مدفوعة', PARTIAL: 'مدفوعة جزئياً', PAID: 'مدفوعة' };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
         function formatMoney(value) {
             const num = parseFloat(value || 0);
             return num.toLocaleString('ar-SA') + ' ر.س';
@@ -638,8 +684,25 @@
         function sanitizeText(value) {
             if (value === null || value === undefined) return 'غير محدد';
             const text = typeof value === 'string' ? value : JSON.stringify(value);
-            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
+            const cleaned = text.replace(/[<>]/g, '').replace(/\s{2,}/g, ' ').trim();
             return cleaned || 'غير محدد';
+        }
+
+        function formatProgram(value) {
+            if (value === null || value === undefined || value === '') return 'غير محدد';
+            return `برنامج رقم ${String(value)}`;
+        }
+
+        function formatCustomerLabel(value) {
+            if (value === null || value === undefined || value === '') return 'غير محدد';
+            return `عميل رقم ${String(value)}`;
+        }
+
+        function formatConfidence(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            const num = parseFloat(value || 0);
+            if (num <= 1) return `${(num * 100).toFixed(1)}%`;
+            return `${num.toFixed(1)}%`;
         }
 
         function sum(rows, key) {
@@ -681,21 +744,17 @@
 
         function downloadAllCSV() {
             const rows = [];
-            rows.push(['إيرادات حسب الفروع']);
-            rows.push(['الفرع','إجمالي الإيرادات','عدد الفواتير']);
-            const branchGroups = groupSum(store.invoices, 'branch_id', 'total_amount');
-            Object.entries(branchGroups).forEach(([key, value]) => {
-                const count = store.invoices.filter(i => String(i.branch_id) === String(key)).length;
-                rows.push([sanitizeText(key), value, count]);
+            rows.push(['فواتير حسب الفروع']);
+            rows.push(['الفرع','رقم الفاتورة','قيمة الفاتورة','الحالة']);
+            store.invoices.filter(i => i.branch_id).forEach(inv => {
+                rows.push([sanitizeText(inv.branch_id), sanitizeText(inv.invoice_number), inv.total_amount, translateInvoiceStatus(inv.status)]);
             });
 
             rows.push([]);
-            rows.push(['إيرادات حسب البرامج']);
-            rows.push(['البرنامج','إجمالي الإيرادات','عدد الفواتير']);
-            const programGroups = groupSum(store.invoices, 'program_id', 'total_amount');
-            Object.entries(programGroups).forEach(([key, value]) => {
-                const count = store.invoices.filter(i => String(i.program_id) === String(key)).length;
-                rows.push([sanitizeText(key), value, count]);
+            rows.push(['فواتير حسب البرامج']);
+            rows.push(['البرنامج','رقم الفاتورة','قيمة الفاتورة','الحالة']);
+            store.invoices.filter(i => i.program_id).forEach(inv => {
+                rows.push([formatProgram(inv.program_id), sanitizeText(inv.invoice_number), inv.total_amount, translateInvoiceStatus(inv.status)]);
             });
 
             rows.push([]);
@@ -709,10 +768,10 @@
             });
 
             rows.push([]);
-            rows.push(['رادار المخاطر']);
-            rows.push(['عميل مخاطرة','درجة المخاطرة','المستوى']);
+            rows.push(['تقييمات المخاطر']);
+            rows.push(['عميل مخاطرة','درجة المخاطرة','المستوى','التاريخ']);
             [...store.risks].sort((a, b) => parseFloat(b.risk_score || 0) - parseFloat(a.risk_score || 0)).slice(0, 20)
-                .forEach(r => rows.push([sanitizeText(r.customer_id), r.risk_score, translateRiskLevel(r.risk_level)]));
+                .forEach(r => rows.push([formatCustomerLabel(r.customer_id), r.risk_score, translateRiskLevel(r.risk_level), r.assessment_date]));
 
             rows.push([]);
             rows.push(['التوقعات الذكية']);
@@ -748,6 +807,377 @@
 
         function refreshData() {
             loadData();
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            const formatted = now.toLocaleString('ar-SA');
+            const el = document.getElementById('lastUpdated');
+            if (el) el.textContent = `آخر تحديث: ${formatted}`;
+        }
+
+        async function safeJson(res) {
+            try {
+                if (!res.ok) {
+                    console.warn('طلب غير ناجح:', res.status);
+                }
+                return await res.json();
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function openModal(title, bodyHtml, actionsHtml) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = bodyHtml;
+            document.getElementById('modalActions').innerHTML = actionsHtml || '';
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+
+        function renderInvoiceActions(inv) {
+            return `
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openInvoiceView(${inv.invoice_id})" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">معاينة</button>
+                    <button onclick="openInvoiceEdit(${inv.invoice_id})" class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200">تعديل</button>
+                    <button onclick="deleteInvoice(${inv.invoice_id})" class="px-3 py-1 rounded-full bg-rose-100 text-rose-700 hover:bg-rose-200">حذف</button>
+                </div>
+            `;
+        }
+
+        function renderRiskActions(risk) {
+            return `
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openRiskView(${risk.risk_id})" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">معاينة</button>
+                    <button onclick="openRiskEdit(${risk.risk_id})" class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200">تعديل</button>
+                    <button onclick="deleteRisk(${risk.risk_id})" class="px-3 py-1 rounded-full bg-rose-100 text-rose-700 hover:bg-rose-200">حذف</button>
+                </div>
+            `;
+        }
+
+        function renderForecastActions(forecast) {
+            return `
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openForecastView(${forecast.forecast_id})" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">معاينة</button>
+                    <button onclick="openForecastEdit(${forecast.forecast_id})" class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200">تعديل</button>
+                    <button onclick="deleteForecast(${forecast.forecast_id})" class="px-3 py-1 rounded-full bg-rose-100 text-rose-700 hover:bg-rose-200">حذف</button>
+                </div>
+            `;
+        }
+
+        function openInvoiceView(invoiceId) {
+            const inv = store.invoices.find(i => String(i.invoice_id) === String(invoiceId));
+            if (!inv) return;
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl">رقم الفاتورة: ${sanitizeText(inv.invoice_number)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">العميل: ${sanitizeText(inv.customer_name_ar || inv.customer_name)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">قيمة الفاتورة: ${formatMoney(inv.total_amount)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">المتبقي: ${formatMoney(inv.remaining_amount)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">الحالة: ${translateInvoiceStatus(inv.status)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">حالة السداد: ${translatePaymentStatus(inv.payment_status)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">تاريخ الفاتورة: ${formatDate(inv.invoice_date)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">تاريخ الاستحقاق: ${formatDate(inv.due_date)}</div>
+                </div>
+            `;
+            openModal('معاينة الفاتورة', body, `<button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إغلاق</button>`);
+        }
+
+        function openInvoiceEdit(invoiceId) {
+            const inv = store.invoices.find(i => String(i.invoice_id) === String(invoiceId));
+            if (!inv) return;
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ الفاتورة</label>
+                        <input id="editInvoiceDate" type="date" class="w-full border rounded-xl p-2" value="${escapeHtml(inv.invoice_date || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ الاستحقاق</label>
+                        <input id="editInvoiceDue" type="date" class="w-full border rounded-xl p-2" value="${escapeHtml(inv.due_date || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">الحالة</label>
+                        <select id="editInvoiceStatus" class="w-full border rounded-xl p-2">
+                            ${renderOptions(['ISSUED','PARTIAL','PAID','OVERDUE','DRAFT','CANCELLED'], inv.status)}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">حالة السداد</label>
+                        <select id="editPaymentStatus" class="w-full border rounded-xl p-2">
+                            ${renderOptions(['UNPAID','PARTIAL','PAID'], inv.payment_status)}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">الفرع</label>
+                        <input id="editBranch" type="text" class="w-full border rounded-xl p-2" value="${escapeHtml(inv.branch_id || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">البرنامج</label>
+                        <input id="editProgram" type="number" class="w-full border rounded-xl p-2" value="${escapeHtml(inv.program_id || '')}">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">ملاحظات</label>
+                        <textarea id="editNotes" class="w-full border rounded-xl p-2" rows="2">${escapeHtml(inv.notes || '')}</textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="saveInvoiceEdit(${inv.invoice_id})" class="px-4 py-2 rounded-full bg-emerald-600 text-white">حفظ التعديلات</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('تعديل الفاتورة', body, actions);
+        }
+
+        async function saveInvoiceEdit(invoiceId) {
+            const payload = {
+                invoice_date: document.getElementById('editInvoiceDate').value || null,
+                due_date: document.getElementById('editInvoiceDue').value || null,
+                status: document.getElementById('editInvoiceStatus').value || null,
+                payment_status: document.getElementById('editPaymentStatus').value || null,
+                branch_id: document.getElementById('editBranch').value || null,
+                program_id: document.getElementById('editProgram').value || null,
+                notes: document.getElementById('editNotes').value || null
+            };
+
+            const res = await fetch(`${API_BASE}/finance/invoices/${invoiceId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر حفظ التعديلات: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
+        }
+
+        async function deleteInvoice(invoiceId) {
+            if (!confirm('هل تريد حذف الفاتورة؟')) return;
+            const res = await fetch(`${API_BASE}/finance/invoices/${invoiceId}`, {
+                method: 'DELETE',
+                headers: CONTEXT_HEADERS
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر حذف الفاتورة: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            await loadData();
+        }
+
+        function openRiskView(riskId) {
+            const risk = store.risks.find(r => String(r.risk_id) === String(riskId));
+            if (!risk) return;
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl">العميل: ${formatCustomerLabel(risk.customer_id)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">التاريخ: ${formatDate(risk.assessment_date)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">الدرجة: ${formatPercent(risk.risk_score)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">المستوى: ${translateRiskLevel(risk.risk_level)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl md:col-span-2">التوصيات: ${sanitizeText(risk.recommendations || 'لا توجد')}</div>
+                </div>
+            `;
+            openModal('معاينة تقييم المخاطر', body, `<button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إغلاق</button>`);
+        }
+
+        function openRiskEdit(riskId) {
+            const risk = store.risks.find(r => String(r.risk_id) === String(riskId));
+            if (!risk) return;
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">العميل</label>
+                        <input id="editRiskCustomer" type="number" class="w-full border rounded-xl p-2" value="${escapeHtml(risk.customer_id)}" readonly>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ التقييم</label>
+                        <input id="editRiskDate" type="date" class="w-full border rounded-xl p-2" value="${escapeHtml(risk.assessment_date || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">درجة المخاطرة</label>
+                        <input id="editRiskScore" type="number" class="w-full border rounded-xl p-2" value="${escapeHtml(risk.risk_score)}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">المستوى</label>
+                        <select id="editRiskLevel" class="w-full border rounded-xl p-2">
+                            ${renderOptions(['LOW','MEDIUM','HIGH','CRITICAL'], risk.risk_level)}
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">التوصيات</label>
+                        <textarea id="editRiskNotes" class="w-full border rounded-xl p-2" rows="2">${escapeHtml(risk.recommendations || '')}</textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="saveRiskEdit(${risk.risk_id})" class="px-4 py-2 rounded-full bg-emerald-600 text-white">حفظ التعديلات</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('تعديل تقييم المخاطر', body, actions);
+        }
+
+        async function saveRiskEdit(riskId) {
+            const payload = {
+                entity_id: ENTITY_ID,
+                customer_id: document.getElementById('editRiskCustomer').value,
+                assessment_date: document.getElementById('editRiskDate').value,
+                risk_score: document.getElementById('editRiskScore').value,
+                risk_level: document.getElementById('editRiskLevel').value,
+                recommendations: document.getElementById('editRiskNotes').value
+            };
+
+            const res = await fetch(`${API_BASE}/finance/ai-risk-scores/${riskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر حفظ التعديلات: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
+        }
+
+        async function deleteRisk(riskId) {
+            if (!confirm('هل تريد حذف تقييم المخاطر؟')) return;
+            const res = await fetch(`${API_BASE}/finance/ai-risk-scores/${riskId}?entity_id=${ENTITY_ID}`, {
+                method: 'DELETE',
+                headers: CONTEXT_HEADERS
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر حذف تقييم المخاطر: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            await loadData();
+        }
+
+        function openForecastView(forecastId) {
+            const forecast = store.forecasts.find(f => String(f.forecast_id) === String(forecastId));
+            if (!forecast) return;
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl">الفترة: ${sanitizeText(forecast.forecast_period)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">النوع: ${sanitizeText(forecast.forecast_type)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">القيمة: ${formatMoney(forecast.forecast_amount)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl">الثقة: ${formatConfidence(forecast.confidence_level)}</div>
+                    <div class="bg-slate-50 p-3 rounded-xl md:col-span-2">ملاحظات الذكاء: ${sanitizeText(forecast.ai_model || 'غير محدد')}</div>
+                </div>
+            `;
+            openModal('معاينة التوقع الذكي', body, `<button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إغلاق</button>`);
+        }
+
+        function openForecastEdit(forecastId) {
+            const forecast = store.forecasts.find(f => String(f.forecast_id) === String(forecastId));
+            if (!forecast) return;
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">فترة التوقع</label>
+                        <input id="editForecastPeriod" type="text" class="w-full border rounded-xl p-2" value="${escapeHtml(forecast.forecast_period || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">نوع التوقع</label>
+                        <input id="editForecastType" type="text" class="w-full border rounded-xl p-2" value="${escapeHtml(forecast.forecast_type || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">قيمة التوقع</label>
+                        <input id="editForecastAmount" type="number" class="w-full border rounded-xl p-2" value="${escapeHtml(forecast.forecast_amount || '')}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">الثقة</label>
+                        <input id="editForecastConfidence" type="number" step="0.01" class="w-full border rounded-xl p-2" value="${escapeHtml(forecast.confidence_level || '')}">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">النموذج</label>
+                        <input id="editForecastModel" type="text" class="w-full border rounded-xl p-2" value="${escapeHtml(forecast.ai_model || '')}">
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="saveForecastEdit(${forecast.forecast_id})" class="px-4 py-2 rounded-full bg-emerald-600 text-white">حفظ التعديلات</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('تعديل التوقع الذكي', body, actions);
+        }
+
+        async function saveForecastEdit(forecastId) {
+            const payload = {
+                entity_id: ENTITY_ID,
+                forecast_period: document.getElementById('editForecastPeriod').value,
+                forecast_type: document.getElementById('editForecastType').value,
+                forecast_amount: document.getElementById('editForecastAmount').value,
+                confidence_level: document.getElementById('editForecastConfidence').value,
+                ai_model: document.getElementById('editForecastModel').value
+            };
+
+            const res = await fetch(`${API_BASE}/finance/ai-forecasts/${forecastId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر حفظ التعديلات: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
+        }
+
+        async function deleteForecast(forecastId) {
+            if (!confirm('هل تريد حذف التوقع الذكي؟')) return;
+            const res = await fetch(`${API_BASE}/finance/ai-forecasts/${forecastId}?entity_id=${ENTITY_ID}`, {
+                method: 'DELETE',
+                headers: CONTEXT_HEADERS
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر حذف التوقع: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            await loadData();
+        }
+
+        function renderOptions(options, selected) {
+            return options.map(opt => {
+                const isSelected = String(opt).toUpperCase() === String(selected || '').toUpperCase();
+                return `<option value="${opt}" ${isSelected ? 'selected' : ''}>${translateOption(opt)}</option>`;
+            }).join('');
+        }
+
+        function translateOption(value) {
+            if (['ISSUED','PARTIAL','PAID','OVERDUE','DRAFT','CANCELLED'].includes(value)) {
+                return translateInvoiceStatus(value);
+            }
+            if (['UNPAID','PARTIAL','PAID'].includes(value)) {
+                return translatePaymentStatus(value);
+            }
+            if (['LOW','MEDIUM','HIGH','CRITICAL'].includes(value)) {
+                return translateRiskLevel(value);
+            }
+            return sanitizeText(value);
         }
 
         document.addEventListener('DOMContentLoaded', loadData);
