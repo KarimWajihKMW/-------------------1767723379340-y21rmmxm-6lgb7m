@@ -1103,6 +1103,22 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{\n  connectionString: process\\.env\\.DATABASE_URL \\|\\| 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\nasync function run\\(\\) \\{\n  const tables = \\[\n    'finance_balance_sheet',\n    'finance_assets',\n    'finance_liabilities',\n    'finance_equity',\n    'finance_account_balances',\n    'finance_ai_forecasts',\n    'finance_ai_risk_scores',\n    'finance_invoices',\n    'finance_payments',\n    'finance_journal_entries',\n    'finance_journal_lines',\n    'finance_cashflow_operating',\n    'finance_cashflow_investing',\n    'finance_cashflow_financing'\n  \\];\n  for \\(const table of tables\\) \\{\n    const res = await pool\\.query\\(`SELECT entity_id, COUNT\\(\\*\\) as count FROM \\$\\{table\\} GROUP BY entity_id ORDER BY count DESC`\\);\n    console\\.log\\(`\\\\n== \\$\\{table\\} ==`\\);\n    if \\(!res\\.rows\\.length\\) \\{ console\\.log\\('no rows'\\); continue; \\}\n    res\\.rows\\.slice\\(0,10\\)\\.forEach\\(r => console\\.log\\(`\\$\\{r\\.entity_id \\|\\| 'NULL'\\} -> \\$\\{r\\.count\\}`\\)\\);\n  \\}\n  await pool\\.end\\(\\);\n\\}\nrun\\(\\)\\.catch\\(err => \\{ console\\.error\\(err\\); process\\.exit\\(1\\); \\}\\);\nNODE$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node test-financial-reports-ai-journal-api\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^script -q -c \"node test-financial-reports-ai-journal-api\\.js\" /tmp/out && cat /tmp/out$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-financial-reports-ai-journal-api\\.js \\| head -n 200$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-financial-reports-ai-journal-api\\.js \\| head -n 100$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

@@ -44,6 +44,8 @@
         .modal-footer { padding: 12px 20px 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 10px; }
         .modal-input { width: 100%; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
         .modal-label { font-weight: 700; color: #0f172a; font-size: 13px; }
+        .add-btn { background: #0ea5e9; color: #fff; padding: 6px 10px; border-radius: 10px; font-weight: 700; font-size: 12px; }
+        .add-btn:hover { background: #0284c7; }
     </style>
 </head>
 <body>
@@ -284,15 +286,33 @@
                         <div class="table-scroll"><table class="w-full text-xs"><thead id="sheetHead" class="bg-sky-50 text-sky-700"></thead><tbody id="sheetTable" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                     <div>
-                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">الأصول</h4><span id="assetsCount" class="text-sm text-slate-500"></span></div>
+                        <div class="flex justify-between mb-2">
+                            <h4 class="font-bold text-slate-700">الأصول</h4>
+                            <div class="flex items-center gap-2">
+                                <span id="assetsCount" class="text-sm text-slate-500"></span>
+                                <button class="add-btn" onclick="openAddModal('assetsTable')">➕ إضافة</button>
+                            </div>
+                        </div>
                         <div class="table-scroll"><table class="w-full text-xs"><thead id="assetsHead" class="bg-emerald-50 text-emerald-700"></thead><tbody id="assetsTable" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                     <div>
-                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">الالتزامات</h4><span id="liabilitiesCount" class="text-sm text-slate-500"></span></div>
+                        <div class="flex justify-between mb-2">
+                            <h4 class="font-bold text-slate-700">الالتزامات</h4>
+                            <div class="flex items-center gap-2">
+                                <span id="liabilitiesCount" class="text-sm text-slate-500"></span>
+                                <button class="add-btn" onclick="openAddModal('liabilitiesTable')">➕ إضافة</button>
+                            </div>
+                        </div>
                         <div class="table-scroll"><table class="w-full text-xs"><thead id="liabilitiesHead" class="bg-amber-50 text-amber-700"></thead><tbody id="liabilitiesTable" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                     <div>
-                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">حقوق الملكية</h4><span id="equityCount" class="text-sm text-slate-500"></span></div>
+                        <div class="flex justify-between mb-2">
+                            <h4 class="font-bold text-slate-700">حقوق الملكية</h4>
+                            <div class="flex items-center gap-2">
+                                <span id="equityCount" class="text-sm text-slate-500"></span>
+                                <button class="add-btn" onclick="openAddModal('equityTable')">➕ إضافة</button>
+                            </div>
+                        </div>
                         <div class="table-scroll"><table class="w-full text-xs"><thead id="equityHead" class="bg-indigo-50 text-indigo-700"></thead><tbody id="equityTable" class="divide-y divide-slate-100"></tbody></table></div>
                     </div>
                 </div>
@@ -315,7 +335,13 @@
             <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-amber">
                 <summary class="text-xl font-bold text-slate-800">📋 تقرير أعمار الذمم</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تفاصيل الذمم</h4><span id="agingCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2">
+                        <h4 class="font-bold text-slate-700">تفاصيل الذمم</h4>
+                        <div class="flex items-center gap-2">
+                            <span id="agingCount" class="text-sm text-slate-500"></span>
+                            <button class="add-btn" onclick="openAddModal('agingTable')">➕ إضافة</button>
+                        </div>
+                    </div>
                     <div class="table-scroll"><table class="w-full text-xs"><thead id="agingHead" class="bg-amber-50 text-amber-700"></thead><tbody id="agingTable" class="divide-y divide-slate-100"></tbody></table></div>
                 </div>
             </details>
@@ -323,7 +349,13 @@
             <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-indigo">
                 <summary class="text-xl font-bold text-slate-800">💧 تقرير التدفقات النقدية اللحظي</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">التدفقات التشغيلية</h4><span id="operatingCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2">
+                        <h4 class="font-bold text-slate-700">التدفقات التشغيلية</h4>
+                        <div class="flex items-center gap-2">
+                            <span id="operatingCount" class="text-sm text-slate-500"></span>
+                            <button class="add-btn" onclick="openAddModal('operatingTable')">➕ إضافة</button>
+                        </div>
+                    </div>
                     <div class="table-scroll"><table class="w-full text-xs"><thead id="operatingHead" class="bg-sky-50 text-sky-700"></thead><tbody id="operatingTable" class="divide-y divide-slate-100"></tbody></table></div>
                 </div>
             </details>
@@ -331,7 +363,13 @@
             <details class="card-gradient rounded-xl shadow-2xl p-6 section-accent-rose">
                 <summary class="text-xl font-bold text-slate-800">🛡️ تقرير المخاطر المالية التفصيلي</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">تقييمات المخاطر</h4><span id="riskCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2">
+                        <h4 class="font-bold text-slate-700">تقييمات المخاطر</h4>
+                        <div class="flex items-center gap-2">
+                            <span id="riskCount" class="text-sm text-slate-500"></span>
+                            <button class="add-btn" onclick="openAddModal('riskTable')">➕ إضافة</button>
+                        </div>
+                    </div>
                     <div class="table-scroll"><table class="w-full text-xs"><thead id="riskHead" class="bg-rose-50 text-rose-700"></thead><tbody id="riskTable" class="divide-y divide-slate-100"></tbody></table></div>
                 </div>
             </details>
@@ -393,6 +431,68 @@
             sheetTable: { actions: ['view'] },
             incomeRevenueTable: { actions: ['view'] },
             incomeExpenseTable: { actions: ['view'] }
+        };
+
+        const ADD_CONFIG = {
+            assetsTable: {
+                title: 'إضافة أصل جديد',
+                fields: [
+                    { key: 'asset_name', value: 'أصل جديد' },
+                    { key: 'asset_category', value: 'current' },
+                    { key: 'asset_type', value: 'equipment' },
+                    { key: 'amount', value: 50000 },
+                    { key: 'description', value: 'إضافة من الواجهة' }
+                ]
+            },
+            liabilitiesTable: {
+                title: 'إضافة التزام جديد',
+                fields: [
+                    { key: 'liability_name', value: 'التزام جديد' },
+                    { key: 'liability_category', value: 'current' },
+                    { key: 'liability_type', value: 'loan' },
+                    { key: 'amount', value: 30000 },
+                    { key: 'description', value: 'إضافة من الواجهة' }
+                ]
+            },
+            equityTable: {
+                title: 'إضافة بند حقوق ملكية',
+                fields: [
+                    { key: 'equity_name', value: 'بند حقوق ملكية' },
+                    { key: 'equity_type', value: 'capital' },
+                    { key: 'amount', value: 40000 },
+                    { key: 'description', value: 'إضافة من الواجهة' }
+                ]
+            },
+            operatingTable: {
+                title: 'إضافة تدفق تشغيلي',
+                fields: [
+                    { key: 'flow_type', value: 'customer_collection' },
+                    { key: 'amount', value: 15000 },
+                    { key: 'flow_direction', value: 'IN' },
+                    { key: 'flow_date', value: new Date().toISOString().slice(0, 10) },
+                    { key: 'description', value: 'تدفق جديد' }
+                ]
+            },
+            agingTable: {
+                title: 'إضافة فاتورة ذمم',
+                fields: [
+                    { key: 'customer_id', value: 1 },
+                    { key: 'total_amount', value: 20000 },
+                    { key: 'paid_amount', value: 0 },
+                    { key: 'invoice_date', value: new Date().toISOString().slice(0, 10) },
+                    { key: 'due_date', value: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10) }
+                ]
+            },
+            riskTable: {
+                title: 'إضافة تقييم مخاطر',
+                fields: [
+                    { key: 'customer_id', value: 1 },
+                    { key: 'assessment_date', value: new Date().toISOString().slice(0, 10) },
+                    { key: 'risk_score', value: 75 },
+                    { key: 'risk_level', value: 'MEDIUM' },
+                    { key: 'recommendations', value: 'تقييم سريع من الواجهة' }
+                ]
+            }
         };
 
         let agingChartInstance = null;
@@ -573,6 +673,25 @@
                 result[key] = !Number.isNaN(num) && val !== '' ? num : val;
             });
             return result;
+        }
+
+        function openAddModal(tableId) {
+            const cfg = ADD_CONFIG[tableId];
+            if (!cfg) {
+                return setStatus('هذا الجدول لا يدعم الإضافة بعد', true);
+            }
+            const body = cfg.fields.map(f => inputTemplate(f.key, f.value)).join('');
+            openModal({
+                title: cfg.title || 'إضافة سطر جديد',
+                body: `<div class="space-y-3">${body}</div>`,
+                showConfirm: true,
+                confirmLabel: 'حفظ',
+                onConfirm: async () => {
+                    const values = collectFormValues();
+                    await handleModalCreate(tableId, values);
+                    closeModal();
+                }
+            });
         }
 
         function setContextLabels() {
@@ -1052,6 +1171,29 @@
             }
         }
 
+        async function handleModalCreate(tableId, values) {
+            try {
+                switch (tableId) {
+                    case 'assetsTable':
+                        return await assetAction('create', {}, values);
+                    case 'liabilitiesTable':
+                        return await liabilityAction('create', {}, values);
+                    case 'equityTable':
+                        return await equityAction('create', {}, values);
+                    case 'operatingTable':
+                        return await operatingAction('create', {}, values);
+                    case 'agingTable':
+                        return await agingAction('create', {}, values);
+                    case 'riskTable':
+                        return await riskAction('create', {}, values);
+                    default:
+                        return setStatus('هذا الجدول لا يدعم الإضافة بعد', true);
+                }
+            } catch (error) {
+                setStatus(`❌ ${error.message}`, true);
+            }
+        }
+
         async function handleModalEdit(tableId, row, updates, isDelete = false) {
             try {
                 switch (tableId) {
@@ -1080,6 +1222,19 @@
         }
 
         async function assetAction(action, row, updates = {}) {
+            if (action === 'create') {
+                const amount = parseFloat(updates.amount ?? 0) || 0;
+                await callApi('/finance/balance-sheet/assets', 'POST', {
+                    entity_id: activePrimaryEntity,
+                    asset_category: updates.asset_category || 'current',
+                    asset_type: updates.asset_type || 'equipment',
+                    asset_name: updates.asset_name || 'أصل جديد',
+                    amount,
+                    description: updates.description || 'إضافة من الواجهة'
+                });
+                setStatus('تم إضافة أصل جديد');
+                return loadData();
+            }
             if (action === 'delete') {
                 await callApi(`/finance/balance-sheet/assets/${row.asset_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف الأصل');
@@ -1103,6 +1258,19 @@
         }
 
         async function liabilityAction(action, row, updates = {}) {
+            if (action === 'create') {
+                const amount = parseFloat(updates.amount ?? 0) || 0;
+                await callApi('/finance/balance-sheet/liabilities', 'POST', {
+                    entity_id: activePrimaryEntity,
+                    liability_category: updates.liability_category || 'current',
+                    liability_type: updates.liability_type || 'loan',
+                    liability_name: updates.liability_name || 'التزام جديد',
+                    amount,
+                    description: updates.description || 'إضافة من الواجهة'
+                });
+                setStatus('تم إضافة التزام جديد');
+                return loadData();
+            }
             if (action === 'delete') {
                 await callApi(`/finance/balance-sheet/liabilities/${row.liability_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف الالتزام');
@@ -1125,6 +1293,18 @@
         }
 
         async function equityAction(action, row, updates = {}) {
+            if (action === 'create') {
+                const amount = parseFloat(updates.amount ?? 0) || 0;
+                await callApi('/finance/balance-sheet/equity', 'POST', {
+                    entity_id: activePrimaryEntity,
+                    equity_type: updates.equity_type || 'capital',
+                    equity_name: updates.equity_name || 'بند حقوق ملكية',
+                    amount,
+                    description: updates.description || 'إضافة من الواجهة'
+                });
+                setStatus('تم إضافة بند حقوق ملكية');
+                return loadData();
+            }
             if (action === 'delete') {
                 await callApi(`/finance/balance-sheet/equity/${row.equity_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف البند');
@@ -1146,6 +1326,21 @@
         }
 
         async function operatingAction(action, row, updates = {}) {
+            if (action === 'create') {
+                const amount = parseFloat(updates.amount ?? 0) || 0;
+                const flow_date = updates.flow_date || new Date().toISOString().slice(0, 10);
+                await callApi('/finance/cashflow/operating', 'POST', {
+                    flow_type: updates.flow_type || 'customer_collection',
+                    amount,
+                    flow_direction: updates.flow_direction || 'IN',
+                    flow_date,
+                    description: updates.description || 'تدفق جديد',
+                    entity_type: 'HQ',
+                    entity_id: activePrimaryEntity
+                });
+                setStatus('تم إضافة تدفق تشغيلي');
+                return loadData();
+            }
             if (action === 'delete') {
                 await callApi(`/finance/cashflow/operating/${row.flow_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف التدفق');
@@ -1169,6 +1364,25 @@
         }
 
         async function agingAction(action, row, updates = {}) {
+            if (action === 'create') {
+                const total_amount = parseFloat(updates.total_amount ?? 0) || 0;
+                const paid_amount = parseFloat(updates.paid_amount ?? 0) || 0;
+                const invoice_date = updates.invoice_date || new Date().toISOString().slice(0, 10);
+                const due_date = updates.due_date || invoice_date;
+                const customer_id = Number(updates.customer_id || 1);
+                await callApi('/finance/ar-aging/invoices', 'POST', {
+                    customer_id,
+                    total_amount,
+                    paid_amount,
+                    invoice_date,
+                    due_date,
+                    entity_type: 'HQ',
+                    entity_id: activeSecondaryEntity,
+                    notes: 'إضافة من الواجهة'
+                });
+                setStatus('تم إضافة فاتورة ذمم جديدة');
+                return loadData();
+            }
             if (action === 'delete') {
                 await callApi(`/finance/ar-aging/invoices/${row.invoice_id}`, 'DELETE');
                 setStatus('تم حذف الفاتورة');
@@ -1189,6 +1403,25 @@
         }
 
         async function riskAction(action, row, updates = {}) {
+            if (action === 'create') {
+                const risk_score = parseFloat(updates.risk_score ?? 0) || 0;
+                const risk_level = updates.risk_level || resolveLevel(risk_score);
+                await callApi('/finance/ai-risk-scores', 'POST', {
+                    customer_id: updates.customer_id || 1,
+                    assessment_date: updates.assessment_date || new Date().toISOString().slice(0, 10),
+                    risk_score,
+                    risk_level,
+                    risk_factors: updates.risk_factors || { source: 'manual' },
+                    calculation_details: updates.calculation_details || { method: 'manual' },
+                    recommendations: updates.recommendations || 'توصية سريعة',
+                    suggested_actions: updates.suggested_actions || ['متابعة'],
+                    entity_type: 'HQ',
+                    entity_id: activePrimaryEntity,
+                    model_version: updates.model_version || 'v1.2.0'
+                });
+                setStatus('تم إضافة تقييم مخاطر');
+                return loadData();
+            }
             if (action === 'delete') {
                 await callApi(`/finance/ai-risk-scores/${row.risk_id}?entity_id=${row.entity_id}`, 'DELETE');
                 setStatus('تم حذف تقييم المخاطر');
