@@ -61,6 +61,43 @@
             </button>
         </div>
 
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-sky">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h2 class="text-2xl font-bold text-slate-800">🧭 لوحة التحكم السريع</h2>
+                <span id="demoBadge" class="badge bg-amber-100 text-amber-700 hidden">بيانات تجريبية</span>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">اختر الجدول</label>
+                        <select id="actionTable" class="w-full border border-slate-200 rounded-xl px-3 py-2 bg-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">اختر السجل</label>
+                        <select id="actionRow" class="w-full border border-slate-200 rounded-xl px-3 py-2 bg-white"></select>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3 items-start">
+                    <button id="actionAdd" class="bg-slate-900 text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:shadow-md transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        إضافة
+                    </button>
+                    <button id="actionView" class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:shadow-md transition flex items-center gap-2">
+                        <i class="fas fa-eye"></i>
+                        معاينة
+                    </button>
+                    <button id="actionEdit" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:shadow-md transition flex items-center gap-2">
+                        <i class="fas fa-pen"></i>
+                        تعديل
+                    </button>
+                    <button id="actionDelete" class="bg-rose-600 text-white px-5 py-2 rounded-xl font-bold shadow-sm hover:shadow-md transition flex items-center gap-2">
+                        <i class="fas fa-trash"></i>
+                        حذف
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Daily Operations -->
         <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="flex items-center justify-between mb-6">
@@ -225,6 +262,88 @@
             cashflowFinancing: []
         };
 
+        let isDemoMode = false;
+
+        const DEMO_DATA = {
+            invoices: [
+                { invoice_id: 101, invoice_number: 'INV-HQ001-001', invoice_date: '2026-01-05', due_date: '2026-02-04', customer_id: 1, customer_name: 'مجموعة الشروق للتجارة', total_amount: 185000, paid_amount: 25000, remaining_amount: 160000, status: 'ISSUED', payment_status: 'PARTIAL', entity_type: 'HQ', entity_id: 'HQ001' },
+                { invoice_id: 102, invoice_number: 'INV-HQ001-002', invoice_date: '2026-01-12', due_date: '2026-02-11', customer_id: 2, customer_name: 'شركة المدى للخدمات', total_amount: 98000, paid_amount: 0, remaining_amount: 98000, status: 'OVERDUE', payment_status: 'UNPAID', entity_type: 'HQ', entity_id: 'HQ001' },
+                { invoice_id: 103, invoice_number: 'INV-HQ001-003', invoice_date: '2026-01-18', due_date: '2026-02-17', customer_id: 3, customer_name: 'مؤسسة النخبة', total_amount: 72000, paid_amount: 20000, remaining_amount: 52000, status: 'ISSUED', payment_status: 'PARTIAL', entity_type: 'HQ', entity_id: 'HQ001' },
+                { invoice_id: 104, invoice_number: 'INV-HQ001-004', invoice_date: '2026-01-22', due_date: '2026-02-21', customer_id: 4, customer_name: 'مصنع التميز الصناعي', total_amount: 56000, paid_amount: 15000, remaining_amount: 41000, status: 'ISSUED', payment_status: 'PARTIAL', entity_type: 'HQ', entity_id: 'HQ001' },
+                { invoice_id: 105, invoice_number: 'INV-HQ001-005', invoice_date: '2026-01-27', due_date: '2026-02-26', customer_id: 5, customer_name: 'رواد التقنية المتقدمة', total_amount: 120000, paid_amount: 60000, remaining_amount: 60000, status: 'PAID', payment_status: 'PAID', entity_type: 'HQ', entity_id: 'HQ001' }
+            ],
+            expenses: [
+                { expense_id: 501, expense_date: '2026-01-04', expense_amount: 18500, vendor_id: 21, vendor_name: 'بيت السفر الراقي', status: 'APPROVED', notes: 'حجوزات طيران وفنادق لفريق المبيعات', total_amount: 21275, entity_type: 'HQ', entity_id: 'HQ001' },
+                { expense_id: 502, expense_date: '2026-01-08', expense_amount: 24000, vendor_id: 22, vendor_name: 'شركة المدار للمرافق', status: 'APPROVED', notes: 'فواتير كهرباء ومياه', total_amount: 27600, entity_type: 'HQ', entity_id: 'HQ001' },
+                { expense_id: 503, expense_date: '2026-01-12', expense_amount: 64000, vendor_id: 23, vendor_name: 'شركة الريادة للطاقة', status: 'APPROVED', notes: 'إيجار مستودع الخدمات اللوجستية', total_amount: 73600, entity_type: 'HQ', entity_id: 'HQ001' },
+                { expense_id: 504, expense_date: '2026-01-18', expense_amount: 9800, vendor_id: 24, vendor_name: 'مستلزمات الأعمال', status: 'APPROVED', notes: 'توريد مستلزمات مكتبية', total_amount: 11270, entity_type: 'HQ', entity_id: 'HQ001' },
+                { expense_id: 505, expense_date: '2026-01-24', expense_amount: 14200, vendor_id: 25, vendor_name: 'شركة أمان للاتصالات', status: 'APPROVED', notes: 'خدمات خطوط البيانات والصوت', total_amount: 16330, entity_type: 'HQ', entity_id: 'HQ001' }
+            ],
+            payments: [
+                { payment_id: 901, payment_number: 'PAY-HQ-0001', payment_date: '2026-01-10', payment_amount: 25000, payment_method: 'BANK', payment_type: 'PARTIAL', status: 'COMPLETED', customer_id: 1, customer_name: 'مجموعة الشروق للتجارة', entity_type: 'HQ', entity_id: 'HQ001' },
+                { payment_id: 902, payment_number: 'PAY-HQ-0002', payment_date: '2026-01-15', payment_amount: 15000, payment_method: 'CASH', payment_type: 'PARTIAL', status: 'COMPLETED', customer_id: 4, customer_name: 'مصنع التميز الصناعي', entity_type: 'HQ', entity_id: 'HQ001' },
+                { payment_id: 903, payment_number: 'PAY-HQ-0003', payment_date: '2026-01-20', payment_amount: 60000, payment_method: 'BANK', payment_type: 'FULL', status: 'COMPLETED', customer_id: 5, customer_name: 'رواد التقنية المتقدمة', entity_type: 'HQ', entity_id: 'HQ001' },
+                { payment_id: 904, payment_number: 'PAY-HQ-0004', payment_date: '2026-01-25', payment_amount: 20000, payment_method: 'ONLINE', payment_type: 'PARTIAL', status: 'COMPLETED', customer_id: 3, customer_name: 'مؤسسة النخبة', entity_type: 'HQ', entity_id: 'HQ001' }
+            ],
+            entries: [
+                { entry_id: 701, entry_number: 'JE-2026-001', entry_date: '2026-01-10', entry_type: 'AUTO', description: 'قيد تحصيل دفعة PAY-HQ-0001', reference_number: 'PAY-HQ-0001', status: 'POSTED', entity_type: 'HQ', entity_id: 'HQ001' },
+                { entry_id: 702, entry_number: 'JE-2026-002', entry_date: '2026-01-12', entry_type: 'AUTO', description: 'قيد مصروف مرافق', reference_number: 'EXP-502', status: 'POSTED', entity_type: 'HQ', entity_id: 'HQ001' },
+                { entry_id: 703, entry_number: 'JE-2026-003', entry_date: '2026-01-15', entry_type: 'AUTO', description: 'قيد تحصيل دفعة PAY-HQ-0002', reference_number: 'PAY-HQ-0002', status: 'POSTED', entity_type: 'HQ', entity_id: 'HQ001' },
+                { entry_id: 704, entry_number: 'JE-2026-004', entry_date: '2026-01-20', entry_type: 'AUTO', description: 'قيد تحصيل دفعة PAY-HQ-0003', reference_number: 'PAY-HQ-0003', status: 'POSTED', entity_type: 'HQ', entity_id: 'HQ001' },
+                { entry_id: 705, entry_number: 'JE-2026-005', entry_date: '2026-01-24', entry_type: 'AUTO', description: 'قيد مصروف اتصالات', reference_number: 'EXP-505', status: 'POSTED', entity_type: 'HQ', entity_id: 'HQ001' }
+            ],
+            lines: [
+                { line_id: 801, line_number: 1, entry_id: 701, account_id: 1001, account_name_ar: 'النقدية', debit_amount: 25000, credit_amount: 0, description: 'تحصيل من العميل', entity_type: 'HQ', entity_id: 'HQ001' },
+                { line_id: 802, line_number: 2, entry_id: 701, account_id: 2001, account_name_ar: 'الذمم المدينة', debit_amount: 0, credit_amount: 25000, description: 'تخفيض الذمم', entity_type: 'HQ', entity_id: 'HQ001' },
+                { line_id: 803, line_number: 1, entry_id: 702, account_id: 5101, account_name_ar: 'مصروف مرافق', debit_amount: 24000, credit_amount: 0, description: 'قيد مصروف', entity_type: 'HQ', entity_id: 'HQ001' },
+                { line_id: 804, line_number: 2, entry_id: 702, account_id: 1002, account_name_ar: 'البنك', debit_amount: 0, credit_amount: 24000, description: 'سداد للمورد', entity_type: 'HQ', entity_id: 'HQ001' },
+                { line_id: 805, line_number: 1, entry_id: 704, account_id: 1002, account_name_ar: 'البنك', debit_amount: 60000, credit_amount: 0, description: 'تحصيل دفعة', entity_type: 'HQ', entity_id: 'HQ001' },
+                { line_id: 806, line_number: 2, entry_id: 704, account_id: 2001, account_name_ar: 'الذمم المدينة', debit_amount: 0, credit_amount: 60000, description: 'تخفيض الذمم', entity_type: 'HQ', entity_id: 'HQ001' }
+            ],
+            incomeRevenue: [
+                { account_code: '4100', account_name_ar: 'إيرادات المبيعات', balance: 531000 },
+                { account_code: '4200', account_name_ar: 'إيرادات الخدمات', balance: 185000 },
+                { account_code: '4300', account_name_ar: 'إيرادات أخرى', balance: 62000 }
+            ],
+            incomeExpenses: [
+                { account_code: '5100', account_name_ar: 'مصروفات تشغيل', balance: 186000 },
+                { account_code: '5200', account_name_ar: 'مصروفات تسويق', balance: 74000 },
+                { account_code: '5300', account_name_ar: 'مصروفات إدارية', balance: 56000 }
+            ],
+            balanceSheet: {
+                sheet: {
+                    sheet_date: '2026-01-31',
+                    total_assets: 1250000,
+                    total_liabilities: 420000,
+                    total_equity: 830000,
+                    is_balanced: true,
+                    difference: 0,
+                    notes: 'ميزانية تجريبية'
+                },
+                totals: {
+                    total_assets: 1250000,
+                    total_liabilities: 420000,
+                    total_equity: 830000,
+                    is_balanced: true,
+                    difference: 0
+                }
+            },
+            cashflowOverview: { total_net_cashflow: 172000 },
+            cashflowOperating: [
+                { amount: 215000, description: 'تحصيلات العملاء' },
+                { amount: -82000, description: 'مدفوعات الموردين' },
+                { amount: -31000, description: 'رواتب وأجور' }
+            ],
+            cashflowInvesting: [
+                { amount: -45000, description: 'شراء معدات تشغيل' },
+                { amount: -12000, description: 'ترقية الأنظمة' }
+            ],
+            cashflowFinancing: [
+                { amount: 150000, description: 'تمويل بنكي' },
+                { amount: -23000, description: 'سداد أقساط قرض' }
+            ]
+        };
+
         let dailyOpsChartInstance = null;
         let cashflowChartInstance = null;
 
@@ -281,15 +400,49 @@
                 dataStore.cashflowInvesting = investingRes.data.cashflows || [];
                 dataStore.cashflowFinancing = financingRes.data.cashflows || [];
 
-                renderKPIs();
-                renderDailyOpsChart();
-                renderAutoEntries();
-                renderClosingChecklist();
-                renderStatements();
-                renderTables();
+                const hasAnyData = [
+                    dataStore.invoices.length,
+                    dataStore.expenses.length,
+                    dataStore.payments.length,
+                    dataStore.entries.length,
+                    dataStore.lines.length,
+                    dataStore.incomeRevenue.length,
+                    dataStore.incomeExpenses.length
+                ].some(count => count > 0) || (dataStore.balanceSheet && dataStore.balanceSheet.totals);
+
+                if (!hasAnyData) {
+                    applyDemoData();
+                } else {
+                    isDemoMode = false;
+                    setDemoBadge(false);
+                }
+
+                renderAll();
             } catch (error) {
                 console.error('❌ خطأ في تحميل البيانات:', error);
             }
+        }
+
+        function applyDemoData() {
+            isDemoMode = true;
+            setDemoBadge(true);
+            dataStore = JSON.parse(JSON.stringify(DEMO_DATA));
+        }
+
+        function setDemoBadge(show) {
+            const badge = document.getElementById('demoBadge');
+            if (!badge) return;
+            badge.classList.toggle('hidden', !show);
+        }
+
+        function renderAll() {
+            renderKPIs();
+            renderDailyOpsChart();
+            renderAutoEntries();
+            renderClosingChecklist();
+            renderStatements();
+            renderTables();
+            renderActionPanel();
         }
 
         function renderKPIs() {
@@ -407,6 +560,17 @@
             incomeRevenue: { readOnly: true },
             incomeExpenses: { readOnly: true },
             balanceSheet: { readOnly: true }
+        };
+
+        const TABLE_LABELS = {
+            invoices: 'الفواتير',
+            expenses: 'المصروفات',
+            payments: 'المدفوعات',
+            entries: 'قيود اليومية',
+            lines: 'سطور القيود',
+            incomeRevenue: 'قائمة الدخل - الإيرادات',
+            incomeExpenses: 'قائمة الدخل - المصروفات',
+            balanceSheet: 'الميزانية العمومية'
         };
 
         const COLUMN_LABELS = {
@@ -546,6 +710,55 @@
 
             const bsRows = dataStore.balanceSheet ? [dataStore.balanceSheet.sheet] : [];
             renderDynamicTable('balanceSheetHead', 'balanceSheetTable', bsRows, 'balanceSheetCount', 'balanceSheet');
+        }
+
+        function renderActionPanel() {
+            const tableSelect = document.getElementById('actionTable');
+            const rowSelect = document.getElementById('actionRow');
+            if (!tableSelect || !rowSelect) return;
+
+            const options = Object.keys(TABLE_LABELS).map(key => `<option value="${key}">${TABLE_LABELS[key]}</option>`).join('');
+            tableSelect.innerHTML = options;
+            if (!tableSelect.value) tableSelect.value = 'invoices';
+            updateRowSelect(tableSelect.value);
+        }
+
+        function updateRowSelect(tableKey) {
+            const rowSelect = document.getElementById('actionRow');
+            const addBtn = document.getElementById('actionAdd');
+            const editBtn = document.getElementById('actionEdit');
+            const viewBtn = document.getElementById('actionView');
+            const deleteBtn = document.getElementById('actionDelete');
+            if (!rowSelect) return;
+
+            const rows = TABLE_ROWS_MAP[tableKey] || [];
+            const config = TABLE_CONFIGS[tableKey] || { readOnly: true };
+            rowSelect.innerHTML = rows.length
+                ? rows.map((row, idx) => `<option value="${idx}">${getRowLabel(tableKey, row, idx)}</option>`).join('')
+                : '<option value="">لا توجد سجلات</option>';
+
+            const hasRows = rows.length > 0;
+            [editBtn, viewBtn, deleteBtn].forEach(btn => {
+                if (!btn) return;
+                btn.disabled = !hasRows;
+                btn.classList.toggle('opacity-50', !hasRows);
+                btn.classList.toggle('cursor-not-allowed', !hasRows);
+            });
+
+            if (addBtn) {
+                addBtn.disabled = !!config.readOnly;
+                addBtn.classList.toggle('opacity-50', !!config.readOnly);
+                addBtn.classList.toggle('cursor-not-allowed', !!config.readOnly);
+            }
+        }
+
+        function getRowLabel(tableKey, row, idx) {
+            if (!row) return `سجل ${idx + 1}`;
+            const config = TABLE_CONFIGS[tableKey] || {};
+            const idValue = config.idField ? row[config.idField] : null;
+            const label = row.invoice_number || row.expense_number || row.payment_number || row.entry_number || row.line_number || row.account_name_ar || row.customer_name || row.vendor_name || row.description || row.notes;
+            const idText = idValue ? `#${idValue}` : `#${idx + 1}`;
+            return label ? `${idText} - ${label}` : idText;
         }
 
         function renderDynamicTable(headId, bodyId, rows, countId, tableKey) {
@@ -852,6 +1065,12 @@
             const editable = getEditableColumns(tableKey, columns);
             const payload = collectFormValues(form, editable);
 
+            if (isDemoMode) {
+                handleDemoSubmit(tableKey, mode, rowIndex, payload);
+                document.querySelector('.modal-overlay')?.remove();
+                return;
+            }
+
             let url = `${API_BASE}${config.endpoint}`;
             let method = 'POST';
             if (mode === 'edit') {
@@ -897,6 +1116,13 @@
             const id = row ? row[config.idField] : null;
             if (!id) {
                 alert('تعذر تحديد المعرّف للحذف');
+                return;
+            }
+
+            if (isDemoMode) {
+                const rows = dataStore[tableKey] || [];
+                rows.splice(rowIndex, 1);
+                renderAll();
                 return;
             }
             const res = await fetch(`${API_BASE}${config.endpoint}/${id}`, {
@@ -965,7 +1191,61 @@
             loadData();
         }
 
-        document.addEventListener('DOMContentLoaded', loadData);
+        function handleDemoSubmit(tableKey, mode, rowIndex, payload) {
+            const rows = dataStore[tableKey] || [];
+            const config = TABLE_CONFIGS[tableKey] || {};
+            const idField = config.idField;
+
+            if (mode === 'add') {
+                const nextId = idField ? getNextId(rows, idField) : rows.length + 1;
+                const row = { ...payload };
+                if (idField && !row[idField]) row[idField] = nextId;
+                rows.push(row);
+            } else if (mode === 'edit') {
+                const row = rows[rowIndex];
+                if (row) rows[rowIndex] = { ...row, ...payload };
+            }
+            renderAll();
+        }
+
+        function getNextId(rows, idField) {
+            const max = rows.reduce((acc, row) => {
+                const value = parseInt(row[idField], 10);
+                return Number.isFinite(value) ? Math.max(acc, value) : acc;
+            }, 0);
+            return max + 1;
+        }
+
+        function bindActionPanel() {
+            const tableSelect = document.getElementById('actionTable');
+            const rowSelect = document.getElementById('actionRow');
+            const addBtn = document.getElementById('actionAdd');
+            const viewBtn = document.getElementById('actionView');
+            const editBtn = document.getElementById('actionEdit');
+            const deleteBtn = document.getElementById('actionDelete');
+            if (!tableSelect || !rowSelect) return;
+
+            tableSelect.addEventListener('change', () => updateRowSelect(tableSelect.value));
+
+            addBtn?.addEventListener('click', () => openAddModal(tableSelect.value));
+            viewBtn?.addEventListener('click', () => {
+                if (!rowSelect.value) return alert('لا توجد سجلات للمعاينة');
+                openViewModal(tableSelect.value, Number(rowSelect.value));
+            });
+            editBtn?.addEventListener('click', () => {
+                if (!rowSelect.value) return alert('لا توجد سجلات للتعديل');
+                openEditModal(tableSelect.value, Number(rowSelect.value));
+            });
+            deleteBtn?.addEventListener('click', () => {
+                if (!rowSelect.value) return alert('لا توجد سجلات للحذف');
+                deleteRow(tableSelect.value, Number(rowSelect.value));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bindActionPanel();
+            loadData();
+        });
     </script>
 </body>
 </html>
