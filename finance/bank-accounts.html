@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏦 حسابات البنوك - نظام نايوش</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="finance-context.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -162,11 +163,12 @@
                             <th class="px-3 py-2 text-right">IBAN</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
                             <th class="px-3 py-2 text-right">آخر تسوية</th>
+                            <th class="px-3 py-2 text-right">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="bankTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="9" class="px-4 py-8 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -177,11 +179,12 @@
     <div id="bankModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
         <div class="bg-white rounded-2xl w-full max-w-3xl p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold">إضافة بنك جديد</h3>
+                <h3 id="bankModalTitle" class="text-xl font-bold">إضافة بنك جديد</h3>
                 <button onclick="closeAddBankModal()" class="text-slate-500 hover:text-slate-800">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            <input id="bankIdInput" type="hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                     <label class="text-slate-600">اسم البنك</label>
@@ -223,6 +226,13 @@
                     <label class="text-slate-600">تاريخ آخر تسوية</label>
                     <input id="reconcileInput" class="w-full border border-slate-200 rounded-lg px-3 py-2" type="date">
                 </div>
+                <div>
+                    <label class="text-slate-600">الحالة</label>
+                    <select id="statusInput" class="w-full border border-slate-200 rounded-lg px-3 py-2">
+                        <option value="active">نشط</option>
+                        <option value="paused">مجمّد</option>
+                    </select>
+                </div>
                 <div class="md:col-span-2">
                     <label class="text-slate-600">ملاحظات</label>
                     <textarea id="notesInput" class="w-full border border-slate-200 rounded-lg px-3 py-2" rows="3" placeholder="ملاحظات تشغيلية أو تعليمات خاصة"></textarea>
@@ -230,14 +240,84 @@
             </div>
             <div class="flex items-center justify-end gap-3 mt-6">
                 <button onclick="closeAddBankModal()" class="px-5 py-2 rounded-lg border border-slate-200">إلغاء</button>
-                <button onclick="submitBankAccount()" class="px-5 py-2 rounded-lg bg-black text-white">حفظ البنك</button>
+                <button id="bankModalSubmit" onclick="submitBankAccount()" class="px-5 py-2 rounded-lg bg-black text-white">حفظ البنك</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl w-full max-w-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold">معاينة الحساب البنكي</h3>
+                <button onclick="closeViewModal()" class="text-slate-500 hover:text-slate-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <div class="text-slate-500">اسم البنك</div>
+                    <div id="viewBankName" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">اسم الحساب</div>
+                    <div id="viewAccountName" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">كود الحساب</div>
+                    <div id="viewAccountCode" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">الرصيد</div>
+                    <div id="viewBalance" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">العملة</div>
+                    <div id="viewCurrency" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">IBAN</div>
+                    <div id="viewIban" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">SWIFT</div>
+                    <div id="viewSwift" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">رقم الحساب</div>
+                    <div id="viewAccountNumber" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">الفرع</div>
+                    <div id="viewBranch" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">حد الإنذار</div>
+                    <div id="viewThreshold" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">آخر تسوية</div>
+                    <div id="viewReconciled" class="font-bold"></div>
+                </div>
+                <div>
+                    <div class="text-slate-500">الحالة</div>
+                    <div id="viewStatus" class="font-bold"></div>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="text-slate-500">ملاحظات</div>
+                    <div id="viewNotes" class="font-bold"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 mt-6">
+                <button onclick="closeViewModal()" class="px-5 py-2 rounded-lg border border-slate-200">إغلاق</button>
             </div>
         </div>
     </div>
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = 'HQ001';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const ENTITY_TYPE = window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ';
+        const FINANCE_HEADERS = window.getFinanceHeaders ? window.getFinanceHeaders() : {};
 
         let bankAccounts = [];
 
@@ -280,29 +360,41 @@
 
         async function loadBankAccounts() {
             try {
-                const balanceData = await fetchJsonSafe(`${API_BASE}/finance/account-balances?entity_id=${ENTITY_ID}&account_type=ASSET`, null);
-                if (!balanceData || !balanceData.success) {
+                const response = await fetch(`${API_BASE}/finance/chart-of-accounts?entity_id=${ENTITY_ID}`, {
+                    headers: FINANCE_HEADERS
+                });
+                if (!response.ok) {
                     throw new Error('no data');
                 }
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'no data');
+                }
 
-                const rows = balanceData.rows || [];
-                bankAccounts = rows.filter(row => {
-                        const name = String(row.account_name_ar || '');
-                        const code = String(row.account_code || '');
-                        return name.includes('بنك') || code.startsWith('1120') || code.startsWith('112');
+                const accounts = data.accounts || [];
+                bankAccounts = accounts
+                    .filter(account => {
+                        const name = String(account.account_name_ar || '');
+                        const code = String(account.account_code || '');
+                        const metadata = parseMetadata(account.description);
+                        const bankName = String(metadata.bank_name || '');
+                        const isAsset = String(account.account_type || '').toUpperCase() === 'ASSET';
+                        return isAsset && (name.includes('بنك') || bankName.includes('بنك') || code.startsWith('112'));
                     })
-                    .map(row => ({
-                        account_id: row.account_id,
-                        account_code: row.account_code,
-                        bank_name: row.account_name_ar,
-                        account_name: row.account_name_ar,
-                        balance: row.balance || 0,
-                        currency: 'SAR',
-                        status: 'active',
-                        reconciled_at: null,
-                        metadata: {}
-                    }));
-
+                    .map(account => {
+                        const metadata = parseMetadata(account.description);
+                        return {
+                            account_id: account.account_id,
+                            account_code: account.account_code,
+                            bank_name: metadata.bank_name || account.account_name_ar,
+                            account_name: metadata.account_name || account.account_name_ar,
+                            balance: account.balance || 0,
+                            currency: metadata.currency || 'SAR',
+                            status: account.is_active === false ? 'paused' : 'active',
+                            reconciled_at: metadata.reconciled_at || null,
+                            metadata
+                        };
+                    });
             } catch {
                 bankAccounts = [];
             }
@@ -382,14 +474,23 @@
                         <td class="px-3 py-3">${maskIban(iban)}</td>
                         <td class="px-3 py-3">${getStatusChip(acc.status)}</td>
                         <td class="px-3 py-3">${acc.reconciled_at || '-'}</td>
+                        <td class="px-3 py-3">
+                            <div class="flex items-center gap-2">
+                                <button onclick="openViewModal('${acc.account_id}')" class="px-3 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50">معاينة</button>
+                                <button onclick="openEditBankModal('${acc.account_id}')" class="px-3 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50">تعديل</button>
+                                <button onclick="deleteBankAccount('${acc.account_id}')" class="px-3 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50">حذف</button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             }).join('');
 
-            document.getElementById('bankTable').innerHTML = rows || `<tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">لا توجد حسابات مطابقة</td></tr>`;
+            document.getElementById('bankTable').innerHTML = rows || `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-500">لا توجد حسابات مطابقة</td></tr>`;
         }
 
         function openAddBankModal() {
+            resetBankForm();
+            setBankFormMode('add');
             document.getElementById('bankModal').classList.remove('hidden');
             document.getElementById('bankModal').classList.add('flex');
         }
@@ -399,6 +500,93 @@
             document.getElementById('bankModal').classList.remove('flex');
         }
 
+        function openEditBankModal(accountId) {
+            const account = bankAccounts.find(acc => String(acc.account_id) === String(accountId));
+            if (!account) {
+                alert('تعذر العثور على الحساب');
+                return;
+            }
+            fillBankForm(account);
+            setBankFormMode('edit');
+            document.getElementById('bankModal').classList.remove('hidden');
+            document.getElementById('bankModal').classList.add('flex');
+        }
+
+        function openViewModal(accountId) {
+            const account = bankAccounts.find(acc => String(acc.account_id) === String(accountId));
+            if (!account) {
+                alert('تعذر العثور على الحساب');
+                return;
+            }
+            const meta = account.metadata || {};
+            document.getElementById('viewBankName').textContent = account.bank_name || '-';
+            document.getElementById('viewAccountName').textContent = account.account_name || '-';
+            document.getElementById('viewAccountCode').textContent = account.account_code || '-';
+            document.getElementById('viewBalance').textContent = formatMoney(account.balance || 0);
+            document.getElementById('viewCurrency').textContent = account.currency || 'SAR';
+            document.getElementById('viewIban').textContent = meta.iban || '-';
+            document.getElementById('viewSwift').textContent = meta.swift || '-';
+            document.getElementById('viewAccountNumber').textContent = meta.account_number || '-';
+            document.getElementById('viewBranch').textContent = meta.branch || '-';
+            document.getElementById('viewThreshold').textContent = meta.threshold ? formatMoney(meta.threshold) : '-';
+            document.getElementById('viewReconciled').textContent = meta.reconciled_at || '-';
+            document.getElementById('viewStatus').textContent = account.status === 'paused' ? 'مجمّد' : 'نشط';
+            document.getElementById('viewNotes').textContent = meta.notes || '-';
+
+            document.getElementById('viewModal').classList.remove('hidden');
+            document.getElementById('viewModal').classList.add('flex');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+            document.getElementById('viewModal').classList.remove('flex');
+        }
+
+        function setBankFormMode(mode) {
+            const title = document.getElementById('bankModalTitle');
+            const submitBtn = document.getElementById('bankModalSubmit');
+            if (mode === 'edit') {
+                title.textContent = 'تعديل الحساب البنكي';
+                submitBtn.textContent = 'تحديث البيانات';
+            } else {
+                title.textContent = 'إضافة بنك جديد';
+                submitBtn.textContent = 'حفظ البنك';
+            }
+        }
+
+        function resetBankForm() {
+            document.getElementById('bankIdInput').value = '';
+            document.getElementById('bankNameInput').value = '';
+            document.getElementById('accountNameInput').value = '';
+            document.getElementById('accountCodeInput').value = '';
+            document.getElementById('currencyInput').value = 'SAR';
+            document.getElementById('ibanInput').value = '';
+            document.getElementById('swiftInput').value = '';
+            document.getElementById('accountNumberInput').value = '';
+            document.getElementById('branchInput').value = '';
+            document.getElementById('alertThresholdInput').value = '';
+            document.getElementById('reconcileInput').value = '';
+            document.getElementById('statusInput').value = 'active';
+            document.getElementById('notesInput').value = '';
+        }
+
+        function fillBankForm(account) {
+            const meta = account.metadata || {};
+            document.getElementById('bankIdInput').value = account.account_id || '';
+            document.getElementById('bankNameInput').value = account.bank_name || '';
+            document.getElementById('accountNameInput').value = account.account_name || '';
+            document.getElementById('accountCodeInput').value = account.account_code || '';
+            document.getElementById('currencyInput').value = account.currency || 'SAR';
+            document.getElementById('ibanInput').value = meta.iban || '';
+            document.getElementById('swiftInput').value = meta.swift || '';
+            document.getElementById('accountNumberInput').value = meta.account_number || '';
+            document.getElementById('branchInput').value = meta.branch || '';
+            document.getElementById('alertThresholdInput').value = meta.threshold || '';
+            document.getElementById('reconcileInput').value = meta.reconciled_at || '';
+            document.getElementById('statusInput').value = account.status || 'active';
+            document.getElementById('notesInput').value = meta.notes || '';
+        }
+
         function nextBankCode() {
             const codes = bankAccounts.map(a => parseInt(String(a.account_code || '').replace(/\D/g, ''), 10)).filter(Boolean);
             const maxCode = codes.length ? Math.max(...codes) : 112000;
@@ -406,6 +594,7 @@
         }
 
         async function submitBankAccount() {
+            const accountId = document.getElementById('bankIdInput').value;
             const bankName = document.getElementById('bankNameInput').value.trim();
             const accountName = document.getElementById('accountNameInput').value.trim();
             const accountCode = document.getElementById('accountCodeInput').value.trim() || nextBankCode();
@@ -416,6 +605,7 @@
             const branch = document.getElementById('branchInput').value.trim();
             const threshold = parseFloat(document.getElementById('alertThresholdInput').value || 0);
             const reconciled = document.getElementById('reconcileInput').value;
+            const status = document.getElementById('statusInput').value;
             const notes = document.getElementById('notesInput').value.trim();
 
             if (!bankName || !accountName) {
@@ -425,6 +615,7 @@
 
             const metadata = {
                 bank_name: bankName,
+                account_name: accountName,
                 iban,
                 swift,
                 account_number: accountNumber,
@@ -436,25 +627,29 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE}/finance/accounts`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        account_code: accountCode,
-                        account_name_ar: accountName,
-                        account_name_en: accountName,
-                        account_type: 'ASSET',
-                        parent_account_id: null,
-                        level: 4,
-                        is_header: false,
-                        normal_balance: 'DEBIT',
-                        description: JSON.stringify(metadata),
-                        entity_type: 'HQ',
-                        entity_id: ENTITY_ID,
-                        branch_id: null,
-                        incubator_id: null
-                    })
-                });
+                const payload = {
+                    entity_id: ENTITY_ID,
+                    account_code: accountCode,
+                    account_name_ar: accountName,
+                    account_name_en: accountName,
+                    account_type: 'ASSET',
+                    parent_account_id: null,
+                    level: 4,
+                    is_active: status !== 'paused',
+                    is_header: false,
+                    normal_balance: 'DEBIT',
+                    description: JSON.stringify(metadata),
+                    notes: notes || null
+                };
+
+                const response = await fetch(
+                    accountId ? `${API_BASE}/finance/chart-of-accounts/${accountId}` : `${API_BASE}/finance/chart-of-accounts`,
+                    {
+                        method: accountId ? 'PUT' : 'POST',
+                        headers: { 'Content-Type': 'application/json', ...FINANCE_HEADERS },
+                        body: JSON.stringify(payload)
+                    }
+                );
 
                 const data = await response.json();
                 if (!data.success) {
@@ -463,25 +658,36 @@
 
                 closeAddBankModal();
                 await loadBankAccounts();
-                alert('تمت إضافة الحساب البنكي بنجاح');
+                alert(accountId ? 'تم تحديث الحساب البنكي بنجاح' : 'تمت إضافة الحساب البنكي بنجاح');
             } catch (error) {
                 console.error(error);
-                // fallback to local append to keep UI responsive
-                bankAccounts.unshift({
-                    account_code: accountCode,
-                    bank_name: bankName,
-                    account_name: accountName,
-                    balance: 0,
-                    currency,
-                    status: 'active',
-                    reconciled_at: reconciled,
-                    metadata
+                alert('تعذر حفظ الحساب البنكي في قاعدة البيانات');
+            }
+        }
+
+        async function deleteBankAccount(accountId) {
+            if (!accountId) {
+                alert('تعذر تحديد الحساب');
+                return;
+            }
+            if (!confirm('هل أنت متأكد من حذف الحساب البنكي؟')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/chart-of-accounts/${accountId}?entity_id=${ENTITY_ID}`, {
+                    method: 'DELETE',
+                    headers: FINANCE_HEADERS
                 });
-                closeAddBankModal();
-                renderSummary();
-                renderTable();
-                renderInsights();
-                alert('تم إضافة الحساب محلياً، تحقق من ربط API لاحقاً');
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'تعذر حذف الحساب');
+                }
+                await loadBankAccounts();
+                alert('تم حذف الحساب البنكي بنجاح');
+            } catch (error) {
+                console.error(error);
+                alert('تعذر حذف الحساب البنكي');
             }
         }
 
