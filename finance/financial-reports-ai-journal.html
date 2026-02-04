@@ -354,8 +354,12 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
-        const SECONDARY_ENTITY_ID = 'HQ001';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const SECONDARY_ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const FALLBACK_ENTITY_ID = '1';
+        const FALLBACK_SECONDARY_ENTITY_ID = '1';
+        let activePrimaryEntity = ENTITY_ID;
+        let activeSecondaryEntity = SECONDARY_ENTITY_ID;
 
         const store = {
             sheet: null,
@@ -406,10 +410,65 @@
             confirmVisible: true
         };
 
-        async function fetchJson(url) {
-            const res = await fetch(url);
-            const data = await res.json();
-            return { ok: res.ok, data };
+        function getFinanceHeaders() {
+            const external = window.getFinanceHeaders;
+            if (typeof external === 'function' && external !== getFinanceHeaders) {
+                return external();
+            }
+            return { 'x-entity-id': activePrimaryEntity, 'x-entity-type': 'HQ' };
+        }
+
+        async function fetchJson(url, options = {}) {
+            try {
+                const headers = { ...(options.headers || {}), ...getFinanceHeaders() };
+                const res = await fetch(url, { ...options, headers });
+                const text = await res.text();
+                let data = {};
+                try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+                return { ok: res.ok, status: res.status, data };
+            } catch (error) {
+                return { ok: false, status: 0, data: {}, error };
+            }
+        }
+
+        function hasRows(payload) {
+            if (!payload || typeof payload !== 'object') return false;
+            const buckets = [
+                payload.rows,
+                payload.assets,
+                payload.liabilities,
+                payload.equity,
+                payload.revenue_accounts,
+                payload.expense_accounts,
+                payload.cashflows,
+                payload.forecasts,
+                payload.invoices,
+                payload.payments,
+                payload.entries,
+                payload.lines
+            ];
+            return buckets.some(arr => Array.isArray(arr) && arr.length > 0);
+        }
+
+        async function fetchWithFallback(primaryUrl, fallbackUrl, { secondary = false } = {}) {
+            const primary = await fetchJson(primaryUrl);
+            if (primary.ok && hasRows(primary.data)) return { ...primary, usedFallback: false };
+            if (!fallbackUrl) return { ...primary, usedFallback: false };
+
+            const fallback = await fetchJson(fallbackUrl);
+            if (fallback.ok && hasRows(fallback.data)) {
+                const urlToRead = fallbackUrl.startsWith('http') ? new URL(fallbackUrl) : new URL(fallbackUrl, window.location.origin);
+                const eid = urlToRead.searchParams.get('entity_id');
+                if (eid) {
+                    if (secondary) {
+                        activeSecondaryEntity = eid;
+                    } else {
+                        activePrimaryEntity = eid;
+                    }
+                }
+                return { ...fallback, usedFallback: true };
+            }
+            return { ...primary, usedFallback: false };
         }
 
         function initModal() {
@@ -520,9 +579,9 @@
             const riskLbl = document.getElementById('riskEntityLabel');
             const opLbl = document.getElementById('operatingEntityLabel');
             const agingLbl = document.getElementById('agingEntityLabel');
-            if (riskLbl) riskLbl.textContent = `الكيان ${ENTITY_ID}`;
-            if (opLbl) opLbl.textContent = `الكيان ${ENTITY_ID}`;
-            if (agingLbl) agingLbl.textContent = `الكيان ${SECONDARY_ENTITY_ID}`;
+            if (riskLbl) riskLbl.textContent = `الكيان ${activePrimaryEntity}`;
+            if (opLbl) opLbl.textContent = `الكيان ${activePrimaryEntity}`;
+            if (agingLbl) agingLbl.textContent = `الكيان ${activeSecondaryEntity}`;
         }
 
         function setStatus(message, isError = false) {
@@ -598,7 +657,7 @@
                     recommendations,
                     suggested_actions: [],
                     entity_type: 'HQ',
-                    entity_id: ENTITY_ID,
+                    entity_id: activePrimaryEntity,
                     model_version: 'v1.2.0'
                 });
 
@@ -625,7 +684,7 @@
                     flow_date,
                     description,
                     entity_type: 'HQ',
-                    entity_id: ENTITY_ID
+                    entity_id: activePrimaryEntity
                 });
 
                 setStatus('✅ تم تسجيل التدفق التشغيلي');
@@ -651,7 +710,7 @@
                     invoice_date,
                     due_date,
                     entity_type: 'HQ',
-                    entity_id: SECONDARY_ENTITY_ID,
+                    entity_id: activeSecondaryEntity,
                     notes: 'إضافة سريعة من الواجهة'
                 });
 
@@ -664,36 +723,82 @@
 
         async function loadData() {
             try {
-                const [sheetRes, incomeRes, agingRes, cashflowRes, operatingRes, forecastRes, riskRes, invoicesRes, paymentsRes, entriesRes, linesRes] = await Promise.all([
-                    fetchJson(`${API_BASE}/finance/balance-sheet/complete?entity_id=${ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/income-statement?entity_id=${ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/ar-aging?entity_id=${SECONDARY_ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/cashflow/overview?entity_id=${ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/cashflow/operating?entity_id=${ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`),
+                const sheetRes = await fetchWithFallback(
+                    `${API_BASE}/finance/balance-sheet/complete?entity_id=${activePrimaryEntity}`,
+                    `${API_BASE}/finance/balance-sheet/complete?entity_id=${FALLBACK_ENTITY_ID}`
+                );
+
+                const agingRes = await fetchWithFallback(
+                    `${API_BASE}/finance/ar-aging?entity_id=${activeSecondaryEntity}`,
+                    `${API_BASE}/finance/ar-aging?entity_id=${FALLBACK_SECONDARY_ENTITY_ID}`,
+                    { secondary: true }
+                );
+
+                const [incomeRes, cashflowRes, operatingRes, forecastRes, riskRes, invoicesRes, paymentsRes, entriesRes, linesRes] = await Promise.all([
+                    fetchWithFallback(
+                        `${API_BASE}/finance/income-statement?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/income-statement?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/cashflow/overview?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/cashflow/overview?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/cashflow/operating?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/cashflow/operating?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/ai-forecasts?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/ai-forecasts?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/ai-risk-scores?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/ai-risk-scores?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
                     fetchJson(`${API_BASE}/finance/invoices`),
                     fetchJson(`${API_BASE}/finance/payments`),
-                    fetchJson(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`),
-                    fetchJson(`${API_BASE}/finance/journal-lines?entity_id=${ENTITY_ID}`)
+                    fetchWithFallback(
+                        `${API_BASE}/finance/journal/entries?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/journal/entries?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/journal-lines?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/journal-lines?entity_id=${FALLBACK_ENTITY_ID}`
+                    )
                 ]);
 
-                store.sheet = sheetRes.data?.sheet || null;
-                store.sheetTotals = sheetRes.data?.totals || null;
-                store.assets = sheetRes.data?.assets || [];
-                store.liabilities = sheetRes.data?.liabilities || [];
-                store.equity = sheetRes.data?.equity || [];
-                store.incomeRevenue = incomeRes.data?.revenue_accounts || [];
-                store.incomeExpenses = incomeRes.data?.expense_accounts || [];
-                store.arAging = agingRes.data?.rows || [];
-                store.cashflowOverview = cashflowRes.data || null;
-                store.cashflowOperating = operatingRes.data?.cashflows || [];
-                store.forecasts = forecastRes.data?.forecasts || [];
-                store.riskScores = riskRes.data?.rows || [];
-                store.invoices = invoicesRes.data?.invoices || [];
-                store.payments = paymentsRes.data?.payments || [];
-                store.entries = entriesRes.data?.entries || [];
-                store.lines = linesRes.data?.lines || [];
+                const sheetData = sheetRes.data || {};
+                const incomeData = incomeRes.data || {};
+                const agingData = agingRes.data || {};
+                const cashflowData = cashflowRes.data || {};
+                const operatingData = operatingRes.data || {};
+                const forecastData = forecastRes.data || {};
+                const riskData = riskRes.data || {};
+                const invoicesData = invoicesRes.data || {};
+                const paymentsData = paymentsRes.data || {};
+                const entriesData = entriesRes.data || {};
+                const linesData = linesRes.data || {};
+
+                store.sheet = sheetData.sheet || null;
+                store.sheetTotals = sheetData.totals || null;
+                store.assets = sheetData.assets || [];
+                store.liabilities = sheetData.liabilities || [];
+                store.equity = sheetData.equity || [];
+                store.incomeRevenue = incomeData.revenue_accounts || [];
+                store.incomeExpenses = incomeData.expense_accounts || [];
+                store.arAging = agingData.rows || [];
+                store.cashflowOverview = cashflowData || null;
+                store.cashflowOperating = operatingData.cashflows || [];
+                store.forecasts = forecastData.forecasts || [];
+                store.riskScores = riskData.rows || [];
+                store.invoices = invoicesData.invoices || [];
+                store.payments = paymentsData.payments || [];
+                store.entries = entriesData.entries || [];
+                store.lines = linesData.lines || [];
+
+                if (sheetRes.usedFallback || agingRes.usedFallback) {
+                    setStatus(`استخدام بيانات احتياطية للكيان ${activePrimaryEntity}`);
+                }
 
                 setContextLabels();
                 populateCustomerSelects();
@@ -708,6 +813,7 @@
                 renderTables();
             } catch (error) {
                 console.error('❌ خطأ في تحميل البيانات:', error);
+                setStatus('تعذر تحميل البيانات، الرجاء التحقق من الخادم', true);
             }
         }
 
