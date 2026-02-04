@@ -755,8 +755,14 @@
                         `${API_BASE}/finance/ai-risk-scores?entity_id=${activePrimaryEntity}`,
                         `${API_BASE}/finance/ai-risk-scores?entity_id=${FALLBACK_ENTITY_ID}`
                     ),
-                    fetchJson(`${API_BASE}/finance/invoices`),
-                    fetchJson(`${API_BASE}/finance/payments`),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/invoices?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/invoices?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
+                    fetchWithFallback(
+                        `${API_BASE}/finance/payments?entity_id=${activePrimaryEntity}`,
+                        `${API_BASE}/finance/payments?entity_id=${FALLBACK_ENTITY_ID}`
+                    ),
                     fetchWithFallback(
                         `${API_BASE}/finance/journal/entries?entity_id=${activePrimaryEntity}`,
                         `${API_BASE}/finance/journal/entries?entity_id=${FALLBACK_ENTITY_ID}`
