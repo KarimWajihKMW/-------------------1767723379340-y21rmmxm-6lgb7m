@@ -412,17 +412,8 @@
                 dataStore.cashflowInvesting = investingRes.data.cashflows || [];
                 dataStore.cashflowFinancing = financingRes.data.cashflows || [];
 
-                const hasAnyData = [
-                    dataStore.invoices.length,
-                    dataStore.expenses.length,
-                    dataStore.payments.length,
-                    dataStore.entries.length,
-                    dataStore.lines.length,
-                    dataStore.incomeRevenue.length,
-                    dataStore.incomeExpenses.length
-                ].some(count => count > 0) || (dataStore.balanceSheet && dataStore.balanceSheet.totals);
-
-                if (!hasAnyData) {
+                const apiHealthy = results.every(res => res.ok);
+                if (!apiHealthy) {
                     applyDemoData();
                 } else {
                     isDemoMode = false;
@@ -585,6 +576,17 @@
             incomeRevenue: 'قائمة الدخل - الإيرادات',
             incomeExpenses: 'قائمة الدخل - المصروفات',
             balanceSheet: 'الميزانية العمومية'
+        };
+
+        const DEFAULT_COLUMNS = {
+            invoices: ['invoice_number','invoice_date','due_date','customer_id','customer_name','total_amount','paid_amount','remaining_amount','status','payment_status','entity_type','entity_id'],
+            expenses: ['expense_number','expense_date','expense_amount','vendor_id','vendor_name','total_amount','status','notes','entity_type','entity_id'],
+            payments: ['payment_number','payment_date','customer_id','customer_name','payment_amount','payment_method','payment_type','status','notes','entity_type','entity_id'],
+            entries: ['entry_number','entry_date','entry_type','description','reference_number','status','entity_type','entity_id'],
+            lines: ['entry_id','line_number','account_id','account_name_ar','debit_amount','credit_amount','description','entity_type','entity_id'],
+            incomeRevenue: ['account_code','account_name_ar','balance'],
+            incomeExpenses: ['account_code','account_name_ar','balance'],
+            balanceSheet: ['sheet_date','total_assets','total_liabilities','total_equity','is_balanced','difference','notes']
         };
 
         const COLUMN_LABELS = {
@@ -783,8 +785,9 @@
 
             count.textContent = `عدد الصفوف: ${rows.length}`;
             const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
+            const finalColumns = columns.length ? columns : (DEFAULT_COLUMNS[tableKey] || []);
             TABLE_ROWS_MAP[tableKey] = rows;
-            TABLE_COLUMNS_MAP[tableKey] = columns;
+            TABLE_COLUMNS_MAP[tableKey] = finalColumns;
 
             const addButton = config.readOnly
                 ? `<button class="px-3 py-1 rounded-lg border text-slate-400 cursor-not-allowed" disabled>إضافة</button>`
@@ -792,22 +795,22 @@
 
             head.innerHTML = `
                 <tr>
-                    ${columns.map((c, idx) => `<th class="px-3 py-2 text-right">${getArabicLabel(c, idx)}</th>`).join('')}
+                    ${finalColumns.map((c, idx) => `<th class="px-3 py-2 text-right">${getArabicLabel(c, idx)}</th>`).join('')}
                     <th class="px-3 py-2 text-right">إجراءات</th>
                 </tr>
                 <tr>
-                    <th colspan="${columns.length + 1}" class="px-3 py-2 text-left">${addButton}</th>
+                    <th colspan="${finalColumns.length + 1}" class="px-3 py-2 text-left">${addButton}</th>
                 </tr>
             `;
 
             if (!rows.length) {
-                body.innerHTML = `<tr><td colspan="${columns.length + 1}" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+                body.innerHTML = `<tr><td colspan="${finalColumns.length + 1}" class="px-4 py-8 text-center text-slate-500">لا توجد بيانات</td></tr>`;
                 return;
             }
 
             body.innerHTML = rows.map((row, rowIndex) => `
                 <tr class="hover:bg-slate-50">
-                    ${columns.map(c => `<td class="px-3 py-2">${formatValue(row[c], c)}</td>`).join('')}
+                    ${finalColumns.map(c => `<td class="px-3 py-2">${formatValue(row[c], c)}</td>`).join('')}
                     <td class="px-3 py-2">
                         <div class="flex gap-2">
                             <button onclick="openViewModal('${tableKey}', ${rowIndex})" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="معاينة">
@@ -1079,12 +1082,6 @@
             const editable = getEditableColumns(tableKey, columns);
             const payload = collectFormValues(form, editable);
 
-            if (isDemoMode) {
-                handleDemoSubmit(tableKey, mode, rowIndex, payload);
-                document.querySelector('.modal-overlay')?.remove();
-                return;
-            }
-
             let url = `${API_BASE}${config.endpoint}`;
             let method = 'POST';
             if (mode === 'edit') {
@@ -1130,13 +1127,6 @@
             const id = row ? row[config.idField] : null;
             if (!id) {
                 alert('تعذر تحديد المعرّف للحذف');
-                return;
-            }
-
-            if (isDemoMode) {
-                const rows = dataStore[tableKey] || [];
-                rows.splice(rowIndex, 1);
-                renderAll();
                 return;
             }
             const res = await fetch(`${API_BASE}${config.endpoint}/${id}`, {
@@ -1203,31 +1193,6 @@
 
         function refreshData() {
             loadData();
-        }
-
-        function handleDemoSubmit(tableKey, mode, rowIndex, payload) {
-            const rows = dataStore[tableKey] || [];
-            const config = TABLE_CONFIGS[tableKey] || {};
-            const idField = config.idField;
-
-            if (mode === 'add') {
-                const nextId = idField ? getNextId(rows, idField) : rows.length + 1;
-                const row = { ...payload };
-                if (idField && !row[idField]) row[idField] = nextId;
-                rows.push(row);
-            } else if (mode === 'edit') {
-                const row = rows[rowIndex];
-                if (row) rows[rowIndex] = { ...row, ...payload };
-            }
-            renderAll();
-        }
-
-        function getNextId(rows, idField) {
-            const max = rows.reduce((acc, row) => {
-                const value = parseInt(row[idField], 10);
-                return Number.isFinite(value) ? Math.max(acc, value) : acc;
-            }, 0);
-            return max + 1;
         }
 
         function bindActionPanel() {
