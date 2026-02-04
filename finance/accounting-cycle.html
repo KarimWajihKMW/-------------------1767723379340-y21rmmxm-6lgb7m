@@ -1107,6 +1107,8 @@
                 payload.expense_date = toIsoDate(payload.expense_date);
                 payload.expense_category = payload.expense_category || 'تشغيل';
                 payload.expense_type = payload.expense_type || 'تشغيلي';
+                payload.amount = payload.amount ?? payload.expense_amount ?? payload.total_amount ?? 0;
+                payload.tax_amount = payload.tax_amount ?? payload.tax ?? 0;
 
                 const vendorId = await ensureVendorId(payload);
                 if (!vendorId) {
@@ -1226,11 +1228,14 @@
             } else {
                 let message = mode === 'edit' ? 'تعذر تحديث السجل' : 'تعذر إضافة السجل';
                 try {
-                    const data = await res.json();
+                    const text = await res.text();
+                    const data = text ? JSON.parse(text) : null;
                     if (data && data.error) message = data.error;
+                    if (!data && text) message = text;
                 } catch (e) {
                     // ignore
                 }
+                if (res.status) message = `${message} (HTTP ${res.status})`;
                 alert(message);
             }
         }
