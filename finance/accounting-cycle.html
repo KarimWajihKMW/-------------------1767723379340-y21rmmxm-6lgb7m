@@ -1308,7 +1308,13 @@
                     return;
                 }
             }
-            const res = await fetch(`${API_BASE}${config.endpoint}/${id}`, {
+            let deleteUrl = `${API_BASE}${config.endpoint}/${id}`;
+            if (tableKey === 'payments') {
+                const entityId = row?.entity_id || ENTITY_ID;
+                deleteUrl = `${deleteUrl}?entity_id=${encodeURIComponent(entityId)}`;
+            }
+
+            const res = await fetch(deleteUrl, {
                 method: 'DELETE',
                 headers: getFinanceHeaders()
             });

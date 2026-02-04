@@ -276,20 +276,51 @@ async function createExpense(req, res) {
 
 async function updateExpense(req, res) {
     const { id } = req.params;
-    const { expense_date, amount, tax_amount, status, notes } = req.body;
+    const payload = req.body || {};
+
+    if (!id) {
+        return res.status(400).json({ success: false, error: 'expense_id is required' });
+    }
 
     try {
+        const fields = [
+            'expense_number','expense_date','expense_category','expense_type','vendor_id','vendor_name',
+            'amount','tax_amount','total_amount','status','notes','description','invoice_number',
+            'entity_type','entity_id','branch_id','incubator_id','platform_id'
+        ];
+
+        if (!('total_amount' in payload) && ('amount' in payload || 'tax_amount' in payload)) {
+            const amt = payload.amount != null ? parseFloat(payload.amount) : undefined;
+            const tax = payload.tax_amount != null ? parseFloat(payload.tax_amount) : undefined;
+            if (Number.isFinite(amt) || Number.isFinite(tax)) {
+                payload.total_amount = (amt || 0) + (tax || 0);
+            }
+        }
+
+        const setClauses = [];
+        const values = [];
+        let idx = 1;
+        for (const field of fields) {
+            if (field in payload) {
+                setClauses.push(`${field} = COALESCE($${idx}, ${field})`);
+                values.push(payload[field]);
+                idx++;
+            }
+        }
+
+        if (!setClauses.length) {
+            return res.status(400).json({ success: false, error: 'No fields provided to update' });
+        }
+
+        setClauses.push('updated_at = NOW()');
+        values.push(id);
+
         const result = await pool.query(
             `UPDATE finance_expenses
-             SET expense_date = COALESCE($1, expense_date),
-                 amount = COALESCE($2, amount),
-                 tax_amount = COALESCE($3, tax_amount),
-                 status = COALESCE($4, status),
-                 notes = COALESCE($5, notes),
-                 updated_at = NOW()
-             WHERE expense_id = $6
+             SET ${setClauses.join(', ')}
+             WHERE expense_id = $${idx}
              RETURNING *`,
-            [expense_date || null, amount ?? null, tax_amount ?? null, status || null, notes || null, id]
+            values
         );
 
         if (result.rows.length === 0) {

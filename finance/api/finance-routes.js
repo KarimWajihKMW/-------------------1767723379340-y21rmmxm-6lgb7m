@@ -505,23 +505,39 @@ router.get('/invoices/:id', async (req, res) => {
 router.put('/invoices/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      due_date,
-      total_amount,
-      status,
-      notes
-    } = req.body;
+    const allowedFields = [
+      'invoice_number', 'invoice_date', 'due_date', 'customer_id', 'customer_name',
+      'subtotal', 'tax_amount', 'discount_amount', 'total_amount', 'paid_amount', 'remaining_amount',
+      'status', 'payment_status', 'notes', 'program_id', 'service_id', 'entity_type', 'entity_id',
+      'branch_id', 'incubator_id', 'platform_id', 'payment_terms', 'payment_term_days'
+    ];
+
+    const payload = req.body || {};
+    const setClauses = [];
+    const values = [];
+    let idx = 1;
+
+    for (const field of allowedFields) {
+      if (field in payload) {
+        setClauses.push(`${field} = COALESCE($${idx}, ${field})`);
+        values.push(payload[field]);
+        idx += 1;
+      }
+    }
+
+    if (!setClauses.length) {
+      return res.status(400).json({ success: false, error: 'No fields provided to update' });
+    }
+
+    setClauses.push('updated_at = NOW()');
+    values.push(id);
 
     const result = await db.query(
       `UPDATE finance_invoices
-       SET due_date = COALESCE($1, due_date),
-           total_amount = COALESCE($2, total_amount),
-           status = COALESCE($3, status),
-           notes = COALESCE($4, notes),
-           updated_at = NOW()
-       WHERE invoice_id = $5
+       SET ${setClauses.join(', ')}
+       WHERE invoice_id = $${idx}
        RETURNING *`,
-      [due_date || null, total_amount ?? null, status || null, notes || null, id]
+      values
     );
 
     if (result.rows.length === 0) {
@@ -540,6 +556,8 @@ router.delete('/invoices/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    await db.query('DELETE FROM finance_payment_allocations WHERE invoice_id = $1', [id]);
+    await db.query('DELETE FROM finance_payment_plans WHERE invoice_id = $1', [id]);
     await db.query('DELETE FROM finance_invoice_lines WHERE invoice_id = $1', [id]);
     const result = await db.query('DELETE FROM finance_invoices WHERE invoice_id = $1 RETURNING *', [id]);
 

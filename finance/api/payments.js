@@ -158,73 +158,50 @@ async function createPayment(req, res) {
  */
 async function updatePayment(req, res) {
     const { payment_id } = req.params;
-    const {
-        entity_id,
-        payment_number,
-        payment_date,
-        customer_id,
-        customer_name,
-        payment_amount,
-        payment_method,
-        payment_type,
-        bank_name,
-        check_number,
-        transaction_reference,
-        status,
-        notes
-    } = req.body || {};
+    const payload = req.body || {};
 
-    if (!payment_id || !entity_id || !payment_date || !customer_id || !payment_amount || !payment_method) {
-        return res.status(400).json({
-            success: false,
-            error: 'Missing required fields: payment_id, entity_id, payment_date, customer_id, payment_amount, payment_method'
-        });
+    if (!payment_id) {
+        return res.status(400).json({ success: false, error: 'payment_id is required' });
     }
 
     try {
-        const existing = await pool.query('SELECT payment_id, entity_id FROM finance_payments WHERE payment_id = $1', [payment_id]);
+        const existing = await pool.query('SELECT * FROM finance_payments WHERE payment_id = $1', [payment_id]);
         if (!existing.rows.length) {
             return res.status(404).json({ success: false, error: 'Payment not found' });
         }
 
-        if (existing.rows[0].entity_id && existing.rows[0].entity_id !== entity_id) {
+        const current = existing.rows[0];
+        const entityId = payload.entity_id || req.query.entity_id || req.headers['x-entity-id'] || current.entity_id;
+        if (current.entity_id && entityId && current.entity_id !== entityId) {
             return res.status(403).json({ success: false, error: 'لا يمكن تعديل مدفوعة كيان آخر' });
         }
 
+        const fields = [
+            'payment_number','payment_date','customer_id','customer_name','payment_amount','payment_method','payment_type',
+            'bank_name','check_number','transaction_reference','status','notes','entity_id','entity_type','branch_id','incubator_id','platform_id'
+        ];
+
+        const setClauses = [];
+        const values = [];
+        let idx = 1;
+        for (const field of fields) {
+            if (field in payload) {
+                setClauses.push(`${field} = COALESCE($${idx}, ${field})`);
+                values.push(payload[field]);
+                idx++;
+            }
+        }
+
+        if (!setClauses.length) {
+            return res.status(400).json({ success: false, error: 'No fields provided to update' });
+        }
+
+        setClauses.push('updated_at = NOW()');
+        values.push(payment_id);
+
         const result = await pool.query(
-            `
-            UPDATE finance_payments
-            SET payment_number = $1,
-                payment_date = $2,
-                customer_id = $3,
-                customer_name = $4,
-                payment_amount = $5,
-                payment_method = $6,
-                payment_type = $7,
-                bank_name = $8,
-                check_number = $9,
-                transaction_reference = $10,
-                status = $11,
-                notes = $12,
-                updated_at = NOW()
-            WHERE payment_id = $13
-            RETURNING *
-            `,
-            [
-                payment_number,
-                payment_date,
-                customer_id,
-                customer_name || null,
-                payment_amount,
-                payment_method,
-                payment_type || 'FULL',
-                bank_name || null,
-                check_number || null,
-                transaction_reference || null,
-                status || 'COMPLETED',
-                notes || null,
-                payment_id
-            ]
+            `UPDATE finance_payments SET ${setClauses.join(', ')} WHERE payment_id = $${idx} RETURNING *`,
+            values
         );
 
         res.json({ success: true, payment: result.rows[0] });
@@ -239,10 +216,10 @@ async function updatePayment(req, res) {
  */
 async function deletePayment(req, res) {
     const { payment_id } = req.params;
-    const { entity_id } = req.query;
+    const entity_id = req.query.entity_id || req.headers['x-entity-id'] || req.body?.entity_id;
 
-    if (!payment_id || !entity_id) {
-        return res.status(400).json({ success: false, error: 'payment_id and entity_id are required' });
+    if (!payment_id) {
+        return res.status(400).json({ success: false, error: 'payment_id is required' });
     }
 
     try {
@@ -251,10 +228,11 @@ async function deletePayment(req, res) {
             return res.status(404).json({ success: false, error: 'Payment not found' });
         }
 
-        if (existing.rows[0].entity_id && existing.rows[0].entity_id !== entity_id) {
+        if (existing.rows[0].entity_id && entity_id && existing.rows[0].entity_id !== entity_id) {
             return res.status(403).json({ success: false, error: 'لا يمكن حذف مدفوعة كيان آخر' });
         }
 
+        await pool.query('DELETE FROM finance_payment_allocations WHERE payment_id = $1', [payment_id]);
         await pool.query('DELETE FROM finance_payments WHERE payment_id = $1', [payment_id]);
         res.json({ success: true, message: 'تم حذف المدفوعة' });
     } catch (error) {
