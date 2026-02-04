@@ -40,6 +40,10 @@
         </div>
 
         <div class="mb-6 flex gap-3 flex-wrap">
+            <button onclick="openAccountModal('add')" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2 shadow-sm">
+                <i class="fas fa-plus-circle"></i>
+                إضافة حساب
+            </button>
             <button onclick="downloadCSV()" class="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-2 shadow-sm">
                 <i class="fas fa-file-csv text-green-600"></i>
                 تنزيل CSV
@@ -148,11 +152,12 @@
                                 <th class="px-3 py-3 text-right">total_debit</th>
                                 <th class="px-3 py-3 text-right">total_credit</th>
                                 <th class="px-3 py-3 text-right">balance</th>
+                                <th class="px-3 py-3 text-right">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="balancesTable" class="text-xs divide-y divide-slate-200 bg-white">
                             <tr>
-                                <td colspan="9" class="px-4 py-12 text-center text-slate-500">
+                                <td colspan="10" class="px-4 py-12 text-center text-slate-500">
                                     <i class="fas fa-spinner fa-spin text-3xl mb-3 opacity-30"></i>
                                     <div>جاري تحميل البيانات...</div>
                                 </td>
@@ -166,10 +171,12 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
         let rows = [];
         let filteredRows = [];
         let typeChartInstance = null;
+        let currentAccountId = null;
+        let currentMode = 'add';
 
         async function loadReport() {
             try {
@@ -188,7 +195,7 @@
                 console.error('❌ خطأ في تحميل التقرير:', error);
                 document.getElementById('balancesTable').innerHTML = `
                     <tr>
-                        <td colspan="9" class="px-4 py-12 text-center text-red-500">
+                        <td colspan="10" class="px-4 py-12 text-center text-red-500">
                             <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                             <div>فشل تحميل بيانات الأرصدة</div>
                         </td>
@@ -249,12 +256,27 @@
                     <td class="px-3 py-3 font-semibold text-emerald-600">${formatMoney(r.total_debit)}</td>
                     <td class="px-3 py-3 font-semibold text-rose-600">${formatMoney(r.total_credit)}</td>
                     <td class="px-3 py-3 font-bold text-slate-800" dir="ltr">${formatMoney(r.balance)}</td>
+                    <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="openAccountModal('view', ${r.account_id})" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="معاينة">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openAccountModal('edit', ${r.account_id})" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition" title="تعديل">
+                                <i class="fas fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteAccount(${r.account_id})" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
             document.getElementById('balancesTable').innerHTML = body.length ? body : `
                 <tr>
-                    <td colspan="9" class="px-6 py-12 text-center text-slate-500">لا توجد بيانات</td>
+                    <td colspan="10" class="px-6 py-12 text-center text-slate-500">
+                        لا توجد بيانات حالياً. يمكنك الضغط على زر "إضافة حساب".
+                    </td>
                 </tr>
             `;
             document.getElementById('rowsCount').textContent = `عدد الصفوف: ${rowsData.length}`;
@@ -341,7 +363,200 @@
             window.print();
         }
 
+        function openAccountModal(mode, accountId = null) {
+            currentMode = mode;
+            currentAccountId = accountId;
+            const modal = document.getElementById('accountModal');
+            const title = document.getElementById('accountModalTitle');
+            const saveBtn = document.getElementById('accountSaveBtn');
+
+            const isView = mode === 'view';
+            title.textContent = mode === 'add' ? 'إضافة حساب جديد' : mode === 'edit' ? 'تعديل حساب' : 'معاينة حساب';
+            saveBtn.classList.toggle('hidden', isView);
+
+            clearAccountForm();
+
+            if (accountId) {
+                fetch(`${API_BASE}/finance/chart-of-accounts/${accountId}?entity_id=${ENTITY_ID}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) throw new Error(data.error || 'تعذر جلب بيانات الحساب');
+                        fillAccountForm(data.account);
+                        setFormDisabled(isView);
+                        modal.classList.remove('hidden');
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('تعذر جلب بيانات الحساب');
+                    });
+            } else {
+                setFormDisabled(isView);
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeAccountModal() {
+            document.getElementById('accountModal').classList.add('hidden');
+        }
+
+        function setFormDisabled(isDisabled) {
+            document.querySelectorAll('#accountForm input, #accountForm select, #accountForm textarea').forEach(el => {
+                el.disabled = isDisabled;
+                el.classList.toggle('bg-slate-100', isDisabled);
+            });
+        }
+
+        function clearAccountForm() {
+            document.getElementById('account_code').value = '';
+            document.getElementById('account_name_ar').value = '';
+            document.getElementById('account_name_en').value = '';
+            document.getElementById('account_type').value = 'ASSET';
+            document.getElementById('normal_balance').value = 'DEBIT';
+            document.getElementById('is_active').checked = true;
+            document.getElementById('is_header').checked = false;
+            document.getElementById('description').value = '';
+            document.getElementById('notes').value = '';
+        }
+
+        function fillAccountForm(account) {
+            document.getElementById('account_code').value = account.account_code || '';
+            document.getElementById('account_name_ar').value = account.account_name_ar || '';
+            document.getElementById('account_name_en').value = account.account_name_en || '';
+            document.getElementById('account_type').value = account.account_type || 'ASSET';
+            document.getElementById('normal_balance').value = account.normal_balance || (['ASSET', 'EXPENSE'].includes(String(account.account_type || 'ASSET').toUpperCase()) ? 'DEBIT' : 'CREDIT');
+            document.getElementById('is_active').checked = account.is_active !== false;
+            document.getElementById('is_header').checked = account.is_header === true;
+            document.getElementById('description').value = account.description || '';
+            document.getElementById('notes').value = account.notes || '';
+        }
+
+        function syncNormalBalance() {
+            const type = document.getElementById('account_type').value;
+            document.getElementById('normal_balance').value = ['ASSET', 'EXPENSE'].includes(type) ? 'DEBIT' : 'CREDIT';
+        }
+
+        async function saveAccount() {
+            const payload = {
+                entity_id: ENTITY_ID,
+                account_code: document.getElementById('account_code').value.trim(),
+                account_name_ar: document.getElementById('account_name_ar').value.trim(),
+                account_name_en: document.getElementById('account_name_en').value.trim(),
+                account_type: document.getElementById('account_type').value,
+                normal_balance: document.getElementById('normal_balance').value,
+                is_active: document.getElementById('is_active').checked,
+                is_header: document.getElementById('is_header').checked,
+                description: document.getElementById('description').value.trim(),
+                notes: document.getElementById('notes').value.trim()
+            };
+
+            if (!payload.account_code || !payload.account_name_ar || !payload.account_type) {
+                alert('يرجى ملء الحقول الأساسية');
+                return;
+            }
+
+            try {
+                const url = currentMode === 'edit'
+                    ? `${API_BASE}/finance/chart-of-accounts/${currentAccountId}`
+                    : `${API_BASE}/finance/chart-of-accounts`;
+
+                const method = currentMode === 'edit' ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'تعذر حفظ الحساب');
+                closeAccountModal();
+                await loadReport();
+            } catch (error) {
+                console.error(error);
+                alert(error.message || 'تعذر حفظ الحساب');
+            }
+        }
+
+        async function deleteAccount(accountId) {
+            if (!confirm('هل تريد حذف هذا الحساب؟')) return;
+            try {
+                const response = await fetch(`${API_BASE}/finance/chart-of-accounts/${accountId}?entity_id=${ENTITY_ID}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'تعذر حذف الحساب');
+                await loadReport();
+            } catch (error) {
+                console.error(error);
+                alert(error.message || 'تعذر حذف الحساب');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', loadReport);
     </script>
+
+    <div id="accountModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 flex">
+        <div class="bg-white w-full max-w-2xl rounded-xl shadow-lg border border-slate-200">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h3 id="accountModalTitle" class="text-lg font-bold text-slate-800">إضافة حساب جديد</h3>
+                <button onclick="closeAccountModal()" class="text-slate-500 hover:text-slate-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4">
+                <form id="accountForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">كود الحساب</label>
+                        <input id="account_code" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">اسم الحساب (عربي)</label>
+                        <input id="account_name_ar" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">اسم الحساب (English)</label>
+                        <input id="account_name_en" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">نوع الحساب</label>
+                        <select id="account_type" class="w-full border border-slate-300 rounded-lg px-3 py-2" onchange="syncNormalBalance()">
+                            <option value="ASSET">أصول</option>
+                            <option value="LIABILITY">التزامات</option>
+                            <option value="EQUITY">حقوق ملكية</option>
+                            <option value="REVENUE">إيرادات</option>
+                            <option value="EXPENSE">مصروفات</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">الرصيد الطبيعي</label>
+                        <select id="normal_balance" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                            <option value="DEBIT">مدين</option>
+                            <option value="CREDIT">دائن</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 text-sm font-bold text-slate-700">
+                            <input id="is_active" type="checkbox" class="rounded" />
+                            نشط
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-bold text-slate-700">
+                            <input id="is_header" type="checkbox" class="rounded" />
+                            حساب تجميعي
+                        </label>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">الوصف</label>
+                        <textarea id="description" class="w-full border border-slate-300 rounded-lg px-3 py-2" rows="2"></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">ملاحظات</label>
+                        <textarea id="notes" class="w-full border border-slate-300 rounded-lg px-3 py-2" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+                <button onclick="closeAccountModal()" class="px-5 py-2 rounded-lg border border-slate-300 text-slate-700">إلغاء</button>
+                <button id="accountSaveBtn" onclick="saveAccount()" class="px-5 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">حفظ</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,4 +1,7 @@
 const http = require('http');
+const { spawn } = require('child_process');
+
+const SERVER_URL = 'http://localhost:3000';
 
 function testPage(url) {
   return new Promise((resolve, reject) => {
@@ -12,13 +15,49 @@ function testPage(url) {
   });
 }
 
+function checkServerRunning() {
+  return new Promise((resolve) => {
+    const req = http.get(`${SERVER_URL}/api/health`, (res) => {
+      resolve(res.statusCode === 200);
+      res.resume();
+    });
+    req.on('error', () => resolve(false));
+  });
+}
+
+async function waitForServer(retries = 20, delayMs = 500) {
+  for (let i = 0; i < retries; i++) {
+    const isUp = await checkServerRunning();
+    if (isUp) return true;
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  return false;
+}
+
 async function testBuild() {
   console.log('🏗️ اختبار البناء والصفحات...\n');
-  
+  let serverProcess = null;
+  let startedHere = false;
+
   try {
+    const alreadyRunning = await checkServerRunning();
+    if (!alreadyRunning) {
+      console.log('🚀 تشغيل الخادم للاختبارات...');
+      serverProcess = spawn('node', ['server.js'], {
+        stdio: 'ignore',
+        env: process.env
+      });
+      startedHere = true;
+
+      const ready = await waitForServer();
+      if (!ready) {
+        throw new Error('تعذر تشغيل الخادم للاختبارات');
+      }
+    }
+
     // Test 1: finance/ page
     console.log('1️⃣ اختبار صفحة /finance/');
-    const financePage = await testPage('http://localhost:3000/finance/');
+    const financePage = await testPage(`${SERVER_URL}/finance/`);
     if (financePage.status === 200 && (financePage.html.includes('💼 المالية') || financePage.html.includes('المالية'))) {
       console.log('   ✅ صفحة /finance/ تعمل بنجاح');
       console.log(`   📄 حجم الصفحة: ${(financePage.html.length / 1024).toFixed(2)} KB`);
@@ -29,7 +68,7 @@ async function testBuild() {
 
     // Test 2: finance-dashboard.html page
     console.log('2️⃣ اختبار صفحة /finance-dashboard.html');
-    const dashboardPage = await testPage('http://localhost:3000/finance-dashboard.html');
+    const dashboardPage = await testPage(`${SERVER_URL}/finance-dashboard.html`);
     if (dashboardPage.status === 200 && (dashboardPage.html.includes('💼 المالية') || dashboardPage.html.includes('المالية'))) {
       console.log('   ✅ صفحة /finance-dashboard.html تعمل بنجاح');
       console.log(`   📄 حجم الصفحة: ${(dashboardPage.html.length / 1024).toFixed(2)} KB`);
@@ -61,6 +100,10 @@ async function testBuild() {
   } catch (error) {
     console.error('\n❌ فشل اختبار البناء:', error.message);
     process.exit(1);
+  } finally {
+    if (serverProcess && startedHere) {
+      serverProcess.kill('SIGTERM');
+    }
   }
 }
 
