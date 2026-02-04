@@ -263,6 +263,7 @@ app.delete('/finance/ar-aging/invoices/:id', arAgingAPI.deleteARAgingInvoice);
 const planInstallmentsAPI = require('./finance/api/plan-installments');
 app.get('/finance/plan-installments/test', planInstallmentsAPI.testConnection);
 app.get('/finance/plan-installments', planInstallmentsAPI.getPlanInstallments);
+app.post('/finance/plan-installments', planInstallmentsAPI.createPlanInstallment);
 app.put('/finance/plan-installments/:id', planInstallmentsAPI.updatePlanInstallment);
 app.delete('/finance/plan-installments/:id', planInstallmentsAPI.deletePlanInstallment);
 

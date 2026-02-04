@@ -68,6 +68,10 @@
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
+            <button onclick="openInstallmentModal('create')" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                إضافة قسط
+            </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -242,6 +246,14 @@
             </div>
             <div id="installmentModalMeta" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 mb-4"></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">معرّف الخطة</label>
+                    <input id="editPlanId" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">رقم القسط</label>
+                    <input id="editInstallmentNumber" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الاستحقاق</label>
                     <input id="editDueDate" type="date" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
@@ -546,31 +558,42 @@
         }
 
         function openInstallmentModal(mode, installmentId) {
-            const row = rows.find(r => r.installment_id === installmentId);
-            if (!row) return;
+            const row = installmentId ? rows.find(r => r.installment_id === installmentId) : null;
+            if (installmentId && !row) return;
 
             currentInstallmentId = installmentId;
             currentInstallmentMode = mode;
 
-            document.getElementById('installmentModalTitle').textContent = mode === 'view' ? 'معاينة قسط' : 'تعديل قسط';
-            document.getElementById('installmentModalMeta').innerHTML = `
-                <div>رقم الخطة: <span class="font-semibold">${row.plan_number ?? '-'}</span></div>
-                <div>اسم العميل: <span class="font-semibold">${row.customer_name_ar ?? row.customer_name_en ?? '-'}</span></div>
-                <div>رقم الفاتورة: <span class="font-semibold">${row.invoice_number ?? '-'}</span></div>
-                <div>رقم القسط: <span class="font-semibold">${row.installment_number ?? '-'}</span></div>
-            `;
+            const title = mode === 'view' ? 'معاينة قسط' : mode === 'edit' ? 'تعديل قسط' : 'إضافة قسط';
+            document.getElementById('installmentModalTitle').textContent = title;
 
-            document.getElementById('editDueDate').value = formatDateInput(row.due_date);
-            document.getElementById('editAmount').value = row.amount ?? '';
-            document.getElementById('editPaidAmount').value = row.paid_amount ?? '';
-            document.getElementById('editStatus').value = (row.status || 'PENDING').toUpperCase();
-            document.getElementById('editPaidDate').value = formatDateInput(row.paid_date);
-            document.getElementById('editPaymentId').value = row.payment_id ?? '';
+            if (row) {
+                document.getElementById('installmentModalMeta').innerHTML = `
+                    <div>رقم الخطة: <span class="font-semibold">${row.plan_number ?? '-'}</span></div>
+                    <div>اسم العميل: <span class="font-semibold">${row.customer_name_ar ?? row.customer_name_en ?? '-'}</span></div>
+                    <div>رقم الفاتورة: <span class="font-semibold">${row.invoice_number ?? '-'}</span></div>
+                    <div>رقم القسط: <span class="font-semibold">${row.installment_number ?? '-'}</span></div>
+                `;
+            } else {
+                document.getElementById('installmentModalMeta').innerHTML = '';
+            }
 
-            const disabled = mode === 'view';
+            document.getElementById('editPlanId').value = row?.plan_id ?? '';
+            document.getElementById('editInstallmentNumber').value = row?.installment_number ?? '';
+            document.getElementById('editDueDate').value = formatDateInput(row?.due_date);
+            document.getElementById('editAmount').value = row?.amount ?? '';
+            document.getElementById('editPaidAmount').value = row?.paid_amount ?? '';
+            document.getElementById('editStatus').value = (row?.status || 'PENDING').toUpperCase();
+            document.getElementById('editPaidDate').value = formatDateInput(row?.paid_date);
+            document.getElementById('editPaymentId').value = row?.payment_id ?? '';
+
+            const isView = mode === 'view';
+            const isCreate = mode === 'create';
+            document.getElementById('editPlanId').disabled = !isCreate;
+            document.getElementById('editInstallmentNumber').disabled = !isCreate;
             ['editDueDate', 'editAmount', 'editPaidAmount', 'editStatus', 'editPaidDate', 'editPaymentId']
-                .forEach(id => document.getElementById(id).disabled = disabled);
-            document.getElementById('installmentSaveBtn').classList.toggle('hidden', mode === 'view');
+                .forEach(id => document.getElementById(id).disabled = isView);
+            document.getElementById('installmentSaveBtn').classList.toggle('hidden', isView);
 
             const modal = document.getElementById('installmentModal');
             modal.classList.remove('hidden');
@@ -584,9 +607,18 @@
         }
 
         async function saveInstallment() {
-            if (!currentInstallmentId) return;
+            if (currentInstallmentMode !== 'create' && !currentInstallmentId) return;
+
+            const planId = document.getElementById('editPlanId').value;
+            const installmentNumber = document.getElementById('editInstallmentNumber').value;
+            if (currentInstallmentMode === 'create' && (!planId || !installmentNumber)) {
+                alert('من فضلك أدخل معرّف الخطة ورقم القسط');
+                return;
+            }
 
             const payload = {
+                plan_id: planId ? Number(planId) : null,
+                installment_number: installmentNumber ? Number(installmentNumber) : null,
                 due_date: document.getElementById('editDueDate').value || null,
                 amount: document.getElementById('editAmount').value || null,
                 paid_amount: document.getElementById('editPaidAmount').value || null,
@@ -596,19 +628,23 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/finance/plan-installments/${currentInstallmentId}?entity_id=${ENTITY_ID}`, {
-                    method: 'PUT',
+                const isCreate = currentInstallmentMode === 'create';
+                const url = isCreate
+                    ? `${API_BASE}/finance/plan-installments?entity_id=${ENTITY_ID}`
+                    : `${API_BASE}/finance/plan-installments/${currentInstallmentId}?entity_id=${ENTITY_ID}`;
+                const res = await fetch(url, {
+                    method: isCreate ? 'POST' : 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    throw new Error(data.error || 'فشل تعديل القسط');
+                    throw new Error(data.error || (isCreate ? 'فشل إضافة القسط' : 'فشل تعديل القسط'));
                 }
                 closeInstallmentModal();
                 await loadReport();
             } catch (error) {
-                alert(error.message || 'فشل تعديل القسط');
+                alert(error.message || (currentInstallmentMode === 'create' ? 'فشل إضافة القسط' : 'فشل تعديل القسط'));
             }
         }
 

@@ -179,6 +179,82 @@ async function testConnection(req, res) {
     }
 }
 
+async function createPlanInstallment(req, res) {
+    const { entity_id } = req.query;
+    const {
+        plan_id,
+        installment_number,
+        due_date,
+        amount,
+        paid_amount = 0,
+        status = 'PENDING',
+        paid_date = null,
+        payment_id = null
+    } = req.body || {};
+
+    if (!entity_id) {
+        return res.status(400).json({
+            success: false,
+            error: 'entity_id is required'
+        });
+    }
+
+    if (!plan_id || !installment_number || !due_date || !amount) {
+        return res.status(400).json({
+            success: false,
+            error: 'plan_id, installment_number, due_date, and amount are required'
+        });
+    }
+
+    try {
+        const planCheck = await pool.query(
+            `
+            SELECT plan_id
+            FROM finance_payment_plans
+            WHERE plan_id = $1
+              AND (entity_id = $2 OR entity_id IS NULL)
+            `,
+            [plan_id, entity_id]
+        );
+
+        if (!planCheck.rows.length) {
+            return res.status(404).json({
+                success: false,
+                error: 'plan not found'
+            });
+        }
+
+        const insertQuery = `
+            INSERT INTO finance_plan_installments (
+                plan_id, installment_number, due_date, amount, paid_amount, status, paid_date, payment_id
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            RETURNING *
+        `;
+
+        const result = await pool.query(insertQuery, [
+            plan_id,
+            installment_number,
+            due_date,
+            amount,
+            paid_amount || 0,
+            status,
+            paid_date,
+            payment_id
+        ]);
+
+        res.status(201).json({
+            success: true,
+            installment: result.rows[0]
+        });
+    } catch (error) {
+        console.error('❌ Error creating plan installment:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
 async function updatePlanInstallment(req, res) {
     const { id } = req.params;
     const { entity_id } = req.query;
@@ -315,6 +391,7 @@ async function deletePlanInstallment(req, res) {
 }
 
 module.exports = {
+    createPlanInstallment,
     getPlanInstallments,
     testConnection,
     updatePlanInstallment,
