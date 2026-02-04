@@ -186,7 +186,7 @@ router.delete('/operating/:flow_id', async (req, res) => {
     if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
 
     const result = await db.query(
-      'DELETE FROM finance_cashflow_operating WHERE flow_id = $1 AND ($2 IS NULL OR entity_id = $2)',
+      'DELETE FROM finance_cashflow_operating WHERE flow_id = $1 AND (entity_id = COALESCE($2::varchar, entity_id))',
       [flow_id, entityId || null]
     );
 
@@ -343,7 +343,7 @@ router.delete('/investing/:flow_id', async (req, res) => {
     if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
 
     const result = await db.query(
-      'DELETE FROM finance_cashflow_investing WHERE flow_id = $1 AND ($2 IS NULL OR entity_id = $2)',
+      'DELETE FROM finance_cashflow_investing WHERE flow_id = $1 AND (entity_id = COALESCE($2::varchar, entity_id))',
       [flow_id, entityId || null]
     );
 
@@ -500,7 +500,7 @@ router.delete('/financing/:flow_id', async (req, res) => {
     if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
 
     const result = await db.query(
-      'DELETE FROM finance_cashflow_financing WHERE flow_id = $1 AND ($2 IS NULL OR entity_id = $2)',
+      'DELETE FROM finance_cashflow_financing WHERE flow_id = $1 AND (entity_id = COALESCE($2::varchar, entity_id))',
       [flow_id, entityId || null]
     );
 
