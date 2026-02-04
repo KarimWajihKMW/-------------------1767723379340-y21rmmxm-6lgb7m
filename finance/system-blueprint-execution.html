@@ -130,7 +130,15 @@
             <details class="card-gradient rounded-3xl shadow-2xl p-6 section-accent-sky" open>
                 <summary class="text-xl font-bold text-slate-800">📋 جدول العملاء</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">بيانات العملاء</h4><span id="customersCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2">
+                        <h4 class="font-bold text-slate-700">بيانات العملاء</h4>
+                        <div class="flex gap-2">
+                            <button onclick="addCustomer()" class="bg-emerald-600 text-white px-4 py-1 rounded-lg text-xs hover:bg-emerald-700 flex items-center gap-1">
+                                <i class="fas fa-plus"></i> إضافة عميل
+                            </button>
+                            <span id="customersCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    </div>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
                             <thead id="customersHead" class="bg-sky-50 text-sky-700"></thead>
@@ -143,12 +151,28 @@
             <details class="card-gradient rounded-3xl shadow-2xl p-6 section-accent-emerald">
                 <summary class="text-xl font-bold text-slate-800">🧾 جدول الفواتير</summary>
                 <div class="mt-4">
-                    <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-700">بيانات الفواتير</h4><span id="invoicesCount" class="text-sm text-slate-500"></span></div>
+                    <div class="flex justify-between mb-2">
+                        <h4 class="font-bold text-slate-700">بيانات الفواتير</h4>
+                        <div class="flex gap-2">
+                            <button onclick="addInvoice()" class="bg-emerald-600 text-white px-4 py-1 rounded-lg text-xs hover:bg-emerald-700 flex items-center gap-1">
+                                <i class="fas fa-plus"></i> إضافة فاتورة
+                            </button>
+                            <span id="invoicesCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    </div>
                     <div class="table-scroll">
                         <table class="w-full text-xs">
                             <thead id="invoicesHead" class="bg-emerald-50 text-emerald-700"></thead>
                             <tbody id="invoicesTable" class="divide-y divide-slate-100"></tbody>
                         </table>
+                        <h4 class="font-bold text-slate-700">بيانات المدفوعات</h4>
+                        <div class="flex gap-2">
+                            <button onclick="addPayment()" class="bg-emerald-600 text-white px-4 py-1 rounded-lg text-xs hover:bg-emerald-700 flex items-center gap-1">
+                                <i class="fas fa-plus"></i> إضافة مدفوعة
+                            </button>
+                            <span id="paymentsCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    
                     </div>
                 </div>
             </details>
@@ -162,6 +186,14 @@
                             <thead id="paymentsHead" class="bg-amber-50 text-amber-700"></thead>
                             <tbody id="paymentsTable" class="divide-y divide-slate-100"></tbody>
                         </table>
+                        <h4 class="font-bold text-slate-700">بيانات الخطط</h4>
+                        <div class="flex gap-2">
+                            <button onclick="addPlan()" class="bg-emerald-600 text-white px-4 py-1 rounded-lg text-xs hover:bg-emerald-700 flex items-center gap-1">
+                                <i class="fas fa-plus"></i> إضافة خطة
+                            </button>
+                            <span id="plansCount" class="text-sm text-slate-500"></span>
+                        </div>
+                    
                     </div>
                 </div>
             </details>
@@ -279,7 +311,12 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const ENTITY_TYPE = window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ';
+        const API_HEADERS = window.getFinanceHeaders ? window.getFinanceHeaders() : {
+            'x-entity-id': ENTITY_ID,
+            'x-entity-type': ENTITY_TYPE
+        };
 
         const store = {
             customers: [],
@@ -357,7 +394,7 @@
         ];
 
         async function fetchJson(url) {
-            const res = await fetch(url);
+            const res = await fetch(url, { headers: API_HEADERS });
             const data = await res.json();
             return { ok: res.ok, data };
         }
@@ -478,12 +515,32 @@
             }
 
             const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
-            head.innerHTML = `<tr>${columns.map(c => `<th class="px-3 py-2 text-right">${translateHeader(c)}</th>`).join('')}</tr>`;
-            body.innerHTML = rows.map(row => `
+            const displayColumns = columns.filter(c => !c.endsWith('_id') || c === 'customer_id' || c === 'invoice_id' || c === 'payment_id' || c === 'plan_id' || c === 'account_id' || c === 'entry_id' || c === 'budget_id' || c === 'risk_id' || c === 'forecast_id');
+            
+            head.innerHTML = `<tr>${displayColumns.map(c => `<th class="px-3 py-2 text-right">${translateHeader(c)}</th>`).join('')}<th class="px-3 py-2 text-center">الإجراءات</th></tr>`;
+            body.innerHTML = rows.map(row => {
+                const tableName = bodyId.replace('Table', '');
+                const idField = Object.keys(row).find(k => k.endsWith('_id') && row[k]);
+                const recordId = idField ? row[idField] : '';
+                
+                return `
                 <tr class="hover:bg-slate-50">
-                    ${columns.map(c => `<td class="px-3 py-2">${formatValue(c, row[c])}</td>`).join('')}
-                </tr>
-            `).join('');
+                    ${displayColumns.map(c => `<td class="px-3 py-2">${formatValue(c, row[c])}</td>`).join('')}
+                    <td class="px-3 py-2 text-center">
+                        <div class="flex gap-1 justify-center">
+                            <button onclick="viewRecord('${tableName}', ${recordId})" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="معاينة">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="editRecord('${tableName}', ${recordId})" class="bg-amber-500 text-white px-2 py-1 rounded text-xs hover:bg-amber-600" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteRecord('${tableName}', ${recordId})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
         function translateHeader(key) {
@@ -719,6 +776,148 @@
 
         function printReport() { window.print(); }
         function refreshData() { loadData(); }
+
+        // CRUD Operations
+        async function addCustomer() {
+            const customerName = prompt('أدخل اسم العميل بالعربية:');
+            if (!customerName) return;
+            
+            const customerType = prompt('نوع العميل (COMPANY/INDIVIDUAL):', 'COMPANY');
+            const email = prompt('البريد الإلكتروني (اختياري):');
+            const phone = prompt('رقم الهاتف (اختياري):');
+            
+            try {
+                const response = await fetch(`${API_BASE}/finance/customers`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_name_ar: customerName,
+                        customer_type: customerType || 'COMPANY',
+                        email: email || null,
+                        phone: phone || null,
+                        entity_id: ENTITY_ID,
+                        entity_type: ENTITY_TYPE
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة العميل بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل في إضافة العميل: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ: ' + error.message, 'info');
+            }
+        }
+
+        async function addInvoice() {
+            showToast('يرجى استخدام صفحة الفواتير لإنشاء فاتورة متكاملة', 'info');
+        }
+
+        async function addPayment() {
+            const customerId = prompt('معرّف العميل:');
+            if (!customerId) return;
+            
+            const amount = prompt('مبلغ الدفعة:');
+            if (!amount) return;
+            
+            const method = prompt('وسيلة الدفع (CASH/BANK_TRANSFER/CARD):', 'CASH');
+            
+            try {
+                const response = await fetch(`${API_BASE}/finance/payments`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_id: customerId,
+                        payment_amount: parseFloat(amount),
+                        payment_method: method || 'CASH',
+                        payment_date: new Date().toISOString().split('T')[0],
+                        entity_id: ENTITY_ID,
+                        entity_type: ENTITY_TYPE
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة المدفوعة بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل في إضافة المدفوعة: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ: ' + error.message, 'info');
+            }
+        }
+
+        async function addPlan() {
+            showToast('يرجى استخدام صفحة خطط السداد لإنشاء خطة متكاملة', 'info');
+        }
+
+        async function viewRecord(tableName, id) {
+            const apiMap = {
+                customers: `/finance/customers?customer_id=${id}`,
+                invoices: `/finance/invoices/${id}`,
+                payments: `/finance/payments?payment_id=${id}`,
+                plans: `/finance/payment-plans?plan_id=${id}`,
+                accounts: `/finance/accounts/${id}`,
+                entries: `/finance/journal/entries/${id}`,
+                budgets: `/finance/budgets?budget_id=${id}`,
+                risks: `/finance/ai-risk-scores?risk_id=${id}`,
+                forecasts: `/finance/ai-forecasts?forecast_id=${id}`
+            };
+            
+            if (!apiMap[tableName]) {
+                showToast('جدول غير مدعوم', 'info');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}${apiMap[tableName]}`, { headers: API_HEADERS });
+                const data = await response.json();
+                alert(JSON.stringify(data, null, 2));
+            } catch (error) {
+                showToast('خطأ في المعاينة: ' + error.message, 'info');
+            }
+        }
+
+        async function editRecord(tableName, id) {
+            showToast(`تعديل ${tableName} - معرّف: ${id}`, 'info');
+        }
+
+        async function deleteRecord(tableName, id) {
+            if (!confirm('هل أنت متأكد من الحذف؟')) return;
+            
+            const apiMap = {
+                customers: `/finance/customers/${id}?entity_id=${ENTITY_ID}`,
+                invoices: `/finance/invoices/${id}`,
+                payments: `/finance/payments/${id}?entity_id=${ENTITY_ID}`,
+                plans: `/finance/payment-plans/${id}`,
+                budgets: `/finance/budgets/${id}`,
+                risks: `/finance/ai-risk-scores/${id}?entity_id=${ENTITY_ID}`,
+                forecasts: `/finance/ai-forecasts/${id}?entity_id=${ENTITY_ID}`
+            };
+            
+            if (!apiMap[tableName]) {
+                showToast('جدول غير مدعوم', 'info');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}${apiMap[tableName]}`, {
+                    method: 'DELETE',
+                    headers: API_HEADERS
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم الحذف بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل الحذف: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ: ' + error.message, 'info');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', loadData);
     </script>
