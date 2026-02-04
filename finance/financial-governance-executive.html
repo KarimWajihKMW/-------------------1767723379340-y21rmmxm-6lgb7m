@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./finance-context.js"></script>
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0f172a; }
         
@@ -265,9 +266,12 @@
         </div>
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
                 <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير الخاضعة للحوكمة</h3>
-                <span id="invoicesCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="addInvoice()" class="bg-sky-600 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg">إضافة فاتورة</button>
+                    <span id="invoicesCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -283,11 +287,12 @@
                             <th class="px-3 py-2 text-right">الحالة</th>
                             <th class="px-3 py-2 text-right">الفرع</th>
                             <th class="px-3 py-2 text-right">البرنامج</th>
+                            <th class="px-3 py-2 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="invoicesTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="11" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -295,9 +300,12 @@
         </div>
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
                 <h3 class="text-xl font-bold text-slate-800">📑 جدول خطط السداد المعتمدة</h3>
-                <span id="plansCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="addPlan()" class="bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg">إضافة خطة سداد</button>
+                    <span id="plansCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -314,11 +322,12 @@
                             <th class="px-3 py-2 text-right">عدد الأقساط</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
                             <th class="px-3 py-2 text-right">مستوى المخاطر</th>
+                            <th class="px-3 py-2 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="plansTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="11" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="12" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -326,9 +335,12 @@
         </div>
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
                 <h3 class="text-xl font-bold text-slate-800">📌 جدول الميزانيات والانحرافات</h3>
-                <span id="budgetsCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="addBudget()" class="bg-emerald-600 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg">إضافة ميزانية</button>
+                    <span id="budgetsCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -340,20 +352,24 @@
                             <th class="px-3 py-2 text-right">السنة المالية</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
                             <th class="px-3 py-2 text-right">السيناريو</th>
+                            <th class="px-3 py-2 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="budgetsTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="mt-6">
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex flex-wrap items-center justify-between mb-2 gap-3">
                     <h4 class="text-lg font-bold text-slate-800">📈 جدول الانحرافات</h4>
-                    <span id="variancesCount" class="text-sm text-slate-500"></span>
+                    <div class="flex items-center gap-3">
+                        <button onclick="addVariance()" class="bg-emerald-700 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg">إضافة انحراف</button>
+                        <span id="variancesCount" class="text-sm text-slate-500"></span>
+                    </div>
                 </div>
                 <div class="table-scroll">
                     <table class="w-full text-xs">
@@ -366,11 +382,12 @@
                                 <th class="px-3 py-2 text-right">الانحراف</th>
                                 <th class="px-3 py-2 text-right">النسبة</th>
                                 <th class="px-3 py-2 text-right">مستوى الأهمية</th>
+                                <th class="px-3 py-2 text-center">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="variancesTable" class="divide-y divide-slate-100">
                             <tr>
-                                <td colspan="7" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                                <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -379,9 +396,12 @@
         </div>
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-rose">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
                 <h3 class="text-xl font-bold text-slate-800">🛡️ جدول تقييمات المخاطر والتوقعات</h3>
-                <span id="risksCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="addRisk()" class="bg-rose-600 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg">إضافة تقييم مخاطر</button>
+                    <span id="risksCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll mb-6">
                 <table class="w-full text-xs">
@@ -393,19 +413,23 @@
                             <th class="px-3 py-2 text-right">درجة المخاطرة</th>
                             <th class="px-3 py-2 text-right">مستوى المخاطرة</th>
                             <th class="px-3 py-2 text-right">التوصيات</th>
+                            <th class="px-3 py-2 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="risksTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex flex-wrap items-center justify-between mb-2 gap-3">
                 <h4 class="text-lg font-bold text-slate-800">🔮 جدول التوقعات الذكية</h4>
-                <span id="forecastsCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="addForecast()" class="bg-rose-700 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg">إضافة توقع ذكي</button>
+                    <span id="forecastsCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -417,11 +441,12 @@
                             <th class="px-3 py-2 text-right">قيمة التوقع</th>
                             <th class="px-3 py-2 text-right">مستوى الثقة</th>
                             <th class="px-3 py-2 text-right">ملاحظات الذكاء</th>
+                            <th class="px-3 py-2 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="forecastsTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -431,7 +456,9 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const ENTITY_TYPE = window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ';
+        const API_HEADERS = window.getFinanceHeaders ? window.getFinanceHeaders() : { 'x-entity-id': ENTITY_ID, 'x-entity-type': ENTITY_TYPE };
 
         let store = {
             invoices: [],
@@ -447,36 +474,32 @@
         let invoiceChartInstance = null;
         let riskChartInstance = null;
 
+        async function fetchJson(url) {
+            const res = await fetch(url, { headers: API_HEADERS });
+            const data = await res.json();
+            return { ok: res.ok, data };
+        }
+
         async function loadData() {
             try {
                 const [invoiceRes, paymentRes, planRes, budgetRes, riskRes, forecastRes, customerRes] = await Promise.all([
-                    fetch(`${API_BASE}/finance/invoices`),
-                    fetch(`${API_BASE}/finance/payments`),
-                    fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/budgets?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/customers`)
+                    fetchJson(`${API_BASE}/finance/invoices`),
+                    fetchJson(`${API_BASE}/finance/payments`),
+                    fetchJson(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/budgets?entity_id=${ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`),
+                    fetchJson(`${API_BASE}/finance/customers`)
                 ]);
 
-                const [invoiceData, paymentData, planData, budgetData, riskData, forecastData, customerData] = await Promise.all([
-                    invoiceRes.json(),
-                    paymentRes.json(),
-                    planRes.json(),
-                    budgetRes.json(),
-                    riskRes.json(),
-                    forecastRes.json(),
-                    customerRes.json()
-                ]);
-
-                store.invoices = invoiceData.invoices || [];
-                store.payments = paymentData.payments || [];
-                store.plans = planData.plans || [];
-                store.budgets = budgetData.budgets || [];
-                store.variances = budgetData.variances || [];
-                store.risks = riskData.rows || [];
-                store.forecasts = forecastData.forecasts || [];
-                store.customers = customerData.customers || customerData.rows || [];
+                store.invoices = invoiceRes.data.invoices || [];
+                store.payments = paymentRes.data.payments || [];
+                store.plans = planRes.data.plans || [];
+                store.budgets = budgetRes.data.budgets || [];
+                store.variances = budgetRes.data.variances || [];
+                store.risks = riskRes.data.rows || [];
+                store.forecasts = forecastRes.data.forecasts || [];
+                store.customers = customerRes.data.customers || customerRes.data.rows || [];
 
                 renderStats();
                 renderCharts();
@@ -567,10 +590,11 @@
                     <td class="px-3 py-2">${translateStatus(inv.status)}</td>
                     <td class="px-3 py-2">${sanitizeText(inv.branch_id)}</td>
                     <td class="px-3 py-2">${sanitizeText(inv.program_id)}</td>
+                    <td class="px-3 py-2 text-center">${renderActions('invoices', inv.invoice_id)}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('invoicesTable').innerHTML = invoiceRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('invoicesTable').innerHTML = invoiceRows || `<tr><td colspan="11" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${store.invoices.length}`;
 
             const planRows = store.plans.map(plan => `
@@ -586,10 +610,11 @@
                     <td class="px-3 py-2">${plan.number_of_installments ?? '-'}</td>
                     <td class="px-3 py-2">${translateStatus(plan.status)}</td>
                     <td class="px-3 py-2">${translateRiskLevel(plan.risk_level_at_creation)}</td>
+                    <td class="px-3 py-2 text-center">${renderActions('plans', plan.plan_id)}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('plansTable').innerHTML = planRows || `<tr><td colspan="11" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('plansTable').innerHTML = planRows || `<tr><td colspan="12" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('plansCount').textContent = `عدد الصفوف: ${store.plans.length}`;
 
             const budgetRows = store.budgets.map(b => `
@@ -600,10 +625,11 @@
                     <td class="px-3 py-2">${b.fiscal_year ?? '-'}</td>
                     <td class="px-3 py-2">${translateStatus(b.status)}</td>
                     <td class="px-3 py-2">${sanitizeText(b.scenario)}</td>
+                    <td class="px-3 py-2 text-center">${renderActions('budgets', b.budget_id)}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('budgetsTable').innerHTML = budgetRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('budgetsTable').innerHTML = budgetRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('budgetsCount').textContent = `عدد الصفوف: ${store.budgets.length}`;
 
             const varianceRows = store.variances.map(v => `
@@ -615,10 +641,11 @@
                     <td class="px-3 py-2">${formatMoney(v.variance_amount)}</td>
                     <td class="px-3 py-2">${formatPercent(v.variance_percentage)}</td>
                     <td class="px-3 py-2">${sanitizeText(v.significance_level)}</td>
+                    <td class="px-3 py-2 text-center">${renderActions('variances', v.variance_id)}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('variancesTable').innerHTML = varianceRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('variancesTable').innerHTML = varianceRows || `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('variancesCount').textContent = `عدد الصفوف: ${store.variances.length}`;
 
             const riskRows = store.risks.map(r => `
@@ -629,10 +656,11 @@
                     <td class="px-3 py-2">${formatPercent(r.risk_score)}</td>
                     <td class="px-3 py-2">${translateRiskLevel(r.risk_level)}</td>
                     <td class="px-3 py-2">${truncate(sanitizeText(r.recommendations))}</td>
+                    <td class="px-3 py-2 text-center">${renderActions('risks', r.risk_id)}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('risksTable').innerHTML = riskRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('risksTable').innerHTML = riskRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('risksCount').textContent = `عدد الصفوف: ${store.risks.length}`;
 
             const forecastRows = store.forecasts.map(f => `
@@ -643,11 +671,23 @@
                     <td class="px-3 py-2">${formatMoney(f.forecast_amount)}</td>
                     <td class="px-3 py-2">${formatPercent(f.confidence_level)}</td>
                     <td class="px-3 py-2">${truncate(sanitizeText(f.ai_insights))}</td>
+                    <td class="px-3 py-2 text-center">${renderActions('forecasts', f.forecast_id)}</td>
                 </tr>
             `).join('');
 
-            document.getElementById('forecastsTable').innerHTML = forecastRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('forecastsTable').innerHTML = forecastRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('forecastsCount').textContent = `عدد الصفوف: ${store.forecasts.length}`;
+        }
+
+        function renderActions(tableName, id) {
+            if (!id) return '-';
+            return `
+                <div class="flex gap-1 justify-center">
+                    <button onclick="viewRecord('${tableName}', ${id})" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="معاينة"><i class="fas fa-eye"></i></button>
+                    <button onclick="editRecord('${tableName}', ${id})" class="bg-amber-500 text-white px-2 py-1 rounded text-xs hover:bg-amber-600" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteRecord('${tableName}', ${id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="حذف"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
         }
 
         function translateStatus(value) {
@@ -811,6 +851,367 @@
 
         function refreshData() {
             loadData();
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 z-50 px-4 py-2 rounded-lg text-sm text-white shadow-lg ${type === 'success' ? 'bg-emerald-600' : 'bg-slate-700'}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        function getStoreList(tableName) {
+            const map = {
+                invoices: store.invoices,
+                plans: store.plans,
+                budgets: store.budgets,
+                variances: store.variances,
+                risks: store.risks,
+                forecasts: store.forecasts
+            };
+            return map[tableName] || [];
+        }
+
+        function getRecordById(tableName, id) {
+            const list = getStoreList(tableName);
+            return list.find(row => Number(row[`${tableName.slice(0, -1)}_id`]) === Number(id)) || list.find(row => Number(row.id) === Number(id)) || null;
+        }
+
+        async function addInvoice() {
+            const customerId = prompt('رقم العميل:');
+            if (!customerId) return;
+            const amount = prompt('قيمة الفاتورة:');
+            if (!amount) return;
+            const dueDate = prompt('تاريخ الاستحقاق (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+
+            const lineName = prompt('اسم البند:', 'خدمة مالية');
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/invoices`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_id: Number(customerId),
+                        invoice_date: new Date().toISOString().split('T')[0],
+                        due_date: dueDate,
+                        entity_type: ENTITY_TYPE,
+                        entity_id: ENTITY_ID,
+                        lines: [{
+                            item_code: 'SRV-001',
+                            item_name: lineName || 'خدمة مالية',
+                            description: 'فاتورة حوكمة مالية',
+                            quantity: 1,
+                            unit_price: parseFloat(amount),
+                            tax_percentage: 15,
+                            discount_percentage: 0
+                        }]
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة الفاتورة بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل إضافة الفاتورة: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في إضافة الفاتورة: ' + error.message, 'info');
+            }
+        }
+
+        async function addPlan() {
+            const customerId = prompt('رقم العميل:');
+            if (!customerId) return;
+            const invoiceId = prompt('رقم الفاتورة:');
+            if (!invoiceId) return;
+            const totalAmount = prompt('إجمالي الخطة:');
+            if (!totalAmount) return;
+            const installments = prompt('عدد الأقساط:', '3');
+            if (!installments) return;
+            const installmentAmount = prompt('قيمة القسط:', String((parseFloat(totalAmount) / parseInt(installments, 10)).toFixed(2)));
+            if (!installmentAmount) return;
+
+            const planNumber = `PLAN-${Date.now()}`;
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/payment-plans`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        plan_number: planNumber,
+                        customer_id: Number(customerId),
+                        invoice_id: Number(invoiceId),
+                        start_date: new Date().toISOString().split('T')[0],
+                        end_date: null,
+                        total_amount: parseFloat(totalAmount),
+                        paid_amount: 0,
+                        number_of_installments: parseInt(installments, 10),
+                        installment_amount: parseFloat(installmentAmount),
+                        installment_frequency: 'MONTHLY',
+                        status: 'active',
+                        entity_type: ENTITY_TYPE,
+                        entity_id: ENTITY_ID
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة خطة السداد بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل إضافة الخطة: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في إضافة الخطة: ' + error.message, 'info');
+            }
+        }
+
+        async function addBudget() {
+            const budgetName = prompt('اسم الميزانية:');
+            if (!budgetName) return;
+            const fiscalYear = prompt('السنة المالية:', new Date().getFullYear());
+            if (!fiscalYear) return;
+
+            const budgetCode = `BUD-${fiscalYear}-${Date.now().toString().slice(-4)}`;
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/budgets`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        budget_code: budgetCode,
+                        budget_name_ar: budgetName,
+                        budget_type: 'operational',
+                        fiscal_year: parseInt(fiscalYear, 10),
+                        scenario: 'base',
+                        status: 'draft',
+                        entity_type: ENTITY_TYPE,
+                        entity_id: ENTITY_ID
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة الميزانية بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل إضافة الميزانية: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في إضافة الميزانية: ' + error.message, 'info');
+            }
+        }
+
+        async function addVariance() {
+            const fiscalYear = prompt('السنة المالية:', new Date().getFullYear());
+            if (!fiscalYear) return;
+            const fiscalPeriod = prompt('الفترة المالية (1-12):', '1');
+            if (!fiscalPeriod) return;
+            const accountId = prompt('رقم الحساب:');
+            if (!accountId) return;
+            const budgeted = prompt('المخطط:');
+            if (!budgeted) return;
+            const actual = prompt('الفعلي:');
+            if (!actual) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/budget-variances`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fiscal_year: parseInt(fiscalYear, 10),
+                        fiscal_period: parseInt(fiscalPeriod, 10),
+                        account_id: Number(accountId),
+                        budgeted_amount: parseFloat(budgeted),
+                        actual_amount: parseFloat(actual),
+                        entity_type: ENTITY_TYPE,
+                        entity_id: ENTITY_ID
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة الانحراف بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل إضافة الانحراف: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في إضافة الانحراف: ' + error.message, 'info');
+            }
+        }
+
+        async function addRisk() {
+            const customerId = prompt('رقم العميل:');
+            if (!customerId) return;
+            const score = prompt('درجة المخاطرة (0-100):', '50');
+            if (!score) return;
+            const level = prompt('مستوى المخاطرة (LOW/MEDIUM/HIGH/CRITICAL):', 'MEDIUM');
+            if (!level) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/ai-risk-scores`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_id: Number(customerId),
+                        assessment_date: new Date().toISOString().split('T')[0],
+                        risk_score: parseFloat(score),
+                        risk_level: String(level).toUpperCase(),
+                        recommendations: 'متابعة دورية وتحديث خطة التحصيل',
+                        entity_type: ENTITY_TYPE,
+                        entity_id: ENTITY_ID
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة تقييم المخاطر بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل إضافة المخاطر: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في إضافة المخاطر: ' + error.message, 'info');
+            }
+        }
+
+        async function addForecast() {
+            const period = prompt('فترة التوقع (MONTHLY/QUARTERLY/ANNUAL):', 'MONTHLY');
+            if (!period) return;
+            const amount = prompt('قيمة التوقع:');
+            if (!amount) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/finance/ai-forecasts`, {
+                    method: 'POST',
+                    headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        entity_id: ENTITY_ID,
+                        forecast_period: period,
+                        forecast_type: 'REVENUE',
+                        forecast_amount: parseFloat(amount),
+                        confidence_level: 0.7,
+                        ai_model: 'v1',
+                        ai_insights: 'توقع نمو تدريجي مع ضبط التحصيل'
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم إضافة التوقع بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل إضافة التوقع: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في إضافة التوقع: ' + error.message, 'info');
+            }
+        }
+
+        async function viewRecord(tableName, id) {
+            const row = getRecordById(tableName, id);
+            if (!row) {
+                showToast('لم يتم العثور على السجل', 'info');
+                return;
+            }
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function editRecord(tableName, id) {
+            const row = getRecordById(tableName, id);
+            if (!row) return showToast('لم يتم العثور على السجل', 'info');
+
+            try {
+                if (tableName === 'invoices') {
+                    const status = prompt('الحالة الجديدة (PAID/UNPAID/PARTIAL/OVERDUE):', row.status || 'UNPAID');
+                    if (!status) return;
+                    await updateRecord(`/finance/invoices/${id}`, { status });
+                } else if (tableName === 'plans') {
+                    const status = prompt('حالة الخطة (ACTIVE/CLOSED/PENDING):', row.status || 'ACTIVE');
+                    if (!status) return;
+                    await updateRecord(`/finance/payment-plans/${id}`, { status });
+                } else if (tableName === 'budgets') {
+                    const status = prompt('حالة الميزانية (DRAFT/APPROVED/REJECTED):', row.status || 'DRAFT');
+                    if (!status) return;
+                    await updateRecord(`/finance/budgets/${id}`, { status });
+                } else if (tableName === 'variances') {
+                    const budgeted = prompt('المخطط:', row.budgeted_amount ?? 0);
+                    const actual = prompt('الفعلي:', row.actual_amount ?? 0);
+                    if (!budgeted || !actual) return;
+                    await updateRecord(`/finance/budget-variances/${id}`, {
+                        budgeted_amount: parseFloat(budgeted),
+                        actual_amount: parseFloat(actual),
+                        entity_id: ENTITY_ID,
+                        entity_type: ENTITY_TYPE
+                    });
+                } else if (tableName === 'risks') {
+                    const score = prompt('درجة المخاطرة:', row.risk_score ?? 0);
+                    const level = prompt('مستوى المخاطرة (LOW/MEDIUM/HIGH/CRITICAL):', row.risk_level || 'MEDIUM');
+                    if (!score || !level) return;
+                    await updateRecord(`/finance/ai-risk-scores/${id}`, {
+                        customer_id: row.customer_id,
+                        assessment_date: row.assessment_date || new Date().toISOString().split('T')[0],
+                        risk_score: parseFloat(score),
+                        risk_level: String(level).toUpperCase(),
+                        entity_id: ENTITY_ID,
+                        entity_type: ENTITY_TYPE
+                    });
+                } else if (tableName === 'forecasts') {
+                    const amount = prompt('قيمة التوقع:', row.forecast_amount ?? 0);
+                    const period = prompt('فترة التوقع (MONTHLY/QUARTERLY/ANNUAL):', row.forecast_period || 'MONTHLY');
+                    if (!amount || !period) return;
+                    await updateRecord(`/finance/ai-forecasts/${id}`, {
+                        entity_id: ENTITY_ID,
+                        forecast_period: period,
+                        forecast_type: row.forecast_type || 'REVENUE',
+                        forecast_amount: parseFloat(amount),
+                        confidence_level: row.confidence_level ?? 0.7
+                    });
+                } else {
+                    showToast('تعديل غير مدعوم لهذا الجدول', 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في التعديل: ' + error.message, 'info');
+            }
+        }
+
+        async function updateRecord(endpoint, payload) {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'PUT',
+                headers: { ...API_HEADERS, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (data.success) {
+                showToast('تم التعديل بنجاح', 'success');
+                await loadData();
+            } else {
+                showToast('فشل التعديل: ' + data.error, 'info');
+            }
+        }
+
+        async function deleteRecord(tableName, id) {
+            if (!confirm('هل أنت متأكد من الحذف؟')) return;
+            const map = {
+                invoices: `/finance/invoices/${id}`,
+                plans: `/finance/payment-plans/${id}`,
+                budgets: `/finance/budgets/${id}`,
+                variances: `/finance/budget-variances/${id}`,
+                risks: `/finance/ai-risk-scores/${id}?entity_id=${ENTITY_ID}`,
+                forecasts: `/finance/ai-forecasts/${id}?entity_id=${ENTITY_ID}`
+            };
+            const endpoint = map[tableName];
+            if (!endpoint) return showToast('حذف غير مدعوم لهذا الجدول', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE', headers: API_HEADERS });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تم الحذف بنجاح', 'success');
+                    await loadData();
+                } else {
+                    showToast('فشل الحذف: ' + data.error, 'info');
+                }
+            } catch (error) {
+                showToast('خطأ في الحذف: ' + error.message, 'info');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', loadData);
