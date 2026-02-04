@@ -851,6 +851,17 @@
             return d.toLocaleString('ar-SA');
         }
 
+        function toIsoDate(value) {
+            if (value) return value;
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function addDays(dateString, days) {
+            const base = dateString ? new Date(dateString) : new Date();
+            base.setDate(base.getDate() + days);
+            return base.toISOString().slice(0, 10);
+        }
+
         function translateValue(value) {
             if (value === null || value === undefined || value === '') return '-';
             const key = String(value).toUpperCase();
@@ -1020,6 +1031,107 @@
             return payload;
         }
 
+        async function ensureCustomerId(payload) {
+            if (payload.customer_id) return payload.customer_id;
+            const customerName = payload.customer_name_ar || payload.customer_name || payload.customer_name_en;
+            if (!customerName) return null;
+
+            const res = await fetch(`${API_BASE}/finance/customers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getFinanceHeaders() },
+                body: JSON.stringify({
+                    entity_id: payload.entity_id || ENTITY_ID,
+                    customer_name_ar: customerName,
+                    customer_name_en: payload.customer_name_en || null,
+                    customer_type: payload.customer_type || 'COMPANY'
+                })
+            });
+
+            if (!res.ok) return null;
+            const data = await res.json().catch(() => ({}));
+            return data?.customer?.customer_id || null;
+        }
+
+        async function ensureVendorId(payload) {
+            if (payload.vendor_id) return payload.vendor_id;
+            const vendorName = payload.vendor_name || payload.vendor_name_ar;
+            if (!vendorName) return null;
+
+            const res = await fetch(`${API_BASE}/finance/vendors`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getFinanceHeaders() },
+                body: JSON.stringify({
+                    vendor_code: payload.vendor_code || `VND-${Date.now()}`,
+                    vendor_name_ar: vendorName,
+                    vendor_name_en: payload.vendor_name_en || null,
+                    vendor_type: payload.vendor_type || null,
+                    entity_id: payload.entity_id || ENTITY_ID,
+                    entity_type: payload.entity_type || ENTITY_TYPE
+                })
+            });
+
+            if (!res.ok) return null;
+            const data = await res.json().catch(() => ({}));
+            return data?.vendor?.vendor_id || null;
+        }
+
+        async function normalizePayload(tableKey, payload) {
+            if (tableKey === 'invoices') {
+                payload.invoice_date = toIsoDate(payload.invoice_date);
+                payload.due_date = payload.due_date || addDays(payload.invoice_date, 30);
+
+                const customerId = await ensureCustomerId(payload);
+                if (!customerId) {
+                    return { ok: false, error: 'يرجى إدخال معرّف العميل أو اسم العميل بشكل صحيح.' };
+                }
+                payload.customer_id = customerId;
+
+                if (!Array.isArray(payload.lines) || payload.lines.length === 0) {
+                    const baseAmount = parseFloat(payload.total_amount || payload.subtotal || payload.amount || 0);
+                    payload.lines = [
+                        {
+                            item_code: payload.item_code || 'GEN',
+                            item_name: payload.item_name || 'خدمة عامة',
+                            description: payload.description || 'بند افتراضي',
+                            quantity: 1,
+                            unit_price: baseAmount,
+                            discount_percentage: 0,
+                            tax_percentage: 0
+                        }
+                    ];
+                }
+            }
+
+            if (tableKey === 'expenses') {
+                payload.expense_number = payload.expense_number || `EXP-${Date.now()}`;
+                payload.expense_date = toIsoDate(payload.expense_date);
+                payload.expense_category = payload.expense_category || 'تشغيل';
+                payload.expense_type = payload.expense_type || 'تشغيلي';
+
+                const vendorId = await ensureVendorId(payload);
+                if (!vendorId) {
+                    return { ok: false, error: 'يرجى إدخال معرّف المورد أو اسم المورد بشكل صحيح.' };
+                }
+                payload.vendor_id = vendorId;
+                payload.vendor_name = payload.vendor_name || payload.vendor_name_ar;
+            }
+
+            if (tableKey === 'payments') {
+                payload.payment_number = payload.payment_number || `PAY-${Date.now()}`;
+                payload.payment_date = toIsoDate(payload.payment_date);
+                payload.payment_method = payload.payment_method || 'BANK';
+                payload.payment_type = payload.payment_type || 'FULL';
+
+                const customerId = await ensureCustomerId(payload);
+                if (!customerId) {
+                    return { ok: false, error: 'يرجى إدخال معرّف العميل أو اسم العميل بشكل صحيح.' };
+                }
+                payload.customer_id = customerId;
+            }
+
+            return { ok: true, payload };
+        }
+
         function openViewModal(tableKey, rowIndex) {
             const rows = TABLE_ROWS_MAP[tableKey] || [];
             const row = rows[rowIndex];
@@ -1080,7 +1192,14 @@
             if (!form) return;
             const columns = TABLE_COLUMNS_MAP[tableKey] || [];
             const editable = getEditableColumns(tableKey, columns);
-            const payload = collectFormValues(form, editable);
+            let payload = collectFormValues(form, editable);
+
+            const normalized = await normalizePayload(tableKey, payload);
+            if (!normalized.ok) {
+                alert(normalized.error || 'يرجى استكمال البيانات المطلوبة قبل الحفظ.');
+                return;
+            }
+            payload = normalized.payload;
 
             let url = `${API_BASE}${config.endpoint}`;
             let method = 'POST';
