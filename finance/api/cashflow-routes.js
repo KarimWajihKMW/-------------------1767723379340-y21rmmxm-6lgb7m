@@ -2,6 +2,13 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 
+const normalizeSignedAmount = (amount, direction) => {
+  const numeric = parseFloat(amount || 0);
+  if (Number.isNaN(numeric)) return null;
+  if (!direction) return numeric;
+  return direction.toUpperCase() === 'OUT' ? -Math.abs(numeric) : Math.abs(numeric);
+};
+
 // ========================================
 // CASHFLOW APIs - الصفحة 1
 // ========================================
@@ -129,6 +136,68 @@ router.post('/operating', async (req, res) => {
   }
 });
 
+// Update Operating Cash Flow
+router.put('/operating/:flow_id', async (req, res) => {
+  try {
+    const { flow_id } = req.params;
+    if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
+
+    const signedAmount = req.body.amount !== undefined
+      ? (req.body.flow_direction ? normalizeSignedAmount(req.body.amount, req.body.flow_direction) : parseFloat(req.body.amount))
+      : null;
+
+    if (req.body.amount !== undefined && (signedAmount === null || Number.isNaN(signedAmount))) {
+      return res.status(400).json({ success: false, error: 'amount must be a number' });
+    }
+
+    const result = await db.query(
+      `UPDATE finance_cashflow_operating SET
+        flow_type = COALESCE($1, flow_type),
+        amount = COALESCE($2, amount),
+        description = COALESCE($3, description),
+        flow_date = COALESCE($4, flow_date),
+        created_by = COALESCE($5, created_by)
+       WHERE flow_id = $6 AND (entity_id = COALESCE($7, entity_id))
+       RETURNING *`,
+      [
+        req.body.flow_type || null,
+        signedAmount,
+        req.body.description || null,
+        req.body.flow_date || null,
+        req.body.created_by || null,
+        flow_id,
+        req.body.entity_id || null
+      ]
+    );
+
+    if (!result.rowCount) return res.status(404).json({ success: false, error: 'لم يتم العثور على السجل' });
+    res.json({ success: true, cashflow: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating operating cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete Operating Cash Flow
+router.delete('/operating/:flow_id', async (req, res) => {
+  try {
+    const { flow_id } = req.params;
+    const entityId = req.query.entity_id || req.body?.entity_id;
+    if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
+
+    const result = await db.query(
+      'DELETE FROM finance_cashflow_operating WHERE flow_id = $1 AND ($2 IS NULL OR entity_id = $2)',
+      [flow_id, entityId || null]
+    );
+
+    if (!result.rowCount) return res.status(404).json({ success: false, error: 'لم يتم العثور على السجل' });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting operating cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ========================================
 // 2. التدفقات الاستثمارية - Investing Cash Flow
 // ========================================
@@ -226,6 +295,66 @@ router.post('/investing', async (req, res) => {
   }
 });
 
+router.put('/investing/:flow_id', async (req, res) => {
+  try {
+    const { flow_id } = req.params;
+    if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
+
+    const signedAmount = req.body.amount !== undefined
+      ? (req.body.flow_direction ? normalizeSignedAmount(req.body.amount, req.body.flow_direction) : parseFloat(req.body.amount))
+      : null;
+
+    if (req.body.amount !== undefined && (signedAmount === null || Number.isNaN(signedAmount))) {
+      return res.status(400).json({ success: false, error: 'amount must be a number' });
+    }
+
+    const result = await db.query(
+      `UPDATE finance_cashflow_investing SET
+        flow_type = COALESCE($1, flow_type),
+        amount = COALESCE($2, amount),
+        description = COALESCE($3, description),
+        flow_date = COALESCE($4, flow_date),
+        created_by = COALESCE($5, created_by)
+       WHERE flow_id = $6 AND (entity_id = COALESCE($7, entity_id))
+       RETURNING *`,
+      [
+        req.body.flow_type || null,
+        signedAmount,
+        req.body.description || null,
+        req.body.flow_date || null,
+        req.body.created_by || null,
+        flow_id,
+        req.body.entity_id || null
+      ]
+    );
+
+    if (!result.rowCount) return res.status(404).json({ success: false, error: 'لم يتم العثور على السجل' });
+    res.json({ success: true, cashflow: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating investing cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.delete('/investing/:flow_id', async (req, res) => {
+  try {
+    const { flow_id } = req.params;
+    const entityId = req.query.entity_id || req.body?.entity_id;
+    if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
+
+    const result = await db.query(
+      'DELETE FROM finance_cashflow_investing WHERE flow_id = $1 AND ($2 IS NULL OR entity_id = $2)',
+      [flow_id, entityId || null]
+    );
+
+    if (!result.rowCount) return res.status(404).json({ success: false, error: 'لم يتم العثور على السجل' });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting investing cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ========================================
 // 3. التدفقات التمويلية - Financing Cash Flow
 // ========================================
@@ -319,6 +448,66 @@ router.post('/financing', async (req, res) => {
     });
   } catch (error) {
     console.error('Error recording financing cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.put('/financing/:flow_id', async (req, res) => {
+  try {
+    const { flow_id } = req.params;
+    if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
+
+    const signedAmount = req.body.amount !== undefined
+      ? (req.body.flow_direction ? normalizeSignedAmount(req.body.amount, req.body.flow_direction) : parseFloat(req.body.amount))
+      : null;
+
+    if (req.body.amount !== undefined && (signedAmount === null || Number.isNaN(signedAmount))) {
+      return res.status(400).json({ success: false, error: 'amount must be a number' });
+    }
+
+    const result = await db.query(
+      `UPDATE finance_cashflow_financing SET
+        flow_type = COALESCE($1, flow_type),
+        amount = COALESCE($2, amount),
+        description = COALESCE($3, description),
+        flow_date = COALESCE($4, flow_date),
+        created_by = COALESCE($5, created_by)
+       WHERE flow_id = $6 AND (entity_id = COALESCE($7, entity_id))
+       RETURNING *`,
+      [
+        req.body.flow_type || null,
+        signedAmount,
+        req.body.description || null,
+        req.body.flow_date || null,
+        req.body.created_by || null,
+        flow_id,
+        req.body.entity_id || null
+      ]
+    );
+
+    if (!result.rowCount) return res.status(404).json({ success: false, error: 'لم يتم العثور على السجل' });
+    res.json({ success: true, cashflow: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating financing cashflow:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.delete('/financing/:flow_id', async (req, res) => {
+  try {
+    const { flow_id } = req.params;
+    const entityId = req.query.entity_id || req.body?.entity_id;
+    if (!flow_id) return res.status(400).json({ success: false, error: 'flow_id is required' });
+
+    const result = await db.query(
+      'DELETE FROM finance_cashflow_financing WHERE flow_id = $1 AND ($2 IS NULL OR entity_id = $2)',
+      [flow_id, entityId || null]
+    );
+
+    if (!result.rowCount) return res.status(404).json({ success: false, error: 'لم يتم العثور على السجل' });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting financing cashflow:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

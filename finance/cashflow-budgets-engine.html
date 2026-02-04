@@ -61,6 +61,37 @@
             </button>
         </div>
 
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <button onclick="addCashflow('operating')" class="bg-emerald-50 text-emerald-800 px-4 py-3 rounded-xl font-semibold border border-emerald-100 hover:border-emerald-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة تدفق تشغيلي
+            </button>
+            <button onclick="addCashflow('investing')" class="bg-amber-50 text-amber-800 px-4 py-3 rounded-xl font-semibold border border-amber-100 hover:border-amber-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة تدفق استثماري
+            </button>
+            <button onclick="addCashflow('financing')" class="bg-indigo-50 text-indigo-800 px-4 py-3 rounded-xl font-semibold border border-indigo-100 hover:border-indigo-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة تدفق تمويلي
+            </button>
+            <button onclick="addForecast()" class="bg-sky-50 text-sky-800 px-4 py-3 rounded-xl font-semibold border border-sky-100 hover:border-sky-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة توقع نقدي
+            </button>
+            <button onclick="addBudget()" class="bg-slate-50 text-slate-800 px-4 py-3 rounded-xl font-semibold border border-slate-200 hover:border-slate-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة ميزانية
+            </button>
+            <button onclick="addBudgetLine()" class="bg-slate-50 text-slate-800 px-4 py-3 rounded-xl font-semibold border border-slate-200 hover:border-slate-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة خط ميزانية
+            </button>
+            <button onclick="addVariance()" class="bg-slate-50 text-slate-800 px-4 py-3 rounded-xl font-semibold border border-slate-200 hover:border-slate-300 hover:bg-white flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة انحراف ميزانية
+            </button>
+        </div>
+
         <!-- التدفقات النقدية -->
         <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="flex items-center justify-between mb-6">
@@ -210,9 +241,46 @@
             budgetVariances: []
         };
 
+        const cashflowKindToStore = {
+            operating: 'operating',
+            investing: 'investing',
+            financing: 'financing'
+        };
+
         let cashflowChartInstance = null;
         let cashflowMixInstance = null;
         let budgetChartInstance = null;
+
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {})
+            };
+        }
+
+        async function apiRequest(method, url, body) {
+            const res = await fetch(url, {
+                method,
+                headers: getHeaders(),
+                body: body ? JSON.stringify(body) : undefined
+            });
+            const data = await res.json();
+            if (!res.ok || data.success === false) {
+                throw new Error(data.error || data.message || 'حدث خطأ غير متوقع');
+            }
+            return data;
+        }
+
+        function findRow(kind, id) {
+            const key = cashflowKindToStore[kind] || kind;
+            const list = store[key] || [];
+            return list.find((r) => String(r.flow_id || r.forecast_id || r.budget_id || r.line_id || r.variance_id) === String(id));
+        }
+
+        function notify(message) {
+            console.log(message);
+            alert(message);
+        }
 
         async function fetchJson(url) {
             const res = await fetch(url);
@@ -346,9 +414,9 @@
         }
 
         function renderTables() {
-            renderCashflowTable('operatingHead', 'operatingTable', store.operating, 'operatingCount');
-            renderCashflowTable('investingHead', 'investingTable', store.investing, 'investingCount');
-            renderCashflowTable('financingHead', 'financingTable', store.financing, 'financingCount');
+            renderCashflowTable('operatingHead', 'operatingTable', store.operating, 'operatingCount', 'operating');
+            renderCashflowTable('investingHead', 'investingTable', store.investing, 'investingCount', 'investing');
+            renderCashflowTable('financingHead', 'financingTable', store.financing, 'financingCount', 'financing');
 
             renderForecastsTable();
             renderBudgetsTable();
@@ -356,7 +424,7 @@
             renderBudgetVariancesTable();
         }
 
-        function renderCashflowTable(headId, bodyId, rows, countId) {
+        function renderCashflowTable(headId, bodyId, rows, countId, kind) {
             document.getElementById(countId).textContent = `عدد الصفوف: ${rows.length}`;
             const head = document.getElementById(headId);
             const body = document.getElementById(bodyId);
@@ -374,6 +442,7 @@
                 <th class="px-3 py-2 text-right">معرف المنشأة</th>
                 <th class="px-3 py-2 text-right">منشئ السجل</th>
                 <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                <th class="px-3 py-2 text-right">الإجراءات</th>
             </tr>`;
             body.innerHTML = rows.map(r => `
                 <tr class="hover:bg-slate-50">
@@ -385,6 +454,13 @@
                     <td class="px-3 py-2">${r.entity_id ?? '-'}</td>
                     <td class="px-3 py-2">${r.created_by ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            <button class="text-xs px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200" onclick="viewCashflow('${kind}', ${r.flow_id})">معاينة</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200" onclick="editCashflow('${kind}', ${r.flow_id})">تعديل</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-rose-100 hover:bg-rose-200" onclick="deleteCashflow('${kind}', ${r.flow_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -408,6 +484,7 @@
                 <th class="px-3 py-2 text-right">نموذج الذكاء الاصطناعي</th>
                 <th class="px-3 py-2 text-right">الرؤى</th>
                 <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                <th class="px-3 py-2 text-right">الإجراءات</th>
             </tr>`;
             body.innerHTML = store.forecasts.map(f => `
                 <tr class="hover:bg-slate-50">
@@ -420,6 +497,13 @@
                     <td class="px-3 py-2">${translateModel(f.ai_model)}</td>
                     <td class="px-3 py-2">${translateInsights(f.ai_insights)}</td>
                     <td class="px-3 py-2">${formatDateTime(f.created_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            <button class="text-xs px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200" onclick="viewForecast(${f.forecast_id})">معاينة</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200" onclick="editForecast(${f.forecast_id})">تعديل</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-rose-100 hover:bg-rose-200" onclick="deleteForecast(${f.forecast_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -455,6 +539,7 @@
                 <th class="px-3 py-2 text-right">أنشئ بواسطة</th>
                 <th class="px-3 py-2 text-right">اعتمد بواسطة</th>
                 <th class="px-3 py-2 text-right">تاريخ الاعتماد</th>
+                <th class="px-3 py-2 text-right">الإجراءات</th>
             </tr>`;
             body.innerHTML = store.budgets.map(b => `
                 <tr class="hover:bg-slate-50">
@@ -479,6 +564,13 @@
                     <td class="px-3 py-2">${b.created_by ?? '-'}</td>
                     <td class="px-3 py-2">${b.approved_by ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(b.approved_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            <button class="text-xs px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200" onclick="viewBudget(${b.budget_id})">معاينة</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200" onclick="editBudget(${b.budget_id})">تعديل</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-rose-100 hover:bg-rose-200" onclick="deleteBudget(${b.budget_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -517,6 +609,7 @@
                 <th class="px-3 py-2 text-right">الحاضنة</th>
                 <th class="px-3 py-2 text-right">ملاحظات</th>
                 <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                <th class="px-3 py-2 text-right">الإجراءات</th>
             </tr>`;
             body.innerHTML = store.budgetLines.map(l => `
                 <tr class="hover:bg-slate-50">
@@ -544,6 +637,13 @@
                     <td class="px-3 py-2">${l.incubator_id ?? '-'}</td>
                     <td class="px-3 py-2">${l.notes ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(l.created_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            <button class="text-xs px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200" onclick="viewBudgetLine(${l.line_id})">معاينة</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200" onclick="editBudgetLine(${l.line_id})">تعديل</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-rose-100 hover:bg-rose-200" onclick="deleteBudgetLine(${l.line_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -578,6 +678,7 @@
                 <th class="px-3 py-2 text-right">الحاضنة</th>
                 <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
                 <th class="px-3 py-2 text-right">تاريخ التحليل</th>
+                <th class="px-3 py-2 text-right">الإجراءات</th>
             </tr>`;
             body.innerHTML = store.budgetVariances.map(v => `
                 <tr class="hover:bg-slate-50">
@@ -601,6 +702,13 @@
                     <td class="px-3 py-2">${v.incubator_id ?? '-'}</td>
                     <td class="px-3 py-2">${formatDateTime(v.created_at)}</td>
                     <td class="px-3 py-2">${formatDateTime(v.analyzed_at)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            <button class="text-xs px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200" onclick="viewVariance(${v.variance_id})">معاينة</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200" onclick="editVariance(${v.variance_id})">تعديل</button>
+                            <button class="text-xs px-2 py-1 rounded-lg bg-rose-100 hover:bg-rose-200" onclick="deleteVariance(${v.variance_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -723,6 +831,336 @@
             } catch {
                 return String(value);
             }
+        }
+
+        function ask(label, fallback = '') {
+            const value = prompt(label, fallback ?? '');
+            return value === null ? null : value.trim();
+        }
+
+        function asNumber(value, fallback = 0) {
+            const num = parseFloat(value);
+            return Number.isNaN(num) ? fallback : num;
+        }
+
+        async function withAction(fn) {
+            try {
+                await fn();
+            } catch (error) {
+                console.error(error);
+                notify(`خطأ: ${error.message || error}`);
+            }
+        }
+
+        async function addCashflow(kind) {
+            await withAction(async () => {
+                const flowType = ask('نوع التدفق (مثال: customer_collection)', kind === 'operating' ? 'customer_collection' : kind === 'investing' ? 'asset_purchase' : 'bank_loan');
+                if (flowType === null) return;
+                const direction = ask('الاتجاه (IN أو OUT)', flowType?.includes('collection') || flowType?.includes('sale') ? 'IN' : 'OUT');
+                if (direction === null) return;
+                const amountInput = ask('المبلغ', '10000');
+                if (amountInput === null) return;
+                const description = ask('الوصف', 'إدخال سريع من الواجهة');
+                if (description === null) return;
+                const date = ask('التاريخ (YYYY-MM-DD)', new Date().toISOString().slice(0, 10));
+                if (date === null) return;
+
+                await apiRequest('POST', `${API_BASE}/finance/cashflow/${kind}`, {
+                    flow_type: flowType,
+                    flow_direction: direction,
+                    amount: asNumber(amountInput, 0),
+                    description,
+                    flow_date: date,
+                    entity_id: ENTITY_ID,
+                    entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ'
+                });
+                notify('تمت إضافة التدفق بنجاح');
+                await loadData();
+            });
+        }
+
+        function viewCashflow(kind, id) {
+            const row = findRow(kind, id);
+            if (!row) return notify('السجل غير موجود');
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function editCashflow(kind, id) {
+            await withAction(async () => {
+                const row = findRow(kind, id);
+                if (!row) return notify('السجل غير موجود');
+                const amountInput = ask('المبلغ الجديد', row.amount);
+                if (amountInput === null) return;
+                const description = ask('الوصف', row.description || '');
+                if (description === null) return;
+                const date = ask('التاريخ (YYYY-MM-DD)', row.flow_date || new Date().toISOString().slice(0, 10));
+                if (date === null) return;
+                const direction = asNumber(amountInput, 0) >= 0 ? 'IN' : 'OUT';
+
+                await apiRequest('PUT', `${API_BASE}/finance/cashflow/${kind}/${id}`, {
+                    amount: asNumber(amountInput, row.amount),
+                    description,
+                    flow_date: date,
+                    flow_direction: direction,
+                    entity_id: ENTITY_ID
+                });
+                notify('تم حفظ التعديلات');
+                await loadData();
+            });
+        }
+
+        async function deleteCashflow(kind, id) {
+            await withAction(async () => {
+                if (!confirm('تأكيد حذف السجل؟')) return;
+                await apiRequest('DELETE', `${API_BASE}/finance/cashflow/${kind}/${id}?entity_id=${ENTITY_ID}`);
+                notify('تم حذف السجل');
+                await loadData();
+            });
+        }
+
+        function viewForecast(id) {
+            const row = store.forecasts.find(f => String(f.forecast_id) === String(id));
+            if (!row) return notify('السجل غير موجود');
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function addForecast() {
+            await withAction(async () => {
+                const period = ask('الفترة (مثال: مارس 2026)', 'مارس 2026');
+                if (period === null) return;
+                const type = ask('نوع التوقع (surplus/deficit)', 'surplus');
+                if (type === null) return;
+                const amountInput = ask('قيمة التوقع', '75000');
+                if (amountInput === null) return;
+                const confidence = ask('مستوى الثقة (0-1)', '0.7');
+                if (confidence === null) return;
+
+                await apiRequest('POST', `${API_BASE}/finance/ai-forecasts`, {
+                    entity_id: ENTITY_ID,
+                    forecast_period: period,
+                    forecast_type: type,
+                    forecast_amount: asNumber(amountInput, 0),
+                    confidence_level: asNumber(confidence, 0.5),
+                    ai_model: 'LSTM Neural Network'
+                });
+                notify('تمت إضافة التوقع');
+                await loadData();
+            });
+        }
+
+        async function editForecast(id) {
+            await withAction(async () => {
+                const row = store.forecasts.find(f => String(f.forecast_id) === String(id));
+                if (!row) return notify('السجل غير موجود');
+                const period = ask('الفترة', row.forecast_period);
+                if (period === null) return;
+                const amountInput = ask('قيمة التوقع', row.forecast_amount);
+                if (amountInput === null) return;
+                const confidence = ask('مستوى الثقة (0-1)', row.confidence_level ?? '0.7');
+                if (confidence === null) return;
+
+                await apiRequest('PUT', `${API_BASE}/finance/ai-forecasts/${id}`, {
+                    entity_id: ENTITY_ID,
+                    forecast_period: period,
+                    forecast_amount: asNumber(amountInput, row.forecast_amount),
+                    confidence_level: asNumber(confidence, row.confidence_level),
+                    forecast_type: row.forecast_type || 'surplus'
+                });
+                notify('تم حفظ التعديلات');
+                await loadData();
+            });
+        }
+
+        async function deleteForecast(id) {
+            await withAction(async () => {
+                if (!confirm('تأكيد حذف التوقع؟')) return;
+                await apiRequest('DELETE', `${API_BASE}/finance/ai-forecasts/${id}?entity_id=${ENTITY_ID}`);
+                notify('تم حذف التوقع');
+                await loadData();
+            });
+        }
+
+        function viewBudget(id) {
+            const row = store.budgets.find(b => String(b.budget_id) === String(id));
+            if (!row) return notify('السجل غير موجود');
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function addBudget() {
+            await withAction(async () => {
+                const code = ask('كود الميزانية', `BUD-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`);
+                if (code === null) return;
+                const nameAr = ask('اسم الميزانية (عربي)', 'ميزانية تشغيل جديدة');
+                if (nameAr === null) return;
+                const type = ask('نوع الميزانية', 'operational');
+                if (type === null) return;
+                const year = ask('السنة المالية', new Date().getFullYear());
+                if (year === null) return;
+                const description = ask('الوصف', 'إضافة من الواجهة');
+                if (description === null) return;
+
+                await apiRequest('POST', `${API_BASE}/finance/budgets`, {
+                    budget_code: code,
+                    budget_name_ar: nameAr,
+                    budget_type: type,
+                    fiscal_year: parseInt(year, 10),
+                    description,
+                    entity_id: ENTITY_ID,
+                    entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ'
+                });
+                notify('تمت إضافة الميزانية');
+                await loadData();
+            });
+        }
+
+        async function editBudget(id) {
+            await withAction(async () => {
+                const row = store.budgets.find(b => String(b.budget_id) === String(id));
+                if (!row) return notify('السجل غير موجود');
+                const status = ask('الحالة', row.status || 'draft');
+                if (status === null) return;
+                const description = ask('الوصف', row.description || '');
+                if (description === null) return;
+
+                await apiRequest('PUT', `${API_BASE}/finance/budgets/${id}`, {
+                    status,
+                    description,
+                    entity_id: ENTITY_ID
+                });
+                notify('تم حفظ التعديلات');
+                await loadData();
+            });
+        }
+
+        async function deleteBudget(id) {
+            await withAction(async () => {
+                if (!confirm('تأكيد حذف الميزانية؟')) return;
+                await apiRequest('DELETE', `${API_BASE}/finance/budgets/${id}`);
+                notify('تم حذف الميزانية');
+                await loadData();
+            });
+        }
+
+        function viewBudgetLine(id) {
+            const row = store.budgetLines.find(l => String(l.line_id) === String(id));
+            if (!row) return notify('السجل غير موجود');
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function addBudgetLine() {
+            await withAction(async () => {
+                const budgetId = ask('رقم الميزانية', store.budgets[0]?.budget_id || '');
+                if (budgetId === null || budgetId === '') return;
+                const accountId = ask('رقم الحساب', store.budgetLines[0]?.account_id || '280');
+                if (accountId === null) return;
+                const annual = ask('القيمة السنوية', '120000');
+                if (annual === null) return;
+                const accountName = ask('اسم الحساب', 'حساب جديد');
+                if (accountName === null) return;
+
+                await apiRequest('POST', `${API_BASE}/finance/budget-lines`, {
+                    budget_id: parseInt(budgetId, 10),
+                    account_id: parseInt(accountId, 10),
+                    annual_amount: asNumber(annual, 0),
+                    account_name: accountName,
+                    account_code: store.budgetLines[0]?.account_code || '9999',
+                    entity_id: ENTITY_ID,
+                    entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ'
+                });
+                notify('تمت إضافة خط ميزانية');
+                await loadData();
+            });
+        }
+
+        async function editBudgetLine(id) {
+            await withAction(async () => {
+                const row = store.budgetLines.find(l => String(l.line_id) === String(id));
+                if (!row) return notify('السجل غير موجود');
+                const annual = ask('القيمة السنوية', row.annual_amount);
+                if (annual === null) return;
+                const notes = ask('ملاحظات', row.notes || '');
+                if (notes === null) return;
+
+                await apiRequest('PUT', `${API_BASE}/finance/budget-lines/${id}`, {
+                    annual_amount: asNumber(annual, row.annual_amount),
+                    notes
+                });
+                notify('تم حفظ التعديلات');
+                await loadData();
+            });
+        }
+
+        async function deleteBudgetLine(id) {
+            await withAction(async () => {
+                if (!confirm('تأكيد حذف خط الميزانية؟')) return;
+                await apiRequest('DELETE', `${API_BASE}/finance/budget-lines/${id}`);
+                notify('تم حذف خط الميزانية');
+                await loadData();
+            });
+        }
+
+        function viewVariance(id) {
+            const row = store.budgetVariances.find(v => String(v.variance_id) === String(id));
+            if (!row) return notify('السجل غير موجود');
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function addVariance() {
+            await withAction(async () => {
+                const fiscalYear = ask('السنة المالية', new Date().getFullYear());
+                if (fiscalYear === null) return;
+                const fiscalPeriod = ask('الفترة (1-12)', '1');
+                if (fiscalPeriod === null) return;
+                const accountId = ask('رقم الحساب', store.budgetVariances[0]?.account_id || store.budgetLines[0]?.account_id || '280');
+                if (accountId === null) return;
+                const budgeted = ask('المبلغ المخطط', '50000');
+                if (budgeted === null) return;
+                const actual = ask('المبلغ الفعلي', '45000');
+                if (actual === null) return;
+
+                await apiRequest('POST', `${API_BASE}/finance/budget-variances`, {
+                    fiscal_year: parseInt(fiscalYear, 10),
+                    fiscal_period: parseInt(fiscalPeriod, 10),
+                    account_id: parseInt(accountId, 10),
+                    budgeted_amount: asNumber(budgeted, 0),
+                    actual_amount: asNumber(actual, 0),
+                    entity_id: ENTITY_ID,
+                    entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ'
+                });
+                notify('تمت إضافة الانحراف');
+                await loadData();
+            });
+        }
+
+        async function editVariance(id) {
+            await withAction(async () => {
+                const row = store.budgetVariances.find(v => String(v.variance_id) === String(id));
+                if (!row) return notify('السجل غير موجود');
+                const budgeted = ask('المبلغ المخطط', row.budgeted_amount);
+                if (budgeted === null) return;
+                const actual = ask('المبلغ الفعلي', row.actual_amount);
+                if (actual === null) return;
+                const notes = ask('تفسير ذكي', row.ai_explanation || '');
+                if (notes === null) return;
+
+                await apiRequest('PUT', `${API_BASE}/finance/budget-variances/${id}`, {
+                    budgeted_amount: asNumber(budgeted, row.budgeted_amount),
+                    actual_amount: asNumber(actual, row.actual_amount),
+                    ai_explanation: notes,
+                    entity_id: ENTITY_ID
+                });
+                notify('تم حفظ التعديلات');
+                await loadData();
+            });
+        }
+
+        async function deleteVariance(id) {
+            await withAction(async () => {
+                if (!confirm('تأكيد حذف الانحراف؟')) return;
+                await apiRequest('DELETE', `${API_BASE}/finance/budget-variances/${id}`);
+                notify('تم حذف الانحراف');
+                await loadData();
+            });
         }
 
         function downloadJSON() {

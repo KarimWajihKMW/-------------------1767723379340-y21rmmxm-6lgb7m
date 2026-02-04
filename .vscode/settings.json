@@ -1089,6 +1089,16 @@
         "/^node - <<'NODE'\nconst \\{ Client \\} = require\\('pg'\\);\n\\(async \\(\\) => \\{\n  const client = new Client\\(\\{\n    connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n    ssl: \\{ rejectUnauthorized: false \\}\n  \\}\\);\n  await client\\.connect\\(\\);\n  const res = await client\\.query\\(`\n    SELECT column_name, data_type, is_nullable, column_default\n    FROM information_schema\\.columns\n    WHERE table_name = 'finance_budgets'\n    ORDER BY ordinal_position\n  `\\);\n  console\\.table\\(res\\.rows\\);\n  await client\\.end\\(\\);\n\\}\\)\\(\\);\nNODE$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "${t}": true,
+        "${t}:": true,
+        "/^node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\nconst tables = \\[\n  'finance_cashflow_operating',\n  'finance_cashflow_investing',\n  'finance_cashflow_financing',\n  'finance_ai_forecasts',\n  'finance_budgets',\n  'finance_budget_lines',\n  'finance_budget_variances',\n  'finance_accounts'\n\\];\n\\(async \\(\\) => \\{\n  for \\(const t of tables\\) \\{\n    try \\{\n      const r = await pool\\.query\\(`SELECT COUNT\\(\\*\\) AS c FROM \\$\\{t\\}`\\);\n      console\\.log\\(`\\$\\{t\\}: \\$\\{r\\.rows\\[0\\]\\.c\\}`\\);\n    \\} catch \\(e\\) \\{\n      console\\.error\\(`\\$\\{t\\}: ERR \\$\\{e\\.message\\}`\\);\n    \\}\n  \\}\n  await pool\\.end\\(\\);\n\\}\\)\\(\\);\nNODE\n$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{connectionString:'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',ssl:\\{rejectUnauthorized:false\\}\\}\\);\nconst entity='HQ001';\n\\(async\\(\\)=>\\{\n  const queries=\\[\n    \\['operating','finance_cashflow_operating'\\],\n    \\['investing','finance_cashflow_investing'\\],\n    \\['financing','finance_cashflow_financing'\\],\n    \\['forecasts','finance_ai_forecasts'\\],\n    \\['budgets','finance_budgets'\\],\n    \\['lines','finance_budget_lines'\\],\n    \\['variances','finance_budget_variances'\\]\n  \\];\n  for\\(const \\[label,table\\] of queries\\)\\{\n    try\\{\n      const r=await pool\\.query\\(`SELECT COUNT\\(\\*\\) AS c FROM \\$\\{table\\} WHERE entity_id=\\$1`,\\[entity\\]\\);\n      console\\.log\\(`\\$\\{label\\}: \\$\\{r\\.rows\\[0\\]\\.c\\}`\\);\n    \\}catch\\(e\\)\\{console\\.error\\(`\\$\\{label\\}: ERR \\$\\{e\\.message\\}`\\);\\}\n  \\}\n  await pool\\.end\\(\\);\n\\}\\)\\(\\);\nNODE\n$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
