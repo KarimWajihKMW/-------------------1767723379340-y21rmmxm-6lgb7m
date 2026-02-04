@@ -33,6 +33,10 @@
         .section-accent-rose { border-top: 4px solid #f43f5e; }
         .badge { padding: 6px 12px; border-radius: 999px; font-weight: 700; }
         details > summary { cursor: pointer; }
+        .action-btn { padding: 6px 10px; border-radius: 10px; font-weight: 700; }
+        .action-btn.view { background: #e0f2fe; color: #0ea5e9; }
+        .action-btn.edit { background: #ecfeff; color: #0d9488; }
+        .action-btn.delete { background: #fef2f2; color: #dc2626; }
     </style>
 </head>
 <body>
@@ -59,6 +63,88 @@
                 <i class="fas fa-print text-xl text-gray-600 group-hover:text-gray-700 transition"></i>
                 طباعة
             </button>
+        </div>
+
+        <div class="card-gradient rounded-xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-slate-800">🚀 لوحة الإضافة السريعة</h2>
+                <span class="text-sm text-slate-500">إدخال بيانات تحفظ مباشرة في قاعدة البيانات</span>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <form id="riskQuickForm" class="bg-white rounded-2xl p-4 shadow" onsubmit="submitRiskQuick(event)">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-slate-800">تقييم مخاطر</h3>
+                        <span class="text-xs text-slate-500" id="riskEntityLabel"></span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <label class="block">العميل</label>
+                        <select id="riskCustomer" class="w-full border rounded-lg px-3 py-2 text-sm"></select>
+                        <label class="block">درجة المخاطر</label>
+                        <input id="riskScoreInput" type="number" step="0.1" class="w-full border rounded-lg px-3 py-2" placeholder="مثال: 78" required>
+                        <label class="block">مستوى المخاطر</label>
+                        <select id="riskLevelInput" class="w-full border rounded-lg px-3 py-2">
+                            <option value="HIGH">مرتفع</option>
+                            <option value="MEDIUM">متوسط</option>
+                            <option value="LOW">منخفض</option>
+                        </select>
+                        <label class="block">تاريخ التقييم</label>
+                        <input id="riskDateInput" type="date" class="w-full border rounded-lg px-3 py-2">
+                        <label class="block">توصيات مختصرة</label>
+                        <input id="riskNoteInput" type="text" class="w-full border rounded-lg px-3 py-2" placeholder="تنبيه أو توصية" />
+                    </div>
+                    <button type="submit" class="mt-3 w-full bg-emerald-600 text-white rounded-lg py-2 font-bold hover:bg-emerald-700">حفظ التقييم</button>
+                </form>
+
+                <form id="operatingQuickForm" class="bg-white rounded-2xl p-4 shadow" onsubmit="submitOperatingQuick(event)">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-slate-800">تدفق تشغيلي</h3>
+                        <span class="text-xs text-slate-500" id="operatingEntityLabel"></span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <label class="block">نوع التدفق</label>
+                        <select id="operatingType" class="w-full border rounded-lg px-3 py-2">
+                            <option value="customer_collection">تحصيل عملاء</option>
+                            <option value="salary_payment">رواتب</option>
+                            <option value="rent_payment">إيجار</option>
+                            <option value="utilities_payment">مرافق</option>
+                            <option value="vendor_payment">مدفوعات موردين</option>
+                        </select>
+                        <label class="block">المبلغ</label>
+                        <input id="operatingAmount" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="مثال: 25000" required>
+                        <label class="block">الاتجاه</label>
+                        <select id="operatingDirection" class="w-full border rounded-lg px-3 py-2">
+                            <option value="IN">تدفق داخل</option>
+                            <option value="OUT">تدفق خارج</option>
+                        </select>
+                        <label class="block">تاريخ التدفق</label>
+                        <input id="operatingDate" type="date" class="w-full border rounded-lg px-3 py-2">
+                        <label class="block">الوصف</label>
+                        <input id="operatingDesc" type="text" class="w-full border rounded-lg px-3 py-2" placeholder="تفاصيل مختصرة" />
+                    </div>
+                    <button type="submit" class="mt-3 w-full bg-indigo-600 text-white rounded-lg py-2 font-bold hover:bg-indigo-700">تسجيل التدفق</button>
+                </form>
+
+                <form id="agingQuickForm" class="bg-white rounded-2xl p-4 shadow" onsubmit="submitAgingQuick(event)">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-slate-800">فاتورة ذمم</h3>
+                        <span class="text-xs text-slate-500" id="agingEntityLabel"></span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <label class="block">العميل</label>
+                        <select id="agingCustomer" class="w-full border rounded-lg px-3 py-2"></select>
+                        <label class="block">إجمالي الفاتورة</label>
+                        <input id="agingTotal" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="مثال: 85000" required>
+                        <label class="block">المبلغ المدفوع</label>
+                        <input id="agingPaid" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" placeholder="مثال: 15000" value="0">
+                        <label class="block">تاريخ الفاتورة</label>
+                        <input id="agingInvoiceDate" type="date" class="w-full border rounded-lg px-3 py-2">
+                        <label class="block">تاريخ الاستحقاق</label>
+                        <input id="agingDueDate" type="date" class="w-full border rounded-lg px-3 py-2">
+                    </div>
+                    <button type="submit" class="mt-3 w-full bg-amber-600 text-white rounded-lg py-2 font-bold hover:bg-amber-700">حفظ الفاتورة</button>
+                </form>
+            </div>
+            <div id="quickStatus" class="text-sm text-slate-600 mt-3"></div>
         </div>
 
         <!-- تقارير الوضع المالي -->
@@ -252,6 +338,7 @@
 
         const store = {
             sheet: null,
+            sheetTotals: null,
             assets: [],
             liabilities: [],
             equity: [],
@@ -268,6 +355,21 @@
             lines: []
         };
 
+        const tableDataCache = {};
+        const ACTION_CONFIG = {
+            assetsTable: { actions: ['view', 'edit', 'delete'] },
+            liabilitiesTable: { actions: ['view', 'edit', 'delete'] },
+            equityTable: { actions: ['view', 'edit', 'delete'] },
+            agingTable: { actions: ['view', 'edit', 'delete'] },
+            operatingTable: { actions: ['view', 'edit', 'delete'] },
+            riskTable: { actions: ['view', 'edit', 'delete'] },
+            entriesTable: { actions: ['view', 'delete'] },
+            linesTable: { actions: ['view', 'delete'] },
+            sheetTable: { actions: ['view'] },
+            incomeRevenueTable: { actions: ['view'] },
+            incomeExpenseTable: { actions: ['view'] }
+        };
+
         let agingChartInstance = null;
         let riskChartInstance = null;
         let cashflowChartInstance = null;
@@ -276,6 +378,169 @@
             const res = await fetch(url);
             const data = await res.json();
             return { ok: res.ok, data };
+        }
+
+        function setContextLabels() {
+            const riskLbl = document.getElementById('riskEntityLabel');
+            const opLbl = document.getElementById('operatingEntityLabel');
+            const agingLbl = document.getElementById('agingEntityLabel');
+            if (riskLbl) riskLbl.textContent = `الكيان ${ENTITY_ID}`;
+            if (opLbl) opLbl.textContent = `الكيان ${ENTITY_ID}`;
+            if (agingLbl) agingLbl.textContent = `الكيان ${SECONDARY_ENTITY_ID}`;
+        }
+
+        function setStatus(message, isError = false) {
+            const box = document.getElementById('quickStatus');
+            if (!box) return;
+            box.textContent = message || '';
+            box.className = `text-sm ${isError ? 'text-rose-600' : 'text-emerald-600'} mt-3`;
+        }
+
+        async function callApi(url, method, body) {
+            const res = await fetch(url, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                body: body ? JSON.stringify(body) : undefined
+            });
+
+            let payload = null;
+            try { payload = await res.json(); } catch (err) { payload = null; }
+            if (!res.ok) {
+                throw new Error(payload?.error || 'فشل في الاتصال بالخادم');
+            }
+            return payload;
+        }
+
+        function promptValue(label, current) {
+            const val = prompt(label, current ?? '');
+            if (val === null) return null;
+            return val.trim();
+        }
+
+        function promptNumber(label, current) {
+            const val = prompt(label, current ?? '');
+            if (val === null) return null;
+            const num = parseFloat(val);
+            if (Number.isNaN(num)) {
+                alert('القيمة يجب أن تكون رقمية');
+                return null;
+            }
+            return num;
+        }
+
+        function normalizeJsonField(value) {
+            if (!value) return {};
+            if (typeof value === 'string') {
+                try { return JSON.parse(value); } catch (err) { return { raw: value }; }
+            }
+            return value;
+        }
+
+        function uniqueCustomers() {
+            const fromAging = store.arAging.map(r => ({ id: r.customer_id, name: r.customer_name_ar || r.customer_name_en || `عميل ${r.customer_id}` }));
+            const fromInvoices = store.invoices.map(r => ({ id: r.customer_id, name: r.customer_name || `عميل ${r.customer_id}` }));
+            const map = new Map();
+            [...fromAging, ...fromInvoices].forEach(c => {
+                if (!c.id) return;
+                if (!map.has(c.id)) map.set(c.id, c.name);
+            });
+            return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+        }
+
+        function populateCustomerSelects() {
+            const options = uniqueCustomers();
+            const riskSel = document.getElementById('riskCustomer');
+            const agingSel = document.getElementById('agingCustomer');
+
+            if (riskSel) {
+                riskSel.innerHTML = options.map(o => `<option value="${o.id}">${o.name}</option>`).join('');
+            }
+            if (agingSel) {
+                agingSel.innerHTML = options.map(o => `<option value="${o.id}">${o.name}</option>`).join('');
+            }
+        }
+
+        async function submitRiskQuick(event) {
+            event.preventDefault();
+            try {
+                const customer_id = Number(document.getElementById('riskCustomer').value || 1);
+                const risk_score = parseFloat(document.getElementById('riskScoreInput').value || 0);
+                const risk_level = document.getElementById('riskLevelInput').value || 'MEDIUM';
+                const assessment_date = document.getElementById('riskDateInput').value || new Date().toISOString().slice(0, 10);
+                const recommendations = document.getElementById('riskNoteInput').value || 'توصية سريعة من النموذج';
+
+                await callApi('/finance/ai-risk-scores', 'POST', {
+                    customer_id,
+                    assessment_date,
+                    risk_score,
+                    risk_level,
+                    risk_factors: { source: 'quick-form' },
+                    calculation_details: { method: 'manual' },
+                    recommendations,
+                    suggested_actions: [],
+                    entity_type: 'HQ',
+                    entity_id: ENTITY_ID,
+                    model_version: 'v1.2.0'
+                });
+
+                setStatus('✅ تم حفظ تقييم المخاطر بنجاح');
+                await loadData();
+            } catch (error) {
+                setStatus(`❌ ${error.message}`, true);
+            }
+        }
+
+        async function submitOperatingQuick(event) {
+            event.preventDefault();
+            try {
+                const flow_type = document.getElementById('operatingType').value;
+                const amount = parseFloat(document.getElementById('operatingAmount').value || 0);
+                const flow_direction = document.getElementById('operatingDirection').value;
+                const flow_date = document.getElementById('operatingDate').value || new Date().toISOString().slice(0, 10);
+                const description = document.getElementById('operatingDesc').value || 'تدفق سريع';
+
+                await callApi('/finance/cashflow/operating', 'POST', {
+                    flow_type,
+                    amount,
+                    flow_direction,
+                    flow_date,
+                    description,
+                    entity_type: 'HQ',
+                    entity_id: ENTITY_ID
+                });
+
+                setStatus('✅ تم تسجيل التدفق التشغيلي');
+                await loadData();
+            } catch (error) {
+                setStatus(`❌ ${error.message}`, true);
+            }
+        }
+
+        async function submitAgingQuick(event) {
+            event.preventDefault();
+            try {
+                const customer_id = Number(document.getElementById('agingCustomer').value || 1);
+                const total_amount = parseFloat(document.getElementById('agingTotal').value || 0);
+                const paid_amount = parseFloat(document.getElementById('agingPaid').value || 0);
+                const invoice_date = document.getElementById('agingInvoiceDate').value || new Date().toISOString().slice(0, 10);
+                const due_date = document.getElementById('agingDueDate').value || invoice_date;
+
+                await callApi('/finance/ar-aging/invoices', 'POST', {
+                    customer_id,
+                    total_amount,
+                    paid_amount,
+                    invoice_date,
+                    due_date,
+                    entity_type: 'HQ',
+                    entity_id: SECONDARY_ENTITY_ID,
+                    notes: 'إضافة سريعة من الواجهة'
+                });
+
+                setStatus('✅ تم إضافة فاتورة الذمم بنجاح');
+                await loadData();
+            } catch (error) {
+                setStatus(`❌ ${error.message}`, true);
+            }
         }
 
         async function loadData() {
@@ -294,21 +559,25 @@
                     fetchJson(`${API_BASE}/finance/journal-lines?entity_id=${ENTITY_ID}`)
                 ]);
 
-                store.sheet = sheetRes.data.sheet || null;
-                store.assets = sheetRes.data.assets || [];
-                store.liabilities = sheetRes.data.liabilities || [];
-                store.equity = sheetRes.data.equity || [];
-                store.incomeRevenue = incomeRes.data.revenue_accounts || [];
-                store.incomeExpenses = incomeRes.data.expense_accounts || [];
-                store.arAging = agingRes.data.rows || [];
+                store.sheet = sheetRes.data?.sheet || null;
+                store.sheetTotals = sheetRes.data?.totals || null;
+                store.assets = sheetRes.data?.assets || [];
+                store.liabilities = sheetRes.data?.liabilities || [];
+                store.equity = sheetRes.data?.equity || [];
+                store.incomeRevenue = incomeRes.data?.revenue_accounts || [];
+                store.incomeExpenses = incomeRes.data?.expense_accounts || [];
+                store.arAging = agingRes.data?.rows || [];
                 store.cashflowOverview = cashflowRes.data || null;
-                store.cashflowOperating = operatingRes.data.cashflows || [];
-                store.forecasts = forecastRes.data.forecasts || [];
-                store.riskScores = riskRes.data.rows || [];
-                store.invoices = invoicesRes.data.invoices || [];
-                store.payments = paymentsRes.data.payments || [];
-                store.entries = entriesRes.data.entries || [];
-                store.lines = linesRes.data.lines || [];
+                store.cashflowOperating = operatingRes.data?.cashflows || [];
+                store.forecasts = forecastRes.data?.forecasts || [];
+                store.riskScores = riskRes.data?.rows || [];
+                store.invoices = invoicesRes.data?.invoices || [];
+                store.payments = paymentsRes.data?.payments || [];
+                store.entries = entriesRes.data?.entries || [];
+                store.lines = linesRes.data?.lines || [];
+
+                setContextLabels();
+                populateCustomerSelects();
 
                 renderKPIs();
                 renderPerformance();
@@ -324,20 +593,32 @@
         }
 
         function renderKPIs() {
-            const totals = store.sheet ? {
-                assets: store.sheet.totals.total_assets,
-                liabilities: store.sheet.totals.total_liabilities,
-                equity: store.sheet.totals.total_equity,
-                balanced: store.sheet.totals.is_balanced
-            } : { assets: 0, liabilities: 0, equity: 0, balanced: false };
+            const totalsSource = store.sheetTotals || (store.sheet && store.sheet.totals) || null;
+            const totals = totalsSource ? {
+                assets: Number(totalsSource.total_assets || 0),
+                liabilities: Number(totalsSource.total_liabilities || 0),
+                equity: Number(totalsSource.total_equity || 0),
+                balanced: Boolean(totalsSource.is_balanced)
+            } : (() => {
+                const assetsSum = sum(store.assets, 'amount');
+                const liabilitiesSum = sum(store.liabilities, 'amount');
+                const equitySum = sum(store.equity, 'amount');
+                return {
+                    assets: assetsSum,
+                    liabilities: liabilitiesSum,
+                    equity: equitySum,
+                    balanced: Math.abs(assetsSum - (liabilitiesSum + equitySum)) < 0.01
+                };
+            })();
 
             document.getElementById('totalAssets').textContent = formatMoney(totals.assets);
             document.getElementById('totalLiabilities').textContent = formatMoney(totals.liabilities);
             document.getElementById('totalEquity').textContent = formatMoney(totals.equity);
             document.getElementById('balanceStatus').textContent = totals.balanced ? 'متوازن' : 'غير متوازن';
 
-            const highRisk = store.riskScores.filter(r => ['HIGH', 'CRITICAL'].includes(String(r.risk_level || '').toUpperCase()));
-            const overallRisk = store.riskScores.length ? (highRisk.length / store.riskScores.length) * 100 : 0;
+            const riskRows = Array.isArray(store.riskScores) ? store.riskScores : [];
+            const highRisk = riskRows.filter(r => ['HIGH', 'CRITICAL'].includes(String(r.risk_level || '').toUpperCase()));
+            const overallRisk = riskRows.length ? (highRisk.length / riskRows.length) * 100 : 0;
             document.getElementById('overallRisk').textContent = `${overallRisk.toFixed(1)}%`;
         }
 
@@ -496,6 +777,8 @@
             const head = document.getElementById(headId);
             const body = document.getElementById(bodyId);
             const count = document.getElementById(countId);
+            const config = ACTION_CONFIG[bodyId];
+            tableDataCache[bodyId] = rows || [];
             count.textContent = `عدد الصفوف: ${rows.length}`;
 
             if (!rows.length) {
@@ -505,12 +788,225 @@
             }
 
             const columns = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
-            head.innerHTML = `<tr>${columns.map(c => `<th class="px-3 py-2 text-right">${translateHeader(c)}</th>`).join('')}</tr>`;
-            body.innerHTML = rows.map(row => `
-                <tr class="hover:bg-slate-50">
-                    ${columns.map(c => `<td class="px-3 py-2">${formatValue(c, row[c])}</td>`).join('')}
-                </tr>
-            `).join('');
+            const actionsHeader = config ? '<th class="px-3 py-2 text-right">إجراءات</th>' : '';
+            head.innerHTML = `<tr>${columns.map(c => `<th class="px-3 py-2 text-right">${translateHeader(c)}</th>`).join('')}${actionsHeader}</tr>`;
+            body.innerHTML = rows.map((row, idx) => {
+                const actionButtons = config ? renderActions(bodyId, idx, config.actions || []) : '';
+                return `
+                    <tr class="hover:bg-slate-50">
+                        ${columns.map(c => `<td class="px-3 py-2">${formatValue(c, row[c])}</td>`).join('')}
+                        ${config ? `<td class="px-3 py-2 space-x-1 whitespace-nowrap">${actionButtons}</td>` : ''}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderActions(tableId, idx, actions) {
+            const labels = { view: '👁 عرض', edit: '✏ تعديل', delete: '🗑 حذف' };
+            return actions.map(action => `<button class="action-btn ${action}" onclick="handleRowAction('${tableId}', ${idx}, '${action}')">${labels[action]}</button>`).join(' ');
+        }
+
+        async function handleRowAction(tableId, index, action) {
+            const rows = tableDataCache[tableId] || [];
+            const row = rows[index];
+            if (!row) return;
+            if (action === 'view') return viewRow(row);
+
+            try {
+                switch (tableId) {
+                    case 'assetsTable':
+                        return await assetAction(action, row);
+                    case 'liabilitiesTable':
+                        return await liabilityAction(action, row);
+                    case 'equityTable':
+                        return await equityAction(action, row);
+                    case 'operatingTable':
+                        return await operatingAction(action, row);
+                    case 'agingTable':
+                        return await agingAction(action, row);
+                    case 'riskTable':
+                        return await riskAction(action, row);
+                    case 'entriesTable':
+                        return await entryAction(action, row);
+                    case 'linesTable':
+                        return await lineAction(action, row);
+                    default:
+                        alert('لم يتم ربط هذا الجدول بإجراءات بعد');
+                }
+            } catch (error) {
+                alert(`خطأ: ${error.message}`);
+            }
+        }
+
+        function viewRow(row) {
+            alert(JSON.stringify(row, null, 2));
+        }
+
+        async function assetAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('هل تريد حذف الأصل؟')) return;
+                await callApi(`/finance/balance-sheet/assets/${row.asset_id}?entity_id=${row.entity_id}`, 'DELETE');
+                setStatus('تم حذف الأصل');
+                return loadData();
+            }
+            if (action === 'edit') {
+                const asset_name = promptValue('اسم الأصل', row.asset_name);
+                if (asset_name === null) return;
+                const amount = promptNumber('المبلغ', row.amount);
+                if (amount === null) return;
+                const description = promptValue('الوصف', row.description);
+                await callApi(`/finance/balance-sheet/assets/${row.asset_id}`, 'PUT', {
+                    entity_id: row.entity_id,
+                    asset_category: row.asset_category,
+                    asset_type: row.asset_type,
+                    asset_name,
+                    amount,
+                    description
+                });
+                setStatus('تم تعديل الأصل');
+                return loadData();
+            }
+        }
+
+        async function liabilityAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('حذف الالتزام؟')) return;
+                await callApi(`/finance/balance-sheet/liabilities/${row.liability_id}?entity_id=${row.entity_id}`, 'DELETE');
+                setStatus('تم حذف الالتزام');
+                return loadData();
+            }
+            if (action === 'edit') {
+                const liability_name = promptValue('اسم الالتزام', row.liability_name);
+                if (liability_name === null) return;
+                const amount = promptNumber('المبلغ', row.amount);
+                if (amount === null) return;
+                await callApi(`/finance/balance-sheet/liabilities/${row.liability_id}`, 'PUT', {
+                    entity_id: row.entity_id,
+                    liability_category: row.liability_category,
+                    liability_type: row.liability_type,
+                    liability_name,
+                    amount,
+                    description: row.description
+                });
+                setStatus('تم تعديل الالتزام');
+                return loadData();
+            }
+        }
+
+        async function equityAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('حذف بند حقوق الملكية؟')) return;
+                await callApi(`/finance/balance-sheet/equity/${row.equity_id}?entity_id=${row.entity_id}`, 'DELETE');
+                setStatus('تم حذف البند');
+                return loadData();
+            }
+            if (action === 'edit') {
+                const equity_name = promptValue('اسم البند', row.equity_name);
+                if (equity_name === null) return;
+                const amount = promptNumber('المبلغ', row.amount);
+                if (amount === null) return;
+                await callApi(`/finance/balance-sheet/equity/${row.equity_id}`, 'PUT', {
+                    entity_id: row.entity_id,
+                    equity_type: row.equity_type,
+                    equity_name,
+                    amount,
+                    description: row.description
+                });
+                setStatus('تم تعديل حقوق الملكية');
+                return loadData();
+            }
+        }
+
+        async function operatingAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('حذف التدفق التشغيلي؟')) return;
+                await callApi(`/finance/cashflow/operating/${row.flow_id}?entity_id=${row.entity_id}`, 'DELETE');
+                setStatus('تم حذف التدفق');
+                return loadData();
+            }
+            if (action === 'edit') {
+                const amount = promptNumber('المبلغ', row.amount);
+                if (amount === null) return;
+                const description = promptValue('الوصف', row.description);
+                const flow_date = promptValue('تاريخ التدفق (YYYY-MM-DD)', row.flow_date?.slice(0, 10));
+                await callApi(`/finance/cashflow/operating/${row.flow_id}`, 'PUT', {
+                    amount,
+                    description,
+                    flow_date,
+                    entity_id: row.entity_id
+                });
+                setStatus('تم تعديل التدفق التشغيلي');
+                return loadData();
+            }
+        }
+
+        async function agingAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('سيتم حذف الفاتورة. هل أنت متأكد؟')) return;
+                await callApi(`/finance/ar-aging/invoices/${row.invoice_id}`, 'DELETE');
+                setStatus('تم حذف الفاتورة');
+                return loadData();
+            }
+            if (action === 'edit') {
+                const paid_amount = promptNumber('المبلغ المدفوع', row.paid_amount || 0);
+                if (paid_amount === null) return;
+                const status = promptValue('حالة الفاتورة', row.status || 'ISSUED');
+                await callApi(`/finance/ar-aging/invoices/${row.invoice_id}`, 'PUT', {
+                    paid_amount,
+                    total_amount: row.total_amount,
+                    status,
+                    payment_status: row.payment_status
+                });
+                setStatus('تم تحديث بيانات الذمم');
+                return loadData();
+            }
+        }
+
+        async function riskAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('حذف تقييم المخاطر؟')) return;
+                await callApi(`/finance/ai-risk-scores/${row.risk_id}?entity_id=${row.entity_id}`, 'DELETE');
+                setStatus('تم حذف تقييم المخاطر');
+                return loadData();
+            }
+            if (action === 'edit') {
+                const risk_score = promptNumber('درجة المخاطر', row.risk_score);
+                if (risk_score === null) return;
+                const risk_level = promptValue('مستوى المخاطر (HIGH/MEDIUM/LOW)', row.risk_level || 'MEDIUM');
+                await callApi(`/finance/ai-risk-scores/${row.risk_id}`, 'PUT', {
+                    customer_id: row.customer_id,
+                    assessment_date: row.assessment_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+                    risk_score,
+                    risk_level,
+                    risk_factors: normalizeJsonField(row.risk_factors),
+                    calculation_details: normalizeJsonField(row.calculation_details),
+                    recommendations: row.recommendations,
+                    suggested_actions: normalizeJsonField(row.suggested_actions),
+                    entity_type: row.entity_type || 'HQ',
+                    entity_id: row.entity_id,
+                    model_version: row.model_version || 'v1.0.0'
+                });
+                setStatus('تم تعديل تقييم المخاطر');
+                return loadData();
+            }
+        }
+
+        async function entryAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('حذف القيد المحاسبي؟')) return;
+                await callApi(`/finance/journal/entries/${row.entry_id}`, 'DELETE');
+                setStatus('تم حذف القيد');
+                return loadData();
+            }
+        }
+
+        async function lineAction(action, row) {
+            if (action === 'delete') {
+                if (!confirm('حذف السطر؟')) return;
+                await callApi(`/finance/journal-lines/${row.line_id}?entity_id=${row.entity_id}`, 'DELETE');
+                setStatus('تم حذف السطر');
+                return loadData();
+            }
         }
 
         function translateHeader(key) {
