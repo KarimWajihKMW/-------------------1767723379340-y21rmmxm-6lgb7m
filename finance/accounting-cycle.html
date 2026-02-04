@@ -380,6 +380,21 @@
             return fallback.ok ? fallback : primary;
         }
 
+        async function deleteInvoicePlans(invoiceId, entityId) {
+            const plansRes = await fetchJson(`${API_BASE}/finance/payment-plans?entity_id=${encodeURIComponent(entityId)}`);
+            if (!plansRes.ok) {
+                return { ok: false, error: 'تعذر تحميل خطط الدفع المرتبطة بالفاتورة.' };
+            }
+            const plans = (plansRes.data.plans || []).filter(plan => String(plan.invoice_id) === String(invoiceId));
+            for (const plan of plans) {
+                const delRes = await fetchJson(`${API_BASE}/finance/payment-plans/${plan.plan_id}`, { method: 'DELETE' });
+                if (!delRes.ok) {
+                    return { ok: false, error: 'تعذر حذف خطط الدفع المرتبطة بالفاتورة.' };
+                }
+            }
+            return { ok: true, count: plans.length };
+        }
+
         function hasRows(data) {
             const arrays = ['entries','lines','rows','invoices','payments','expenses','revenue_accounts','expense_accounts','assets','liabilities','equity'];
             return arrays.some(key => Array.isArray(data[key]) && data[key].length > 0);
@@ -1256,6 +1271,14 @@
             if (!id) {
                 alert('تعذر تحديد المعرّف للحذف');
                 return;
+            }
+            if (tableKey === 'invoices') {
+                const entityId = row?.entity_id || ENTITY_ID;
+                const cleanup = await deleteInvoicePlans(id, entityId);
+                if (!cleanup.ok) {
+                    alert(cleanup.error || 'تعذر حذف السجل');
+                    return;
+                }
             }
             const res = await fetch(`${API_BASE}${config.endpoint}/${id}`, {
                 method: 'DELETE',
