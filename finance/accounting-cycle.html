@@ -348,7 +348,11 @@
         let cashflowChartInstance = null;
 
         function getFinanceHeaders() {
-            return window.getFinanceHeaders ? window.getFinanceHeaders() : { 'x-entity-id': ENTITY_ID, 'x-entity-type': ENTITY_TYPE };
+            const external = window.getFinanceHeaders;
+            if (typeof external === 'function' && external !== getFinanceHeaders) {
+                return external();
+            }
+            return { 'x-entity-id': ENTITY_ID, 'x-entity-type': ENTITY_TYPE };
         }
 
         async function fetchJson(url, options = {}) {
