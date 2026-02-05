@@ -77,6 +77,30 @@
                 <i class="fas fa-print"></i>
                 طباعة التقرير
             </button>
+            <button onclick="openRoleForm()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-user-plus"></i>
+                إضافة دور جديد
+            </button>
+            <button onclick="openAssignmentForm()" class="bg-blue-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-link"></i>
+                إضافة صلاحية لنظام
+            </button>
+        </div>
+
+        <div id="messageBox" class="hidden mb-6 p-4 rounded-2xl border text-sm font-bold"></div>
+
+        <div id="previewCard" class="hidden card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-purple">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl" id="previewIcon">🔍</div>
+                    <div>
+                        <div class="text-xl font-bold" id="previewTitle">—</div>
+                        <div class="text-sm text-slate-500" id="previewSubtitle">—</div>
+                    </div>
+                </div>
+                <span class="badge bg-slate-100 text-slate-700" id="previewStatus">—</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" id="previewDetails"></div>
         </div>
 
         <!-- Approval System Overview -->
@@ -452,19 +476,22 @@
         <!-- Roles Table -->
         <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-violet">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">📋 جدول الأدوار</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">📋 جدول الأدوار</h3>
+                    <p class="text-xs text-slate-500">إضافة/تعديل/حذف الأدوار مع حفظ مباشر في قاعدة البيانات</p>
+                </div>
                 <span id="rolesCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
                     <thead class="bg-violet-50 text-violet-700 sticky top-0">
                         <tr>
-                            <th class="px-4 py-3 text-right">رقم الدور</th>
-                            <th class="px-4 py-3 text-right">اسم الدور</th>
-                            <th class="px-4 py-3 text-right">الوصف</th>
-                            <th class="px-4 py-3 text-right">مستوى الصلاحية</th>
+                            <th class="px-4 py-3 text-right">الدور</th>
+                            <th class="px-4 py-3 text-right">المستوى</th>
+                            <th class="px-4 py-3 text-right">حد الموافقة</th>
                             <th class="px-4 py-3 text-right">الحالة</th>
-                            <th class="px-4 py-3 text-right">تاريخ الإنشاء</th>
+                            <th class="px-4 py-3 text-right">أضيف في</th>
+                            <th class="px-4 py-3 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="rolesTable" class="divide-y divide-slate-100">
@@ -476,29 +503,31 @@
             </div>
         </div>
 
-        <!-- Permissions Table -->
+        <!-- Permissions Assignments Table -->
         <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-indigo">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">🔑 جدول الصلاحيات</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">🔑 ربط الأدوار بالأنظمة</h3>
+                    <p class="text-xs text-slate-500">إضافة/تعديل/حذف صلاحيات النظام لكل دور</p>
+                </div>
                 <span id="permissionsCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
                     <thead class="bg-indigo-50 text-indigo-700 sticky top-0">
                         <tr>
-                            <th class="px-4 py-3 text-right">رقم الصلاحية</th>
-                            <th class="px-4 py-3 text-right">رقم الدور</th>
-                            <th class="px-4 py-3 text-right">اسم الصلاحية</th>
-                            <th class="px-4 py-3 text-right">المورد</th>
-                            <th class="px-4 py-3 text-right">الإجراء</th>
-                            <th class="px-4 py-3 text-right">الشروط</th>
+                            <th class="px-4 py-3 text-right">الدور</th>
+                            <th class="px-4 py-3 text-right">النظام</th>
+                            <th class="px-4 py-3 text-right">مستوى الصلاحية</th>
                             <th class="px-4 py-3 text-right">الحالة</th>
-                            <th class="px-4 py-3 text-right">تاريخ الإنشاء</th>
+                            <th class="px-4 py-3 text-right">ملاحظات</th>
+                            <th class="px-4 py-3 text-right">آخر تحديث</th>
+                            <th class="px-4 py-3 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="permissionsTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -506,102 +535,259 @@
         </div>
     </div>
 
+    <!-- نموذج إدارة الدور -->
+    <div id="roleModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800" id="roleModalTitle">إضافة دور جديد</h3>
+                    <p class="text-xs text-slate-500">جميع الحقول تحفظ مباشرة في قاعدة البيانات</p>
+                </div>
+                <button class="text-slate-500 hover:text-slate-800" onclick="toggleModal('roleModal', false)"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <form id="roleForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="roleId">
+                <div>
+                    <label class="text-xs text-slate-500">كود الدور (إنجليزي)*</label>
+                    <input id="roleCode" required class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">الاسم العربي*</label>
+                    <input id="roleNameAr" required class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">المسمى الوظيفي*</label>
+                    <input id="roleJobTitleAr" required class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">المستوى (level)</label>
+                    <select id="roleLevel" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                        <option value="HQ">المكتب الرئيسي</option>
+                        <option value="BRANCH">فرع</option>
+                        <option value="INCUBATOR">حاضنة</option>
+                        <option value="PLATFORM">منصة</option>
+                        <option value="OFFICE">مكتب تنفيذي</option>
+                        <option value="EXECUTIVE_OFFICE">تنفيذي مكتب</option>
+                        <option value="DEPARTMENT">قسم/متطوع</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">المستوى الهرمي</label>
+                    <select id="roleHierarchy" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                        <option value="0">0 - المكتب الرئيسي</option>
+                        <option value="1">1 - فرع</option>
+                        <option value="2">2 - حاضنة</option>
+                        <option value="3">3 - منصة</option>
+                        <option value="4">4 - مكتب تنفيذي</option>
+                        <option value="5">5 - قسم / متطوع</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">حد الموافقة الأدنى</label>
+                    <input id="roleMinLimit" type="number" step="0.01" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">حد الموافقة الأقصى</label>
+                    <input id="roleMaxLimit" type="number" step="0.01" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">ملاحظات الموافقة</label>
+                    <textarea id="roleNotes" rows="3" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">وصف الدور</label>
+                    <textarea id="roleDescription" rows="3" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+                <div class="md:col-span-2 flex items-center justify-between">
+                    <label class="flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" id="roleIsActive" class="rounded">
+                        نشط
+                    </label>
+                    <div class="flex gap-3">
+                        <button type="button" onclick="toggleModal('roleModal', false)" class="px-4 py-2 rounded-xl border text-slate-600">إلغاء</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 text-white font-bold">حفظ</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نموذج ربط الصلاحيات -->
+    <div id="assignmentModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800" id="assignmentModalTitle">إضافة صلاحية لنظام</h3>
+                    <p class="text-xs text-slate-500">يتم الحفظ فوراً في قاعدة البيانات</p>
+                </div>
+                <button class="text-slate-500 hover:text-slate-800" onclick="toggleModal('assignmentModal', false)"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <form id="assignmentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="assignmentId">
+                <div>
+                    <label class="text-xs text-slate-500">اختيار الدور*</label>
+                    <select id="assignmentRole" required class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500"></select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">اختيار النظام*</label>
+                    <select id="assignmentSystem" required class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500"></select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">مستوى الصلاحية*</label>
+                    <select id="assignmentLevel" required class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500"></select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500">ملاحظات</label>
+                    <textarea id="assignmentNotes" rows="3" class="w-full mt-1 rounded-xl border px-3 py-2 focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+                <div class="md:col-span-2 flex items-center justify-between">
+                    <label class="flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" id="assignmentActive" class="rounded">
+                        نشط
+                    </label>
+                    <div class="flex gap-3">
+                        <button type="button" onclick="toggleModal('assignmentModal', false)" class="px-4 py-2 rounded-xl border text-slate-600">إلغاء</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-bold">حفظ</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
-        
+        const hierarchyLabels = {
+            0: 'المكتب الرئيسي',
+            1: 'فرع',
+            2: 'حاضنة',
+            3: 'منصة',
+            4: 'مكتب تنفيذي',
+            5: 'قسم / متطوع'
+        };
+
         let roles = [];
-        let permissions = [];
+        let stats = {};
+        let assignments = [];
+        let systems = [];
+        let levels = [];
+        let editingRoleId = null;
+        let editingAssignmentId = null;
+
+        const messageBox = document.getElementById('messageBox');
+        const previewCard = document.getElementById('previewCard');
 
         async function loadData() {
             try {
-                const [rolesRes, statsRes] = await Promise.all([
+                const [rolesRes, statsRes, assignmentsRes, systemsRes, levelsRes] = await Promise.all([
                     fetch(`${API_BASE}/api/permissions/roles`),
-                    fetch(`${API_BASE}/api/permissions/stats`)
+                    fetch(`${API_BASE}/api/permissions/stats`),
+                    fetch(`${API_BASE}/api/permissions/assignments`),
+                    fetch(`${API_BASE}/api/permissions/systems`),
+                    fetch(`${API_BASE}/api/permissions/levels`)
                 ]);
 
-                const [rolesData, statsData] = await Promise.all([
+                const [rolesData, statsData, assignmentsData, systemsData, levelsData] = await Promise.all([
                     rolesRes.json(),
-                    statsRes.json()
+                    statsRes.json(),
+                    assignmentsRes.json(),
+                    systemsRes.json(),
+                    levelsRes.json()
                 ]);
 
                 roles = rolesData.roles || [];
-                permissions = statsData.stats || {};
+                stats = statsData.stats || {};
+                assignments = assignmentsData.assignments || [];
+                systems = systemsData.systems || [];
+                levels = levelsData.levels || [];
 
+                populateSelectors();
                 renderStats();
                 renderTables();
+                showMessage('تم تحديث البيانات بنجاح', 'success');
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
-                renderStats();
-                renderTables();
+                showMessage('تعذر تحميل البيانات، حاول مجدداً', 'error');
             }
         }
 
         function renderStats() {
             document.getElementById('totalRoles').textContent = roles.length || 0;
-            document.getElementById('totalPermissions').textContent = permissions.total_permissions || 0;
-            
+            document.getElementById('totalPermissions').textContent = stats.total_permissions || assignments.length || 0;
+
             const uniqueLevels = new Set(roles.map(r => r.hierarchy_level).filter(l => l !== null && l !== undefined));
             document.getElementById('activeLevels').textContent = uniqueLevels.size || 4;
-            
             document.getElementById('activeUsers').textContent = '—';
         }
 
         function renderTables() {
-            const rolesRows = roles.map(r => `
+            const rolesRows = roles.map((r) => {
+                const levelLabel = hierarchyLabels[r.hierarchy_level] || `مستوى ${r.hierarchy_level}`;
+                const maxLimit = formatLimit(r.max_approval_limit);
+                return `
                 <tr class="hover:bg-violet-50 transition">
-                    <td class="px-4 py-3">${sanitizeText(r.id)}</td>
-                    <td class="px-4 py-3 font-semibold">${sanitizeText(r.name_ar || r.job_title_ar)}</td>
-                    <td class="px-4 py-3">${sanitizeText(r.description || r.approval_notes_ar)}</td>
                     <td class="px-4 py-3">
-                        <span class="badge ${getLevelColor(r.hierarchy_level)}">
-                            ${translateLevel(r.hierarchy_level)}
-                        </span>
+                        <div class="font-bold text-slate-800">${escapeHTML(r.job_title_ar || r.name_ar)}</div>
+                        <div class="text-[11px] text-slate-500">${escapeHTML(r.name)}</div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="badge ${getStatusColor(r.is_active)}">
-                            ${translateStatus(r.is_active)}
-                        </span>
+                        <span class="badge ${getLevelColor(r.hierarchy_level)}">${levelLabel}</span>
                     </td>
-                    <td class="px-4 py-3">${formatDateTime(r.created_at)}</td>
+                    <td class="px-4 py-3">${maxLimit}</td>
+                    <td class="px-4 py-3">${statusBadge(r.is_active)}</td>
+                    <td class="px-4 py-3 text-slate-500">${formatDateTime(r.created_at)}</td>
+                    <td class="px-4 py-3 flex flex-wrap gap-2">
+                        <button class="text-xs px-3 py-2 rounded-lg bg-purple-50 text-purple-700" onclick="previewRole(${r.id})"><i class="fas fa-eye"></i> معاينة</button>
+                        <button class="text-xs px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700" onclick="openRoleForm(${r.id})"><i class="fas fa-pen"></i> تعديل</button>
+                        <button class="text-xs px-3 py-2 rounded-lg bg-rose-50 text-rose-700" onclick="confirmDeleteRole(${r.id})"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('rolesTable').innerHTML = rolesRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('rolesCount').textContent = `عدد الأدوار: ${roles.length}`;
+
+            const permissionsRows = assignments.map((p) => `
+                <tr class="hover:bg-indigo-50 transition">
+                    <td class="px-4 py-3">
+                        <div class="font-bold">${escapeHTML(p.role_name_ar)}</div>
+                        <div class="text-[11px] text-slate-500">${hierarchyLabels[p.hierarchy_level] || '—'}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-slate-800">${escapeHTML(p.system_name_ar)}</div>
+                        <div class="text-[11px] text-slate-500">${escapeHTML(p.system_code)}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="badge bg-indigo-100 text-indigo-700">${escapeHTML(p.level_name_ar)}</span>
+                    </td>
+                    <td class="px-4 py-3">${statusBadge(p.is_active)}</td>
+                    <td class="px-4 py-3 text-slate-600">${escapeHTML(p.notes || '—')}</td>
+                    <td class="px-4 py-3 text-slate-500">${formatDateTime(p.updated_at || p.created_at)}</td>
+                    <td class="px-4 py-3 flex flex-wrap gap-2">
+                        <button class="text-xs px-3 py-2 rounded-lg bg-purple-50 text-purple-700" onclick="openAssignmentForm(${p.id})"><i class="fas fa-eye"></i> معاينة</button>
+                        <button class="text-xs px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700" onclick="openAssignmentForm(${p.id})"><i class="fas fa-pen"></i> تعديل</button>
+                        <button class="text-xs px-3 py-2 rounded-lg bg-rose-50 text-rose-700" onclick="confirmDeleteAssignment(${p.id})"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
                 </tr>
             `).join('');
-            
-            document.getElementById('rolesTable').innerHTML = rolesRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
-            document.getElementById('rolesCount').textContent = `عدد الصفوف: ${roles.length}`;
 
-            // Since we don't have individual permissions data, show summary
-            const permissionsRows = `
-                <tr class="hover:bg-indigo-50 transition">
-                    <td colspan="8" class="px-4 py-8 text-center text-slate-600">
-                        إجمالي الصلاحيات: ${permissions.total_permissions || 0}<br>
-                        عدد الأنظمة: ${permissions.total_systems || 0}<br>
-                        مستويات الصلاحيات: ${permissions.total_permission_levels || 0}
-                    </td>
-                </tr>
-            `;
-            
-            document.getElementById('permissionsTable').innerHTML = permissionsRows;
-            document.getElementById('permissionsCount').textContent = `إجمالي: ${permissions.total_permissions || 0}`;
+            document.getElementById('permissionsTable').innerHTML = permissionsRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('permissionsCount').textContent = `عدد السجلات: ${assignments.length}`;
+        }
+
+        function statusBadge(isActive) {
+            return `<span class="badge ${getStatusColor(isActive)}">${translateStatus(isActive)}</span>`;
         }
 
         function getLevelColor(level) {
             const colorMap = {
-                1: 'bg-emerald-100 text-emerald-700',
-                2: 'bg-sky-100 text-sky-700',
-                3: 'bg-violet-100 text-violet-700',
-                4: 'bg-rose-100 text-rose-700'
+                0: 'bg-emerald-100 text-emerald-700',
+                1: 'bg-sky-100 text-sky-700',
+                2: 'bg-violet-100 text-violet-700',
+                3: 'bg-blue-100 text-blue-700',
+                4: 'bg-rose-100 text-rose-700',
+                5: 'bg-amber-100 text-amber-700'
             };
             return colorMap[level] || 'bg-slate-100 text-slate-700';
-        }
-
-        function translateLevel(level) {
-            const levelMap = {
-                1: 'محاسب',
-                2: 'مدير مالي',
-                3: 'مدير مالي تنفيذي',
-                4: 'مجلس إدارة'
-            };
-            return levelMap[level] || `مستوى ${level}`;
         }
 
         function getStatusColor(isActive) {
@@ -609,29 +795,7 @@
         }
 
         function translateStatus(isActive) {
-            return isActive ? 'نشط' : 'غير نشط';
-        }
-
-        function getActionColor(action) {
-            const colorMap = {
-                create: 'bg-green-100 text-green-700',
-                read: 'bg-blue-100 text-blue-700',
-                update: 'bg-amber-100 text-amber-700',
-                delete: 'bg-red-100 text-red-700',
-                approve: 'bg-purple-100 text-purple-700'
-            };
-            return colorMap[String(action || '').toLowerCase()] || 'bg-slate-100 text-slate-700';
-        }
-
-        function translateAction(action) {
-            const actionMap = {
-                create: 'إنشاء',
-                read: 'قراءة',
-                update: 'تحديث',
-                delete: 'حذف',
-                approve: 'اعتماد'
-            };
-            return actionMap[String(action || '').toLowerCase()] || sanitizeText(action);
+            return isActive ? 'نشط' : 'متوقف';
         }
 
         function formatDateTime(value) {
@@ -639,22 +803,195 @@
             return new Date(value).toLocaleString('ar-SA');
         }
 
-        function truncate(value) {
-            if (!value || value === '—') return '—';
-            return value.length > 100 ? value.slice(0, 100) + '...' : value;
+        function formatLimit(value) {
+            if (value === null || value === undefined) return '—';
+            const num = Number(value);
+            return Number.isNaN(num) ? '—' : num.toLocaleString('ar-EG', { minimumFractionDigits: 0 });
         }
 
-        function sanitizeText(value) {
+        function escapeHTML(value) {
             if (value === null || value === undefined) return '—';
-            const text = typeof value === 'string' ? value : JSON.stringify(value);
-            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
-            return cleaned || '—';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showMessage(text, type = 'success') {
+            if (!messageBox) return;
+            const styles = type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                : 'bg-rose-50 border-rose-200 text-rose-700';
+            messageBox.className = `mb-6 p-4 rounded-2xl border text-sm font-bold ${styles}`;
+            messageBox.textContent = text;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.add('hidden'), 3000);
+        }
+
+        function toggleModal(id, show = true) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (show) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        function populateSelectors() {
+            const roleSelect = document.getElementById('assignmentRole');
+            const systemSelect = document.getElementById('assignmentSystem');
+            const levelSelect = document.getElementById('assignmentLevel');
+            if (roleSelect) {
+                roleSelect.innerHTML = roles.map(r => `<option value="${r.id}">${escapeHTML(r.job_title_ar || r.name_ar)}</option>`).join('');
+            }
+            if (systemSelect) {
+                systemSelect.innerHTML = systems.map(s => `<option value="${s.id}">${escapeHTML(s.system_name_ar)} (${escapeHTML(s.system_code)})</option>`).join('');
+            }
+            if (levelSelect) {
+                levelSelect.innerHTML = levels.map(l => `<option value="${l.id}">${escapeHTML(l.level_name_ar)} (${escapeHTML(l.level_code)})</option>`).join('');
+            }
+        }
+
+        function openRoleForm(id = null) {
+            editingRoleId = id;
+            document.getElementById('roleModalTitle').textContent = id ? 'تعديل الدور' : 'إضافة دور جديد';
+            const role = roles.find(r => r.id === id);
+            document.getElementById('roleId').value = role?.id || '';
+            document.getElementById('roleCode').value = role?.name || '';
+            document.getElementById('roleNameAr').value = role?.name_ar || '';
+            document.getElementById('roleJobTitleAr').value = role?.job_title_ar || '';
+            document.getElementById('roleLevel').value = role?.level || 'HQ';
+            document.getElementById('roleHierarchy').value = role?.hierarchy_level ?? 0;
+            document.getElementById('roleMinLimit').value = role?.min_approval_limit ?? '';
+            document.getElementById('roleMaxLimit').value = role?.max_approval_limit ?? '';
+            document.getElementById('roleNotes').value = role?.approval_notes_ar || '';
+            document.getElementById('roleDescription').value = role?.description || '';
+            document.getElementById('roleIsActive').checked = role?.is_active ?? true;
+            toggleModal('roleModal', true);
+        }
+
+        function previewRole(id) {
+            const role = roles.find(r => r.id === id);
+            if (!role) return;
+            document.getElementById('previewTitle').textContent = role.job_title_ar || role.name_ar || '—';
+            document.getElementById('previewSubtitle').textContent = role.name || '—';
+            document.getElementById('previewStatus').textContent = translateStatus(role.is_active);
+            document.getElementById('previewStatus').className = `badge ${getStatusColor(role.is_active)}`;
+            document.getElementById('previewDetails').innerHTML = `
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <div class="text-[11px] text-slate-500">المستوى</div>
+                    <div class="font-bold">${hierarchyLabels[role.hierarchy_level] || '—'}</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <div class="text-[11px] text-slate-500">حد الموافقة</div>
+                    <div class="font-bold">${formatLimit(role.max_approval_limit)}</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <div class="text-[11px] text-slate-500">الوصف</div>
+                    <div class="font-bold">${escapeHTML(role.description || '—')}</div>
+                </div>
+            `;
+            previewCard.classList.remove('hidden');
+        }
+
+        async function saveRole(event) {
+            event.preventDefault();
+            const payload = {
+                role_code: document.getElementById('roleCode').value,
+                name_ar: document.getElementById('roleNameAr').value,
+                job_title_ar: document.getElementById('roleJobTitleAr').value,
+                level: document.getElementById('roleLevel').value,
+                hierarchy_level: Number(document.getElementById('roleHierarchy').value),
+                min_approval_limit: document.getElementById('roleMinLimit').value,
+                max_approval_limit: document.getElementById('roleMaxLimit').value,
+                approval_notes_ar: document.getElementById('roleNotes').value,
+                description: document.getElementById('roleDescription').value,
+                is_active: document.getElementById('roleIsActive').checked
+            };
+
+            const method = editingRoleId ? 'PUT' : 'POST';
+            const url = editingRoleId ? `${API_BASE}/api/permissions/roles/${editingRoleId}` : `${API_BASE}/api/permissions/roles`;
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'فشل الحفظ');
+
+            showMessage('تم حفظ الدور بنجاح', 'success');
+            toggleModal('roleModal', false);
+            loadData();
+        }
+
+        async function confirmDeleteRole(id) {
+            if (!confirm('تأكيد حذف الدور؟ سيتم إيقافه وإيقاف صلاحياته.')) return;
+            const response = await fetch(`${API_BASE}/api/permissions/roles/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'تعذر الحذف');
+            showMessage('تم إيقاف الدور والصلاحيات المرتبطة به', 'success');
+            loadData();
+        }
+
+        function openAssignmentForm(id = null) {
+            editingAssignmentId = id;
+            const assignment = assignments.find(a => a.id === id);
+            document.getElementById('assignmentModalTitle').textContent = id ? 'تعديل صلاحية' : 'إضافة صلاحية لنظام';
+            document.getElementById('assignmentId').value = assignment?.id || '';
+            document.getElementById('assignmentRole').value = assignment?.role_id || (roles[0]?.id || '');
+            document.getElementById('assignmentSystem').value = assignment?.system_id || (systems[0]?.id || '');
+            document.getElementById('assignmentLevel').value = assignment?.permission_level_id || (levels[0]?.id || '');
+            document.getElementById('assignmentNotes').value = assignment?.notes || '';
+            document.getElementById('assignmentActive').checked = assignment?.is_active ?? true;
+            toggleModal('assignmentModal', true);
+        }
+
+        async function saveAssignment(event) {
+            event.preventDefault();
+            const payload = {
+                role_id: Number(document.getElementById('assignmentRole').value),
+                system_id: Number(document.getElementById('assignmentSystem').value),
+                permission_level_id: Number(document.getElementById('assignmentLevel').value),
+                notes: document.getElementById('assignmentNotes').value,
+                is_active: document.getElementById('assignmentActive').checked
+            };
+
+            const method = editingAssignmentId ? 'PUT' : 'POST';
+            const url = editingAssignmentId
+                ? `${API_BASE}/api/permissions/assignments/${editingAssignmentId}`
+                : `${API_BASE}/api/permissions/assignments`;
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'فشل الحفظ');
+            showMessage('تم حفظ الصلاحية بنجاح', 'success');
+            toggleModal('assignmentModal', false);
+            loadData();
+        }
+
+        async function confirmDeleteAssignment(id) {
+            if (!confirm('تأكيد حذف/تعطيل هذه الصلاحية؟')) return;
+            const response = await fetch(`${API_BASE}/api/permissions/assignments/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'تعذر الحذف');
+            showMessage('تم إيقاف الصلاحية', 'success');
+            loadData();
         }
 
         function downloadAllJSON() {
             const payload = {
                 roles,
-                permissions,
+                assignments,
+                stats,
                 governance: {
                     data_governance: {
                         policies: [
@@ -708,6 +1045,20 @@
         function refreshData() {
             loadData();
         }
+
+        document.getElementById('roleForm').addEventListener('submit', (e) => {
+            saveRole(e).catch(err => {
+                console.error(err);
+                showMessage(err.message, 'error');
+            });
+        });
+
+        document.getElementById('assignmentForm').addEventListener('submit', (e) => {
+            saveAssignment(e).catch(err => {
+                console.error(err);
+                showMessage(err.message, 'error');
+            });
+        });
 
         document.addEventListener('DOMContentLoaded', loadData);
     </script>
