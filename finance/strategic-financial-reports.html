@@ -497,7 +497,6 @@
             document.getElementById('branchRevenueCount').textContent = `عدد الصفوف: ${branchInvoices.length}`;
 
             const programInvoices = store.invoices
-                .filter(i => i.program_id)
                 .sort((a, b) => parseFloat(b.total_amount || 0) - parseFloat(a.total_amount || 0))
                 .slice(0, 50);
             const programRows = programInvoices.map(inv => `
