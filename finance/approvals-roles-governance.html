@@ -655,7 +655,10 @@
     </div>
 
     <script>
-        const API_BASE = window.location.origin;
+        // Use explicit API base when opened from file:// or other hosts
+        const API_BASE = (window.location && window.location.origin && window.location.origin.startsWith('http'))
+            ? window.location.origin
+            : 'https://super-cmk2wuy9-production.up.railway.app';
         const hierarchyLabels = {
             0: 'المكتب الرئيسي',
             1: 'فرع',
