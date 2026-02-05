@@ -1133,6 +1133,22 @@
         "/^node test-ai-risk-payment-framework-api\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node seed-payment-plans\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node seed-expenses\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\nconst assets = \\[\n  \\{ code:'FA-0001', name:'خادم مركزي', cat:'تقنية', type:'معدات', date:'2025-12-20', cost:145000, salvage:10000, life:5, depMethod:'straight_line', status:'ACTIVE' \\},\n  \\{ code:'FA-0002', name:'أسطول سيارات', cat:'نقل', type:'مركبات', date:'2025-11-02', cost:320000, salvage:40000, life:6, depMethod:'straight_line', status:'ACTIVE' \\},\n  \\{ code:'FA-0003', name:'معدات تصوير', cat:'تشغيل', type:'معدات', date:'2025-10-15', cost:78000, salvage:8000, life:4, depMethod:'straight_line', status:'ACTIVE' \\},\n  \\{ code:'FA-0004', name:'أثاث مكتبي', cat:'أثاث', type:'أثاث', date:'2025-09-05', cost:56000, salvage:6000, life:7, depMethod:'straight_line', status:'ACTIVE' \\},\n  \\{ code:'FA-0005', name:'راوتر إنترنت احتياطي', cat:'تقنية', type:'أجهزة شبكات', date:'2026-01-20', cost:18000, salvage:2000, life:3, depMethod:'straight_line', status:'ACTIVE' \\}\n\\];\n\\(async\\(\\)=>\\{\n  for \\(const a of assets\\) \\{\n    await pool\\.query\\(\n      `INSERT INTO finance_fixed_assets \\(\n        asset_code, asset_name_ar, asset_category, asset_type, purchase_date, purchase_cost, salvage_value,\n        depreciable_value, depreciation_method, useful_life_years, accumulated_depreciation, net_book_value,\n        entity_type, entity_id, status, created_by, created_at, updated_at\n      \\) VALUES \\(\\$1,\\$2,\\$3,\\$4,\\$5,\\$6,\\$7,\\$8,\\$9,\\$10,0,\\$11,'HQ','HQ001',\\$12,'seed-script',NOW\\(\\),NOW\\(\\)\\)\n      ON CONFLICT \\(asset_code\\) DO UPDATE SET\n        asset_name_ar=EXCLUDED\\.asset_name_ar,\n        asset_category=EXCLUDED\\.asset_category,\n        asset_type=EXCLUDED\\.asset_type,\n        purchase_date=EXCLUDED\\.purchase_date,\n        purchase_cost=EXCLUDED\\.purchase_cost,\n        salvage_value=EXCLUDED\\.salvage_value,\n        depreciable_value=EXCLUDED\\.depreciable_value,\n        depreciation_method=EXCLUDED\\.depreciation_method,\n        useful_life_years=EXCLUDED\\.useful_life_years,\n        net_book_value=EXCLUDED\\.net_book_value,\n        status=EXCLUDED\\.status,\n        updated_at=NOW\\(\\);`,\n      \\[a\\.code, a\\.name, a\\.cat, a\\.type, a\\.date, a\\.cost, a\\.salvage, a\\.cost - a\\.salvage, a\\.depMethod, a\\.life, a\\.cost - a\\.salvage, a\\.status\\]\n    \\);\n  \\}\n  console\\.log\\('✅ تم تجهيز بيانات الأصول الثابتة'\\);\n  await pool\\.end\\(\\);\n\\}\\)\\(\\)\\.catch\\(err=>\\{console\\.error\\(err\\);process\\.exitCode=1\\}\\);\nNODE$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{connectionString:'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',ssl:\\{rejectUnauthorized:false\\}\\}\\);\n\\(async\\(\\)=>\\{\n  const res = await pool\\.query\\(\"SELECT customer_id, customer_name_ar, customer_code FROM finance_customers ORDER BY customer_id DESC LIMIT 5\"\\);\n  console\\.table\\(res\\.rows\\);\n  await pool\\.end\\(\\);\n\\}\\)\\(\\);\nNODE$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

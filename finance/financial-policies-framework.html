@@ -28,6 +28,11 @@
         .accent-emerald { border-top: 4px solid #10b981; }
         .accent-rose { border-top: 4px solid #f43f5e; }
         .accent-amber { border-top: 4px solid #f59e0b; }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .modal-box { background: #fff; border-radius: 18px; width: min(900px, 96%); max-height: 90vh; overflow: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .action-btn { border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 10px; font-weight: 700; transition: all 0.15s ease; }
+        .action-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -6px rgba(0,0,0,0.35); }
     </style>
 </head>
 <body>
@@ -276,7 +281,10 @@
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير</h3>
+                    <button onclick="openForm('invoice','create')" class="action-btn bg-white text-sky-700 hover:border-sky-200 hover:bg-sky-50">➕ إضافة فاتورة</button>
+                </div>
                 <span id="invoicesCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
@@ -290,6 +298,7 @@
                             <th class="px-3 py-2 text-right">الإجمالي</th>
                             <th class="px-3 py-2 text-right">المتبقي</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="invoicesTable" class="divide-y divide-slate-100">
@@ -301,7 +310,10 @@
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">💳 جدول المدفوعات</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-xl font-bold text-slate-800">💳 جدول المدفوعات</h3>
+                    <button onclick="openForm('payment','create')" class="action-btn bg-white text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50">➕ إضافة دفعة</button>
+                </div>
                 <span id="paymentsCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
@@ -314,6 +326,7 @@
                             <th class="px-3 py-2 text-right">تاريخ الدفعة</th>
                             <th class="px-3 py-2 text-right">طريقة التحصيل</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="paymentsTable" class="divide-y divide-slate-100">
@@ -325,7 +338,10 @@
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-amber">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">🧾 جدول المصروفات</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-xl font-bold text-slate-800">🧾 جدول المصروفات</h3>
+                    <button onclick="openForm('expense','create')" class="action-btn bg-white text-amber-700 hover:border-amber-200 hover:bg-amber-50">➕ إضافة مصروف</button>
+                </div>
                 <span id="expensesCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
@@ -338,6 +354,7 @@
                             <th class="px-3 py-2 text-right">المورد</th>
                             <th class="px-3 py-2 text-right">الإجمالي</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="expensesTable" class="divide-y divide-slate-100">
@@ -349,7 +366,10 @@
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">🏢 جدول الأصول الثابتة</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-xl font-bold text-slate-800">🏢 جدول الأصول الثابتة</h3>
+                    <button onclick="openForm('asset','create')" class="action-btn bg-white text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50">➕ إضافة أصل</button>
+                </div>
                 <span id="assetsCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
@@ -362,6 +382,7 @@
                             <th class="px-3 py-2 text-right">تكلفة الشراء</th>
                             <th class="px-3 py-2 text-right">القيمة الدفترية</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="assetsTable" class="divide-y divide-slate-100">
@@ -371,6 +392,38 @@
             </div>
         </div>
     </div>
+
+    <div id="formModal" class="modal-backdrop hidden">
+        <div class="modal-box p-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div>
+                    <p class="text-xs text-slate-500">نموذج تحرير سريع</p>
+                    <h4 id="modalTitle" class="text-xl font-bold text-slate-800">عنوان النموذج</h4>
+                </div>
+                <button onclick="closeFormModal()" class="text-slate-500 hover:text-rose-600 font-bold">✕</button>
+            </div>
+            <form id="dynamicForm" class="grid grid-cols-1 md:grid-cols-2 gap-4"></form>
+            <div class="flex items-center justify-between mt-4">
+                <div class="text-xs text-slate-500" id="modalHint"></div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeFormModal()" class="action-btn bg-slate-50 text-slate-700">إلغاء</button>
+                    <button id="submitBtn" type="submit" form="dynamicForm" class="action-btn bg-sky-600 text-white border-sky-600">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewModal" class="modal-backdrop hidden">
+        <div class="modal-box p-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <h4 class="text-lg font-bold text-slate-800">معاينة السجل</h4>
+                <button onclick="closeViewModal()" class="text-slate-500 hover:text-rose-600 font-bold">✕</button>
+            </div>
+            <pre id="viewContent" class="bg-slate-50 rounded-xl p-4 text-xs text-slate-700 overflow-auto"></pre>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg hidden"></div>
 
     <script>
         const API_BASE = window.location.origin;
@@ -383,6 +436,13 @@
             assets: [],
             plans: [],
             entries: []
+        };
+
+        const TYPE_INFO = {
+            invoice: { label: 'فاتورة', collection: 'invoices', idKey: 'invoice_id' },
+            payment: { label: 'دفعة', collection: 'payments', idKey: 'payment_id' },
+            expense: { label: 'مصروف', collection: 'expenses', idKey: 'expense_id' },
+            asset: { label: 'أصل ثابت', collection: 'assets', idKey: 'asset_id' }
         };
 
         let invoiceChartInstance = null;
@@ -486,7 +546,7 @@
         }
 
         function renderTables() {
-            const invoiceRows = store.invoices.map(inv => `
+            const invoiceRows = store.invoices.map((inv, idx) => `
                 <tr class="hover:bg-sky-50">
                     <td class="px-3 py-2">${sanitizeText(inv.invoice_number)}</td>
                     <td class="px-3 py-2">${formatDate(inv.invoice_date)}</td>
@@ -495,12 +555,19 @@
                     <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(inv.total_amount)}</td>
                     <td class="px-3 py-2">${formatMoney(inv.remaining_amount)}</td>
                     <td class="px-3 py-2">${translateStatus(inv.status)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <button class="action-btn text-slate-700" onclick="viewRecord('invoice', ${idx})">معاينة</button>
+                            <button class="action-btn text-sky-700" onclick="openForm('invoice','edit', ${idx})">تعديل</button>
+                            <button class="action-btn text-rose-700" onclick="deleteRecord('invoice', ${idx})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
             document.getElementById('invoicesTable').innerHTML = invoiceRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${store.invoices.length}`;
 
-            const paymentRows = store.payments.map(p => `
+            const paymentRows = store.payments.map((p, idx) => `
                 <tr class="hover:bg-emerald-50">
                     <td class="px-3 py-2">${sanitizeText(p.payment_number || p.payment_id)}</td>
                     <td class="px-3 py-2">${sanitizeText(p.customer_name_ar || p.customer_name || p.customer_id)}</td>
@@ -508,12 +575,19 @@
                     <td class="px-3 py-2">${formatDate(p.payment_date)}</td>
                     <td class="px-3 py-2">${translatePaymentMethod(p.payment_method)}</td>
                     <td class="px-3 py-2">${translateStatus(p.status)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <button class="action-btn text-slate-700" onclick="viewRecord('payment', ${idx})">معاينة</button>
+                            <button class="action-btn text-emerald-700" onclick="openForm('payment','edit', ${idx})">تعديل</button>
+                            <button class="action-btn text-rose-700" onclick="deleteRecord('payment', ${idx})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
             document.getElementById('paymentsTable').innerHTML = paymentRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('paymentsCount').textContent = `عدد الصفوف: ${store.payments.length}`;
 
-            const expenseRows = store.expenses.map(e => `
+            const expenseRows = store.expenses.map((e, idx) => `
                 <tr class="hover:bg-amber-50">
                     <td class="px-3 py-2">${sanitizeText(e.expense_number || e.expense_id)}</td>
                     <td class="px-3 py-2">${formatDate(e.expense_date)}</td>
@@ -521,12 +595,19 @@
                     <td class="px-3 py-2">${sanitizeText(e.vendor_name)}</td>
                     <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(e.total_amount || e.amount)}</td>
                     <td class="px-3 py-2">${translateStatus(e.status)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <button class="action-btn text-slate-700" onclick="viewRecord('expense', ${idx})">معاينة</button>
+                            <button class="action-btn text-amber-700" onclick="openForm('expense','edit', ${idx})">تعديل</button>
+                            <button class="action-btn text-rose-700" onclick="deleteRecord('expense', ${idx})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
             document.getElementById('expensesTable').innerHTML = expenseRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('expensesCount').textContent = `عدد الصفوف: ${store.expenses.length}`;
 
-            const assetRows = store.assets.map(a => `
+            const assetRows = store.assets.map((a, idx) => `
                 <tr class="hover:bg-indigo-50">
                     <td class="px-3 py-2">${sanitizeText(a.asset_code || a.asset_id)}</td>
                     <td class="px-3 py-2">${sanitizeText(a.asset_name_ar || a.asset_name_en || a.asset_name)}</td>
@@ -534,11 +615,273 @@
                     <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(a.purchase_cost)}</td>
                     <td class="px-3 py-2">${formatMoney(a.net_book_value)}</td>
                     <td class="px-3 py-2">${translateStatus(a.status)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <button class="action-btn text-slate-700" onclick="viewRecord('asset', ${idx})">معاينة</button>
+                            <button class="action-btn text-indigo-700" onclick="openForm('asset','edit', ${idx})">تعديل</button>
+                            <button class="action-btn text-rose-700" onclick="deleteRecord('asset', ${idx})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
             document.getElementById('assetsTable').innerHTML = assetRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('assetsCount').textContent = `عدد الصفوف: ${store.assets.length}`;
         }
+
+        function getRecord(type, index) {
+            const info = TYPE_INFO[type];
+            if (!info) return null;
+            return store[info.collection]?.[index] || null;
+        }
+
+        function closeFormModal() {
+            document.getElementById('formModal').classList.add('hidden');
+            document.getElementById('dynamicForm').innerHTML = '';
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+            document.getElementById('viewContent').textContent = '';
+        }
+
+        function showToast(message, tone = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full shadow-lg text-white ${tone === 'error' ? 'bg-rose-600' : 'bg-slate-900'}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2200);
+        }
+
+        function viewRecord(type, index) {
+            const record = getRecord(type, index);
+            if (!record) return;
+            document.getElementById('viewContent').textContent = JSON.stringify(record, null, 2);
+            document.getElementById('viewModal').classList.remove('hidden');
+        }
+
+        function buildField(label, name, value = '', options = {}) {
+            const { type = 'text', placeholder = '', required = false, rows = 3 } = options;
+            if (type === 'textarea') {
+                return `
+                    <label class="text-sm text-slate-700 font-semibold flex flex-col gap-1 col-span-1 md:col-span-2">
+                        ${label}
+                        <textarea name="${name}" rows="${rows}" class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:border-sky-400 focus:ring-1 focus:ring-sky-400" ${required ? 'required' : ''}>${value || ''}</textarea>
+                    </label>
+                `;
+            }
+            return `
+                <label class="text-sm text-slate-700 font-semibold flex flex-col gap-1">
+                    ${label}
+                    <input name="${name}" type="${type}" value="${value || ''}" placeholder="${placeholder}" class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:border-sky-400 focus:ring-1 focus:ring-sky-400" ${required ? 'required' : ''} />
+                </label>
+            `;
+        }
+
+        function openForm(type, mode = 'create', index = null) {
+            const info = TYPE_INFO[type];
+            if (!info) return;
+            const record = index !== null ? getRecord(type, index) : {};
+            const form = document.getElementById('dynamicForm');
+            const hint = document.getElementById('modalHint');
+            document.getElementById('modalTitle').textContent = `${mode === 'create' ? 'إضافة' : 'تعديل'} ${info.label}`;
+            document.getElementById('submitBtn').textContent = mode === 'create' ? 'حفظ' : 'تحديث';
+
+            let fields = '';
+
+            if (type === 'invoice') {
+                fields += buildField('رقم الفاتورة', 'invoice_number', record.invoice_number || '');
+                fields += buildField('معرف العميل', 'customer_id', record.customer_id || '', { required: true });
+                fields += buildField('تاريخ الإصدار', 'invoice_date', record.invoice_date ? record.invoice_date.substring(0,10) : '', { type: 'date', required: true });
+                fields += buildField('تاريخ الاستحقاق', 'due_date', record.due_date ? record.due_date.substring(0,10) : '', { type: 'date', required: true });
+                fields += buildField('الإجمالي', 'total_amount', record.total_amount || '', { type: 'number', required: true });
+                fields += buildField('المدفوع', 'paid_amount', record.paid_amount || record.total_amount || 0, { type: 'number' });
+                fields += buildField('حالة الفاتورة', 'status', record.status || 'ISSUED');
+                fields += buildField('حالة التحصيل', 'payment_status', record.payment_status || 'UNPAID');
+                fields += buildField('ملاحظات', 'notes', record.notes || '', { type: 'textarea', rows: 3 });
+                hint.textContent = 'يتم الحفظ في جدول finance_invoices عبر واجهة /finance/ar-aging/invoices';
+            }
+
+            if (type === 'payment') {
+                fields += buildField('رقم الدفعة', 'payment_number', record.payment_number || '');
+                fields += buildField('معرف العميل', 'customer_id', record.customer_id || '', { required: true });
+                fields += buildField('قيمة الدفعة', 'payment_amount', record.payment_amount || '', { type: 'number', required: true });
+                fields += buildField('تاريخ الدفعة', 'payment_date', record.payment_date ? record.payment_date.substring(0,10) : '', { type: 'date', required: true });
+                fields += buildField('طريقة التحصيل', 'payment_method', record.payment_method || 'BANK_TRANSFER', { required: true });
+                fields += buildField('حالة الدفعة', 'status', record.status || 'COMPLETED');
+                fields += buildField('ملاحظات', 'notes', record.notes || '', { type: 'textarea', rows: 3 });
+                hint.textContent = 'يتم الحفظ في جدول finance_payments عبر واجهة /finance/payments';
+            }
+
+            if (type === 'expense') {
+                fields += buildField('رقم المصروف', 'expense_number', record.expense_number || '', { required: true });
+                fields += buildField('تاريخ المصروف', 'expense_date', record.expense_date ? record.expense_date.substring(0,10) : '', { type: 'date', required: true });
+                fields += buildField('فئة المصروف', 'expense_category', record.expense_category || '', { required: true });
+                fields += buildField('نوع المصروف', 'expense_type', record.expense_type || '', { required: true });
+                fields += buildField('معرف المورد', 'vendor_id', record.vendor_id || '', { required: true });
+                fields += buildField('اسم المورد', 'vendor_name', record.vendor_name || '', { required: true });
+                fields += buildField('المبلغ', 'amount', record.amount || record.total_amount || '', { type: 'number', required: true });
+                fields += buildField('الضريبة', 'tax_amount', record.tax_amount || 0, { type: 'number' });
+                fields += buildField('حالة المصروف', 'status', record.status || 'approved');
+                fields += buildField('ملاحظات', 'notes', record.notes || '', { type: 'textarea', rows: 3 });
+                hint.textContent = 'يتم الحفظ في جدول finance_expenses عبر واجهة /finance/expenses';
+            }
+
+            if (type === 'asset') {
+                fields += buildField('كود الأصل', 'asset_code', record.asset_code || '', { required: true });
+                fields += buildField('اسم الأصل', 'asset_name_ar', record.asset_name_ar || record.asset_name || '', { required: true });
+                fields += buildField('تصنيف الأصل', 'asset_category', record.asset_category || 'معدات', { required: true });
+                fields += buildField('نوع الأصل', 'asset_type', record.asset_type || 'تشغيلي', { required: true });
+                fields += buildField('تاريخ الشراء', 'purchase_date', record.purchase_date ? record.purchase_date.substring(0,10) : '', { type: 'date', required: true });
+                fields += buildField('تكلفة الشراء', 'purchase_cost', record.purchase_cost || '', { type: 'number', required: true });
+                fields += buildField('طريقة الإهلاك', 'depreciation_method', record.depreciation_method || 'straight_line', { required: true });
+                fields += buildField('العمر الإنتاجي (سنوات)', 'useful_life_years', record.useful_life_years || 5, { type: 'number', required: true });
+                fields += buildField('قيمة الخردة', 'salvage_value', record.salvage_value || 0, { type: 'number' });
+                fields += buildField('الإهلاك التراكمي', 'accumulated_depreciation', record.accumulated_depreciation || 0, { type: 'number' });
+                fields += buildField('حالة الأصل', 'status', record.status || 'ACTIVE');
+                hint.textContent = 'يتم الحفظ في جدول finance_fixed_assets عبر واجهة /finance/fixed-assets';
+            }
+
+            form.innerHTML = fields;
+            form.dataset.type = type;
+            form.dataset.mode = mode;
+            form.dataset.index = index ?? '';
+            document.getElementById('formModal').classList.remove('hidden');
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const type = form.dataset.type;
+            const mode = form.dataset.mode;
+            const index = form.dataset.index === '' ? null : Number(form.dataset.index);
+            const info = TYPE_INFO[type];
+            if (!info) return;
+
+            const record = index !== null ? getRecord(type, index) : {};
+            const fd = new FormData(form);
+
+            const toNumber = (key) => parseFloat(fd.get(key) || 0);
+            const payload = {};
+            let url = '';
+            let method = mode === 'create' ? 'POST' : 'PUT';
+
+            if (type === 'invoice') {
+                payload.invoice_number = fd.get('invoice_number') || undefined;
+                payload.customer_id = fd.get('customer_id');
+                payload.invoice_date = fd.get('invoice_date');
+                payload.due_date = fd.get('due_date');
+                payload.total_amount = toNumber('total_amount');
+                payload.paid_amount = toNumber('paid_amount');
+                payload.status = fd.get('status') || 'ISSUED';
+                payload.payment_status = fd.get('payment_status') || 'UNPAID';
+                payload.entity_id = ENTITY_ID;
+                payload.entity_type = 'HQ';
+                payload.notes = fd.get('notes') || null;
+                url = mode === 'create'
+                    ? `${API_BASE}/finance/ar-aging/invoices`
+                    : `${API_BASE}/finance/ar-aging/invoices/${record?.invoice_id}`;
+            }
+
+            if (type === 'payment') {
+                payload.payment_number = fd.get('payment_number') || undefined;
+                payload.customer_id = fd.get('customer_id');
+                payload.payment_amount = toNumber('payment_amount');
+                payload.payment_date = fd.get('payment_date');
+                payload.payment_method = fd.get('payment_method');
+                payload.status = fd.get('status') || 'COMPLETED';
+                payload.entity_id = ENTITY_ID;
+                payload.entity_type = 'HQ';
+                payload.notes = fd.get('notes') || null;
+                url = mode === 'create'
+                    ? `${API_BASE}/finance/payments`
+                    : `${API_BASE}/finance/payments/${record?.payment_id}`;
+            }
+
+            if (type === 'expense') {
+                payload.expense_number = fd.get('expense_number');
+                payload.expense_date = fd.get('expense_date');
+                payload.expense_category = fd.get('expense_category');
+                payload.expense_type = fd.get('expense_type');
+                payload.vendor_id = fd.get('vendor_id');
+                payload.vendor_name = fd.get('vendor_name');
+                payload.amount = toNumber('amount');
+                payload.tax_amount = toNumber('tax_amount');
+                payload.status = fd.get('status') || 'approved';
+                payload.entity_id = ENTITY_ID;
+                payload.entity_type = 'HQ';
+                payload.total_amount = payload.amount + payload.tax_amount;
+                payload.notes = fd.get('notes') || null;
+                url = mode === 'create'
+                    ? `${API_BASE}/finance/expenses`
+                    : `${API_BASE}/finance/expenses/${record?.expense_id}`;
+            }
+
+            if (type === 'asset') {
+                payload.asset_code = fd.get('asset_code');
+                payload.asset_name_ar = fd.get('asset_name_ar');
+                payload.asset_category = fd.get('asset_category');
+                payload.asset_type = fd.get('asset_type');
+                payload.purchase_date = fd.get('purchase_date');
+                payload.purchase_cost = toNumber('purchase_cost');
+                payload.depreciation_method = fd.get('depreciation_method');
+                payload.useful_life_years = toNumber('useful_life_years');
+                payload.salvage_value = toNumber('salvage_value');
+                payload.accumulated_depreciation = toNumber('accumulated_depreciation');
+                payload.entity_id = ENTITY_ID;
+                payload.entity_type = 'HQ';
+                payload.status = fd.get('status') || 'ACTIVE';
+                url = mode === 'create'
+                    ? `${API_BASE}/finance/fixed-assets`
+                    : `${API_BASE}/finance/fixed-assets/${record?.asset_id}`;
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(data.error || 'تعذر حفظ البيانات');
+                }
+                showToast('تم الحفظ بنجاح');
+                closeFormModal();
+                await loadData();
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteRecord(type, index) {
+            const info = TYPE_INFO[type];
+            if (!info) return;
+            const record = getRecord(type, index);
+            if (!record) return;
+            if (!confirm('هل أنت متأكد من الحذف؟')) return;
+
+            const idKey = info.idKey;
+            const id = record[idKey];
+            let url = '';
+            if (type === 'invoice') url = `${API_BASE}/finance/ar-aging/invoices/${id}`;
+            if (type === 'payment') url = `${API_BASE}/finance/payments/${id}`;
+            if (type === 'expense') url = `${API_BASE}/finance/expenses/${id}`;
+            if (type === 'asset') url = `${API_BASE}/finance/fixed-assets/${id}`;
+
+            try {
+                const res = await fetch(url, { method: 'DELETE' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'تعذر الحذف');
+                showToast('تم الحذف');
+                await loadData();
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, 'error');
+            }
+        }
+
+        document.getElementById('dynamicForm').addEventListener('submit', handleFormSubmit);
 
         function translateStatus(value) {
             const map = {
