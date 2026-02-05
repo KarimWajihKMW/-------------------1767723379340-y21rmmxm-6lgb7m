@@ -44,14 +44,7 @@ async function generateNextNumber(prefix) {
  * Get all customers
  */
 async function getCustomers(req, res) {
-    const { entity_id } = req.query;
-
-    if (!entity_id) {
-        return res.status(400).json({
-            success: false,
-            error: 'entity_id is required'
-        });
-    }
+    const entity_id = req.query.entity_id || req.headers['x-entity-id'] || 'HQ001';
 
     try {
         console.log(`👥 Fetching customers for entity ${entity_id}...`);
@@ -142,7 +135,9 @@ async function createCustomer(req, res) {
         blocked_reason
     } = req.body || {};
 
-    if (!entity_id || !customer_name_ar) {
+    const resolvedEntityId = entity_id || req.headers['x-entity-id'] || 'HQ001';
+
+    if (!resolvedEntityId || !customer_name_ar) {
         return res.status(400).json({
             success: false,
             error: 'Missing required fields: entity_id, customer_name_ar'
@@ -181,7 +176,7 @@ async function createCustomer(req, res) {
                 risk_score ?? null,
                 risk_level || null,
                 normalizedRiskFactors ? JSON.stringify(normalizedRiskFactors) : null,
-                entity_id,
+                resolvedEntityId,
                 is_active !== false,
                 !!is_blocked,
                 blocked_reason || null,
@@ -226,7 +221,9 @@ async function updateCustomer(req, res) {
         blocked_reason
     } = req.body || {};
 
-    if (!customer_id || !entity_id || !customer_name_ar) {
+    const resolvedEntityId = entity_id || req.headers['x-entity-id'] || req.query.entity_id || null;
+
+    if (!customer_id || !resolvedEntityId || !customer_name_ar) {
         return res.status(400).json({
             success: false,
             error: 'Missing required fields: customer_id, entity_id, customer_name_ar'
@@ -234,15 +231,22 @@ async function updateCustomer(req, res) {
     }
 
     try {
-        const existing = await pool.query('SELECT customer_id, entity_id FROM finance_customers WHERE customer_id = $1', [customer_id]);
+        const existing = await pool.query('SELECT customer_id, entity_id, customer_code FROM finance_customers WHERE customer_id = $1', [customer_id]);
         if (!existing.rows.length) {
             return res.status(404).json({ success: false, error: 'Customer not found' });
         }
-        if (existing.rows[0].entity_id && existing.rows[0].entity_id !== entity_id) {
+        if (existing.rows[0].entity_id && existing.rows[0].entity_id !== resolvedEntityId) {
             return res.status(403).json({ success: false, error: 'لا يمكن تعديل عميل كيان آخر' });
         }
 
         const normalizedRiskFactors = normalizeRiskFactors(risk_factors);
+        const effectiveCode = customer_code && customer_code.trim().length
+            ? customer_code.trim()
+            : existing.rows[0].customer_code;
+
+        if (!effectiveCode) {
+            return res.status(400).json({ success: false, error: 'customer_code مفقود' });
+        }
         const result = await pool.query(
             `UPDATE finance_customers
              SET customer_code = $1,
@@ -270,7 +274,7 @@ async function updateCustomer(req, res) {
              WHERE customer_id = $22
              RETURNING *`,
             [
-                customer_code || existing.rows[0].customer_code,
+                effectiveCode,
                 customer_name_ar,
                 customer_name_en || null,
                 customer_type || 'COMPANY',
@@ -307,7 +311,7 @@ async function updateCustomer(req, res) {
  */
 async function deleteCustomer(req, res) {
     const { customer_id } = req.params;
-    const { entity_id } = req.query;
+    const entity_id = req.query.entity_id || req.headers['x-entity-id'] || null;
 
     if (!customer_id || !entity_id) {
         return res.status(400).json({ success: false, error: 'customer_id and entity_id are required' });
