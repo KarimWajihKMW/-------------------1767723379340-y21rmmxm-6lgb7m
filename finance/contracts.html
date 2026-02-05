@@ -42,6 +42,10 @@
         </div>
 
         <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="openContractModal()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة عقد جديد
+            </button>
             <button onclick="refreshData()" class="bg-white text-slate-800 px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
@@ -115,10 +119,10 @@
                             <th class="px-3 py-2 text-right">رقم العقد</th>
                             <th class="px-3 py-2 text-right">العميل أو الجهة</th>
                             <th class="px-3 py-2 text-right">القيمة</th>
-                            <th class="px-3 py-2 text-right">التاريخ</th>
-                            <th class="px-3 py-2 text-right">المدة</th>
-                            <th class="px-3 py-2 text-right">الحالة</th>
-                            <th class="px-3 py-2 text-right">الأولوية</th>
+                            <th class="px-3 py-2 text-right">تاريخ الانتهاء</th>
+                            <th class="px-3 py-2 text-right">مستوى الخدمة %</th>
+                            <th class="px-3 py-2 text-right">الحالة الحالية</th>
+                            <th class="px-3 py-2 text-right">المخاطر</th>
                             <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
@@ -133,7 +137,13 @@
 
         <div class="card-glass rounded-3xl shadow-2xl p-6 section-accent-rose">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold text-slate-800">🧾 سجل الاعتمادات والمتابعة</h3>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-xl font-bold text-slate-800">🧾 سجل الاعتمادات والمتابعة</h3>
+                    <button onclick="openLogModal()" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:shadow-lg flex items-center gap-1">
+                        <i class="fas fa-plus"></i>
+                        إضافة سجل
+                    </button>
+                </div>
                 <span id="logCount" class="text-sm text-slate-500"></span>
             </div>
             <div class="table-scroll">
@@ -146,11 +156,12 @@
                             <th class="px-3 py-2 text-right">المسؤول</th>
                             <th class="px-3 py-2 text-right">التاريخ</th>
                             <th class="px-3 py-2 text-right">الملاحظة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="logTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td>
                         </tr>
                     </tbody>
                 </table>
@@ -158,121 +169,263 @@
         </div>
     </div>
 
+    <!-- نموذج العقد -->
+    <div id="contractModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-3xl p-6 shadow-2xl card-gradient">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 id="contractModalTitle" class="text-xl font-bold text-slate-800">إضافة عقد جديد</h4>
+                    <p class="text-slate-500 text-sm">جميع الحقول الرئيسية مطلوبة لضمان حفظ السجل</p>
+                </div>
+                <button onclick="closeContractModal()" class="text-slate-500 hover:text-rose-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    اسم العقد
+                    <input id="contractName" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="مثل: عقد خدمة سنوية" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    الطرف/العميل
+                    <input id="contractPartner" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="اسم العميل أو الجهة" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    قيمة العقد
+                    <input id="contractValue" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="مثال: 250000 ريال" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    تاريخ الانتهاء
+                    <input id="contractExpiry" type="date" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    الحالة
+                    <select id="contractStatus" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="قيد المراجعة">قيد المراجعة</option>
+                        <option value="نشط">نشط</option>
+                        <option value="معتمد">معتمد</option>
+                        <option value="مغلق">مغلق</option>
+                        <option value="متأخر">متأخر</option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    مستوى المخاطر
+                    <select id="contractRisk" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="منخفض">منخفض</option>
+                        <option value="متوسط">متوسط</option>
+                        <option value="مرتفع">مرتفع</option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    نسبة الالتزام بالخدمة
+                    <input id="contractSLA" type="number" min="0" max="100" step="1" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="%" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700 md:col-span-2">
+                    تفاصيل مختصرة
+                    <textarea id="contractNote" rows="2" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="تلخيص أهم بنود العقد"></textarea>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div id="contractFormMessage" class="text-sm text-rose-600"></div>
+                <div class="flex gap-3">
+                    <button onclick="submitContractForm()" class="bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold hover:shadow-lg">حفظ</button>
+                    <button onclick="closeContractModal()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl font-bold hover:shadow">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نموذج سجل المتابعة -->
+    <div id="logModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl card-gradient">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 id="logModalTitle" class="text-xl font-bold text-slate-800">إضافة سجل متابعة</h4>
+                    <p class="text-slate-500 text-sm">أرفق الإجراء والملاحظة وسيتم حفظها فورا في قاعدة البيانات</p>
+                </div>
+                <button onclick="closeLogModal()" class="text-slate-500 hover:text-rose-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700 md:col-span-2">
+                    العقد المرتبط
+                    <select id="logContract" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    الإجراء
+                    <input id="logAction" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="مثل: تم الاعتماد" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    الحالة الحالية
+                    <input id="logStatus" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="مثل: معتمد" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700">
+                    المسؤول
+                    <input id="logUser" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="اسم المستخدم" />
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-bold text-slate-700 md:col-span-2">
+                    الملاحظة
+                    <textarea id="logNote" rows="2" class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="تفاصيل مختصرة"></textarea>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div id="logFormMessage" class="text-sm text-rose-600"></div>
+                <div class="flex gap-3">
+                    <button onclick="submitLogForm()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold hover:shadow-lg">حفظ</button>
+                    <button onclick="closeLogModal()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl font-bold hover:shadow">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- معاينة التفاصيل -->
+    <div id="viewModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl card-gradient">
+            <div class="flex items-center justify-between mb-4">
+                <h4 id="viewModalTitle" class="text-xl font-bold text-slate-800">معاينة العقد</h4>
+                <button onclick="closeViewModal()" class="text-slate-500 hover:text-rose-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div id="viewModalBody" class="space-y-3 text-sm text-slate-700"></div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeViewModal()" class="bg-slate-900 text-white px-5 py-2 rounded-xl font-bold hover:shadow-lg">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
-        const CONTRACTS_LOG_KEY = 'سجل_العقود';
 
-        let customers = [];
-        let invoices = [];
-        let payments = [];
-        let requests = [];
-        let logs = [];
+        const apiHeaders = () => ({
+            'Content-Type': 'application/json',
+            ...(window.getFinanceHeaders ? window.getFinanceHeaders() : {})
+        });
 
-        function loadLogs() {
-            const saved = localStorage.getItem(CONTRACTS_LOG_KEY);
-            logs = saved ? JSON.parse(saved) : [];
+        let contracts = [];
+        let contractLogs = [];
+        let editingContractId = null;
+        let editingLogId = null;
+        let loading = false;
+
+        const SEED_CONTRACTS = [
+            {
+                contract_name: 'عقد خدمة سحابية',
+                partner: 'مؤسسة الحلول الذكية',
+                value_text: '250000',
+                expiry: '2025-12-31',
+                status: 'نشط',
+                sla_percent: 98,
+                risk_level: 'منخفض',
+                notes: 'تشغيل ودعم المنصة السحابية لمدة عام'
+            },
+            {
+                contract_name: 'عقد تطوير نظم',
+                partner: 'شركة التقنية المتحدة',
+                value_text: '380000',
+                expiry: '2025-09-30',
+                status: 'قيد المراجعة',
+                sla_percent: 95,
+                risk_level: 'متوسط',
+                notes: 'تطوير خصائص رقمنة العمليات مع ضمان جودة'
+            },
+            {
+                contract_name: 'اتفاقية استشارات مالية',
+                partner: 'مكتب خبراء المال',
+                value_text: '120000',
+                expiry: '2025-06-30',
+                status: 'معتمد',
+                sla_percent: 92,
+                risk_level: 'منخفض',
+                notes: 'خدمات استشارية ومراجعة دورية للسيولة'
+            }
+        ];
+
+        function sanitizeText(value) {
+            if (value === null || value === undefined) return '-';
+            const text = typeof value === 'string' ? value : JSON.stringify(value);
+            return text.replace(/[<>]/g, '').trim() || '-';
         }
 
-        function saveLogs() {
-            localStorage.setItem(CONTRACTS_LOG_KEY, JSON.stringify(logs));
+        function formatMoney(value) {
+            const num = parseFloat(value || 0);
+            if (isNaN(num)) return sanitizeText(value);
+            return num.toLocaleString('ar-SA') + ' ر.س';
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('ar-SA');
+        }
+
+        function setLoadingState() {
+            if (loading) {
+                document.getElementById('contractsTable').innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري التحديث...</td></tr>`;
+                document.getElementById('logTable').innerHTML = `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">جاري التحديث...</td></tr>`;
+            }
+        }
+
+        async function fetchContracts() {
+            const res = await fetch(`${API_BASE}/api/facilities/contracts`, { headers: apiHeaders() });
+            if (!res.ok) throw new Error('فشل تحميل العقود');
+            contracts = await res.json();
+        }
+
+        async function fetchLogs(contractId = null) {
+            const url = contractId ? `${API_BASE}/api/facilities/contract-logs?contract_id=${contractId}` : `${API_BASE}/api/facilities/contract-logs`;
+            const res = await fetch(url, { headers: apiHeaders() });
+            if (!res.ok) throw new Error('فشل تحميل سجل المتابعة');
+            contractLogs = await res.json();
+        }
+
+        async function seedContractsIfEmpty() {
+            if (contracts.length) return;
+            for (const item of SEED_CONTRACTS) {
+                try {
+                    await fetch(`${API_BASE}/api/facilities/contracts`, {
+                        method: 'POST',
+                        headers: apiHeaders(),
+                        body: JSON.stringify(item)
+                    });
+                } catch (error) {
+                    console.warn('تعذر إضافة بيانات تجريبية:', error.message);
+                }
+            }
         }
 
         async function loadData() {
+            loading = true;
+            setLoadingState();
             try {
-                const [customersRes, invoicesRes, paymentsRes, requestsRes] = await Promise.all([
-                    fetch(`${API_BASE}/finance/customers`),
-                    fetch(`${API_BASE}/finance/invoices`),
-                    fetch(`${API_BASE}/finance/payments`),
-                    fetch(`${API_BASE}/api/employee-requests`)
-                ]);
-
-                const [customersData, invoicesData, paymentsData, requestsData] = await Promise.all([
-                    customersRes.json(),
-                    invoicesRes.json(),
-                    paymentsRes.json(),
-                    requestsRes.json()
-                ]);
-
-                customers = customersData.customers || customersData.rows || [];
-                invoices = invoicesData.invoices || [];
-                payments = paymentsData.payments || [];
-                requests = Array.isArray(requestsData) ? requestsData : [];
-
-                loadLogs();
+                await Promise.all([fetchContracts(), fetchLogs()]);
+                await seedContractsIfEmpty();
+                if (!contracts.length) {
+                    await fetchContracts();
+                }
                 renderStats();
                 renderTables();
             } catch (error) {
-                console.error('❌ خطأ في تحميل البيانات:', error);
-                customers = [];
-                invoices = [];
-                payments = [];
-                requests = [];
-                loadLogs();
-                renderStats();
-                renderTables();
+                console.error('خطأ في تحميل البيانات:', error);
+                document.getElementById('contractsTable').innerHTML = `<tr><td colspan="8" class="px-4 py-12 text-center text-rose-500">تعذر تحميل البيانات</td></tr>`;
+            } finally {
+                loading = false;
             }
         }
 
-        function buildContracts() {
-            const contracts = [];
-            invoices.forEach(inv => {
-                contracts.push({
-                    id: inv.invoice_id || inv.id,
-                    party: inv.customer_name || inv.customer_id,
-                    value: parseFloat(inv.total_amount || inv.amount || 0),
-                    date: inv.invoice_date || inv.created_at,
-                    duration: '12 شهر',
-                    status: translateStatus(inv.status),
-                    priority: 'عالي'
-                });
-            });
-
-            payments.forEach(pay => {
-                contracts.push({
-                    id: pay.payment_id || pay.id,
-                    party: pay.customer_name || pay.customer_id,
-                    value: parseFloat(pay.payment_amount || pay.amount || 0),
-                    date: pay.payment_date || pay.created_at,
-                    duration: '6 أشهر',
-                    status: 'مغلق',
-                    priority: 'متوسط'
-                });
-            });
-
-            requests.forEach((req, idx) => {
-                contracts.push({
-                    id: req.id || `طلب-${idx + 1}`,
-                    party: req.employee_name || req.employee_id,
-                    value: 0,
-                    date: req.created_at,
-                    duration: '3 أشهر',
-                    status: translateStatus(req.status || 'قيد المعالجة'),
-                    priority: 'منخفض'
-                });
-            });
-
-            if (!contracts.length) {
-                customers.forEach((c, idx) => {
-                    contracts.push({
-                        id: c.customer_id || `عميل-${idx + 1}`,
-                        party: c.customer_name_ar || c.customer_name || `عميل ${idx + 1}`,
-                        value: parseFloat(c.credit_limit || 0),
-                        date: new Date().toISOString(),
-                        duration: '12 شهر',
-                        status: 'قيد المراجعة',
-                        priority: 'متوسط'
-                    });
-                });
-            }
-
-            return contracts;
+        function latestStatus(contract) {
+            const log = contractLogs.find(l => String(l.contract_id) === String(contract.id));
+            return (log && (log.status || log.action)) || contract.status || 'قيد المراجعة';
         }
 
         function renderStats() {
-            const contracts = buildContracts();
-            const totalValue = contracts.reduce((sum, c) => sum + c.value, 0);
-            const active = contracts.filter(c => c.status === 'نشط' || c.status === 'قيد المراجعة').length;
-            const closed = contracts.filter(c => c.status === 'مغلق' || c.status === 'مكتمل').length;
+            const totalValue = contracts.reduce((sum, c) => sum + (parseFloat(c.value_text) || 0), 0);
+            const active = contracts.filter(c => (latestStatus(c) === 'نشط') || (latestStatus(c) === 'قيد المراجعة')).length;
+            const closed = contracts.filter(c => latestStatus(c) === 'مغلق' || latestStatus(c) === 'مكتمل').length;
             const closureRate = contracts.length ? (closed / contracts.length) * 100 : 0;
 
             document.getElementById('contractsCount').textContent = contracts.length;
@@ -282,23 +435,25 @@
         }
 
         function renderTables() {
-            const contracts = buildContracts();
             const rows = contracts.map(c => {
-                const logStatus = logs.find(l => l.contract_id === c.id)?.action || c.status;
+                const status = latestStatus(c);
                 return `
                     <tr class="hover:bg-amber-50">
                         <td class="px-3 py-2">${sanitizeText(c.id)}</td>
-                        <td class="px-3 py-2">${sanitizeText(c.party)}</td>
-                        <td class="px-3 py-2">${formatMoney(c.value)}</td>
-                        <td class="px-3 py-2">${formatDateTime(c.date)}</td>
-                        <td class="px-3 py-2">${c.duration}</td>
-                        <td class="px-3 py-2">${logStatus}</td>
-                        <td class="px-3 py-2">${c.priority}</td>
+                        <td class="px-3 py-2">${sanitizeText(c.partner)}</td>
+                        <td class="px-3 py-2">${formatMoney(c.value_text)}</td>
+                        <td class="px-3 py-2">${formatDateTime(c.expiry)}</td>
+                        <td class="px-3 py-2">${c.sla_percent ? `${c.sla_percent}%` : '-'}</td>
+                        <td class="px-3 py-2">${sanitizeText(status)}</td>
+                        <td class="px-3 py-2">${sanitizeText(c.risk_level)}</td>
                         <td class="px-3 py-2">
                             <div class="flex flex-wrap gap-2">
-                                <button onclick="approveContract('${c.id}')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-xs font-bold">اعتماد</button>
-                                <button onclick="renewContract('${c.id}')" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تجديد</button>
-                                <button onclick="closeContract('${c.id}')" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">إغلاق</button>
+                                <button onclick="openViewModal(${c.id})" class="bg-slate-800 text-white px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
+                                <button onclick="openContractModal(${c.id})" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تعديل</button>
+                                <button onclick="updateContractStatus(${c.id}, 'معتمد', 'تم اعتماد العقد')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-xs font-bold">اعتماد</button>
+                                <button onclick="updateContractStatus(${c.id}, 'تم التجديد', 'تم التجديد')" class="bg-cyan-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تجديد</button>
+                                <button onclick="updateContractStatus(${c.id}, 'مغلق', 'تم الإغلاق')" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">إغلاق</button>
+                                <button onclick="deleteContract(${c.id})" class="bg-slate-200 text-slate-800 px-2 py-1 rounded-lg text-xs font-bold">حذف</button>
                             </div>
                         </td>
                     </tr>
@@ -308,106 +463,295 @@
             document.getElementById('contractsTable').innerHTML = rows || `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('contractsTableCount').textContent = `عدد الصفوف: ${contracts.length}`;
 
-            const logRows = logs.map((l, idx) => `
+            const logRows = contractLogs.map((l, idx) => `
                 <tr class="hover:bg-rose-50">
                     <td class="px-3 py-2">${idx + 1}</td>
                     <td class="px-3 py-2">${sanitizeText(l.contract_id)}</td>
-                    <td class="px-3 py-2">${l.action}</td>
-                    <td class="px-3 py-2">${l.user}</td>
-                    <td class="px-3 py-2">${formatDateTime(l.date)}</td>
-                    <td class="px-3 py-2">${l.note}</td>
+                    <td class="px-3 py-2">${sanitizeText(l.action)}</td>
+                    <td class="px-3 py-2">${sanitizeText(l.user_name)}</td>
+                    <td class="px-3 py-2">${formatDateTime(l.created_at)}</td>
+                    <td class="px-3 py-2">${sanitizeText(l.note)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="openLogView(${l.id})" class="bg-slate-800 text-white px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
+                            <button onclick="openLogModal(${l.id}, ${l.contract_id})" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تعديل</button>
+                            <button onclick="deleteLog(${l.id})" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
-            document.getElementById('logTable').innerHTML = logRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td></tr>`;
-            document.getElementById('logCount').textContent = `عدد السجلات: ${logs.length}`;
+            document.getElementById('logTable').innerHTML = logRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td></tr>`;
+            document.getElementById('logCount').textContent = `عدد السجلات: ${contractLogs.length}`;
         }
 
-        function approveContract(id) {
-            recordLog(id, 'معتمد', 'تم اعتماد العقد');
+        function fillContractForm(contract) {
+            document.getElementById('contractName').value = contract?.contract_name || '';
+            document.getElementById('contractPartner').value = contract?.partner || '';
+            document.getElementById('contractValue').value = contract?.value_text || '';
+            document.getElementById('contractExpiry').value = contract?.expiry ? contract.expiry.split('T')[0] : '';
+            document.getElementById('contractStatus').value = contract?.status || 'قيد المراجعة';
+            document.getElementById('contractRisk').value = contract?.risk_level || 'متوسط';
+            document.getElementById('contractSLA').value = contract?.sla_percent || '';
+            document.getElementById('contractNote').value = contract?.notes || '';
         }
 
-        function renewContract(id) {
-            recordLog(id, 'تم التجديد', 'تم تجديد العقد');
+        function openContractModal(id = null) {
+            editingContractId = id;
+            const contract = contracts.find(c => String(c.id) === String(id)) || null;
+            fillContractForm(contract);
+            document.getElementById('contractModalTitle').textContent = id ? 'تعديل عقد' : 'إضافة عقد جديد';
+            document.getElementById('contractFormMessage').textContent = '';
+            document.getElementById('contractModal').classList.remove('hidden');
+            document.getElementById('contractModal').classList.add('flex');
         }
 
-        function closeContract(id) {
-            recordLog(id, 'مغلق', 'تم إغلاق العقد');
+        function closeContractModal() {
+            editingContractId = null;
+            fillContractForm(null);
+            document.getElementById('contractModal').classList.add('hidden');
+            document.getElementById('contractModal').classList.remove('flex');
         }
 
-        function recordLog(id, action, note) {
-            logs.unshift({
-                contract_id: id,
+        function openViewModal(id) {
+            const contract = contracts.find(c => String(c.id) === String(id));
+            if (!contract) return;
+            const status = latestStatus(contract);
+            document.getElementById('viewModalTitle').textContent = 'معاينة العقد';
+            document.getElementById('viewModalBody').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div><span class="font-bold">اسم العقد:</span> ${sanitizeText(contract.contract_name)}</div>
+                    <div><span class="font-bold">العميل:</span> ${sanitizeText(contract.partner)}</div>
+                    <div><span class="font-bold">القيمة:</span> ${formatMoney(contract.value_text)}</div>
+                    <div><span class="font-bold">تاريخ الانتهاء:</span> ${formatDateTime(contract.expiry)}</div>
+                    <div><span class="font-bold">الحالة:</span> ${sanitizeText(status)}</div>
+                    <div><span class="font-bold">المخاطر:</span> ${sanitizeText(contract.risk_level)}</div>
+                    <div><span class="font-bold">مستوى الخدمة:</span> ${contract.sla_percent ? `${contract.sla_percent}%` : '-'}</div>
+                    <div><span class="font-bold">آخر تحديث:</span> ${formatDateTime(contract.updated_at)}</div>
+                </div>
+                <div class="mt-3">
+                    <div class="font-bold mb-1">ملاحظات:</div>
+                    <div class="bg-slate-50 rounded-xl p-3 text-slate-700">${sanitizeText(contract.notes || 'لا توجد ملاحظات')}</div>
+                </div>
+            `;
+            document.getElementById('viewModal').classList.remove('hidden');
+            document.getElementById('viewModal').classList.add('flex');
+        }
+
+        function openLogView(id) {
+            const log = contractLogs.find(l => String(l.id) === String(id));
+            if (!log) return;
+            const related = contracts.find(c => String(c.id) === String(log.contract_id));
+            document.getElementById('viewModalTitle').textContent = 'معاينة سجل متابعة';
+            document.getElementById('viewModalBody').innerHTML = `
+                <div class="space-y-2 text-sm">
+                    <div><span class="font-bold">العقد:</span> ${sanitizeText(related?.contract_name || log.contract_id)}</div>
+                    <div><span class="font-bold">الإجراء:</span> ${sanitizeText(log.action)}</div>
+                    <div><span class="font-bold">الحالة:</span> ${sanitizeText(log.status || log.action)}</div>
+                    <div><span class="font-bold">المسؤول:</span> ${sanitizeText(log.user_name)}</div>
+                    <div><span class="font-bold">التاريخ:</span> ${formatDateTime(log.created_at)}</div>
+                    <div>
+                        <div class="font-bold mb-1">الملاحظات:</div>
+                        <div class="bg-slate-50 rounded-xl p-3 text-slate-700">${sanitizeText(log.note || 'لا توجد ملاحظات')}</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('viewModal').classList.remove('hidden');
+            document.getElementById('viewModal').classList.add('flex');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+            document.getElementById('viewModal').classList.remove('flex');
+        }
+
+        async function submitContractForm() {
+            const name = document.getElementById('contractName').value.trim();
+            const partner = document.getElementById('contractPartner').value.trim();
+            const valueText = document.getElementById('contractValue').value.trim();
+            const expiry = document.getElementById('contractExpiry').value;
+            const status = document.getElementById('contractStatus').value;
+            const risk = document.getElementById('contractRisk').value;
+            const sla = document.getElementById('contractSLA').value;
+            const note = document.getElementById('contractNote').value.trim();
+
+            if (!name || !partner || !valueText) {
+                document.getElementById('contractFormMessage').textContent = 'الاسم والطرف والقيمة حقول أساسية';
+                return;
+            }
+
+            const payload = {
+                contract_name: name,
+                partner,
+                value_text: valueText,
+                expiry: expiry || null,
+                status,
+                risk_level: risk,
+                sla_percent: sla ? Number(sla) : null,
+                notes: note
+            };
+
+            try {
+                const method = editingContractId ? 'PUT' : 'POST';
+                const url = editingContractId ? `${API_BASE}/api/facilities/contracts/${editingContractId}` : `${API_BASE}/api/facilities/contracts`;
+                const res = await fetch(url, { method, headers: apiHeaders(), body: JSON.stringify(payload) });
+                if (!res.ok) throw new Error('تعذر حفظ العقد');
+                await loadData();
+                closeContractModal();
+            } catch (error) {
+                document.getElementById('contractFormMessage').textContent = error.message;
+            }
+        }
+
+        async function updateContractStatus(id, status, actionNote) {
+            try {
+                await fetch(`${API_BASE}/api/facilities/contracts/${id}`, {
+                    method: 'PUT',
+                    headers: apiHeaders(),
+                    body: JSON.stringify({ status })
+                });
+                await recordLog(id, actionNote || status, `تم ضبط الحالة إلى ${status}`, status);
+                await loadData();
+            } catch (error) {
+                alert('تعذر تحديث حالة العقد');
+            }
+        }
+
+        async function deleteContract(id) {
+            const ok = confirm('هل أنت متأكد من حذف العقد وكل سجلاته؟');
+            if (!ok) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/facilities/contracts/${id}`, { method: 'DELETE', headers: apiHeaders() });
+                if (!res.ok) throw new Error('فشل الحذف');
+                await loadData();
+            } catch (error) {
+                alert('تعذر حذف العقد');
+            }
+        }
+
+        function populateContractSelect(selectedId = null) {
+            const select = document.getElementById('logContract');
+            if (!contracts.length) {
+                select.innerHTML = '<option disabled>أضف عقداً أولاً</option>';
+                return;
+            }
+            select.innerHTML = contracts.map(c => `<option value="${c.id}" ${String(c.id) === String(selectedId) ? 'selected' : ''}>${sanitizeText(c.contract_name)} - ${sanitizeText(c.partner)}</option>`).join('');
+        }
+
+        function openLogModal(id = null, contractId = null) {
+            editingLogId = id;
+            populateContractSelect(contractId);
+            const log = contractLogs.find(l => String(l.id) === String(id));
+            document.getElementById('logModalTitle').textContent = id ? 'تعديل سجل متابعة' : 'إضافة سجل متابعة';
+            document.getElementById('logAction').value = log?.action || '';
+            document.getElementById('logStatus').value = log?.status || '';
+            document.getElementById('logUser').value = log?.user_name || '';
+            document.getElementById('logNote').value = log?.note || '';
+            document.getElementById('logFormMessage').textContent = '';
+            document.getElementById('logModal').classList.remove('hidden');
+            document.getElementById('logModal').classList.add('flex');
+        }
+
+        function closeLogModal() {
+            editingLogId = null;
+            document.getElementById('logModal').classList.add('hidden');
+            document.getElementById('logModal').classList.remove('flex');
+        }
+
+        async function submitLogForm() {
+            const contractId = document.getElementById('logContract').value;
+            const action = document.getElementById('logAction').value.trim();
+            const status = document.getElementById('logStatus').value.trim();
+            const user = document.getElementById('logUser').value.trim();
+            const note = document.getElementById('logNote').value.trim();
+
+            if (!contractId || !action) {
+                document.getElementById('logFormMessage').textContent = 'العقد والإجراء مطلوبان';
+                return;
+            }
+
+            const payload = {
+                contract_id: contractId,
                 action,
-                note,
-                user: 'مسؤول العقود',
-                date: new Date().toISOString()
+                status: status || action,
+                user_name: user || 'مسؤول العقود',
+                note
+            };
+
+            try {
+                const method = editingLogId ? 'PUT' : 'POST';
+                const url = editingLogId ? `${API_BASE}/api/facilities/contract-logs/${editingLogId}` : `${API_BASE}/api/facilities/contract-logs`;
+                const res = await fetch(url, { method, headers: apiHeaders(), body: JSON.stringify(payload) });
+                if (!res.ok) throw new Error('تعذر حفظ السجل');
+                await loadData();
+                closeLogModal();
+            } catch (error) {
+                document.getElementById('logFormMessage').textContent = error.message;
+            }
+        }
+
+        async function deleteLog(id) {
+            const ok = confirm('حذف سجل المتابعة؟');
+            if (!ok) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/facilities/contract-logs/${id}`, { method: 'DELETE', headers: apiHeaders() });
+                if (!res.ok) throw new Error('فشل الحذف');
+                await loadData();
+            } catch (error) {
+                alert('تعذر حذف السجل');
+            }
+        }
+
+        async function recordLog(contractId, action, note, status) {
+            const res = await fetch(`${API_BASE}/api/facilities/contract-logs`, {
+                method: 'POST',
+                headers: apiHeaders(),
+                body: JSON.stringify({
+                    contract_id: contractId,
+                    action,
+                    note,
+                    status: status || action,
+                    user_name: 'مسؤول العقود'
+                })
             });
-            saveLogs();
-            renderStats();
-            renderTables();
+            if (!res.ok) throw new Error('تعذر حفظ السجل');
         }
 
         function downloadAllJSON() {
-            const payload = { customers, invoices, payments, requests, logs };
+            const payload = { contracts, contractLogs };
             downloadBlob(JSON.stringify(payload, null, 2), 'العقود.json', 'application/json');
         }
 
         function downloadAllCSV() {
             const rows = [];
             rows.push(['العقود']);
-            rows.push(['رقم العقد','الجهة','القيمة','التاريخ','المدة','الحالة','الأولوية']);
-            buildContracts().forEach(c => rows.push([
+            rows.push(['رقم العقد','اسم العقد','الجهة','القيمة','تاريخ الانتهاء','الحالة','المخاطر','SLA','ملاحظات']);
+            contracts.forEach(c => rows.push([
                 c.id,
-                c.party,
-                c.value,
-                c.date,
-                c.duration,
-                c.status,
-                c.priority
+                c.contract_name,
+                c.partner,
+                c.value_text,
+                c.expiry,
+                latestStatus(c),
+                c.risk_level,
+                c.sla_percent,
+                c.notes
             ]));
 
             rows.push([]);
             rows.push(['سجل المتابعة']);
-            rows.push(['رقم السجل','رقم العقد','الإجراء','المسؤول','التاريخ','الملاحظة']);
-            logs.forEach((l, idx) => rows.push([
+            rows.push(['رقم السجل','رقم العقد','الإجراء','الحالة','المسؤول','التاريخ','الملاحظة']);
+            contractLogs.forEach((l, idx) => rows.push([
                 idx + 1,
                 l.contract_id,
                 l.action,
-                l.user,
-                l.date,
+                l.status,
+                l.user_name,
+                l.created_at,
                 l.note
             ]));
 
             const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
             downloadBlob(csvContent, 'العقود.csv', 'text/csv;charset=utf-8;');
-        }
-
-        function translateStatus(value) {
-            const map = {
-                PENDING: 'قيد المراجعة',
-                APPROVED: 'معتمد',
-                REJECTED: 'مرفوض',
-                COMPLETED: 'مكتمل',
-                OVERDUE: 'متأخر'
-            };
-            return map[String(value || '').toUpperCase()] || sanitizeText(value) || 'قيد المراجعة';
-        }
-
-        function sanitizeText(value) {
-            if (value === null || value === undefined) return '-';
-            const text = typeof value === 'string' ? value : JSON.stringify(value);
-            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
-            return cleaned || '-';
-        }
-
-        function formatMoney(value) {
-            const num = parseFloat(value || 0);
-            return num.toLocaleString('ar-SA') + ' ر.س';
-        }
-
-        function formatDateTime(value) {
-            if (!value) return '-';
-            return new Date(value).toLocaleString('ar-SA');
         }
 
         function downloadBlob(content, filename, type) {

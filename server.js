@@ -21,11 +21,13 @@ const ensureFacilitiesContractsTable = async () => {
         status TEXT DEFAULT 'قيد المراجعة',
         sla_percent NUMERIC,
         risk_level TEXT DEFAULT 'متوسط',
+        notes TEXT,
         entity_id TEXT,
         entity_type TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
+      ALTER TABLE facilities_project_contracts ADD COLUMN IF NOT EXISTS notes TEXT;
     `);
     console.log('✅ facilities_project_contracts table ready');
   } catch (error) {
@@ -34,6 +36,31 @@ const ensureFacilitiesContractsTable = async () => {
 };
 
 ensureFacilitiesContractsTable();
+
+const ensureFacilitiesContractLogsTable = async () => {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS facilities_contract_logs (
+        id SERIAL PRIMARY KEY,
+        contract_id INTEGER REFERENCES facilities_project_contracts(id) ON DELETE CASCADE,
+        action TEXT NOT NULL,
+        user_name TEXT,
+        note TEXT,
+        status TEXT DEFAULT 'تم التسجيل',
+        entity_id TEXT,
+        entity_type TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_fac_contract_logs_contract ON facilities_contract_logs(contract_id);
+      CREATE INDEX IF NOT EXISTS idx_fac_contract_logs_entity ON facilities_contract_logs(entity_id);
+    `);
+    console.log('✅ facilities_contract_logs table ready');
+  } catch (error) {
+    console.error('❌ Failed to ensure facilities_contract_logs table:', error);
+  }
+};
+
+ensureFacilitiesContractLogsTable();
 
 // Electronic signature tables (حفظ التوقيع وسجل التدقيق)
 const ensureElectronicSignatureTables = async () => {
@@ -381,7 +408,7 @@ app.get('/api/facilities/contracts', async (req, res) => {
   try {
     const filter = getEntityFilter(req.userEntity, 'c');
     const result = await db.query(
-      `SELECT c.id, c.contract_name, c.partner, c.expiry, c.value_text, c.status, c.sla_percent, c.risk_level
+      `SELECT c.id, c.contract_name, c.partner, c.expiry, c.value_text, c.status, c.sla_percent, c.risk_level, c.notes, c.created_at, c.updated_at
        FROM facilities_project_contracts c
        WHERE ${filter}
        ORDER BY c.created_at DESC`
@@ -394,16 +421,16 @@ app.get('/api/facilities/contracts', async (req, res) => {
 
 app.post('/api/facilities/contracts', async (req, res) => {
   try {
-    const { contract_name, partner, expiry, value_text, status, sla_percent, risk_level } = req.body || {};
+    const { contract_name, partner, expiry, value_text, status, sla_percent, risk_level, notes } = req.body || {};
     if (!contract_name || !partner) {
       return res.status(400).json({ error: 'contract_name and partner are required' });
     }
 
     const result = await db.query(
       `INSERT INTO facilities_project_contracts
-       (contract_name, partner, expiry, value_text, status, sla_percent, risk_level, entity_id, entity_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, contract_name, partner, expiry, value_text, status, sla_percent, risk_level`,
+       (contract_name, partner, expiry, value_text, status, sla_percent, risk_level, notes, entity_id, entity_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, contract_name, partner, expiry, value_text, status, sla_percent, risk_level, notes, created_at, updated_at`,
       [
         contract_name,
         partner,
@@ -412,6 +439,7 @@ app.post('/api/facilities/contracts', async (req, res) => {
         status || 'قيد المراجعة',
         sla_percent || null,
         risk_level || 'متوسط',
+        notes || null,
         req.userEntity.id,
         req.userEntity.type
       ]
@@ -425,7 +453,7 @@ app.post('/api/facilities/contracts', async (req, res) => {
 app.put('/api/facilities/contracts/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { contract_name, partner, expiry, value_text, status, sla_percent, risk_level } = req.body || {};
+    const { contract_name, partner, expiry, value_text, status, sla_percent, risk_level, notes } = req.body || {};
     const filter = getEntityFilter(req.userEntity, 'c');
     const result = await db.query(
       `UPDATE facilities_project_contracts c
@@ -436,9 +464,10 @@ app.put('/api/facilities/contracts/:id', async (req, res) => {
            status = COALESCE($5, c.status),
            sla_percent = COALESCE($6, c.sla_percent),
            risk_level = COALESCE($7, c.risk_level),
+           notes = COALESCE($8, c.notes),
            updated_at = NOW()
-       WHERE c.id = $8 AND ${filter}
-       RETURNING id, contract_name, partner, expiry, value_text, status, sla_percent, risk_level`,
+       WHERE c.id = $9 AND ${filter}
+      RETURNING id, contract_name, partner, expiry, value_text, status, sla_percent, risk_level, notes, created_at, updated_at`,
       [
         contract_name || null,
         partner || null,
@@ -447,6 +476,7 @@ app.put('/api/facilities/contracts/:id', async (req, res) => {
         status || null,
         sla_percent || null,
         risk_level || null,
+        notes || null,
         id
       ]
     );
@@ -474,6 +504,116 @@ app.delete('/api/facilities/contracts/:id', async (req, res) => {
     if (!result.rows.length) {
       return res.status(404).json({ error: 'Contract not found' });
     }
+    res.json({ success: true, id: result.rows[0].id });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/facilities/contract-logs', async (req, res) => {
+  try {
+    const { contract_id } = req.query;
+    const filter = getEntityFilter(req.userEntity, 'l');
+    const params = [];
+    let whereClause = `WHERE ${filter}`;
+
+    if (contract_id) {
+      params.push(contract_id);
+      whereClause += ` AND l.contract_id = $${params.length}`;
+    }
+
+    const result = await db.query(
+      `SELECT l.id, l.contract_id, l.action, l.user_name, l.note, l.status, l.created_at
+       FROM facilities_contract_logs l
+       ${whereClause}
+       ORDER BY l.created_at DESC`,
+      params
+    );
+    res.json(result.rows || []);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/facilities/contract-logs', async (req, res) => {
+  try {
+    const { contract_id, action, user_name, note, status } = req.body || {};
+
+    if (!contract_id || !action) {
+      return res.status(400).json({ error: 'contract_id and action are required' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO facilities_contract_logs
+       (contract_id, action, user_name, note, status, entity_id, entity_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, contract_id, action, user_name, note, status, created_at`,
+      [
+        contract_id,
+        action,
+        user_name || 'مسؤول العقود',
+        note || '',
+        status || 'تم التسجيل',
+        req.userEntity.id,
+        req.userEntity.type
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/facilities/contract-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, user_name, note, status } = req.body || {};
+    const filter = getEntityFilter(req.userEntity, 'l');
+
+    const result = await db.query(
+      `UPDATE facilities_contract_logs l
+       SET action = COALESCE($1, l.action),
+           user_name = COALESCE($2, l.user_name),
+           note = COALESCE($3, l.note),
+           status = COALESCE($4, l.status)
+       WHERE l.id = $5 AND ${filter}
+       RETURNING id, contract_id, action, user_name, note, status, created_at`,
+      [
+        action || null,
+        user_name || null,
+        note || null,
+        status || null,
+        id
+      ]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Log not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/facilities/contract-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filter = getEntityFilter(req.userEntity, 'l');
+
+    const result = await db.query(
+      `DELETE FROM facilities_contract_logs l
+       WHERE l.id = $1 AND ${filter}
+       RETURNING id`,
+      [id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Log not found' });
+    }
+
     res.json({ success: true, id: result.rows[0].id });
   } catch (error) {
     res.status(500).json({ error: error.message });
