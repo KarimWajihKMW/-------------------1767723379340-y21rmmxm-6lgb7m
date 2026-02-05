@@ -448,7 +448,7 @@
                         <td class="px-3 py-2">${sanitizeText(c.risk_level)}</td>
                         <td class="px-3 py-2">
                             <div class="flex flex-wrap gap-2">
-                                <button onclick="openViewModal(${c.id})" class="bg-slate-800 text-white px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
+                                <button onclick="openViewModal(${c.id})" class="bg-white text-slate-900 border border-slate-300 px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
                                 <button onclick="openContractModal(${c.id})" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تعديل</button>
                                 <button onclick="updateContractStatus(${c.id}, 'معتمد', 'تم اعتماد العقد')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-xs font-bold">اعتماد</button>
                                 <button onclick="updateContractStatus(${c.id}, 'تم التجديد', 'تم التجديد')" class="bg-cyan-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تجديد</button>
@@ -473,7 +473,7 @@
                     <td class="px-3 py-2">${sanitizeText(l.note)}</td>
                     <td class="px-3 py-2">
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="openLogView(${l.id})" class="bg-slate-800 text-white px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
+                            <button onclick="openLogView(${l.id})" class="bg-white text-slate-900 border border-slate-300 px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
                             <button onclick="openLogModal(${l.id}, ${l.contract_id})" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تعديل</button>
                             <button onclick="deleteLog(${l.id})" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">حذف</button>
                         </div>
