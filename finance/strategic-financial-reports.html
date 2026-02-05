@@ -29,6 +29,7 @@
         .accent-rose { border-top: 4px solid #f43f5e; }
         .accent-amber { border-top: 4px solid #f59e0b; }
         .tab-btn.active { background: #e0f2fe; color: #0f172a; border-bottom: 3px solid #0ea5e9; }
+        .force-white-text { color: #fff !important; }
     </style>
 </head>
 <body>
@@ -44,35 +45,35 @@
                 <i class="fas fa-rotate"></i>
                 تحديث البيانات
             </button>
-            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="downloadAllJSON()" class="bg-indigo-600 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-code"></i>
                 تنزيل ملف بيانات شامل
             </button>
-            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="downloadAllCSV()" class="bg-emerald-600 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-file-csv"></i>
                 تنزيل ملف جدولي شامل
             </button>
-            <button onclick="printPage()" class="bg-rose-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="printPage()" class="bg-rose-600 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-print"></i>
                 طباعة الصفحة
             </button>
-            <button onclick="copySummary()" class="bg-amber-500 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="copySummary()" class="bg-amber-500 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-copy"></i>
                 نسخ ملخص التقارير
             </button>
-            <button onclick="openCreateInvoice()" class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="openCreateInvoice()" class="bg-green-600 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-plus-circle"></i>
                 إضافة فاتورة
             </button>
-            <button onclick="openCreateRisk()" class="bg-indigo-700 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="openCreateRisk()" class="bg-indigo-700 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-shield-heart"></i>
                 إضافة تقييم مخاطر
             </button>
-            <button onclick="openCreateForecast()" class="bg-fuchsia-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="openCreateForecast()" class="bg-fuchsia-600 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-wand-magic-sparkles"></i>
                 إضافة توقع ذكي
             </button>
-            <button onclick="openCreateCashflow()" class="bg-slate-900 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+            <button onclick="openCreateCashflow()" class="bg-slate-900 text-white force-white-text px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
                 <i class="fas fa-water"></i>
                 إضافة حركة نقدية
             </button>
