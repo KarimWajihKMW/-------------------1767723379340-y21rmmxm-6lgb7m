@@ -47,8 +47,8 @@ body, html {
    TEXT VISIBILITY FIXES
    ========================================= */
 
-/* Since we flipped backgrounds to white, white text must become black */
-.text-white {
+/* Since we flipped backgrounds to white, white text must become black on regular content (not controls) */
+.text-white:not(button):not(a):not(input):not(select):not(textarea):not(option) {
     color: var(--brand-text-main) !important;
 }
 
@@ -86,7 +86,10 @@ a.bg-red-600, a.bg-rose-600, a.bg-red-500 {
 }
 
 /* Fix text inside buttons (ensure it stays white) */
-button .text-white, a .text-white {
+button.text-white, a.text-white, input.text-white, select.text-white, textarea.text-white {
+    color: var(--brand-white) !important;
+}
+button .text-white, a .text-white, button i, a i {
     color: var(--brand-white) !important;
 }
 button .text-slate-200, a .text-slate-200 {
