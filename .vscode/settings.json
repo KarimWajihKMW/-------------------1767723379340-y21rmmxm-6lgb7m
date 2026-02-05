@@ -1149,6 +1149,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{connectionString:'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',ssl:\\{rejectUnauthorized:false\\}\\}\\);\n\\(async\\(\\)=>\\{\n  const res = await pool\\.query\\(\"SELECT customer_id, customer_name_ar, customer_code FROM finance_customers ORDER BY customer_id DESC LIMIT 5\"\\);\n  console\\.table\\(res\\.rows\\);\n  await pool\\.end\\(\\);\n\\}\\)\\(\\);\nNODE$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-operations-sop-finance-api\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

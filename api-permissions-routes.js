@@ -460,6 +460,33 @@ router.get('/matrix', async (req, res) => {
   }
 });
 
+// Get all systems
+router.get('/systems', async (req, res) => {
+  try {
+    const systems = await db.query(`
+      SELECT 
+        id,
+        system_code,
+        system_name_ar,
+        description_ar,
+        display_order,
+        is_active
+      FROM systems
+      WHERE is_active = true
+      ORDER BY display_order
+    `);
+
+    res.json({
+      success: true,
+      systems: systems.rows,
+      count: systems.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching systems:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Get all permission levels
 router.get('/levels', async (req, res) => {
   try {
