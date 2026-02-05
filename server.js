@@ -3306,7 +3306,12 @@ app.get('/api/employees', async (req, res) => {
         emp.hire_date,
         emp.salary,
         emp.employment_type,
-        emp.is_active
+        emp.is_active,
+        emp.hq_id,
+        emp.branch_id,
+        emp.incubator_id,
+        emp.platform_id,
+        emp.office_id
       FROM employees emp
       LEFT JOIN headquarters hq ON emp.hq_id = hq.id
       LEFT JOIN branches b ON emp.branch_id = b.id
