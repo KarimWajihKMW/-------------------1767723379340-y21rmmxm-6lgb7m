@@ -606,6 +606,15 @@
             setTimeout(() => toastEl.classList.remove('show'), 3200);
         }
 
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn('لم يتم العثور على العنصر:', id);
+                return;
+            }
+            el.textContent = value;
+        }
+
         function getVal(id) {
             const el = document.getElementById(id);
             return (el?.value || '').trim();
@@ -1080,20 +1089,20 @@
             const totalPlans = store.plans.length;
             const totalEntries = store.entries.length;
 
-            document.getElementById('totalInvoices').textContent = totalInvoices.toLocaleString('ar-SA');
-            document.getElementById('overdueInvoices').textContent = overdueInvoices.toLocaleString('ar-SA');
-            document.getElementById('totalPaid').textContent = formatMoney(totalPaid);
-            document.getElementById('totalPayments').textContent = formatMoney(totalPayments);
-            document.getElementById('plansCount').textContent = totalPlans.toLocaleString('ar-SA');
-            document.getElementById('totalExpenses').textContent = formatMoney(totalExpenses);
-            document.getElementById('expensesCountSummary').textContent = store.expenses.length.toLocaleString('ar-SA');
-            document.getElementById('totalEntries').textContent = totalEntries.toLocaleString('ar-SA');
-            document.getElementById('totalDepreciation').textContent = formatMoney(totalDep);
-            document.getElementById('invoicesCount').textContent = `عدد الصفوف: ${totalInvoices}`;
-            document.getElementById('paymentsCount').textContent = `عدد الصفوف: ${store.payments.length}`;
-            document.getElementById('expensesCount').textContent = `عدد الصفوف: ${store.expenses.length}`;
-            document.getElementById('assetsCount').textContent = `عدد الصفوف: ${store.assets.length}`;
-            document.getElementById('totalAssets').textContent = totalAssets.toLocaleString('ar-SA');
+            setText('totalInvoices', totalInvoices.toLocaleString('ar-SA'));
+            setText('overdueInvoices', overdueInvoices.toLocaleString('ar-SA'));
+            setText('totalPaid', formatMoney(totalPaid));
+            setText('totalPayments', formatMoney(totalPayments));
+            setText('plansCount', totalPlans.toLocaleString('ar-SA'));
+            setText('totalExpenses', formatMoney(totalExpenses));
+            setText('expensesCountSummary', store.expenses.length.toLocaleString('ar-SA'));
+            setText('totalEntries', totalEntries.toLocaleString('ar-SA'));
+            setText('totalDepreciation', formatMoney(totalDep));
+            setText('invoicesCount', `عدد الصفوف: ${totalInvoices}`);
+            setText('paymentsCount', `عدد الصفوف: ${store.payments.length}`);
+            setText('expensesCount', `عدد الصفوف: ${store.expenses.length}`);
+            setText('assetsCount', `عدد الصفوف: ${store.assets.length}`);
+            setText('totalAssets', totalAssets.toLocaleString('ar-SA'));
         }
 
         function renderSummaryInsights() {
