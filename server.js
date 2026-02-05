@@ -898,21 +898,71 @@ app.post('/api/employee-requests', async (req, res) => {
 app.put('/api/employee-requests/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, approverName, approvalNotes, completionDate } = req.body;
-    
+    const {
+      status,
+      approverName,
+      approvalNotes,
+      completionDate,
+      requestTitle,
+      description,
+      priority,
+      requestData,
+      requiresApproval,
+      requestedDate,
+      startDate,
+      endDate,
+      notes,
+      employeeName,
+      employeeId,
+      requestType,
+      entityId
+    } = req.body;
+
     const query = `
       UPDATE employee_requests 
-      SET status = $1,
-          approver_name = COALESCE($2, approver_name),
-          approval_date = CASE WHEN $1 IN ('APPROVED', 'REJECTED') THEN CURRENT_TIMESTAMP ELSE approval_date END,
-          approval_notes = COALESCE($3, approval_notes),
-          completion_date = COALESCE($4, completion_date),
+      SET request_title = COALESCE($1, request_title),
+          description = COALESCE($2, description),
+          status = COALESCE($3, status),
+          priority = COALESCE($4, priority),
+          request_data = COALESCE($5, request_data),
+          requires_approval = COALESCE($6, requires_approval),
+          requested_date = COALESCE($7, requested_date),
+          start_date = COALESCE($8, start_date),
+          end_date = COALESCE($9, end_date),
+          notes = COALESCE($10, notes),
+          approver_name = COALESCE($11, approver_name),
+          approval_date = CASE WHEN $3 IN ('APPROVED', 'REJECTED') THEN CURRENT_TIMESTAMP ELSE approval_date END,
+          approval_notes = COALESCE($12, approval_notes),
+          completion_date = COALESCE($13, completion_date),
+          employee_name = COALESCE($14, employee_name),
+          employee_id = COALESCE($15, employee_id),
+          request_type = COALESCE($16, request_type),
+          entity_id = COALESCE($17, entity_id),
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $5
+      WHERE id = $18
       RETURNING *
     `;
     
-    const result = await db.query(query, [status, approverName, approvalNotes, completionDate, id]);
+    const result = await db.query(query, [
+      requestTitle,
+      description,
+      status,
+      priority,
+      requestData ? JSON.stringify(requestData) : null,
+      requiresApproval,
+      requestedDate,
+      startDate,
+      endDate,
+      notes,
+      approverName,
+      approvalNotes,
+      completionDate,
+      employeeName,
+      employeeId,
+      requestType,
+      entityId,
+      id
+    ]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'الطلب غير موجود' });

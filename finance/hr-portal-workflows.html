@@ -30,6 +30,51 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 800;
+            border-radius: 999px;
+            padding: 10px 14px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            box-shadow: 0 10px 25px -12px rgba(0,0,0,0.25);
+        }
+
+        .btn-ghost { background: #fff; color: #0f172a; border-color: #e2e8f0; }
+        .btn-ghost:hover { box-shadow: 0 14px 30px -12px rgba(15,23,42,0.3); }
+        .btn-primary { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: #fff; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #22c55e); color: #fff; }
+        .btn-danger { background: linear-gradient(135deg, #f43f5e, #ef4444); color: #fff; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #f97316); color: #fff; }
+
+        .pill { border-radius: 12px; border: 1px dashed #e2e8f0; background: #f8fafc; }
+        .input { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+        .input:focus { outline: 2px solid #0ea5e9; border-color: transparent; }
+        .label { font-size: 12px; color: #64748b; font-weight: 700; }
+
+        .preview-card { border: 1px dashed #cbd5e1; }
+        .hidden { display: none; }
+
+        .table-actions button { font-size: 11px; padding: 6px 10px; }
+
+        @media (max-width: 1024px) {
+            .btn { width: 100%; }
+        }
     
     </style>
 </head>
@@ -57,6 +102,280 @@
                 <i class="fas fa-print"></i>
                 طباعة التقرير
             </button>
+        </div>
+
+        <!-- لوحة السيطرة السريعة -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <div class="card-gradient rounded-3xl p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm text-slate-500">الموظفون</div>
+                        <div id="statEmployees" class="text-3xl font-extrabold text-slate-900">0</div>
+                    </div>
+                    <button class="btn btn-ghost" onclick="scrollToSection('employeesForm')">
+                        <i class="fas fa-user-plus"></i>
+                        إضافة
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-slate-500">تعديل، حذف، أو معاينة أي موظف بشكل مباشر.</p>
+            </div>
+            <div class="card-gradient rounded-3xl p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm text-slate-500">طلبات الموظفين</div>
+                        <div id="statRequests" class="text-3xl font-extrabold text-slate-900">0</div>
+                    </div>
+                    <button class="btn btn-ghost" onclick="scrollToSection('requestForm')">
+                        <i class="fas fa-plus-circle"></i>
+                        طلب جديد
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-slate-500">إضافة، متابعة الحالة، أو إغلاق الطلبات فوراً.</p>
+            </div>
+            <div class="card-gradient rounded-3xl p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm text-slate-500">أنواع الطلبات</div>
+                        <div id="statTypes" class="text-3xl font-extrabold text-slate-900">0</div>
+                    </div>
+                    <button class="btn btn-ghost" onclick="scrollToSection('typeForm')">
+                        <i class="fas fa-layer-group"></i>
+                        نوع جديد
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-slate-500">تفعيل أو تخصيص الأنواع لتناسب كل سيناريو.</p>
+            </div>
+        </div>
+
+        <!-- مراكز الإدارة السريعة -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-10 section-accent-amber" id="controlCenter">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">⚡ إدارة فورية جاهزة للعمل</h2>
+                    <p class="text-sm text-slate-500">كل إضافة أو تعديل يُحفظ مباشرة في قاعدة البيانات الحالية.</p>
+                </div>
+                <div id="dataStatus" class="badge">جاهز</div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- نموذج طلب موظف -->
+                <form id="requestForm" class="card-gradient rounded-2xl p-4 space-y-3" onsubmit="handleRequestSubmit(event)">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-slate-500">تسجيل طلب</div>
+                            <h3 class="text-lg font-bold text-slate-800">📝 طلب موظف</h3>
+                        </div>
+                        <button type="button" class="btn btn-ghost" onclick="resetRequestForm()">جديد</button>
+                    </div>
+                    <input type="hidden" id="requestId">
+                    <div class="space-y-2">
+                        <label class="label" for="requestEmployee">الموظف</label>
+                        <select id="requestEmployee" class="input"></select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="label" for="requestEmployeeName">اسم الموظف (للتعديل اليدوي)</label>
+                        <input id="requestEmployeeName" class="input" placeholder="مثال: أحمد العتيبي">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="requestType">نوع الطلب</label>
+                            <select id="requestType" class="input"></select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="requestPriority">الأولوية</label>
+                            <select id="requestPriority" class="input">
+                                <option value="HIGH">عاجل</option>
+                                <option value="NORMAL" selected>عادي</option>
+                                <option value="LOW">منخفض</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="label" for="requestTitle">عنوان الطلب</label>
+                        <input id="requestTitle" class="input" placeholder="طلب إجازة سنوية" required>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="requestedDate">تاريخ الطلب</label>
+                            <input type="date" id="requestedDate" class="input">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="startDate">بداية التنفيذ</label>
+                            <input type="date" id="startDate" class="input">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="endDate">نهاية التنفيذ</label>
+                            <input type="date" id="endDate" class="input">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="requestStatus">الحالة</label>
+                            <select id="requestStatus" class="input">
+                                <option value="PENDING">قيد المعالجة</option>
+                                <option value="IN_PROGRESS">قيد التنفيذ</option>
+                                <option value="APPROVED">معتمد</option>
+                                <option value="COMPLETED">مكتمل</option>
+                                <option value="REJECTED">مرفوض</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="requestRequiresApproval">الموافقة مطلوبة</label>
+                            <div class="pill px-3 py-2 flex items-center justify-between">
+                                <span class="text-xs text-slate-600">تفعيل سير الاعتماد</span>
+                                <input id="requestRequiresApproval" type="checkbox" class="h-4 w-4" checked>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="label" for="requestNotes">ملاحظات</label>
+                        <textarea id="requestNotes" class="input" rows="2" placeholder="تفاصيل أو مرفقات هامة"></textarea>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <button type="submit" class="btn btn-primary w-full lg:w-auto"><i class="fas fa-save"></i> حفظ الطلب</button>
+                        <button type="button" class="btn btn-warning w-full lg:w-auto" onclick="resetRequestForm()"><i class="fas fa-eraser"></i> تفريغ الحقول</button>
+                    </div>
+                </form>
+
+                <!-- نموذج الموظف -->
+                <form id="employeesForm" class="card-gradient rounded-2xl p-4 space-y-3" onsubmit="handleEmployeeSubmit(event)">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-slate-500">تسجيل موظف</div>
+                            <h3 class="text-lg font-bold text-slate-800">👤 بيانات موظف</h3>
+                        </div>
+                        <button type="button" class="btn btn-ghost" onclick="resetEmployeeForm()">جديد</button>
+                    </div>
+                    <input type="hidden" id="employeeId">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="employeeNumber">رقم الموظف</label>
+                            <input id="employeeNumber" class="input" required>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="employeeName">الاسم الكامل</label>
+                            <input id="employeeName" class="input" required placeholder="مثال: سارة العتيبي">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="employeeEmail">البريد الإلكتروني</label>
+                            <input id="employeeEmail" class="input" placeholder="name@example.com">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="employeeEntity">المنشأة / الفرع</label>
+                            <select id="employeeEntity" class="input"></select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="employeePosition">المنصب</label>
+                            <input id="employeePosition" class="input" placeholder="مثال: أخصائي موارد بشرية">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="employeeDepartment">القسم</label>
+                            <input id="employeeDepartment" class="input" placeholder="الموارد البشرية">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="hireDate">تاريخ التعيين</label>
+                            <input type="date" id="hireDate" class="input">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="salary">الراتب</label>
+                            <input type="number" id="salary" class="input" step="0.01" min="0">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="employmentType">نوع التوظيف</label>
+                            <select id="employmentType" class="input">
+                                <option value="FULL_TIME">دوام كامل</option>
+                                <option value="PART_TIME">دوام جزئي</option>
+                                <option value="CONTRACT">تعاقد</option>
+                                <option value="TEMPORARY">مؤقت</option>
+                                <option value="INTERN">تدريب</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pill px-3 py-2 flex items-center justify-between">
+                        <span class="text-xs text-slate-600">الموظف نشط ويظهر في الجداول</span>
+                        <input id="employeeActive" type="checkbox" class="h-4 w-4" checked>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <button type="submit" class="btn btn-success w-full lg:w-auto"><i class="fas fa-save"></i> حفظ الموظف</button>
+                        <button type="button" class="btn btn-warning w-full lg:w-auto" onclick="resetEmployeeForm()"><i class="fas fa-eraser"></i> تفريغ الحقول</button>
+                    </div>
+                </form>
+
+                <!-- نموذج نوع الطلب -->
+                <form id="typeForm" class="card-gradient rounded-2xl p-4 space-y-3" onsubmit="handleTypeSubmit(event)">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-slate-500">تهيئة الأنواع</div>
+                            <h3 class="text-lg font-bold text-slate-800">📌 نوع طلب</h3>
+                        </div>
+                        <button type="button" class="btn btn-ghost" onclick="resetTypeForm()">جديد</button>
+                    </div>
+                    <input type="hidden" id="typeId">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="typeCode">كود النوع</label>
+                            <input id="typeCode" class="input" required placeholder="vacation_request">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="typeNameAr">اسم عربي</label>
+                            <input id="typeNameAr" class="input" required placeholder="طلب إجازة">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="label" for="typeCategory">الفئة</label>
+                            <select id="typeCategory" class="input">
+                                <option value="hr">الموارد البشرية</option>
+                                <option value="admin">إداري</option>
+                                <option value="financial">مالي</option>
+                                <option value="training">تدريب</option>
+                                <option value="travel">سفر</option>
+                                <option value="procurement">مشتريات</option>
+                                <option value="general" selected>عام</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label" for="typeOrder">أولوية العرض</label>
+                            <input type="number" id="typeOrder" class="input" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="pill px-3 py-2 flex items-center justify-between">
+                            <span class="text-xs text-slate-600">النوع نشط</span>
+                            <input id="typeActive" type="checkbox" class="h-4 w-4" checked>
+                        </div>
+                        <div class="pill px-3 py-2 flex items-center justify-between">
+                            <span class="text-xs text-slate-600">يحتاج موافقة</span>
+                            <input id="typeNeedsApproval" type="checkbox" class="h-4 w-4" checked>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="label" for="typeDescription">وصف</label>
+                        <textarea id="typeDescription" class="input" rows="3" placeholder="تفاصيل مبسطة تظهر للمستخدم"></textarea>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <button type="submit" class="btn btn-primary w-full lg:w-auto"><i class="fas fa-save"></i> حفظ النوع</button>
+                        <button type="button" class="btn btn-warning w-full lg:w-auto" onclick="resetTypeForm()"><i class="fas fa-eraser"></i> تفريغ الحقول</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="previewPanel" class="card-glass preview-card rounded-3xl shadow-2xl p-6 mb-10 hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <div class="text-sm text-slate-500">معاينة سريعة</div>
+                    <h3 id="previewTitle" class="text-xl font-bold text-slate-800"></h3>
+                </div>
+                <button class="btn btn-ghost" onclick="hidePreview()"><i class="fas fa-times"></i> إغلاق</button>
+            </div>
+            <div id="previewBody" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm"></div>
         </div>
 
         <!-- Requests & Forms -->
@@ -301,11 +620,12 @@
                             <th class="px-3 py-2 text-right">الراتب</th>
                             <th class="px-3 py-2 text-right">نوع التوظيف</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="employeesTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="11" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -331,11 +651,12 @@
                             <th class="px-3 py-2 text-right">الموافقة مطلوبة</th>
                             <th class="px-3 py-2 text-right">ملاحظات</th>
                             <th class="px-3 py-2 text-right">تاريخ الإنشاء</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="requestsTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="10" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="11" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -359,11 +680,12 @@
                             <th class="px-3 py-2 text-right">يتطلب مدير</th>
                             <th class="px-3 py-2 text-right">يتطلب موارد بشرية</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="typesTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
+                            <td colspan="9" class="px-4 py-12 text-center text-slate-500">جاري تحميل البيانات...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -377,30 +699,111 @@
         let employees = [];
         let requests = [];
         let requestTypes = [];
+        let branches = [];
+        let headquarters = [];
+
+        const dataStatus = document.getElementById('dataStatus');
+        const previewPanel = document.getElementById('previewPanel');
+        const previewBody = document.getElementById('previewBody');
+        const previewTitle = document.getElementById('previewTitle');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            attachFormListeners();
+            loadData();
+        });
+
+        function attachFormListeners() {
+            const employeeSelect = document.getElementById('requestEmployee');
+            if (employeeSelect) {
+                employeeSelect.addEventListener('change', syncEmployeeName);
+            }
+        }
+
+        function setStatus(text, tone = 'info') {
+            if (!dataStatus) return;
+            const palette = {
+                info: { bg: '#eef2ff', color: '#3730a3', border: '#c7d2fe' },
+                success: { bg: '#ecfdf3', color: '#15803d', border: '#bbf7d0' },
+                danger: { bg: '#fef2f2', color: '#b91c1c', border: '#fecdd3' },
+                warning: { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' }
+            };
+            const toneData = palette[tone] || palette.info;
+            dataStatus.textContent = text;
+            dataStatus.style.background = toneData.bg;
+            dataStatus.style.color = toneData.color;
+            dataStatus.style.borderColor = toneData.border;
+        }
+
+        async function fetchJSON(url, options = {}) {
+            const response = await fetch(url, options);
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'تعذر تنفيذ الطلب');
+            }
+            return data;
+        }
 
         async function loadData() {
+            setStatus('جاري تحميل البيانات...', 'info');
             try {
-                const [employeesRes, requestsRes, typesRes] = await Promise.all([
-                    fetch(`${API_BASE}/api/employees`),
-                    fetch(`${API_BASE}/api/employee-requests`),
-                    fetch(`${API_BASE}/api/request-types`)
-                ]);
-
-                const [employeesData, requestsData, typesData] = await Promise.all([
-                    employeesRes.json(),
-                    requestsRes.json(),
-                    typesRes.json()
+                const [employeesData, requestsData, typesData, branchesData, hqData] = await Promise.all([
+                    fetchJSON(`${API_BASE}/api/employees`),
+                    fetchJSON(`${API_BASE}/api/employee-requests`),
+                    fetchJSON(`${API_BASE}/api/request-types`),
+                    fetchJSON(`${API_BASE}/api/branches`),
+                    fetchJSON(`${API_BASE}/api/headquarters`)
                 ]);
 
                 employees = Array.isArray(employeesData) ? employeesData : [];
                 requests = Array.isArray(requestsData) ? requestsData : [];
                 requestTypes = Array.isArray(typesData) ? typesData : [];
+                branches = Array.isArray(branchesData) ? branchesData : [];
+                headquarters = Array.isArray(hqData) ? hqData : [];
 
+                populateSelectors();
                 renderTables();
+                resetRequestForm();
+                resetEmployeeForm();
+                resetTypeForm();
+                setStatus('تم تحديث البيانات بنجاح', 'success');
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
+                setStatus('تعذر تحميل البيانات - تحقق من الاتصال', 'danger');
                 renderTables();
             }
+        }
+
+        function populateSelectors() {
+            const requestEmployee = document.getElementById('requestEmployee');
+            if (requestEmployee) {
+                requestEmployee.innerHTML = '<option value="">بدون ربط مباشر</option>' +
+                    employees.map(emp => `<option value="${emp.id}">${sanitizeText(emp.full_name)} - ${sanitizeText(emp.employee_number || 'بدون رقم')}</option>`).join('');
+            }
+
+            const requestTypeSelect = document.getElementById('requestType');
+            if (requestTypeSelect) {
+                requestTypeSelect.innerHTML = requestTypes.map(t => `<option value="${t.type_code}">${sanitizeText(t.type_name_ar)}</option>`).join('');
+            }
+
+            const entitySelect = document.getElementById('employeeEntity');
+            if (entitySelect) {
+                const options = getEntityOptions();
+                entitySelect.innerHTML = options.map(opt => `<option value="${opt.value}">${sanitizeText(opt.label)}</option>`).join('');
+            }
+        }
+
+        function getEntityOptions() {
+            const options = [];
+            (headquarters || []).forEach(hq => {
+                options.push({ value: `HQ|${hq.id}|${hq.entity_id}`, label: `${hq.entity_id} - ${hq.name}` });
+            });
+            (branches || []).forEach(branch => {
+                options.push({ value: `BRANCH|${branch.id}|${branch.entity_id}`, label: `${branch.entity_id} - ${branch.name}` });
+            });
+            if (!options.length) {
+                options.push({ value: 'HQ|1|HQ001', label: 'HQ001 - المقر الرئيسي' });
+            }
+            return options;
         }
 
         function renderTables() {
@@ -415,10 +818,11 @@
                     <td class="px-3 py-2">${formatDate(e.hire_date)}</td>
                     <td class="px-3 py-2">${formatMoney(e.salary)}</td>
                     <td class="px-3 py-2">${translateEmploymentType(e.employment_type)}</td>
-                    <td class="px-3 py-2">${e.is_active ? 'نشط' : 'غير نشط'}</td>
+                    <td class="px-3 py-2">${renderActiveBadge(e.is_active)}</td>
+                    <td class="px-3 py-2 table-actions">${buildActions('employee', e.id)}</td>
                 </tr>
             `).join('');
-            document.getElementById('employeesTable').innerHTML = employeeRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('employeesTable').innerHTML = employeeRows || defaultRow(11);
             document.getElementById('employeesCount').textContent = `عدد الصفوف: ${employees.length}`;
 
             const requestRows = requests.map(r => `
@@ -433,9 +837,10 @@
                     <td class="px-3 py-2">${r.requires_approval ? 'نعم' : 'لا'}</td>
                     <td class="px-3 py-2">${truncate(sanitizeText(r.notes))}</td>
                     <td class="px-3 py-2">${formatDateTime(r.created_at)}</td>
+                    <td class="px-3 py-2 table-actions">${buildActions('request', r.id)}</td>
                 </tr>
             `).join('');
-            document.getElementById('requestsTable').innerHTML = requestRows || `<tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('requestsTable').innerHTML = requestRows || defaultRow(11);
             document.getElementById('requestsCount').textContent = `عدد الصفوف: ${requests.length}`;
 
             const typeRows = requestTypes.map(t => `
@@ -447,11 +852,57 @@
                     <td class="px-3 py-2">${t.requires_approval ? 'نعم' : 'لا'}</td>
                     <td class="px-3 py-2">${t.requires_manager_approval ? 'نعم' : 'لا'}</td>
                     <td class="px-3 py-2">${t.requires_hr_approval ? 'نعم' : 'لا'}</td>
-                    <td class="px-3 py-2">${t.is_active ? 'نشط' : 'غير نشط'}</td>
+                    <td class="px-3 py-2">${renderActiveBadge(t.is_active)}</td>
+                    <td class="px-3 py-2 table-actions">${buildActions('type', t.id)}</td>
                 </tr>
             `).join('');
-            document.getElementById('typesTable').innerHTML = typeRows || `<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('typesTable').innerHTML = typeRows || defaultRow(9);
             document.getElementById('typesCount').textContent = `عدد الصفوف: ${requestTypes.length}`;
+
+            updateStats();
+        }
+
+        function buildActions(type, id) {
+            const safeId = encodeURIComponent(id);
+            if (type === 'employee') {
+                return `
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn btn-ghost" onclick="showPreview('employee','${safeId}')"><i class="fas fa-eye"></i> معاينة</button>
+                        <button class="btn btn-warning" onclick="startEditEmployee('${safeId}')"><i class="fas fa-pen"></i> تعديل</button>
+                        <button class="btn btn-danger" onclick="deleteEmployee('${safeId}')"><i class="fas fa-trash"></i> حذف</button>
+                    </div>`;
+            }
+            if (type === 'request') {
+                return `
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn btn-ghost" onclick="showPreview('request','${safeId}')"><i class="fas fa-eye"></i> معاينة</button>
+                        <button class="btn btn-warning" onclick="startEditRequest('${safeId}')"><i class="fas fa-pen"></i> تعديل</button>
+                        <button class="btn btn-danger" onclick="deleteRequest('${safeId}')"><i class="fas fa-trash"></i> حذف</button>
+                    </div>`;
+            }
+            return `
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn btn-ghost" onclick="showPreview('type','${safeId}')"><i class="fas fa-eye"></i> معاينة</button>
+                    <button class="btn btn-warning" onclick="startEditType('${safeId}')"><i class="fas fa-pen"></i> تعديل</button>
+                    <button class="btn btn-danger" onclick="deleteType('${safeId}')"><i class="fas fa-trash"></i> حذف</button>
+                </div>`;
+        }
+
+        function renderActiveBadge(isActive) {
+            return `<span class="badge" style="background:${isActive ? '#ecfdf3' : '#fef2f2'}; color:${isActive ? '#166534' : '#991b1b'}">${isActive ? 'نشط' : 'غير نشط'}</span>`;
+        }
+
+        function updateStats() {
+            const employeesStat = document.getElementById('statEmployees');
+            const requestsStat = document.getElementById('statRequests');
+            const typesStat = document.getElementById('statTypes');
+            if (employeesStat) employeesStat.textContent = employees.length.toLocaleString('ar-SA');
+            if (requestsStat) requestsStat.textContent = requests.length.toLocaleString('ar-SA');
+            if (typesStat) typesStat.textContent = requestTypes.length.toLocaleString('ar-SA');
+        }
+
+        function defaultRow(colspan) {
+            return `<tr><td colspan="${colspan}" class="px-4 py-12 text-center text-slate-500">لا توجد بيانات</td></tr>`;
         }
 
         function resolveRequestTypeName(code) {
@@ -493,13 +944,18 @@
                 payroll: 'رواتب',
                 attendance: 'حضور',
                 hr: 'موارد بشرية',
-                admin: 'إداري'
+                admin: 'إداري',
+                travel: 'سفر',
+                training: 'تدريب',
+                procurement: 'مشتريات',
+                financial: 'مالي'
             };
             return map[String(value || '').toLowerCase()] || sanitizeText(value) || 'غير محدد';
         }
 
         function formatMoney(value) {
             const num = parseFloat(value || 0);
+            if (Number.isNaN(num)) return '-';
             return num.toLocaleString('ar-SA') + ' ر.س';
         }
 
@@ -522,10 +978,368 @@
         function sanitizeText(value) {
             if (value === null || value === undefined) return '-';
             const text = typeof value === 'string' ? value : JSON.stringify(value);
-            const cleaned = text.replace(/[A-Za-z]+/g, '').replace(/\s{2,}/g, ' ').trim();
-            return cleaned || '-';
+            return text.replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match]));
         }
 
+        function syncEmployeeName() {
+            const select = document.getElementById('requestEmployee');
+            const nameInput = document.getElementById('requestEmployeeName');
+            const match = employees.find(e => String(e.id) === select.value);
+            if (match && nameInput) {
+                nameInput.value = match.full_name || '';
+            }
+        }
+
+        function generateEmployeeNumber() {
+            const now = new Date();
+            return `EMP-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getTime()).slice(-4)}`;
+        }
+
+        // معالجة نماذج الموظفين
+        function resetEmployeeForm() {
+            document.getElementById('employeeId').value = '';
+            document.getElementById('employeeNumber').value = generateEmployeeNumber();
+            document.getElementById('employeeName').value = '';
+            document.getElementById('employeeEmail').value = '';
+            document.getElementById('employeePosition').value = '';
+            document.getElementById('employeeDepartment').value = '';
+            document.getElementById('hireDate').value = '';
+            document.getElementById('salary').value = '';
+            document.getElementById('employmentType').value = 'FULL_TIME';
+            document.getElementById('employeeActive').checked = true;
+            const entitySelect = document.getElementById('employeeEntity');
+            const options = getEntityOptions();
+            if (entitySelect && options.length) {
+                entitySelect.value = options[0].value;
+            }
+        }
+
+        async function handleEmployeeSubmit(event) {
+            event.preventDefault();
+            setStatus('جاري حفظ الموظف...', 'info');
+            const entityParts = (document.getElementById('employeeEntity').value || '').split('|');
+            const payload = {
+                employee_number: document.getElementById('employeeNumber').value.trim(),
+                full_name: document.getElementById('employeeName').value.trim(),
+                email: document.getElementById('employeeEmail').value.trim() || null,
+                position: document.getElementById('employeePosition').value.trim() || null,
+                department: document.getElementById('employeeDepartment').value.trim() || null,
+                assigned_entity_type: entityParts[0] || 'HQ',
+                hq_id: entityParts[0] === 'HQ' ? Number(entityParts[1]) || null : null,
+                branch_id: entityParts[0] === 'BRANCH' ? Number(entityParts[1]) || null : null,
+                incubator_id: entityParts[0] === 'INCUBATOR' ? Number(entityParts[1]) || null : null,
+                platform_id: entityParts[0] === 'PLATFORM' ? Number(entityParts[1]) || null : null,
+                office_id: entityParts[0] === 'OFFICE' ? Number(entityParts[1]) || null : null,
+                hire_date: document.getElementById('hireDate').value || null,
+                salary: document.getElementById('salary').value ? Number(document.getElementById('salary').value) : null,
+                employment_type: document.getElementById('employmentType').value || 'FULL_TIME',
+                is_active: document.getElementById('employeeActive').checked
+            };
+
+            const employeeId = document.getElementById('employeeId').value;
+            const method = employeeId ? 'PUT' : 'POST';
+            const url = employeeId ? `${API_BASE}/api/employees/${employeeId}` : `${API_BASE}/api/employees`;
+
+            const saved = await fetchJSON(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (employeeId) {
+                employees = employees.map(emp => String(emp.id) === String(employeeId) ? saved : emp);
+            } else {
+                employees = [saved, ...employees];
+            }
+
+            renderTables();
+            resetEmployeeForm();
+            setStatus('تم حفظ الموظف بنجاح', 'success');
+        }
+
+        function startEditEmployee(id) {
+            const cleanId = decodeURIComponent(id);
+            const employee = employees.find(e => String(e.id) === String(cleanId));
+            if (!employee) return;
+            document.getElementById('employeeId').value = employee.id;
+            document.getElementById('employeeNumber').value = employee.employee_number || '';
+            document.getElementById('employeeName').value = employee.full_name || '';
+            document.getElementById('employeeEmail').value = employee.email || '';
+            document.getElementById('employeePosition').value = employee.position || '';
+            document.getElementById('employeeDepartment').value = employee.department || '';
+            document.getElementById('hireDate').value = employee.hire_date ? employee.hire_date.slice(0, 10) : '';
+            document.getElementById('salary').value = employee.salary || '';
+            document.getElementById('employmentType').value = employee.employment_type || 'FULL_TIME';
+            document.getElementById('employeeActive').checked = employee.is_active !== false;
+
+            const entitySelect = document.getElementById('employeeEntity');
+            const entityValue = buildEntityValue(employee);
+            if (entitySelect && entityValue) {
+                entitySelect.value = entityValue;
+            }
+            scrollToSection('employeesForm');
+            setStatus('وضع التعديل مفعل للموظف المحدد', 'warning');
+        }
+
+        function buildEntityValue(employee) {
+            if (!employee) return null;
+            if (employee.assigned_entity_type === 'HQ' && employee.hq_id) return `HQ|${employee.hq_id}|${employee.entity_id || 'HQ001'}`;
+            if (employee.assigned_entity_type === 'BRANCH' && employee.branch_id) return `BRANCH|${employee.branch_id}|${employee.entity_id || 'BR001'}`;
+            if (employee.assigned_entity_type === 'INCUBATOR' && employee.incubator_id) return `INCUBATOR|${employee.incubator_id}|${employee.entity_id || 'INC001'}`;
+            if (employee.assigned_entity_type === 'PLATFORM' && employee.platform_id) return `PLATFORM|${employee.platform_id}|${employee.entity_id || 'PLT001'}`;
+            if (employee.assigned_entity_type === 'OFFICE' && employee.office_id) return `OFFICE|${employee.office_id}|${employee.entity_id || 'OFF001'}`;
+            return null;
+        }
+
+        async function deleteEmployee(id) {
+            const cleanId = decodeURIComponent(id);
+            if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) return;
+            await fetchJSON(`${API_BASE}/api/employees/${cleanId}`, { method: 'DELETE' });
+            employees = employees.filter(e => String(e.id) !== String(cleanId));
+            renderTables();
+            setStatus('تم حذف الموظف بنجاح', 'success');
+        }
+
+        // معالجة نماذج الطلبات
+        function resetRequestForm() {
+            document.getElementById('requestId').value = '';
+            document.getElementById('requestEmployee').value = '';
+            document.getElementById('requestEmployeeName').value = '';
+            document.getElementById('requestType').value = requestTypes[0]?.type_code || '';
+            document.getElementById('requestPriority').value = 'NORMAL';
+            document.getElementById('requestStatus').value = 'PENDING';
+            document.getElementById('requestTitle').value = '';
+            document.getElementById('requestedDate').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('requestRequiresApproval').checked = true;
+            document.getElementById('requestNotes').value = '';
+        }
+
+        async function handleRequestSubmit(event) {
+            event.preventDefault();
+            setStatus('جاري حفظ الطلب...', 'info');
+            const selectedEmployee = employees.find(e => String(e.id) === document.getElementById('requestEmployee').value);
+            const requestId = document.getElementById('requestId').value.trim() || `REQ-${Date.now()}`;
+            const existingRequest = requests.find(r => String(r.id) === requestId);
+            const payload = {
+                id: requestId,
+                entityId: selectedEmployee?.entity_id || existingRequest?.entity_id || 'HQ001',
+                employeeId: selectedEmployee?.id || null,
+                employeeName: document.getElementById('requestEmployeeName').value.trim() || selectedEmployee?.full_name || existingRequest?.employee_name || 'غير محدد',
+                requestType: document.getElementById('requestType').value,
+                requestTitle: document.getElementById('requestTitle').value.trim(),
+                description: document.getElementById('requestNotes').value.trim() || null,
+                status: document.getElementById('requestStatus').value,
+                priority: document.getElementById('requestPriority').value,
+                requestData: {},
+                requiresApproval: document.getElementById('requestRequiresApproval').checked,
+                requestedDate: document.getElementById('requestedDate').value || new Date().toISOString(),
+                startDate: document.getElementById('startDate').value || null,
+                endDate: document.getElementById('endDate').value || null,
+                notes: document.getElementById('requestNotes').value.trim() || null,
+                createdBy: 'hr-portal'
+            };
+
+            const existing = document.getElementById('requestId').value.trim();
+            const method = existing ? 'PUT' : 'POST';
+            const url = existing ? `${API_BASE}/api/employee-requests/${requestId}` : `${API_BASE}/api/employee-requests`;
+
+            const saved = await fetchJSON(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const stored = saved.request || saved;
+            if (existing) {
+                requests = requests.map(req => String(req.id) === requestId ? stored : req);
+            } else {
+                requests = [stored, ...requests];
+            }
+
+            renderTables();
+            resetRequestForm();
+            setStatus('تم حفظ الطلب بنجاح', 'success');
+        }
+
+        function startEditRequest(id) {
+            const cleanId = decodeURIComponent(id);
+            const request = requests.find(r => String(r.id) === String(cleanId));
+            if (!request) return;
+            document.getElementById('requestId').value = request.id;
+            document.getElementById('requestEmployee').value = request.employee_id || '';
+            document.getElementById('requestEmployeeName').value = request.employee_name || '';
+            document.getElementById('requestType').value = request.request_type || '';
+            document.getElementById('requestPriority').value = request.priority || 'NORMAL';
+            document.getElementById('requestStatus').value = request.status || 'PENDING';
+            document.getElementById('requestTitle').value = request.request_title || '';
+            document.getElementById('requestedDate').value = request.requested_date ? request.requested_date.slice(0, 10) : '';
+            document.getElementById('startDate').value = request.start_date ? request.start_date.slice(0, 10) : '';
+            document.getElementById('endDate').value = request.end_date ? request.end_date.slice(0, 10) : '';
+            document.getElementById('requestRequiresApproval').checked = request.requires_approval !== false;
+            document.getElementById('requestNotes').value = request.notes || request.description || '';
+            scrollToSection('requestForm');
+            setStatus('وضع التعديل مفعل للطلب المحدد', 'warning');
+        }
+
+        async function deleteRequest(id) {
+            const cleanId = decodeURIComponent(id);
+            if (!confirm('هل تريد حذف الطلب نهائياً؟')) return;
+            await fetchJSON(`${API_BASE}/api/employee-requests/${cleanId}`, { method: 'DELETE' });
+            requests = requests.filter(r => String(r.id) !== String(cleanId));
+            renderTables();
+            setStatus('تم حذف الطلب بنجاح', 'success');
+        }
+
+        // معالجة نماذج أنواع الطلبات
+        function resetTypeForm() {
+            document.getElementById('typeId').value = '';
+            document.getElementById('typeCode').value = '';
+            document.getElementById('typeNameAr').value = '';
+            document.getElementById('typeCategory').value = 'general';
+            document.getElementById('typeOrder').value = 0;
+            document.getElementById('typeActive').checked = true;
+            document.getElementById('typeNeedsApproval').checked = true;
+            document.getElementById('typeDescription').value = '';
+        }
+
+        async function handleTypeSubmit(event) {
+            event.preventDefault();
+            setStatus('جاري حفظ نوع الطلب...', 'info');
+            const payload = {
+                type_code: document.getElementById('typeCode').value.trim(),
+                type_name_ar: document.getElementById('typeNameAr').value.trim(),
+                category: document.getElementById('typeCategory').value,
+                description_ar: document.getElementById('typeDescription').value.trim() || null,
+                display_order: Number(document.getElementById('typeOrder').value) || 0,
+                is_active: document.getElementById('typeActive').checked,
+                requires_approval: document.getElementById('typeNeedsApproval').checked
+            };
+
+            const typeId = document.getElementById('typeId').value;
+            const method = typeId ? 'PUT' : 'POST';
+            const url = typeId ? `${API_BASE}/api/request-types/${typeId}` : `${API_BASE}/api/request-types`;
+
+            const saved = await fetchJSON(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const stored = saved.requestType || saved;
+            if (typeId) {
+                requestTypes = requestTypes.map(t => String(t.id) === String(typeId) ? stored : t);
+            } else {
+                requestTypes = [stored, ...requestTypes];
+            }
+
+            populateSelectors();
+            renderTables();
+            resetTypeForm();
+            setStatus('تم حفظ نوع الطلب بنجاح', 'success');
+        }
+
+        function startEditType(id) {
+            const cleanId = decodeURIComponent(id);
+            const type = requestTypes.find(t => String(t.id) === String(cleanId));
+            if (!type) return;
+            document.getElementById('typeId').value = type.id;
+            document.getElementById('typeCode').value = type.type_code || '';
+            document.getElementById('typeNameAr').value = type.type_name_ar || '';
+            document.getElementById('typeCategory').value = type.category || 'general';
+            document.getElementById('typeOrder').value = type.display_order || 0;
+            document.getElementById('typeActive').checked = type.is_active !== false;
+            document.getElementById('typeNeedsApproval').checked = type.requires_approval !== false;
+            document.getElementById('typeDescription').value = type.description_ar || '';
+            scrollToSection('typeForm');
+            setStatus('وضع التعديل مفعل لنوع الطلب المحدد', 'warning');
+        }
+
+        async function deleteType(id) {
+            const cleanId = decodeURIComponent(id);
+            if (!confirm('تأكيد حذف نوع الطلب؟')) return;
+            await fetchJSON(`${API_BASE}/api/request-types/${cleanId}`, { method: 'DELETE' });
+            requestTypes = requestTypes.filter(t => String(t.id) !== String(cleanId));
+            populateSelectors();
+            renderTables();
+            setStatus('تم حذف نوع الطلب بنجاح', 'success');
+        }
+
+        // المعاينة
+        function showPreview(type, id) {
+            const cleanId = decodeURIComponent(id);
+            let item = null;
+            let title = '';
+            if (type === 'employee') {
+                item = employees.find(e => String(e.id) === String(cleanId));
+                title = 'تفاصيل الموظف';
+            } else if (type === 'request') {
+                item = requests.find(r => String(r.id) === String(cleanId));
+                title = 'تفاصيل الطلب';
+            } else {
+                item = requestTypes.find(t => String(t.id) === String(cleanId));
+                title = 'تفاصيل نوع الطلب';
+            }
+            if (!item) return;
+
+            previewTitle.textContent = title;
+            previewBody.innerHTML = buildPreviewGrid(type, item);
+            previewPanel.classList.remove('hidden');
+            previewPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hidePreview() {
+            previewPanel.classList.add('hidden');
+        }
+
+        function buildPreviewGrid(type, item) {
+            if (type === 'employee') {
+                return renderPreviewRows([
+                    ['رقم الموظف', item.employee_number],
+                    ['الاسم', item.full_name],
+                    ['المنصب', item.position],
+                    ['القسم', item.department],
+                    ['المنشأة', item.entity_name || item.entity_id],
+                    ['تاريخ التعيين', formatDate(item.hire_date)],
+                    ['نوع التوظيف', translateEmploymentType(item.employment_type)],
+                    ['الحالة', item.is_active ? 'نشط' : 'غير نشط']
+                ]);
+            }
+            if (type === 'request') {
+                return renderPreviewRows([
+                    ['رقم الطلب', item.id],
+                    ['الموظف', item.employee_name || item.employee_id],
+                    ['نوع الطلب', resolveRequestTypeName(item.request_type)],
+                    ['العنوان', item.request_title],
+                    ['الأولوية', translatePriority(item.priority)],
+                    ['الحالة', normalizeStatus(item.status)],
+                    ['تاريخ الطلب', formatDate(item.requested_date)],
+                    ['من', formatDate(item.start_date)],
+                    ['إلى', formatDate(item.end_date)],
+                    ['ملاحظات', item.notes || item.description]
+                ]);
+            }
+            return renderPreviewRows([
+                ['الاسم', item.type_name_ar],
+                ['الكود', item.type_code],
+                ['الفئة', translateCategory(item.category)],
+                ['الوصف', item.description_ar],
+                ['يحتاج موافقة', item.requires_approval ? 'نعم' : 'لا'],
+                ['نشط', item.is_active ? 'نعم' : 'لا']
+            ]);
+        }
+
+        function renderPreviewRows(rows) {
+            return rows.map(([label, value]) => `
+                <div class="bg-slate-50 rounded-2xl p-3">
+                    <div class="text-xs text-slate-500">${sanitizeText(label)}</div>
+                    <div class="text-sm font-semibold text-slate-800">${sanitizeText(value ?? '-')}</div>
+                </div>
+            `).join('');
+        }
+
+        // أدوات متنوعة
         function downloadAllJSON() {
             const payload = { employees, requests, request_types: requestTypes };
             downloadBlob(JSON.stringify(payload, null, 2), 'بوابة-العمليات-والطلبات.json', 'application/json');
@@ -537,11 +1351,11 @@
             rows.push(['رقم الموظف','الاسم','البريد','المنصب','القسم','المنشأة','تاريخ التعيين','الراتب','نوع التوظيف','الحالة']);
             employees.forEach(e => rows.push([
                 e.employee_number || e.id,
-                sanitizeText(e.full_name),
-                sanitizeText(e.email),
-                sanitizeText(e.position),
-                sanitizeText(e.department),
-                sanitizeText(e.entity_name || e.entity_id),
+                e.full_name,
+                e.email,
+                e.position,
+                e.department,
+                e.entity_name || e.entity_id,
                 e.hire_date,
                 e.salary,
                 translateEmploymentType(e.employment_type),
@@ -553,14 +1367,14 @@
             rows.push(['رقم الطلب','الموظف','نوع الطلب','العنوان','الأولوية','الحالة','تاريخ الطلب','الموافقة مطلوبة','ملاحظات','تاريخ الإنشاء']);
             requests.forEach(r => rows.push([
                 r.id,
-                sanitizeText(r.employee_name || r.employee_id),
+                r.employee_name || r.employee_id,
                 resolveRequestTypeName(r.request_type),
-                sanitizeText(r.request_title),
+                r.request_title,
                 translatePriority(r.priority),
                 normalizeStatus(r.status),
                 r.requested_date,
                 r.requires_approval ? 'نعم' : 'لا',
-                sanitizeText(r.notes),
+                r.notes || r.description,
                 r.created_at
             ]));
 
@@ -569,9 +1383,9 @@
             rows.push(['رقم النوع','الاسم','الفئة','الوصف','يتطلب موافقة','يتطلب مدير','يتطلب موارد بشرية','الحالة']);
             requestTypes.forEach(t => rows.push([
                 t.id,
-                sanitizeText(t.type_name_ar),
+                t.type_name_ar,
                 translateCategory(t.category),
-                sanitizeText(t.description_ar),
+                t.description_ar,
                 t.requires_approval ? 'نعم' : 'لا',
                 t.requires_manager_approval ? 'نعم' : 'لا',
                 t.requires_hr_approval ? 'نعم' : 'لا',
@@ -600,7 +1414,12 @@
             loadData();
         }
 
-        document.addEventListener('DOMContentLoaded', loadData);
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
     </script>
 </body>
 </html>

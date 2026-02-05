@@ -1153,6 +1153,10 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-operations-sop-finance-api\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node test-admin-erp-hr-api\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
