@@ -25,21 +25,21 @@ const getEntityFilter = (userEntity, tableAlias = '') => {
   return `${alias}entity_id = '${userEntity.id}'`;
 };
 
-// Generate Next Number Helper
+// Generate Next Number Helper (tolerant to mixed formats like JE-<timestamp>-xyz)
 const generateNextNumber = async (prefix, table, column) => {
   const result = await db.query(
     `SELECT ${column} FROM ${table} WHERE ${column} LIKE $1 ORDER BY ${column} DESC LIMIT 1`,
     [`${prefix}%`]
   );
-  
-  if (result.rows.length === 0) {
-    return `${prefix}0001`;
-  }
-  
-  const lastNumber = result.rows[0][column];
-  const numPart = parseInt(lastNumber.replace(prefix, ''));
-  const nextNum = numPart + 1;
-  return `${prefix}${nextNum.toString().padStart(4, '0')}`;
+
+  const lastNumber = result.rows[0]?.[column] || '';
+  const numericMatches = String(lastNumber).match(/\d+/g) || [];
+  const lastNumeric = numericMatches.length ? parseInt(numericMatches[numericMatches.length - 1], 10) || 0 : 0;
+  const nextNum = lastNumeric + 1;
+  const separator = prefix.endsWith('-') ? '' : '-';
+  const padded = nextNum < 10000 ? nextNum.toString().padStart(4, '0') : String(nextNum);
+
+  return `${prefix}${separator}${padded}`;
 };
 
 // ========================================
