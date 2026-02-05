@@ -1008,13 +1008,17 @@
         async function loadData() {
             try {
                 const [invoiceRes, paymentRes, expenseRes, assetRes, planRes, entryRes] = await Promise.all([
-                    fetch(`${API_BASE}/finance/invoices`),
-                    fetch(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/expenses?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/fixed-assets?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
-                    fetch(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`)
+                    fetchWithEntity(`${API_BASE}/finance/invoices?entity_id=${ENTITY_ID}`),
+                    fetchWithEntity(`${API_BASE}/finance/payments?entity_id=${ENTITY_ID}`),
+                    fetchWithEntity(`${API_BASE}/finance/expenses?entity_id=${ENTITY_ID}`),
+                    fetchWithEntity(`${API_BASE}/finance/fixed-assets?entity_id=${ENTITY_ID}`),
+                    fetchWithEntity(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
+                    fetchWithEntity(`${API_BASE}/finance/journal/entries?entity_id=${ENTITY_ID}`)
                 ]);
+
+                [invoiceRes, paymentRes, expenseRes, assetRes, planRes, entryRes].forEach(res => {
+                    if (!res.ok) throw new Error(`فشل تحميل: ${res.url} (${res.status})`);
+                });
 
                 const [invoiceData, paymentData, expenseData, assetData, planData, entryData] = await Promise.all([
                     invoiceRes.json(),
@@ -1040,7 +1044,23 @@
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
                 showToast('تعذر تحميل البيانات');
+                setTablesMessage('تعذر تحميل البيانات، أعد المحاولة');
             }
+        }
+
+        function fetchWithEntity(url, options = {}) {
+            const headers = Object.assign({}, options.headers || {}, {
+                'x-entity-id': ENTITY_ID,
+                'x-entity-type': 'HQ'
+            });
+            return fetch(url, { ...options, headers });
+        }
+
+        function setTablesMessage(message) {
+            document.getElementById('invoicesTable').innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-rose-600 font-bold">${message}</td></tr>`;
+            document.getElementById('paymentsTable').innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-rose-600 font-bold">${message}</td></tr>`;
+            document.getElementById('expensesTable').innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-rose-600 font-bold">${message}</td></tr>`;
+            document.getElementById('assetsTable').innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-rose-600 font-bold">${message}</td></tr>`;
         }
 
         function renderStats() {
