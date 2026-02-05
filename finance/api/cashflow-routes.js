@@ -9,10 +9,65 @@ const normalizeSignedAmount = (amount, direction) => {
   return direction.toUpperCase() === 'OUT' ? -Math.abs(numeric) : Math.abs(numeric);
 };
 
+const summarizeFlows = (rows = []) => {
+  return rows.reduce(
+    (acc, row) => {
+      const amt = parseFloat(row.amount || 0);
+      if (Number.isNaN(amt)) return acc;
+      if (amt >= 0) {
+        acc.inflow += amt;
+      } else {
+        acc.outflow += Math.abs(amt);
+      }
+      acc.net = acc.inflow - acc.outflow;
+      return acc;
+    },
+    { inflow: 0, outflow: 0, net: 0 }
+  );
+};
+
 // ========================================
 // CASHFLOW APIs - الصفحة 1
 // ========================================
 // تطبيق التدفقات الثلاثة + التوقعات AI
+
+// نظرة شاملة للتدفق النقدي (تشغيلي + استثماري + تمويلي)
+router.get('/overview', async (req, res) => {
+  const entityId = req.query.entity_id || req.headers['x-entity-id'] || 'HQ001';
+
+  try {
+    const [operating, investing, financing] = await Promise.all([
+      db.query('SELECT * FROM finance_cashflow_operating WHERE entity_id = $1 ORDER BY flow_date DESC', [entityId]),
+      db.query('SELECT * FROM finance_cashflow_investing WHERE entity_id = $1 ORDER BY flow_date DESC', [entityId]),
+      db.query('SELECT * FROM finance_cashflow_financing WHERE entity_id = $1 ORDER BY flow_date DESC', [entityId])
+    ]);
+
+    const opSummary = summarizeFlows(operating.rows);
+    const invSummary = summarizeFlows(investing.rows);
+    const finSummary = summarizeFlows(financing.rows);
+
+    const totalNet = opSummary.net + invSummary.net + finSummary.net;
+
+    res.json({
+      success: true,
+      entity_id: entityId,
+      generated_at: new Date().toISOString(),
+      rows: operating.rows.length + investing.rows.length + financing.rows.length,
+      operating: opSummary,
+      investing: invSummary,
+      financing: finSummary,
+      total_net_cashflow: totalNet,
+      cashflows: {
+        operating: operating.rows,
+        investing: investing.rows,
+        financing: financing.rows
+      }
+    });
+  } catch (error) {
+    console.error('Error building cashflow overview:', error);
+    res.status(500).json({ success: false, error: error.message || 'فشل في جلب ملخص التدفق النقدي' });
+  }
+});
 
 // Helper function for entity filter
 const getEntityFilter = (userEntity, tableAlias = '') => {

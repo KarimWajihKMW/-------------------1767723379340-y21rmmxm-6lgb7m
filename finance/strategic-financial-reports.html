@@ -60,6 +60,22 @@
                 <i class="fas fa-copy"></i>
                 نسخ ملخص التقارير
             </button>
+            <button onclick="openCreateInvoice()" class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i>
+                إضافة فاتورة
+            </button>
+            <button onclick="openCreateRisk()" class="bg-indigo-700 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-shield-heart"></i>
+                إضافة تقييم مخاطر
+            </button>
+            <button onclick="openCreateForecast()" class="bg-fuchsia-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                إضافة توقع ذكي
+            </button>
+            <button onclick="openCreateCashflow()" class="bg-slate-900 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-water"></i>
+                إضافة حركة نقدية
+            </button>
         </div>
 
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
@@ -849,6 +865,300 @@
             const overlay = document.getElementById('modalOverlay');
             overlay.classList.add('hidden');
             overlay.classList.remove('flex');
+        }
+
+        function openCreateInvoice() {
+            const today = new Date().toISOString().slice(0, 10);
+            const due = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+            const customerOptions = store.customers.map(c => `<option value="${c.customer_id}">${sanitizeText(c.customer_name_ar || c.customer_name)} (${sanitizeText(c.customer_code || '')})</option>`).join('');
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">العميل</label>
+                        <select id="createInvoiceCustomer" class="w-full border rounded-xl p-2">${customerOptions}</select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ الفاتورة</label>
+                        <input id="createInvoiceDate" type="date" class="w-full border rounded-xl p-2" value="${today}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ الاستحقاق</label>
+                        <input id="createInvoiceDue" type="date" class="w-full border rounded-xl p-2" value="${due}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">اسم الخدمة/البرنامج</label>
+                        <input id="createInvoiceItem" type="text" class="w-full border rounded-xl p-2" placeholder="مثال: اشتراك منصة">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">الكمية</label>
+                        <input id="createInvoiceQty" type="number" step="1" min="1" class="w-full border rounded-xl p-2" value="1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">سعر الوحدة</label>
+                        <input id="createInvoicePrice" type="number" step="0.01" class="w-full border rounded-xl p-2" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">ضريبة %</label>
+                        <input id="createInvoiceTax" type="number" step="0.1" class="w-full border rounded-xl p-2" value="15">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">نسبة الخصم %</label>
+                        <input id="createInvoiceDiscount" type="number" step="0.1" class="w-full border rounded-xl p-2" value="0">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">ملاحظات</label>
+                        <textarea id="createInvoiceNotes" class="w-full border rounded-xl p-2" rows="2" placeholder="تفاصيل إضافية"></textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="createInvoice()" class="px-4 py-2 rounded-full bg-green-600 text-white">حفظ الفاتورة</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('إضافة فاتورة جديدة', body, actions);
+        }
+
+        async function createInvoice() {
+            const customerId = document.getElementById('createInvoiceCustomer').value;
+            if (!customerId) {
+                alert('يرجى اختيار عميل أولاً');
+                return;
+            }
+            const payload = {
+                customer_id: customerId,
+                invoice_date: document.getElementById('createInvoiceDate').value,
+                due_date: document.getElementById('createInvoiceDue').value,
+                entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ',
+                entity_id: window.getFinanceEntityId ? window.getFinanceEntityId() : ENTITY_ID,
+                notes: document.getElementById('createInvoiceNotes').value,
+                lines: [
+                    {
+                        item_name: document.getElementById('createInvoiceItem').value || 'خدمة عامة',
+                        quantity: parseFloat(document.getElementById('createInvoiceQty').value || 1),
+                        unit_price: parseFloat(document.getElementById('createInvoicePrice').value || 0),
+                        tax_percentage: parseFloat(document.getElementById('createInvoiceTax').value || 0),
+                        discount_percentage: parseFloat(document.getElementById('createInvoiceDiscount').value || 0)
+                    }
+                ]
+            };
+
+            const res = await fetch(`${API_BASE}/finance/invoices`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر إنشاء الفاتورة: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
+        }
+
+        function openCreateRisk() {
+            const today = new Date().toISOString().slice(0, 10);
+            const customerOptions = store.customers.map(c => `<option value="${c.customer_id}">${sanitizeText(c.customer_name_ar || c.customer_name)}</option>`).join('');
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">العميل</label>
+                        <select id="createRiskCustomer" class="w-full border rounded-xl p-2">${customerOptions}</select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ التقييم</label>
+                        <input id="createRiskDate" type="date" class="w-full border rounded-xl p-2" value="${today}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">درجة المخاطرة</label>
+                        <input id="createRiskScore" type="number" step="0.1" class="w-full border rounded-xl p-2" value="50">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">المستوى</label>
+                        <select id="createRiskLevel" class="w-full border rounded-xl p-2">
+                            ${renderOptions(['LOW','MEDIUM','HIGH','CRITICAL'],'MEDIUM')}
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">التوصيات</label>
+                        <textarea id="createRiskNotes" class="w-full border rounded-xl p-2" rows="2" placeholder="خطوات المتابعة"></textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="createRisk()" class="px-4 py-2 rounded-full bg-indigo-700 text-white">حفظ التقييم</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('إضافة تقييم مخاطر', body, actions);
+        }
+
+        async function createRisk() {
+            const customerId = document.getElementById('createRiskCustomer').value;
+            if (!customerId) {
+                alert('يرجى اختيار عميل أولاً');
+                return;
+            }
+            const payload = {
+                entity_id: window.getFinanceEntityId ? window.getFinanceEntityId() : ENTITY_ID,
+                entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ',
+                customer_id: customerId,
+                assessment_date: document.getElementById('createRiskDate').value,
+                risk_score: parseFloat(document.getElementById('createRiskScore').value || 0),
+                risk_level: document.getElementById('createRiskLevel').value,
+                recommendations: document.getElementById('createRiskNotes').value || null,
+                suggested_actions: []
+            };
+
+            const res = await fetch(`${API_BASE}/finance/ai-risk-scores`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر إنشاء التقييم: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
+        }
+
+        function openCreateForecast() {
+            const period = new Date().toISOString().slice(0, 7);
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">فترة التوقع</label>
+                        <input id="createForecastPeriod" type="text" class="w-full border rounded-xl p-2" value="${period}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">نوع التوقع</label>
+                        <input id="createForecastType" type="text" class="w-full border rounded-xl p-2" value="revenue">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">قيمة التوقع</label>
+                        <input id="createForecastAmount" type="number" step="0.01" class="w-full border rounded-xl p-2" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">نسبة الثقة</label>
+                        <input id="createForecastConfidence" type="number" step="0.01" class="w-full border rounded-xl p-2" placeholder="0.85">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">النموذج/المصدر</label>
+                        <input id="createForecastModel" type="text" class="w-full border rounded-xl p-2" placeholder="v1.0-smart">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">ملاحظات ذكاء</label>
+                        <textarea id="createForecastNotes" class="w-full border rounded-xl p-2" rows="2" placeholder="شرح مختصر"></textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="createForecast()" class="px-4 py-2 rounded-full bg-fuchsia-600 text-white">حفظ التوقع</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('إضافة توقع ذكي', body, actions);
+        }
+
+        async function createForecast() {
+            const payload = {
+                entity_id: window.getFinanceEntityId ? window.getFinanceEntityId() : ENTITY_ID,
+                forecast_period: document.getElementById('createForecastPeriod').value,
+                forecast_type: document.getElementById('createForecastType').value,
+                forecast_amount: parseFloat(document.getElementById('createForecastAmount').value || 0),
+                confidence_level: document.getElementById('createForecastConfidence').value || null,
+                ai_model: document.getElementById('createForecastModel').value || null,
+                ai_insights: { notes: document.getElementById('createForecastNotes').value || '' }
+            };
+
+            if (Number.isNaN(payload.forecast_amount)) {
+                alert('قيمة التوقع يجب أن تكون رقمية');
+                return;
+            }
+
+            const res = await fetch(`${API_BASE}/finance/ai-forecasts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر إنشاء التوقع: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
+        }
+
+        function openCreateCashflow() {
+            const today = new Date().toISOString().slice(0, 10);
+            const body = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-500">تاريخ الحركة</label>
+                        <input id="createCashflowDate" type="date" class="w-full border rounded-xl p-2" value="${today}">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">نوع الحركة</label>
+                        <select id="createCashflowType" class="w-full border rounded-xl p-2">
+                            <option value="customer_collection">تحصيل من عملاء</option>
+                            <option value="vendor_payment">سداد موردين</option>
+                            <option value="salary_payment">رواتب</option>
+                            <option value="rent_payment">إيجار / مصاريف تشغيل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">الاتجاه</label>
+                        <select id="createCashflowDir" class="w-full border rounded-xl p-2">
+                            <option value="IN">تدفق داخل</option>
+                            <option value="OUT">تدفق خارج</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">القيمة</label>
+                        <input id="createCashflowAmount" type="number" step="0.01" class="w-full border rounded-xl p-2" placeholder="0.00">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-slate-500">وصف مختصر</label>
+                        <textarea id="createCashflowDesc" class="w-full border rounded-xl p-2" rows="2" placeholder="مثال: دفعة إيجار أو تحصيل عميل"></textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="createCashflow()" class="px-4 py-2 rounded-full bg-slate-900 text-white">حفظ الحركة</button>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-full bg-slate-200">إلغاء</button>
+            `;
+            openModal('إضافة حركة نقدية تشغيلية', body, actions);
+        }
+
+        async function createCashflow() {
+            const payload = {
+                flow_date: document.getElementById('createCashflowDate').value,
+                flow_type: document.getElementById('createCashflowType').value,
+                flow_direction: document.getElementById('createCashflowDir').value,
+                amount: parseFloat(document.getElementById('createCashflowAmount').value || 0),
+                description: document.getElementById('createCashflowDesc').value,
+                entity_type: window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ',
+                entity_id: window.getFinanceEntityId ? window.getFinanceEntityId() : ENTITY_ID
+            };
+
+            if (Number.isNaN(payload.amount)) {
+                alert('القيمة يجب أن تكون رقمية');
+                return;
+            }
+
+            const res = await fetch(`${API_BASE}/finance/cashflow/operating`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...CONTEXT_HEADERS },
+                body: JSON.stringify(payload)
+            });
+            const data = await safeJson(res);
+            if (!res.ok) {
+                alert(`تعذر إضافة الحركة: ${data.error || 'خطأ غير معروف'}`);
+                return;
+            }
+            closeModal();
+            await loadData();
         }
 
         function renderInvoiceActions(inv) {
