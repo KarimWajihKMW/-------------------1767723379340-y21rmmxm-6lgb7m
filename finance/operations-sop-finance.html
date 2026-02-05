@@ -559,8 +559,14 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const API_BASE = window.location.origin;
-        const ENTITY_ID = 'HQ001';
+        // Use live API host when the page is served from a different origin (e.g., static hosting)
+        const API_BASE = (window.API_BASE || '').trim() ||
+            (window.location.origin && window.location.origin.includes('localhost')
+                ? window.location.origin
+                : 'https://super-cmk2wuy9-production.up.railway.app');
+
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const ENTITY_TYPE = window.getFinanceEntityType ? window.getFinanceEntityType() : 'HQ';
 
         let store = {
             invoices: [],
@@ -1051,7 +1057,7 @@
         function fetchWithEntity(url, options = {}) {
             const headers = Object.assign({}, options.headers || {}, {
                 'x-entity-id': ENTITY_ID,
-                'x-entity-type': 'HQ'
+                'x-entity-type': ENTITY_TYPE
             });
             return fetch(url, { ...options, headers });
         }
