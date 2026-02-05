@@ -279,7 +279,8 @@
                     paymentsRes.json()
                 ]);
 
-                customers = customersData.customers || customersData.rows || customersData.data || [];
+                customers = (customersData.customers || customersData.rows || customersData.data || [])
+                    .filter(c => c.is_active !== false);
                 invoices = invoicesData.invoices || [];
                 payments = paymentsData.payments || [];
 
@@ -314,6 +315,7 @@
         function buildAgencies() {
             const agencyMap = new Map();
             customers.forEach(c => {
+                if (c.is_active === false) return;
                 const key = String(c.customer_id || c.customer_code || Math.random().toString(36).slice(2, 8));
                 agencyMap.set(key, {
                     id: key,

@@ -144,13 +144,10 @@ async function createCustomer(req, res) {
         });
     }
 
-    try {
-        const generatedCode = customer_code && customer_code.trim().length
-            ? customer_code.trim()
-            : await generateNextNumber('CUST');
+    const normalizedRiskFactors = normalizeRiskFactors(risk_factors);
 
-        const normalizedRiskFactors = normalizeRiskFactors(risk_factors);
-        const result = await pool.query(
+    const insertOnce = async (code) => {
+        return pool.query(
             `INSERT INTO finance_customers
              (customer_code, customer_name_ar, customer_name_en, customer_type, email, phone, mobile, address, city, country,
               tax_number, commercial_registration, credit_limit, credit_period_days, payment_terms, risk_score, risk_level,
@@ -158,7 +155,7 @@ async function createCustomer(req, res) {
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,NOW(),NOW(),$23)
              RETURNING *`,
             [
-                generatedCode,
+                code,
                 customer_name_ar,
                 customer_name_en || null,
                 customer_type || 'COMPANY',
@@ -183,6 +180,33 @@ async function createCustomer(req, res) {
                 'SYSTEM'
             ]
         );
+    };
+
+    try {
+        let result;
+        let lastError;
+
+        const candidates = [];
+        if (customer_code && customer_code.trim().length) {
+            candidates.push(customer_code.trim());
+        }
+        candidates.push(await generateNextNumber('CUST'));
+        candidates.push(`CUST-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
+
+        for (const code of candidates) {
+            try {
+                result = await insertOnce(code);
+                break;
+            } catch (err) {
+                lastError = err;
+                if (err.code === '23505') continue;
+                throw err;
+            }
+        }
+
+        if (!result) {
+            throw lastError;
+        }
 
         res.json({ success: true, customer: result.rows[0] });
     } catch (error) {
