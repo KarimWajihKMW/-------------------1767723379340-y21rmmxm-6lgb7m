@@ -60,6 +60,21 @@
             </button>
         </div>
 
+        <div class="mb-6 flex flex-wrap gap-3">
+            <button onclick="openRiskForm()" class="bg-sky-700 text-white px-5 py-2 rounded-xl font-semibold shadow hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-shield"></i>
+                إضافة تقييم مخاطر
+            </button>
+            <button onclick="openPlanForm()" class="bg-indigo-700 text-white px-5 py-2 rounded-xl font-semibold shadow hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-calendar-plus"></i>
+                إضافة خطة سداد
+            </button>
+            <button onclick="openPaymentForm()" class="bg-emerald-700 text-white px-5 py-2 rounded-xl font-semibold shadow hover:shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-money-bill"></i>
+                تسجيل دفعة جديدة
+            </button>
+        </div>
+
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <h2 class="text-2xl font-bold text-slate-800">✅ خطوة 2: نموذج مخاطر التعثر لكل عميل</h2>
@@ -230,10 +245,11 @@
                             <th class="px-3 py-2 text-right">مستوى المخاطرة</th>
                             <th class="px-3 py-2 text-right">التوصيات</th>
                             <th class="px-3 py-2 text-right">تاريخ التقييم</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="riskTable" class="divide-y divide-slate-100">
-                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                        <tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -254,10 +270,11 @@
                             <th class="px-3 py-2 text-right">درجة المخاطرة</th>
                             <th class="px-3 py-2 text-right">الخطة المقترحة</th>
                             <th class="px-3 py-2 text-right">بداية الخطة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="plansTable" class="divide-y divide-slate-100">
-                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                        <tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -278,19 +295,212 @@
                             <th class="px-3 py-2 text-right">تاريخ الدفعة</th>
                             <th class="px-3 py-2 text-right">الفرع</th>
                             <th class="px-3 py-2 text-right">الحالة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="paymentsTable" class="divide-y divide-slate-100">
-                        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                        <tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <!-- نوافذ التحكم السريعة -->
+    <div id="riskModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">إدارة تقييم مخاطر</h3>
+                <button onclick="toggleModal('riskModal', false)" class="text-slate-500 hover:text-rose-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="riskForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitRiskForm(event)">
+                <input type="hidden" id="riskId" />
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">رقم العميل</span>
+                    <input id="riskCustomerId" type="number" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">تاريخ التقييم</span>
+                    <input id="riskDate" type="date" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">درجة المخاطرة</span>
+                    <input id="riskScore" type="number" step="0.1" min="0" max="100" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">مستوى المخاطرة</span>
+                    <select id="riskLevel" class="w-full border rounded-lg px-3 py-2" required>
+                        <option value="LOW">منخفض</option>
+                        <option value="MEDIUM">متوسط</option>
+                        <option value="HIGH">مرتفع</option>
+                        <option value="CRITICAL">حرج</option>
+                    </select>
+                </label>
+                <label class="space-y-1 md:col-span-2">
+                    <span class="text-sm text-slate-600">التوصيات</span>
+                    <textarea id="riskNotes" rows="3" class="w-full border rounded-lg px-3 py-2"></textarea>
+                </label>
+                <label class="space-y-1 md:col-span-2">
+                    <span class="text-sm text-slate-600">عوامل المخاطرة (JSON اختياري)</span>
+                    <textarea id="riskFactors" rows="3" class="w-full border rounded-lg px-3 py-2" placeholder='{"late_payments":2}'></textarea>
+                </label>
+                <div class="md:col-span-2 flex justify-end gap-3">
+                    <button type="button" onclick="toggleModal('riskModal', false)" class="px-4 py-2 rounded-lg border text-slate-700">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-sky-700 text-white font-semibold">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="planModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">إدارة خطة سداد</h3>
+                <button onclick="toggleModal('planModal', false)" class="text-slate-500 hover:text-rose-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="planForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitPlanForm(event)">
+                <input type="hidden" id="planId" />
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">رقم الخطة</span>
+                    <input id="planNumber" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">الفاتورة المرتبطة</span>
+                    <select id="planInvoice" class="w-full border rounded-lg px-3 py-2" onchange="onInvoiceChange()" required></select>
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">رقم العميل</span>
+                    <input id="planCustomer" class="w-full border rounded-lg px-3 py-2" readonly />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">المبلغ الكلي</span>
+                    <input id="planTotal" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">المبلغ المتبقي</span>
+                    <input id="planRemaining" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">عدد الدفعات</span>
+                    <input id="planInstallments" type="number" min="1" class="w-full border rounded-lg px-3 py-2" onchange="recalcInstallmentAmount()" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">قيمة الدفعة</span>
+                    <input id="planInstallmentAmount" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">تاريخ بداية الخطة</span>
+                    <input id="planStart" type="date" class="w-full border rounded-lg px-3 py-2" onchange="recalcEndDate()" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">تاريخ نهاية الخطة</span>
+                    <input id="planEnd" type="date" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">حالة الخطة</span>
+                    <select id="planStatus" class="w-full border rounded-lg px-3 py-2" required>
+                        <option value="active">نشطة</option>
+                        <option value="in_progress">قيد التنفيذ</option>
+                        <option value="completed">مكتملة</option>
+                        <option value="overdue">متأخرة</option>
+                        <option value="paused">متوقفة</option>
+                    </select>
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">درجة المخاطرة عند الإنشاء</span>
+                    <input id="planRiskScore" type="number" step="0.1" min="0" max="100" class="w-full border rounded-lg px-3 py-2" />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">مستوى المخاطرة</span>
+                    <select id="planRiskLevel" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">—</option>
+                        <option value="LOW">منخفض</option>
+                        <option value="MEDIUM">متوسط</option>
+                        <option value="HIGH">مرتفع</option>
+                        <option value="CRITICAL">حرج</option>
+                    </select>
+                </label>
+                <div class="md:col-span-2 flex justify-end gap-3">
+                    <button type="button" onclick="toggleModal('planModal', false)" class="px-4 py-2 rounded-lg border text-slate-700">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-indigo-700 text-white font-semibold">حفظ الخطة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">تسجيل دفعة</h3>
+                <button onclick="toggleModal('paymentModal', false)" class="text-slate-500 hover:text-rose-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="paymentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitPaymentForm(event)">
+                <input type="hidden" id="paymentId" />
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">رقم الدفعة</span>
+                    <input id="paymentNumber" class="w-full border rounded-lg px-3 py-2" />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">تاريخ الدفعة</span>
+                    <input id="paymentDate" type="date" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">الفاتورة (اختياري لربط التحصيل)</span>
+                    <select id="paymentInvoice" class="w-full border rounded-lg px-3 py-2" onchange="onPaymentInvoiceChange()">
+                        <option value="">—</option>
+                    </select>
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">رقم العميل</span>
+                    <input id="paymentCustomer" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">قيمة الدفعة</span>
+                    <input id="paymentAmount" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" required />
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">طريقة الدفع</span>
+                    <select id="paymentMethod" class="w-full border rounded-lg px-3 py-2" required>
+                        <option value="BANK_TRANSFER">حوالة بنكية</option>
+                        <option value="CARD">بطاقة</option>
+                        <option value="CASH">نقدي</option>
+                        <option value="CHEQUE">شيك</option>
+                    </select>
+                </label>
+                <label class="space-y-1">
+                    <span class="text-sm text-slate-600">حالة الدفعة</span>
+                    <select id="paymentStatus" class="w-full border rounded-lg px-3 py-2" required>
+                        <option value="COMPLETED">مكتملة</option>
+                        <option value="PENDING">قيد المراجعة</option>
+                        <option value="FAILED">فاشلة</option>
+                    </select>
+                </label>
+                <label class="space-y-1 md:col-span-2">
+                    <span class="text-sm text-slate-600">ملاحظات</span>
+                    <textarea id="paymentNotes" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea>
+                </label>
+                <div class="md:col-span-2 flex justify-end gap-3">
+                    <button type="button" onclick="toggleModal('paymentModal', false)" class="px-4 py-2 rounded-lg border text-slate-700">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-700 text-white font-semibold">حفظ الدفعة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="infoModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-800" id="infoTitle">تفاصيل</h3>
+                <button onclick="toggleModal('infoModal', false)" class="text-slate-500 hover:text-rose-600"><i class="fas fa-times"></i></button>
+            </div>
+            <pre id="infoBody" class="bg-slate-50 border rounded-xl p-4 text-sm overflow-auto max-h-[400px]"></pre>
+        </div>
+    </div>
+
     <script>
         const API_BASE = window.location.origin;
-        const ENTITY_ID = '1';
+        const ENTITY_ID = window.getFinanceEntityId ? window.getFinanceEntityId() : 'HQ001';
+        const ENTITY_PARAM = encodeURIComponent(ENTITY_ID);
 
         let store = {
             invoices: [],
@@ -300,6 +510,11 @@
             forecasts: []
         };
 
+        let lastSuggestedPlans = [];
+        let currentPlanId = null;
+        let currentRiskId = null;
+        let currentPaymentId = null;
+
         let riskChartInstance = null;
         let paymentsChartInstance = null;
 
@@ -307,7 +522,7 @@
             try {
                 const [invoiceRes, paymentRes, planRes, riskRes, forecastRes] = await Promise.all([
                     fetch(`${API_BASE}/finance/invoices`),
-                    fetch(`${API_BASE}/finance/payments`),
+                    fetch(`${API_BASE}/finance/payments?entity_id=${ENTITY_PARAM}`),
                     fetch(`${API_BASE}/finance/payment-plans?entity_id=${ENTITY_ID}`),
                     fetch(`${API_BASE}/finance/ai-risk-scores?entity_id=${ENTITY_ID}`),
                     fetch(`${API_BASE}/finance/ai-forecasts?entity_id=${ENTITY_ID}`)
@@ -326,6 +541,8 @@
                 store.plans = planData.plans || [];
                 store.risks = riskData.rows || [];
                 store.forecasts = forecastData.forecasts || [];
+
+                populateInvoiceSelects();
 
                 renderStats();
                 renderInsights();
@@ -366,36 +583,70 @@
                     <td class="px-3 py-2">${translateRiskLevel(r.risk_level)}</td>
                     <td class="px-3 py-2">${truncate(sanitizeText(r.recommendations))}</td>
                     <td class="px-3 py-2">${formatDate(r.assessment_date)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="text-xs px-3 py-1 rounded-full bg-slate-100" onclick="viewRisk(${r.risk_id})">معاينة</button>
+                            <button class="text-xs px-3 py-1 rounded-full bg-sky-600 text-white" onclick="openRiskForm(${r.risk_id})">تعديل</button>
+                            <button class="text-xs px-3 py-1 rounded-full bg-rose-600 text-white" onclick="deleteRisk(${r.risk_id})">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
-            document.getElementById('riskTable').innerHTML = riskRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('riskTable').innerHTML = riskRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('riskTableCount').textContent = `عدد الصفوف: ${store.risks.length}`;
 
-            const suggestedPlans = buildSuggestedPlans();
-            const planRows = suggestedPlans.map(p => `
-                <tr class="hover:bg-indigo-50">
-                    <td class="px-3 py-2">${sanitizeText(p.invoice_number)}</td>
-                    <td class="px-3 py-2">${sanitizeText(p.customer_name)}</td>
-                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(p.remaining_amount)}</td>
-                    <td class="px-3 py-2">${formatPercent(p.risk_score)}</td>
-                    <td class="px-3 py-2">${p.plan_text}</td>
-                    <td class="px-3 py-2">${p.start_date}</td>
-                </tr>
-            `).join('');
-            document.getElementById('plansTable').innerHTML = planRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
-            document.getElementById('plansTableCount').textContent = `عدد الصفوف: ${suggestedPlans.length}`;
+            lastSuggestedPlans = buildSuggestedPlans();
+            const planSource = store.plans.length ? store.plans : lastSuggestedPlans;
+            const planRows = planSource.map(p => {
+                const planId = p.plan_id || null;
+                const invoiceLabel = sanitizeText(p.invoice_number || p.invoice_id || p.invoice);
+                const customerLabel = sanitizeText(p.customer_name_ar || p.customer_name || p.customer_id);
+                const remaining = p.remaining_amount ?? p.total_amount ?? 0;
+                const riskScore = p.risk_score_at_creation ?? p.risk_score ?? 0;
+                const planText = p.plan_text || `عدد ${p.number_of_installments || 0} × ${formatMoney(p.installment_amount || 0)} (${translatePlanStatus(p.status)})`;
+                const startDate = formatDate(p.start_date || p.startDate);
+                const actionButtons = planId
+                    ? `<div class="flex flex-wrap gap-2">
+                            <button class="text-xs px-3 py-1 rounded-full bg-slate-100" onclick="viewPlan(${planId})">معاينة</button>
+                            <button class="text-xs px-3 py-1 rounded-full bg-indigo-600 text-white" onclick="openPlanForm(${planId})">تعديل</button>
+                            <button class="text-xs px-3 py-1 rounded-full bg-rose-600 text-white" onclick="deletePlan(${planId})">حذف</button>
+                       </div>`
+                    : `<button class="text-xs px-3 py-1 rounded-full bg-emerald-600 text-white" onclick="openPlanForm(null, ${p.invoice_id || 'null'})">اعتماد</button>`;
 
-            const paymentRows = store.payments.map(p => `
-                <tr class="hover:bg-emerald-50">
-                    <td class="px-3 py-2">${sanitizeText(p.payment_number || p.payment_id)}</td>
-                    <td class="px-3 py-2">${sanitizeText(p.customer_id || p.customer_name_ar || p.customer_name)}</td>
-                    <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(p.payment_amount)}</td>
-                    <td class="px-3 py-2">${formatDate(p.payment_date)}</td>
-                    <td class="px-3 py-2">${sanitizeText(p.branch_id)}</td>
-                    <td class="px-3 py-2">${translateStatus(p.status)}</td>
-                </tr>
-            `).join('');
-            document.getElementById('paymentsTable').innerHTML = paymentRows || `<tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+                return `
+                    <tr class="hover:bg-indigo-50">
+                        <td class="px-3 py-2">${invoiceLabel}</td>
+                        <td class="px-3 py-2">${customerLabel}</td>
+                        <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(remaining)}</td>
+                        <td class="px-3 py-2">${formatPercent(riskScore)}</td>
+                        <td class="px-3 py-2">${planText}</td>
+                        <td class="px-3 py-2">${startDate}</td>
+                        <td class="px-3 py-2">${actionButtons}</td>
+                    </tr>`;
+            }).join('');
+            document.getElementById('plansTable').innerHTML = planRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
+            document.getElementById('plansTableCount').textContent = `عدد الصفوف: ${planSource.length}`;
+
+            const paymentRows = store.payments.map(p => {
+                const pid = p.payment_id || p.id;
+                return `
+                    <tr class="hover:bg-emerald-50">
+                        <td class="px-3 py-2">${sanitizeText(p.payment_number || pid)}</td>
+                        <td class="px-3 py-2">${sanitizeText(p.customer_id || p.customer_name_ar || p.customer_name)}</td>
+                        <td class="px-3 py-2 font-semibold text-emerald-700">${formatMoney(p.payment_amount)}</td>
+                        <td class="px-3 py-2">${formatDate(p.payment_date)}</td>
+                        <td class="px-3 py-2">${sanitizeText(p.branch_id)}</td>
+                        <td class="px-3 py-2">${translateStatus(p.status)}</td>
+                        <td class="px-3 py-2">
+                            <div class="flex flex-wrap gap-2">
+                                <button class="text-xs px-3 py-1 rounded-full bg-slate-100" onclick="viewPayment(${pid})">معاينة</button>
+                                <button class="text-xs px-3 py-1 rounded-full bg-emerald-600 text-white" onclick="openPaymentForm(${pid})">تعديل</button>
+                                <button class="text-xs px-3 py-1 rounded-full bg-rose-600 text-white" onclick="deletePayment(${pid})">حذف</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join('');
+            document.getElementById('paymentsTable').innerHTML = paymentRows || `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">لا توجد بيانات</td></tr>`;
             document.getElementById('paymentsTableCount').textContent = `عدد الصفوف: ${store.payments.length}`;
         }
 
@@ -461,10 +712,13 @@
                 const startText = startDate.toLocaleDateString('ar-SA');
                 const planText = `خطة مقترحة: ${installments} دفعة × ${formatMoney(installment)}.`;
                 return {
+                    invoice_id: inv.invoice_id,
                     invoice_number: inv.invoice_number || inv.invoice_id,
                     customer_name: inv.customer_name_ar || inv.customer_name || inv.customer_id,
+                    customer_id: inv.customer_id,
                     remaining_amount: remaining,
                     risk_score: risk.risk_score || 0,
+                    risk_level: risk.risk_level,
                     plan_text: planText,
                     start_date: startText
                 };
@@ -498,6 +752,17 @@
                 OVERDUE: 'متأخرة',
                 PENDING: 'قيد المراجعة',
                 APPROVED: 'معتمدة'
+            };
+            return map[String(value || '').toUpperCase()] || 'غير محدد';
+        }
+
+        function translatePlanStatus(value) {
+            const map = {
+                ACTIVE: 'نشطة',
+                IN_PROGRESS: 'قيد التنفيذ',
+                COMPLETED: 'مكتملة',
+                OVERDUE: 'متأخرة',
+                PAUSED: 'متوقفة'
             };
             return map[String(value || '').toUpperCase()] || 'غير محدد';
         }
@@ -588,6 +853,304 @@
             link.download = filename;
             link.click();
             URL.revokeObjectURL(url);
+        }
+
+        function toggleModal(id, show = true) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('hidden', !show);
+        }
+
+        function getInvoiceById(invoiceId) {
+            return store.invoices.find(inv => String(inv.invoice_id) === String(invoiceId));
+        }
+
+        function populateInvoiceSelects() {
+            const planSelect = document.getElementById('planInvoice');
+            const paymentSelect = document.getElementById('paymentInvoice');
+            if (!planSelect || !paymentSelect) return;
+            const options = store.invoices.map(inv => {
+                const label = `${sanitizeText(inv.invoice_number || inv.invoice_id)} — متبقي ${formatMoney(inv.remaining_amount ?? inv.total_amount ?? 0)}`;
+                return `<option value="${inv.invoice_id}">${label}</option>`;
+            }).join('');
+            planSelect.innerHTML = `<option value="">اختر فاتورة</option>${options}`;
+            paymentSelect.innerHTML = `<option value="">—</option>${options}`;
+        }
+
+        function onInvoiceChange() {
+            const invoiceId = document.getElementById('planInvoice').value;
+            const invoice = getInvoiceById(invoiceId);
+            if (invoice) {
+                document.getElementById('planCustomer').value = invoice.customer_id || '';
+                document.getElementById('planTotal').value = invoice.total_amount || invoice.remaining_amount || 0;
+                document.getElementById('planRemaining').value = invoice.remaining_amount || 0;
+                document.getElementById('planStart').value = (new Date()).toISOString().slice(0, 10);
+                recalcInstallmentAmount();
+            }
+        }
+
+        function onPaymentInvoiceChange() {
+            const invoiceId = document.getElementById('paymentInvoice').value;
+            const invoice = getInvoiceById(invoiceId);
+            if (invoice) {
+                document.getElementById('paymentCustomer').value = invoice.customer_id || '';
+                document.getElementById('paymentAmount').value = invoice.remaining_amount || invoice.total_amount || 0;
+            }
+        }
+
+        function recalcInstallmentAmount() {
+            const remaining = parseFloat(document.getElementById('planRemaining').value || 0);
+            const installments = parseInt(document.getElementById('planInstallments').value || 1, 10);
+            const amount = installments ? remaining / installments : remaining;
+            document.getElementById('planInstallmentAmount').value = amount.toFixed(2);
+            recalcEndDate();
+        }
+
+        function addMonths(dateString, months) {
+            const d = new Date(dateString);
+            d.setMonth(d.getMonth() + months);
+            return d.toISOString().slice(0, 10);
+        }
+
+        function recalcEndDate() {
+            const start = document.getElementById('planStart').value;
+            const installments = parseInt(document.getElementById('planInstallments').value || 1, 10);
+            if (start) {
+                document.getElementById('planEnd').value = addMonths(start, Math.max(installments - 1, 0));
+            }
+        }
+
+        function safeParseJSON(text) {
+            if (!text) return {};
+            try { return JSON.parse(text); } catch (e) { return { ملاحظات: text }; }
+        }
+
+        function openRiskForm(id = null) {
+            const risk = store.risks.find(r => String(r.risk_id) === String(id)) || {};
+            document.getElementById('riskId').value = risk.risk_id || '';
+            document.getElementById('riskCustomerId').value = risk.customer_id || '';
+            document.getElementById('riskDate').value = risk.assessment_date ? String(risk.assessment_date).slice(0, 10) : (new Date()).toISOString().slice(0, 10);
+            document.getElementById('riskScore').value = risk.risk_score ?? '';
+            document.getElementById('riskLevel').value = String(risk.risk_level || 'MEDIUM').toUpperCase();
+            document.getElementById('riskNotes').value = risk.recommendations || '';
+            document.getElementById('riskFactors').value = risk.risk_factors ? JSON.stringify(risk.risk_factors, null, 2) : '';
+            toggleModal('riskModal', true);
+        }
+
+        function viewRisk(id) {
+            const risk = store.risks.find(r => String(r.risk_id) === String(id));
+            if (!risk) return;
+            showInfo('تفاصيل تقييم المخاطر', {
+                العميل: risk.customer_id,
+                الدرجة: risk.risk_score,
+                المستوى: translateRiskLevel(risk.risk_level),
+                التوصيات: risk.recommendations,
+                العوامل: risk.risk_factors,
+                تفاصيل_الحساب: risk.calculation_details,
+                تاريخ: risk.assessment_date
+            });
+        }
+
+        async function deleteRisk(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا التقييم؟')) return;
+            const res = await fetch(`${API_BASE}/finance/ai-risk-scores/${id}?entity_id=${ENTITY_PARAM}`, { method: 'DELETE' });
+            if (!res.ok) {
+                alert('فشل حذف التقييم');
+                return;
+            }
+            await loadData();
+        }
+
+        async function submitRiskForm(event) {
+            event.preventDefault();
+            const id = document.getElementById('riskId').value;
+            const payload = {
+                entity_id: ENTITY_ID,
+                entity_type: 'HQ',
+                customer_id: document.getElementById('riskCustomerId').value,
+                assessment_date: document.getElementById('riskDate').value,
+                risk_score: parseFloat(document.getElementById('riskScore').value),
+                risk_level: document.getElementById('riskLevel').value,
+                recommendations: document.getElementById('riskNotes').value,
+                risk_factors: safeParseJSON(document.getElementById('riskFactors').value)
+            };
+
+            const url = id ? `${API_BASE}/finance/ai-risk-scores/${id}` : `${API_BASE}/finance/ai-risk-scores`;
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                alert('فشل حفظ تقييم المخاطر');
+                return;
+            }
+
+            toggleModal('riskModal', false);
+            await loadData();
+        }
+
+        function openPlanForm(planId = null, suggestedInvoiceId = null) {
+            currentPlanId = planId;
+            const plan = planId
+                ? store.plans.find(p => String(p.plan_id) === String(planId))
+                : lastSuggestedPlans.find(p => String(p.invoice_id) === String(suggestedInvoiceId)) || {};
+
+            const invoice = getInvoiceById(plan.invoice_id || suggestedInvoiceId || plan.invoiceId);
+            document.getElementById('planId').value = plan.plan_id || '';
+            document.getElementById('planNumber').value = plan.plan_number || `PLAN-AI-${Date.now()}`;
+            document.getElementById('planInvoice').value = invoice?.invoice_id || '';
+            document.getElementById('planCustomer').value = plan.customer_id || invoice?.customer_id || '';
+            const remaining = plan.remaining_amount ?? invoice?.remaining_amount ?? plan.total_amount ?? 0;
+            document.getElementById('planTotal').value = plan.total_amount ?? invoice?.total_amount ?? remaining;
+            document.getElementById('planRemaining').value = remaining;
+            document.getElementById('planInstallments').value = plan.number_of_installments || 4;
+            document.getElementById('planInstallmentAmount').value = plan.installment_amount || (remaining ? (remaining / (plan.number_of_installments || 4)).toFixed(2) : 0);
+            const start = plan.start_date || (new Date()).toISOString().slice(0, 10);
+            document.getElementById('planStart').value = String(start).slice(0, 10);
+            document.getElementById('planEnd').value = (plan.end_date ? String(plan.end_date).slice(0, 10) : addMonths(start, 3));
+            document.getElementById('planStatus').value = String(plan.status || 'active').toLowerCase();
+            document.getElementById('planRiskScore').value = plan.risk_score_at_creation || plan.risk_score || '';
+            document.getElementById('planRiskLevel').value = plan.risk_level_at_creation || plan.risk_level || '';
+            toggleModal('planModal', true);
+        }
+
+        function viewPlan(planId) {
+            const plan = store.plans.find(p => String(p.plan_id) === String(planId));
+            if (!plan) return;
+            showInfo('تفاصيل خطة السداد', plan);
+        }
+
+        async function deletePlan(planId) {
+            if (!confirm('حذف خطة السداد؟')) return;
+            const res = await fetch(`${API_BASE}/finance/payment-plans/${planId}`, { method: 'DELETE' });
+            if (!res.ok) {
+                alert('فشل حذف الخطة');
+                return;
+            }
+            await loadData();
+        }
+
+        async function submitPlanForm(event) {
+            event.preventDefault();
+            const planId = document.getElementById('planId').value;
+            const payload = {
+                plan_number: document.getElementById('planNumber').value,
+                customer_id: document.getElementById('planCustomer').value,
+                invoice_id: document.getElementById('planInvoice').value,
+                start_date: document.getElementById('planStart').value,
+                end_date: document.getElementById('planEnd').value,
+                total_amount: parseFloat(document.getElementById('planTotal').value || 0),
+                paid_amount: 0,
+                remaining_amount: parseFloat(document.getElementById('planRemaining').value || 0),
+                number_of_installments: parseInt(document.getElementById('planInstallments').value || 1, 10),
+                installment_amount: parseFloat(document.getElementById('planInstallmentAmount').value || 0),
+                installment_frequency: 'MONTHLY',
+                status: document.getElementById('planStatus').value,
+                risk_score_at_creation: document.getElementById('planRiskScore').value || null,
+                risk_level_at_creation: document.getElementById('planRiskLevel').value || null,
+                entity_id: ENTITY_ID,
+                entity_type: 'HQ'
+            };
+
+            const url = planId ? `${API_BASE}/finance/payment-plans/${planId}` : `${API_BASE}/finance/payment-plans`;
+            const method = planId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                alert('فشل حفظ الخطة');
+                return;
+            }
+
+            toggleModal('planModal', false);
+            await loadData();
+        }
+
+        function openPaymentForm(paymentId = null) {
+            currentPaymentId = paymentId;
+            const payment = store.payments.find(p => String(p.payment_id) === String(paymentId)) || {};
+            document.getElementById('paymentId').value = payment.payment_id || '';
+            document.getElementById('paymentNumber').value = payment.payment_number || `PAY-${Date.now()}`;
+            document.getElementById('paymentDate').value = payment.payment_date ? String(payment.payment_date).slice(0, 10) : (new Date()).toISOString().slice(0, 10);
+            document.getElementById('paymentInvoice').value = '';
+            document.getElementById('paymentCustomer').value = payment.customer_id || '';
+            document.getElementById('paymentAmount').value = payment.payment_amount || '';
+            document.getElementById('paymentMethod').value = payment.payment_method || 'BANK_TRANSFER';
+            document.getElementById('paymentStatus').value = payment.status || 'COMPLETED';
+            document.getElementById('paymentNotes').value = payment.notes || '';
+            toggleModal('paymentModal', true);
+        }
+
+        function viewPayment(paymentId) {
+            const payment = store.payments.find(p => String(p.payment_id) === String(paymentId));
+            if (!payment) return;
+            showInfo('تفاصيل الدفعة', payment);
+        }
+
+        async function deletePayment(paymentId) {
+            if (!confirm('حذف الدفعة؟')) return;
+            const res = await fetch(`${API_BASE}/finance/payments/${paymentId}?entity_id=${ENTITY_PARAM}`, { method: 'DELETE' });
+            if (!res.ok) {
+                alert('فشل حذف الدفعة');
+                return;
+            }
+            await loadData();
+        }
+
+        async function submitPaymentForm(event) {
+            event.preventDefault();
+            const paymentId = document.getElementById('paymentId').value;
+            const invoiceId = document.getElementById('paymentInvoice').value;
+            const payload = {
+                payment_number: document.getElementById('paymentNumber').value || `PAY-${Date.now()}`,
+                payment_date: document.getElementById('paymentDate').value,
+                customer_id: document.getElementById('paymentCustomer').value,
+                payment_amount: parseFloat(document.getElementById('paymentAmount').value || 0),
+                payment_method: document.getElementById('paymentMethod').value,
+                status: document.getElementById('paymentStatus').value,
+                notes: document.getElementById('paymentNotes').value,
+                entity_id: ENTITY_ID,
+                customer_name: null
+            };
+
+            const url = paymentId ? `${API_BASE}/finance/payments/${paymentId}` : `${API_BASE}/finance/payments`;
+            const method = paymentId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                alert('فشل حفظ الدفعة');
+                return;
+            }
+
+            const saved = await res.json();
+            const savedId = paymentId || saved.payment?.payment_id;
+
+            if (!paymentId && invoiceId && savedId) {
+                await fetch(`${API_BASE}/finance/payment-allocations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payment_id: savedId, invoice_id: invoiceId, allocated_amount: payload.payment_amount })
+                });
+            }
+
+            toggleModal('paymentModal', false);
+            await loadData();
+        }
+
+        function showInfo(title, body) {
+            document.getElementById('infoTitle').textContent = title;
+            document.getElementById('infoBody').textContent = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+            toggleModal('infoModal', true);
         }
 
         function printPage() {

@@ -3,7 +3,7 @@
  */
 
 const BASE_URL = 'http://localhost:3000';
-const ENTITY_ID = '1';
+const ENTITY_ID = 'HQ001';
 
 async function testAPI(name, url) {
     console.log(`\n🧪 Testing: ${name}`);
@@ -43,7 +43,7 @@ async function runAllTests() {
     if (t1.success) results.passed++; else results.failed++;
 
     results.total++;
-    const t2 = await testAPI('2️⃣ المدفوعات', `${BASE_URL}/finance/payments`);
+    const t2 = await testAPI('2️⃣ المدفوعات', `${BASE_URL}/finance/payments?entity_id=${ENTITY_ID}`);
     if (t2.success) results.passed++; else results.failed++;
 
     results.total++;

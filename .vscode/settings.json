@@ -1125,6 +1125,14 @@
         "/^cd /workspaces/-------------------1767723379340-y21rmmxm-6lgb7m && node - <<'NODE'\nconst \\{ Pool \\} = require\\('pg'\\);\nconst pool = new Pool\\(\\{\n  connectionString: 'postgresql://postgres:PddzJpAQYezqknsntSzmCUlQYuYJldcT@crossover\\.proxy\\.rlwy\\.net:44255/railway',\n  ssl: \\{ rejectUnauthorized: false \\}\n\\}\\);\n\nconst tables = \\[\n  \\{ name: 'finance_accounts', entity: 'entity_id' \\},\n  \\{ name: 'finance_account_balances', entity: 'entity_id' \\},\n  \\{ name: 'finance_journal_entries', entity: 'entity_id' \\},\n  \\{ name: 'finance_journal_lines', entity: 'entity_id' \\},\n  \\{ name: 'finance_balance_sheet', entity: 'entity_id' \\},\n  \\{ name: 'finance_assets', entity: 'entity_id' \\},\n  \\{ name: 'finance_liabilities', entity: 'entity_id' \\},\n  \\{ name: 'finance_equity', entity: 'entity_id' \\},\n  \\{ name: 'finance_cashflow_operating', entity: 'entity_id' \\},\n  \\{ name: 'finance_cashflow_investing', entity: 'entity_id' \\},\n  \\{ name: 'finance_cashflow_financing', entity: 'entity_id' \\},\n  \\{ name: 'finance_income_statement_items', entity: 'entity_id' \\}\n\\];\n\nconst entities = \\['HQ001', '1'\\];\n\n\\(async \\(\\) => \\{\n  for \\(const t of tables\\) \\{\n    for \\(const e of entities\\) \\{\n      try \\{\n        const res = await pool\\.query\\(`SELECT COUNT\\(\\*\\) FROM \\$\\{t\\.name\\} WHERE \\$\\{t\\.entity\\} = \\$1`, \\[e\\]\\);\n        console\\.log\\(`\\$\\{t\\.name\\} \\(entity \\$\\{e\\}\\): \\$\\{res\\.rows\\[0\\]\\.count\\}`\\);\n      \\} catch \\(err\\) \\{\n        console\\.log\\(`\\$\\{t\\.name\\}: ERROR \\$\\{err\\.message\\}`\\);\n      \\}\n    \\}\n  \\}\n  await pool\\.end\\(\\);\n\\}\\)\\(\\);\nNODE$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^node add-ai-risk-scores\\.js && node seed-payment-plans\\.js && node seed-ai-forecasts\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node test-ai-risk-payment-framework-api\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
