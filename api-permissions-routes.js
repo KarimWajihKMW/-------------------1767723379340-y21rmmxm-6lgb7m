@@ -40,6 +40,7 @@ router.get('/roles', async (req, res) => {
         is_active,
         created_at
       FROM roles
+      WHERE is_active = true
       ORDER BY hierarchy_level, job_title_ar
     `);
     
@@ -271,7 +272,7 @@ const buildAssignmentQuery = `
 // جميع صلاحيات الربط
 router.get('/assignments', async (req, res) => {
   try {
-    const result = await db.query(`${buildAssignmentQuery} ORDER BY r.hierarchy_level, r.job_title_ar, s.display_order, s.system_code`);
+    const result = await db.query(`${buildAssignmentQuery} WHERE rsp.is_active = true AND r.is_active = true AND s.is_active = true ORDER BY r.hierarchy_level, r.job_title_ar, s.display_order, s.system_code`);
     res.json({ success: true, assignments: result.rows, count: result.rows.length });
   } catch (error) {
     console.error('خطأ في جلب صلاحيات الربط:', error);
@@ -381,7 +382,7 @@ router.get('/stats', async (req, res) => {
     const rolesCount = await db.query('SELECT COUNT(*) as count FROM roles WHERE is_active = true');
     const systemsCount = await db.query('SELECT COUNT(*) as count FROM systems');
     const levelsCount = await db.query('SELECT COUNT(*) as count FROM permission_levels');
-    const permissionsCount = await db.query('SELECT COUNT(*) as count FROM role_system_permissions');
+    const permissionsCount = await db.query('SELECT COUNT(*) as count FROM role_system_permissions WHERE is_active = true');
     
     // Roles by hierarchy level
     const rolesByLevel = await db.query(`
