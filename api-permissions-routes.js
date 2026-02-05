@@ -33,12 +33,15 @@ router.get('/roles', async (req, res) => {
         name,
         name_ar,
         job_title_ar,
+        level,
         hierarchy_level,
+        min_approval_limit,
         max_approval_limit,
         approval_notes_ar,
         description,
         is_active,
-        created_at
+        created_at,
+        updated_at
       FROM roles
       WHERE is_active = true
       ORDER BY hierarchy_level, job_title_ar
