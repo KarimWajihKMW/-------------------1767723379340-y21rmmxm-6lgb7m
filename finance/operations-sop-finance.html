@@ -457,7 +457,10 @@
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-sky">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">📄 جدول الفواتير</h3>
-                <span id="invoicesCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="handleAddClick('invoice')" class="bg-sky-600 text-white px-3 py-1 rounded-full text-xs font-bold hover:shadow-md transition">إضافة فاتورة</button>
+                    <span id="invoicesCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -483,7 +486,10 @@
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-emerald">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">💳 جدول المدفوعات</h3>
-                <span id="paymentsCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="handleAddClick('payment')" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold hover:shadow-md transition">إضافة دفعة</button>
+                    <span id="paymentsCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -508,7 +514,10 @@
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-amber">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">🧾 جدول المصروفات</h3>
-                <span id="expensesCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="handleAddClick('expense')" class="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold hover:shadow-md transition">إضافة مصروف</button>
+                    <span id="expensesCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -533,7 +542,10 @@
         <div class="card-gradient shape-rounded shadow-2xl p-6 mb-8 accent-indigo">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-slate-800">🏢 جدول الأصول الثابتة</h3>
-                <span id="assetsCount" class="text-sm text-slate-500"></span>
+                <div class="flex items-center gap-3">
+                    <button onclick="handleAddClick('asset')" class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold hover:shadow-md transition">إضافة أصل</button>
+                    <span id="assetsCount" class="text-sm text-slate-500"></span>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="w-full text-xs">
@@ -648,6 +660,23 @@
                 document.getElementById('assetMethod').value = 'SL';
                 document.getElementById('assetLife').value = 3;
                 document.getElementById('assetDate').value = today();
+            }
+        }
+
+        function handleAddClick(type) {
+            resetForm(type);
+            const formMap = {
+                invoice: { formId: 'invoiceForm', focusId: 'invoiceCustomer' },
+                payment: { formId: 'paymentForm', focusId: 'paymentCustomer' },
+                expense: { formId: 'expenseForm', focusId: 'expenseNumber' },
+                asset: { formId: 'assetForm', focusId: 'assetCode' }
+            };
+            const target = formMap[type];
+            if (target) {
+                const formEl = document.getElementById(target.formId);
+                formEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const focusEl = document.getElementById(target.focusId);
+                focusEl?.focus();
             }
         }
 
