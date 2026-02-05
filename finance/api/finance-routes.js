@@ -1138,4 +1138,243 @@ router.post('/customers', async (req, res) => {
   }
 });
 
+// ========================================
+// ELECTRONIC SIGNATURE APIs
+// ========================================
+
+const createSignatureFingerprint = (doc) => {
+  const base = `${doc.document_type || 'مستند'}-${doc.document_id}-${doc.owner_name || ''}-${doc.document_status || ''}`;
+  let hash = 0;
+  for (let i = 0; i < base.length; i += 1) {
+    hash = ((hash << 5) - hash) + base.charCodeAt(i);
+    hash |= 0;
+  }
+  return `بصمة-${Math.abs(hash)}`;
+};
+
+const logSignatureAction = async (client, signature_id, document_key, action, user_name, fingerprint) => {
+  await client.query(
+    `INSERT INTO finance_signature_logs (signature_id, document_key, action, user_name, fingerprint)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [signature_id, document_key, action, user_name, fingerprint]
+  );
+};
+
+// جلب جميع التوقيعات
+router.get('/electronic-signatures', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT * FROM finance_electronic_signatures ORDER BY updated_at DESC, signature_id DESC`
+    );
+    res.json({ success: true, count: result.rows.length, signatures: result.rows });
+  } catch (error) {
+    console.error('Error fetching electronic signatures:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// جلب سجل التدقيق
+router.get('/electronic-signature-logs', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT * FROM finance_signature_logs ORDER BY created_at DESC, log_id DESC`
+    );
+    res.json({ success: true, count: result.rows.length, logs: result.rows });
+  } catch (error) {
+    console.error('Error fetching electronic signature logs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.delete('/electronic-signature-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(
+      'DELETE FROM finance_signature_logs WHERE log_id = $1 RETURNING *',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'السجل غير موجود' });
+    }
+    res.json({ success: true, message: 'تم الحذف', log: result.rows[0] });
+  } catch (error) {
+    console.error('Error deleting signature log:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.put('/electronic-signature-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, user_name, fingerprint } = req.body;
+    const result = await db.query(
+      `UPDATE finance_signature_logs
+       SET action = COALESCE($1, action),
+           user_name = COALESCE($2, user_name),
+           fingerprint = COALESCE($3, fingerprint)
+       WHERE log_id = $4
+       RETURNING *`,
+      [action, user_name, fingerprint, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'السجل غير موجود' });
+    }
+    res.json({ success: true, log: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating signature log:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// إنشاء أو تحديث توقيع (توقيع جديد)
+router.post('/electronic-signatures/sign', async (req, res) => {
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const {
+      document_type,
+      document_id,
+      owner_name,
+      document_status,
+      user_name = 'مسؤول التوقيع',
+      notes,
+      entity_id = 'HQ001'
+    } = req.body;
+
+    if (!document_type || !document_id) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, error: 'يجب تحديد نوع ورقم المستند' });
+    }
+
+    const document_key = `${document_type}_${document_id}`;
+    const fingerprint = createSignatureFingerprint({ document_type, document_id, owner_name, document_status });
+
+    const upsertResult = await client.query(
+      `INSERT INTO finance_electronic_signatures (
+        document_key, document_type, document_id, owner_name, document_status,
+        signature_status, verified, fingerprint, action, user_name, notes, entity_id, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, 'موقع', false, $6, 'توقيع', $7, $8, $9, NOW())
+      ON CONFLICT (document_key)
+      DO UPDATE SET
+        owner_name = COALESCE(EXCLUDED.owner_name, finance_electronic_signatures.owner_name),
+        document_status = COALESCE(EXCLUDED.document_status, finance_electronic_signatures.document_status),
+        signature_status = 'موقع',
+        verified = false,
+        fingerprint = EXCLUDED.fingerprint,
+        action = 'توقيع',
+        user_name = EXCLUDED.user_name,
+        notes = EXCLUDED.notes,
+        updated_at = NOW()
+      RETURNING *`,
+      [document_key, document_type, document_id, owner_name, document_status, fingerprint, user_name, notes, entity_id]
+    );
+
+    const signature = upsertResult.rows[0];
+    await logSignatureAction(client, signature.signature_id, document_key, 'توقيع', user_name, fingerprint);
+
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, signature });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error signing document:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// تحقق من التوقيع
+router.post('/electronic-signatures/verify', async (req, res) => {
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { document_key, user_name = 'مدقق النظام', notes } = req.body;
+    if (!document_key) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, error: 'يجب تحديد معرف المستند' });
+    }
+
+    const result = await client.query(
+      `UPDATE finance_electronic_signatures
+       SET verified = true, action = 'تحقق', notes = COALESCE($2, notes), updated_at = NOW()
+       WHERE document_key = $1
+       RETURNING *`,
+      [document_key, notes]
+    );
+
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, error: 'التوقيع غير موجود' });
+    }
+
+    const signature = result.rows[0];
+    await logSignatureAction(client, signature.signature_id, document_key, 'تحقق', user_name, signature.fingerprint);
+    await client.query('COMMIT');
+    res.json({ success: true, signature });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error verifying signature:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// تحديث بيانات التوقيع (تعديل)
+router.put('/electronic-signatures/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      owner_name,
+      document_status,
+      signature_status,
+      verified,
+      user_name,
+      notes
+    } = req.body;
+
+    const result = await db.query(
+      `UPDATE finance_electronic_signatures
+       SET owner_name = COALESCE($1, owner_name),
+           document_status = COALESCE($2, document_status),
+           signature_status = COALESCE($3, signature_status),
+           verified = COALESCE($4, verified),
+           user_name = COALESCE($5, user_name),
+           notes = COALESCE($6, notes),
+           updated_at = NOW()
+       WHERE signature_id = $7
+       RETURNING *`,
+      [owner_name, document_status, signature_status, verified, user_name, notes, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'التوقيع غير موجود' });
+    }
+
+    res.json({ success: true, signature: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating signature:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// حذف التوقيع وسجله
+router.delete('/electronic-signatures/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query(
+      'DELETE FROM finance_electronic_signatures WHERE signature_id = $1 RETURNING *',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'التوقيع غير موجود' });
+    }
+    res.json({ success: true, message: 'تم الحذف', signature: result.rows[0] });
+  } catch (error) {
+    console.error('Error deleting signature:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

@@ -35,6 +35,47 @@ const ensureFacilitiesContractsTable = async () => {
 
 ensureFacilitiesContractsTable();
 
+// Electronic signature tables (حفظ التوقيع وسجل التدقيق)
+const ensureElectronicSignatureTables = async () => {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS finance_electronic_signatures (
+        signature_id SERIAL PRIMARY KEY,
+        document_key TEXT UNIQUE NOT NULL,
+        document_type TEXT NOT NULL,
+        document_id TEXT NOT NULL,
+        owner_name TEXT,
+        document_status TEXT,
+        signature_status TEXT DEFAULT 'غير موقع',
+        verified BOOLEAN DEFAULT false,
+        fingerprint TEXT,
+        action TEXT,
+        user_name TEXT,
+        notes TEXT,
+        entity_id TEXT DEFAULT 'HQ001',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS finance_signature_logs (
+        log_id SERIAL PRIMARY KEY,
+        signature_id INTEGER REFERENCES finance_electronic_signatures(signature_id) ON DELETE CASCADE,
+        document_key TEXT NOT NULL,
+        action TEXT NOT NULL,
+        user_name TEXT,
+        fingerprint TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_fin_sign_doc_key ON finance_electronic_signatures(document_key);
+      CREATE INDEX IF NOT EXISTS idx_fin_sign_logs_doc_key ON finance_signature_logs(document_key);
+    `);
+    console.log('✅ finance_electronic_signatures tables ready');
+  } catch (error) {
+    console.error('❌ Failed to ensure electronic signature tables:', error);
+  }
+};
+
+ensureElectronicSignatureTables();
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());

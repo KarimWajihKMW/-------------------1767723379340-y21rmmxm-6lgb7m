@@ -59,6 +59,54 @@
             </button>
         </div>
 
+        <!-- Manual Signature Form -->
+        <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-emerald">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">➕ إضافة توقيع جديد</h2>
+                    <p class="text-slate-500 text-sm">حفظ التوقيع مباشرة في قاعدة البيانات مع سجل التدقيق</p>
+                </div>
+                <button onclick="document.getElementById('manualSignatureForm').reset()" class="bg-white text-emerald-700 border border-emerald-100 shadow-sm px-4 py-2 rounded-full font-bold hover:shadow-lg transition">مسح الحقول</button>
+            </div>
+            <form id="manualSignatureForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" onsubmit="return createManualSignature(event)">
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">نوع المستند</label>
+                    <select name="document_type" class="w-full border rounded-xl px-3 py-2">
+                        <option value="فاتورة">فاتورة</option>
+                        <option value="دفعة">دفعة</option>
+                        <option value="طلب موظف">طلب موظف</option>
+                        <option value="مستند عام">مستند عام</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">رقم المستند</label>
+                    <input name="document_id" class="w-full border rounded-xl px-3 py-2" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">صاحب المستند</label>
+                    <input name="owner_name" class="w-full border rounded-xl px-3 py-2" placeholder="اسم العميل أو الموظف">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">حالة المستند</label>
+                    <input name="document_status" class="w-full border rounded-xl px-3 py-2" placeholder="مثل: قيد المعالجة">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">اسم المستخدم المنفذ</label>
+                    <input name="user_name" class="w-full border rounded-xl px-3 py-2" placeholder="مسؤول التوقيع">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-600 mb-1">ملاحظات</label>
+                    <input name="notes" class="w-full border rounded-xl px-3 py-2" placeholder="تفاصيل إضافية">
+                </div>
+                <div class="lg:col-span-3 md:col-span-2 flex justify-end">
+                    <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition flex items-center gap-2">
+                        <i class="fas fa-plus-circle"></i>
+                        حفظ التوقيع في القاعدة
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Signature Overview -->
         <div class="card-glass rounded-3xl shadow-2xl p-6 mb-8 section-accent-sky">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -150,11 +198,12 @@
                             <th class="px-3 py-2 text-right">المستخدم</th>
                             <th class="px-3 py-2 text-right">التاريخ</th>
                             <th class="px-3 py-2 text-right">البصمة</th>
+                            <th class="px-3 py-2 text-right">إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="logTable" class="divide-y divide-slate-100">
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td>
                         </tr>
                     </tbody>
                 </table>
@@ -164,77 +213,117 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const SIGNATURE_STORAGE_KEY = 'توقيعات_الكترونية';
 
         let invoices = [];
         let payments = [];
         let customers = [];
         let requests = [];
-        let signatures = {};
+        let signaturesList = [];
+        let signaturesByKey = {};
         let logEntries = [];
-
-        function loadSignatures() {
-            const saved = localStorage.getItem(SIGNATURE_STORAGE_KEY);
-            signatures = saved ? JSON.parse(saved) : {};
-        }
-
-        function saveSignatures() {
-            localStorage.setItem(SIGNATURE_STORAGE_KEY, JSON.stringify(signatures));
-        }
+        let documentsMap = {};
 
         async function loadData() {
             try {
-                const [invoicesRes, paymentsRes, customersRes, requestsRes] = await Promise.all([
+                const [invoicesRes, paymentsRes, customersRes, requestsRes, signaturesRes, logsRes] = await Promise.all([
                     fetch(`${API_BASE}/finance/invoices`),
                     fetch(`${API_BASE}/finance/payments`),
                     fetch(`${API_BASE}/finance/customers`),
-                    fetch(`${API_BASE}/api/employee-requests`)
+                    fetch(`${API_BASE}/api/employee-requests`),
+                    fetch(`${API_BASE}/finance/electronic-signatures`),
+                    fetch(`${API_BASE}/finance/electronic-signature-logs`)
                 ]);
 
-                const [invoicesData, paymentsData, customersData, requestsData] = await Promise.all([
+                const [invoicesData, paymentsData, customersData, requestsData, signaturesData, logsData] = await Promise.all([
                     invoicesRes.json(),
                     paymentsRes.json(),
                     customersRes.json(),
-                    requestsRes.json()
+                    requestsRes.json(),
+                    signaturesRes.json(),
+                    logsRes.json()
                 ]);
 
                 invoices = invoicesData.invoices || [];
                 payments = paymentsData.payments || [];
-                customers = customersData.customers || customersData.rows || [];
+                customers = customersData.customers || customersData.rows || customersData || [];
                 requests = Array.isArray(requestsData) ? requestsData : [];
+                signaturesList = signaturesData.signatures || [];
+                signaturesByKey = {};
+                signaturesList.forEach(sig => { signaturesByKey[sig.document_key] = sig; });
+                logEntries = logsData.logs || [];
 
-                loadSignatures();
-                buildLogsFromSignatures();
                 renderStats();
                 renderTables();
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
-                loadSignatures();
-                buildLogsFromSignatures();
                 renderStats();
                 renderTables();
             }
         }
 
-        function buildLogsFromSignatures() {
-            logEntries = Object.keys(signatures).map((key, index) => {
-                const entry = signatures[key];
-                return {
-                    id: index + 1,
-                    document_id: entry.document_id,
-                    action: entry.action,
-                    user: entry.user,
-                    date: entry.date,
-                    fingerprint: entry.fingerprint
+        function buildDocumentKey(type, id) { return `${type}_${id}`; }
+
+        function getDocumentKey(doc) {
+            return doc.key || buildDocumentKey(doc.type, doc.document_id);
+        }
+
+        function collectDocuments() {
+            documentsMap = {};
+            const docs = [];
+
+            invoices.forEach(i => {
+                const docKey = buildDocumentKey('فاتورة', i.invoice_id || i.id);
+                const doc = {
+                    key: docKey,
+                    document_id: i.invoice_id || i.id,
+                    type: 'فاتورة',
+                    owner: i.customer_name || i.customer_id,
+                    value: i.total_amount || i.amount,
+                    status: i.status,
+                    updated_at: i.updated_at || i.created_at
                 };
+                documentsMap[doc.key] = doc;
+                docs.push(doc);
             });
+
+            payments.forEach(p => {
+                const docKey = buildDocumentKey('دفعة', p.payment_id || p.id);
+                const doc = {
+                    key: docKey,
+                    document_id: p.payment_id || p.id,
+                    type: 'دفعة',
+                    owner: p.customer_name || p.customer_id,
+                    value: p.payment_amount || p.amount,
+                    status: p.status || 'مكتمل',
+                    updated_at: p.payment_date || p.created_at
+                };
+                documentsMap[doc.key] = doc;
+                docs.push(doc);
+            });
+
+            requests.forEach(r => {
+                const docKey = buildDocumentKey('طلب موظف', r.id);
+                const doc = {
+                    key: docKey,
+                    document_id: r.id,
+                    type: 'طلب موظف',
+                    owner: r.employee_name || r.employee_id,
+                    value: 0,
+                    status: r.status,
+                    updated_at: r.updated_at || r.created_at
+                };
+                documentsMap[doc.key] = doc;
+                docs.push(doc);
+            });
+
+            return docs;
         }
 
         function renderStats() {
             const documents = collectDocuments();
             const total = documents.length;
-            const signed = documents.filter(d => signatures[d.key]?.status === 'موقع').length;
-            const verified = documents.filter(d => signatures[d.key]?.verified).length;
+            const signed = documents.filter(d => signaturesByKey[getDocumentKey(d)] && signaturesByKey[getDocumentKey(d)].signature_status === 'موقع').length;
+            const verified = documents.filter(d => signaturesByKey[getDocumentKey(d)]?.verified).length;
             const pending = total - signed;
 
             document.getElementById('docsTotal').textContent = total;
@@ -243,53 +332,11 @@
             document.getElementById('docsVerified').textContent = verified;
         }
 
-        function collectDocuments() {
-            const docs = [];
-
-            invoices.forEach(i => {
-                docs.push({
-                    key: `فاتورة_${i.invoice_id || i.id}`,
-                    document_id: i.invoice_id || i.id,
-                    type: 'فاتورة',
-                    owner: i.customer_name || i.customer_id,
-                    value: i.total_amount || i.amount,
-                    status: i.status,
-                    updated_at: i.updated_at || i.created_at
-                });
-            });
-
-            payments.forEach(p => {
-                docs.push({
-                    key: `دفع_${p.payment_id || p.id}`,
-                    document_id: p.payment_id || p.id,
-                    type: 'دفعة',
-                    owner: p.customer_name || p.customer_id,
-                    value: p.payment_amount || p.amount,
-                    status: p.status || 'مكتمل',
-                    updated_at: p.payment_date || p.created_at
-                });
-            });
-
-            requests.forEach(r => {
-                docs.push({
-                    key: `طلب_${r.id}`,
-                    document_id: r.id,
-                    type: 'طلب موظف',
-                    owner: r.employee_name || r.employee_id,
-                    value: 0,
-                    status: r.status,
-                    updated_at: r.updated_at || r.created_at
-                });
-            });
-
-            return docs;
-        }
-
         function renderTables() {
             const docs = collectDocuments();
             const docsRows = docs.map(doc => {
-                const signature = signatures[doc.key] || {};
-                const signatureStatus = signature.status || 'غير موقع';
+                const signature = signaturesByKey[getDocumentKey(doc)];
+                const signatureStatus = signature ? `${signature.signature_status}${signature.verified ? ' - موثق' : ''}` : 'غير موقع';
                 return `
                     <tr class="hover:bg-amber-50">
                         <td class="px-3 py-2">${sanitizeText(doc.document_id)}</td>
@@ -303,7 +350,9 @@
                             <div class="flex flex-wrap gap-2">
                                 <button onclick="signDocument('${doc.key}')" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-xs font-bold">توقيع</button>
                                 <button onclick="verifySignature('${doc.key}')" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-bold">تحقق</button>
-                                <button onclick="downloadCertificate('${doc.key}')" class="bg-amber-500 text-white px-2 py-1 rounded-lg text-xs font-bold">شهادة</button>
+                                <button onclick="viewSignature('${doc.key}')" class="bg-sky-600 text-white px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
+                                <button onclick="editSignature('${doc.key}')" class="bg-amber-500 text-white px-2 py-1 rounded-lg text-xs font-bold">تعديل</button>
+                                <button onclick="deleteSignature('${doc.key}')" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">حذف</button>
                             </div>
                         </td>
                     </tr>
@@ -315,78 +364,239 @@
 
             const logRows = logEntries.map(l => `
                 <tr class="hover:bg-rose-50">
-                    <td class="px-3 py-2">${l.id}</td>
-                    <td class="px-3 py-2">${sanitizeText(l.document_id)}</td>
+                    <td class="px-3 py-2">${l.log_id || l.id}</td>
+                    <td class="px-3 py-2">${sanitizeText(l.document_key || l.document_id)}</td>
                     <td class="px-3 py-2">${sanitizeText(l.action)}</td>
-                    <td class="px-3 py-2">${sanitizeText(l.user)}</td>
-                    <td class="px-3 py-2">${formatDateTime(l.date)}</td>
+                    <td class="px-3 py-2">${sanitizeText(l.user_name || l.user)}</td>
+                    <td class="px-3 py-2">${formatDateTime(l.created_at || l.date)}</td>
                     <td class="px-3 py-2">${sanitizeText(l.fingerprint)}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="viewLog(${l.log_id || l.id})" class="bg-sky-600 text-white px-2 py-1 rounded-lg text-xs font-bold">معاينة</button>
+                            <button onclick="editLog(${l.log_id || l.id})" class="bg-amber-500 text-white px-2 py-1 rounded-lg text-xs font-bold">تعديل</button>
+                            <button onclick="deleteLog(${l.log_id || l.id})" class="bg-rose-600 text-white px-2 py-1 rounded-lg text-xs font-bold">حذف</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 
-            document.getElementById('logTable').innerHTML = logRows || `<tr><td colspan="6" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td></tr>`;
+            document.getElementById('logTable').innerHTML = logRows || `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-500">لا توجد سجلات بعد</td></tr>`;
             document.getElementById('logCount').textContent = `عدد السجلات: ${logEntries.length}`;
         }
 
-        function signDocument(key) {
-            const doc = collectDocuments().find(d => d.key === key);
-            if (!doc) return;
-            const fingerprint = createFingerprint(doc);
-            signatures[key] = {
-                document_id: doc.document_id,
-                status: 'موقع',
-                action: 'توقيع',
-                user: 'مسؤول التوقيع',
-                date: new Date().toISOString(),
-                fingerprint,
-                verified: true
+        async function createManualSignature(event) {
+            event.preventDefault();
+            const form = event.target;
+            const payload = {
+                document_type: form.document_type.value,
+                document_id: form.document_id.value,
+                owner_name: form.owner_name.value,
+                document_status: form.document_status.value,
+                user_name: form.user_name.value || 'مسؤول التوقيع',
+                notes: form.notes.value
             };
-            saveSignatures();
-            buildLogsFromSignatures();
-            renderStats();
-            renderTables();
-        }
-
-        function verifySignature(key) {
-            const signature = signatures[key];
-            if (!signature) {
-                alert('لا يوجد توقيع لهذا المستند');
-                return;
+            const res = await fetch(`${API_BASE}/finance/electronic-signatures/sign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                alert('تعذر حفظ التوقيع.');
+                return false;
             }
-            signatures[key].verified = true;
-            signatures[key].action = 'تحقق';
-            signatures[key].date = new Date().toISOString();
-            saveSignatures();
-            buildLogsFromSignatures();
-            renderStats();
-            renderTables();
+            await loadData();
+            form.reset();
+            alert('تم حفظ التوقيع في قاعدة البيانات.');
+            return false;
         }
 
-        function downloadCertificate(key) {
-            const signature = signatures[key];
-            if (!signature) {
-                alert('لا توجد شهادة لهذا المستند');
+        async function signDocument(key) {
+            const doc = documentsMap[key];
+            if (!doc) {
+                alert('المستند غير موجود.');
                 return;
             }
             const payload = {
-                رقم_المستند: signature.document_id,
-                حالة_التوقيع: signature.status,
-                آخر_إجراء: signature.action,
-                المستخدم: signature.user,
-                التاريخ: signature.date,
-                البصمة: signature.fingerprint
+                document_type: doc.type,
+                document_id: doc.document_id,
+                owner_name: doc.owner,
+                document_status: doc.status,
+                user_name: 'مسؤول التوقيع'
             };
-            downloadBlob(JSON.stringify(payload, null, 2), `شهادة-توقيع-${signature.document_id}.json`, 'application/json');
+            const res = await fetch(`${API_BASE}/finance/electronic-signatures/sign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                alert('تعذر توقيع المستند.');
+                return;
+            }
+            await loadData();
         }
 
-        function createFingerprint(doc) {
-            const base = `${doc.type}-${doc.document_id}-${doc.owner}-${doc.value || 0}`;
-            let hash = 0;
-            for (let i = 0; i < base.length; i++) {
-                hash = ((hash << 5) - hash) + base.charCodeAt(i);
-                hash |= 0;
+        async function verifySignature(key) {
+            const doc = documentsMap[key];
+            if (!doc) {
+                alert('المستند غير موجود.');
+                return;
             }
-            return `بصمة-${Math.abs(hash)}`;
+            const document_key = getDocumentKey(doc);
+            const res = await fetch(`${API_BASE}/finance/electronic-signatures/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ document_key, notes: 'تم التحقق' })
+            });
+            if (!res.ok) {
+                alert('تعذر التحقق من التوقيع.');
+                return;
+            }
+            await loadData();
+        }
+
+        function viewSignature(key) {
+            const signature = signaturesByKey[key];
+            const doc = documentsMap[key];
+            if (!signature && !doc) {
+                alert('لا توجد بيانات للمعاينة');
+                return;
+            }
+            const details = {
+                المستند: doc ? `${doc.type} ${doc.document_id}` : 'غير متوفر',
+                الحالة: signature ? signature.signature_status : 'غير موقع',
+                التحقق: signature ? (signature.verified ? 'موثق' : 'غير موثق') : '-',
+                المستخدم: signature?.user_name || 'غير محدد',
+                البصمة: signature?.fingerprint || '-',
+                ملاحظات: signature?.notes || '-',
+                تاريخ_التحديث: signature?.updated_at || '-' 
+            };
+            alert(JSON.stringify(details, null, 2));
+        }
+
+        async function editSignature(key) {
+            const signature = signaturesByKey[key];
+            if (!signature) {
+                alert('لا يوجد توقيع لتعديله');
+                return;
+            }
+            const newStatus = prompt('أدخل حالة التوقيع الجديدة', signature.signature_status || 'موقع');
+            const newNotes = prompt('أدخل ملاحظات إضافية', signature.notes || '');
+            if (newStatus === null && newNotes === null) return;
+            const res = await fetch(`${API_BASE}/finance/electronic-signatures/${signature.signature_id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ signature_status: newStatus || signature.signature_status, notes: newNotes || signature.notes })
+            });
+            if (!res.ok) {
+                alert('تعذر تعديل التوقيع.');
+                return;
+            }
+            await loadData();
+        }
+
+        async function deleteSignature(key) {
+            const signature = signaturesByKey[key];
+            if (!signature) {
+                alert('لا يوجد توقيع للحذف');
+                return;
+            }
+            if (!confirm('تأكيد حذف التوقيع؟')) return;
+            const res = await fetch(`${API_BASE}/finance/electronic-signatures/${signature.signature_id}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) {
+                alert('تعذر حذف التوقيع');
+                return;
+            }
+            await loadData();
+        }
+
+        function viewLog(logId) {
+            const log = logEntries.find(l => (l.log_id || l.id) === logId);
+            if (!log) {
+                alert('السجل غير موجود');
+                return;
+            }
+            alert(JSON.stringify(log, null, 2));
+        }
+
+        async function editLog(logId) {
+            const log = logEntries.find(l => (l.log_id || l.id) === logId);
+            if (!log) {
+                alert('السجل غير موجود');
+                return;
+            }
+            const newAction = prompt('الإجراء الجديد', log.action);
+            const newUser = prompt('اسم المستخدم', log.user_name || log.user || '');
+            if (newAction === null && newUser === null) return;
+            const res = await fetch(`${API_BASE}/finance/electronic-signature-logs/${logId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: newAction || log.action, user_name: newUser || log.user_name })
+            });
+            if (!res.ok) {
+                alert('تعذر تعديل السجل');
+                return;
+            }
+            await loadData();
+        }
+
+        async function deleteLog(logId) {
+            if (!confirm('تأكيد حذف السجل؟')) return;
+            const res = await fetch(`${API_BASE}/finance/electronic-signature-logs/${logId}`, { method: 'DELETE' });
+            if (!res.ok) {
+                alert('تعذر حذف السجل');
+                return;
+            }
+            await loadData();
+        }
+
+        function downloadAllJSON() {
+            const payload = { invoices, payments, customers, requests, signatures: signaturesList, logs: logEntries };
+            downloadBlob(JSON.stringify(payload, null, 2), 'التوقيع-الالكتروني.json', 'application/json');
+        }
+
+        function downloadAllCSV() {
+            const rows = [];
+            rows.push(['الوثائق']);
+            rows.push(['رقم المستند','النوع','المالك','القيمة','الحالة','حالة التوقيع']);
+            collectDocuments().forEach(d => rows.push([
+                d.document_id,
+                d.type,
+                sanitizeText(d.owner),
+                d.value || 0,
+                translateStatus(d.status),
+                signaturesByKey[getDocumentKey(d)]?.signature_status || 'غير موقع'
+            ]));
+
+            rows.push([]);
+            rows.push(['سجل التوقيعات']);
+            rows.push(['رقم السجل','المعرف','الإجراء','المستخدم','التاريخ','البصمة']);
+            logEntries.forEach(l => rows.push([
+                l.log_id || l.id,
+                l.document_key || l.document_id,
+                l.action,
+                l.user_name || l.user,
+                l.created_at || l.date,
+                l.fingerprint
+            ]));
+
+            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
+            downloadBlob(csvContent, 'سجل-التوقيعات.csv', 'text/csv;charset=utf-8;');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
         }
 
         function translateStatus(value) {
@@ -417,57 +627,7 @@
             return cleaned || '-';
         }
 
-        function downloadAllJSON() {
-            const payload = { invoices, payments, customers, requests, signatures };
-            downloadBlob(JSON.stringify(payload, null, 2), 'التوقيع-الالكتروني.json', 'application/json');
-        }
-
-        function downloadAllCSV() {
-            const rows = [];
-            rows.push(['الوثائق']);
-            rows.push(['رقم المستند','النوع','المالك','القيمة','الحالة','حالة التوقيع']);
-            collectDocuments().forEach(d => rows.push([
-                d.document_id,
-                d.type,
-                sanitizeText(d.owner),
-                d.value || 0,
-                translateStatus(d.status),
-                signatures[d.key]?.status || 'غير موقع'
-            ]));
-
-            rows.push([]);
-            rows.push(['سجل التوقيعات']);
-            rows.push(['رقم السجل','رقم المستند','الإجراء','المستخدم','التاريخ','البصمة']);
-            logEntries.forEach(l => rows.push([
-                l.id,
-                l.document_id,
-                l.action,
-                l.user,
-                l.date,
-                l.fingerprint
-            ]));
-
-            const csvContent = rows.map(r => r.map(v => `"${v ?? ''}"`).join(',')).join('\n');
-            downloadBlob(csvContent, 'سجل-التوقيعات.csv', 'text/csv;charset=utf-8;');
-        }
-
-        function downloadBlob(content, filename, type) {
-            const blob = new Blob([content], { type });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function printReport() {
-            window.print();
-        }
-
-        function refreshData() {
-            loadData();
-        }
+        function refreshData() { loadData(); }
 
         document.addEventListener('DOMContentLoaded', loadData);
     </script>
